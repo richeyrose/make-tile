@@ -29,3 +29,6 @@ def mode(mode_name):
 
 def select_all():
     bpy.ops.mesh.select_all(action="SELECT")
+
+def deselect_all():
+    bpy.ops.mesh.select_all(action="DESELECT")

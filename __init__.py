@@ -12,18 +12,18 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 bl_info = {
-    "name" : "MakeTile",
-    "author" : "RichardRose",
-    "description" : "",
+    "name" : "Make Tile",
+    "author" : "Richard Rose",
+    "description" : "Add on for creating 3d printable tiles",
     "blender" : (2, 80, 0),
     "version" : (0, 0, 1),
-    "location" : "",
+    "location" : "View3D > UI > Make-Tile",
     "warning" : "",
-    "category" : "Generic"
+    "category" : "3D View"
 }
 
-def register():
-    ...
+import bpy
 
-def unregister():
-    ...
+classes = ()
+
+register, unregister = bpy.utils.register_classes_factory(classes)

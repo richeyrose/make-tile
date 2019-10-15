@@ -115,5 +115,4 @@ def subdivide(cuts = 1):
 def randomize(intensity = 0.1):
     bpy.ops.transform.vertex_random(offset = intensity)
 
-def select_all():
-    bpy.ops.mesh.select_all(action="SELECT")   
+   

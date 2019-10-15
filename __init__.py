@@ -23,7 +23,10 @@ bl_info = {
 }
 
 import bpy
+import os
+from . ui.panels import MT_PT_Panel
+from . operators.maketile import MT_OT_makeTile
 
-classes = ()
+classes = (MT_OT_makeTile, MT_PT_Panel)
 
 register, unregister = bpy.utils.register_classes_factory(classes)

@@ -1,6 +1,6 @@
 import bpy
 import os
-from .. utils.ut import mode
+from .. utils.ut import mode, select_all
 
 
 def make_cuboid(size = [1.0, 1.0, 0.5]):
@@ -68,6 +68,7 @@ def make_wall(
     #check if we have a base
     if 0 not in base_size:
         
+        #make base
         make_cuboid(base_size)
         base = bpy.context.object
         base.name = tile_name + '.Base'

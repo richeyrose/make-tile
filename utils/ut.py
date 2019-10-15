@@ -27,3 +27,5 @@ def mode(mode_name):
         if mode_name == "EDIT":
             bpy.ops.mesh.select_all(action="DESELECT")
 
+def select_all():
+    bpy.ops.mesh.select_all(action="SELECT")

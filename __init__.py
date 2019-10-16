@@ -26,7 +26,8 @@ import bpy
 import os
 from . ui.panels import MT_PT_Panel
 from . operators.maketile import MT_OT_makeTile
+from . operators.makevertgroups import MT_OT_makeVertGroupsFromFaces
 
-classes = (MT_OT_makeTile, MT_PT_Panel)
+classes = (MT_OT_makeTile, MT_PT_Panel, MT_OT_makeVertGroupsFromFaces)
 
 register, unregister = bpy.utils.register_classes_factory(classes)

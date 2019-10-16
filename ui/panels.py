@@ -16,3 +16,4 @@ class MT_PT_Panel(bpy.types.Panel):
         lay.prop(scn, 'mt_tile_type')
         lay.prop(scn, 'mt_base_size')
         lay.prop(scn, 'mt_tile_size')
+        lay.operator('scene.make_vert_groups_from_faces', text = "Make vert groups")

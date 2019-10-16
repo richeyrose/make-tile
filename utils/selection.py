@@ -3,12 +3,12 @@ import bmesh
 import mathutils
 
 #gets local object center relative to origin
-def get_local_object_center(object):
+def get_local_bbox_center(object):
     local_bbox_center = 0.125 * sum((Vector(b) for b in object.bound_box), Vector())
     return local_bbox_center
 
 #gets global object center
-def get_global_object_center(object):
+def get_global_bbox_center(object):
     local_bbox_center = get_local_object_center(object)
     global_bbox_center = object.matrix_world @ local_bbox_center
     return global_bbox_center

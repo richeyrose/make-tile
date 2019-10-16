@@ -59,11 +59,18 @@ def make_cuboid(size = [1.0, 1.0, 0.5]):
 #makes a vertex group for each face of cuboid
 # and assigns vertices to it
 def cuboid_faces_to_vert_groups():
-    
-    ob = bpy.context.object
-    dimensions = ob.dimensions
-    mode('EDIT')
 
+    mode('OBJECT')    
+    ob = bpy.context.object
+    dim = ob.dimensions / 2
+
+    #get original location of object origin and of cursor
+    ob_original_loc = ob.location.copy()
+    cursor_original_loc = bpy.context.scene.cursor.location.copy()
+    
+    #set origin to center of bounds
+    bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center = 'BOUNDS')
+    
     #make vertex groups
     XNeg = ob.vertex_groups.new(name='XNeg')    
     XPos = ob.vertex_groups.new(name='XPos')
@@ -71,11 +78,13 @@ def cuboid_faces_to_vert_groups():
     YPos = ob.vertex_groups.new(name='YPos')
     ZNeg = ob.vertex_groups.new(name='ZNeg')
     ZPos = ob.vertex_groups.new(name='ZPos')
+    
+    mode('EDIT')
 
     #select XNeg and assign to XNeg
     select_by_loc(
-        lbound = [0.0,0.0,0.0],
-        ubound = [0.0, dimensions[1], dimensions[2]],
+        lbound = -dim,
+        ubound = [-dim[0], dim[1], dim[2]],
         select_mode = 'VERT',
         coords = 'LOCAL',
         additive = True)
@@ -87,8 +96,11 @@ def cuboid_faces_to_vert_groups():
 
     #select XPos and assign to XPos
     select_by_loc(
-        [dimensions[0],0.0,0.0], 
-        [dimensions[0], dimensions[1], dimensions[2]])
+        lbound = [dim[0],-dim[1], -dim[2]],
+        ubound = [dim[0], dim[1], dim[2]],
+        select_mode = 'VERT',
+        coords = 'LOCAL',
+        additive = True)
     bpy.ops.object.vertex_group_set_active(group ='XPos')
     bpy.ops.object.vertex_group_assign()
 
@@ -96,8 +108,11 @@ def cuboid_faces_to_vert_groups():
 
     #select YNeg and assign to YNeg
     select_by_loc(
-        [0.0,0.0,0.0], 
-        [dimensions[0], 0, dimensions[2]])
+        lbound = -dim,
+        ubound = [dim[0], -dim[1], dim[2]],
+        select_mode = 'VERT',
+        coords = 'LOCAL',
+        additive = True)
     bpy.ops.object.vertex_group_set_active(group ='YNeg')
     bpy.ops.object.vertex_group_assign()
 
@@ -105,8 +120,11 @@ def cuboid_faces_to_vert_groups():
 
     #select YPos and assign to YPos
     select_by_loc(
-        [0.0,dimensions[1],0.0], 
-        [dimensions[0], dimensions[1], dimensions[2]])
+        lbound = [-dim[0], dim[1], -dim[2]],
+        ubound = [dim[0], dim[1], dim[2]],
+        select_mode = 'VERT',
+        coords = 'LOCAL',
+        additive = True)
     bpy.ops.object.vertex_group_set_active(group ='YPos')
     bpy.ops.object.vertex_group_assign()
 
@@ -114,8 +132,11 @@ def cuboid_faces_to_vert_groups():
 
     #select ZNeg and assign to ZNeg
     select_by_loc(
-        [0.0,0.0,0.0], 
-        [dimensions[0], dimensions[1], 0.0])
+        lbound = -dim,
+        ubound = [dim[0], dim[1], -dim[2]],
+        select_mode = 'VERT',
+        coords = 'LOCAL',
+        additive = True)
     bpy.ops.object.vertex_group_set_active(group ='ZNeg')
     bpy.ops.object.vertex_group_assign()
 
@@ -123,12 +144,22 @@ def cuboid_faces_to_vert_groups():
 
     #select ZPos and assign to ZPos
     select_by_loc(
-        [0.0,0.0,dimensions[2]], 
-        [dimensions[0], dimensions[1], dimensions[2]])
+        lbound = [-dim[0],-dim[1],dim[2]],
+        ubound = [dim[0], dim[1], dim[2]],
+        select_mode = 'VERT',
+        coords = 'LOCAL',
+        additive = True)
     bpy.ops.object.vertex_group_set_active(group ='ZPos')
     bpy.ops.object.vertex_group_assign()
 
     deselect_all()
+
+    mode('OBJECT')
+
+    #reset cursor and object origin
+    bpy.context.scene.cursor.location = ob_original_loc
+    bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
+    bpy.context.scene.cursor.location = cursor_original_loc
 
 def make_wall(
     tile_name = 'Wall',

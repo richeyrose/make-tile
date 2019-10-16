@@ -2,6 +2,17 @@ import bpy
 import bmesh
 import mathutils
 
+#gets local object center relative to origin
+def get_local_object_center(object):
+    local_bbox_center = 0.125 * sum((Vector(b) for b in object.bound_box), Vector())
+    return local_bbox_center
+
+#gets global object center
+def get_global_object_center(object):
+    local_bbox_center = get_local_object_center(object)
+    global_bbox_center = object.matrix_world @ local_bbox_center
+    return global_bbox_center
+
 def scene_bounding_box():
     # Get names of all meshes in scene
     mesh_names = [v.name for v in bpy.context.scene.objects if v.type == 'MESH']

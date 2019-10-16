@@ -10,18 +10,11 @@ class MT_OT_makeTile(bpy.types.Operator):
         make_tile(
             tile_system = context.scene.mt_tile_system, 
             tile_type = context.scene.mt_tile_type, 
-            tile_name = context.scene.mt_tile_name, 
             tile_size = context.scene.mt_tile_size, 
-            base_size = context.scene.mt_base_size
+            base_size = context.scene.mt_base_size,
         )
-        return {'FINISHED'}
 
-    @classmethod
-    def get_tile_name():
-        tile_enum = bpy.context.scene.mt_tile_type
-        for i in tile_types:
-            if tile_enum in i:
-                return i[1]
+        return {'FINISHED'}
 
     @classmethod
     def register(cls):
@@ -50,10 +43,6 @@ class MT_OT_makeTile(bpy.types.Operator):
             default = "WALL",
         )
 
-        bpy.types.Scene.mt_tile_name = bpy.props.StringProperty(
-            name = "Tile Name",
-        )
-
         bpy.types.Scene.mt_tile_size = bpy.props.FloatVectorProperty(
             name = "Tile Size",
             default = (2.0, 0.5, 2.0),
@@ -75,6 +64,5 @@ class MT_OT_makeTile(bpy.types.Operator):
         print("Unregistered class: %s" % cls.bl_label)
         del bpy.types.Scene.mt_base_size
         del bpy.types.Scene.mt_tile_size
-        del bpy.types.Scene.mt_tile_name
         del bpy.types.Scene.mt_tile_type
         del bpy.types.Scene.mt_tile_system

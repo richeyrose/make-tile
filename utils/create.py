@@ -58,7 +58,7 @@ def make_cuboid(size = [1.0, 1.0, 0.5]):
 
 #makes a vertex group for each face of cuboid
 # and assigns vertices to it
-def cuboid_face_to_vert_groups():
+def cuboid_faces_to_vert_groups():
     
     ob = bpy.context.object
     dimensions = ob.dimensions
@@ -146,7 +146,7 @@ def make_wall(
         base = bpy.context.object
         base.name = tile_name + '.Base'
         
-        cuboid_face_to_vert_groups()
+        cuboid_faces_to_vert_groups()
 
         mode('OBJECT')
         
@@ -160,7 +160,7 @@ def make_wall(
         wall = bpy.context.object
         wall.name = tile_name
         
-        cuboid_face_to_vert_groups()
+        cuboid_faces_to_vert_groups()
 
         mode('OBJECT')
         
@@ -180,7 +180,7 @@ def make_wall(
         wall = bpy.context.object
         wall.name = tile_name
 
-        cuboid_face_to_vert_groups()
+        cuboid_faces_to_vert_groups()
 
         mode('OBJECT')
         
@@ -194,21 +194,24 @@ def make_wall(
         return (base, wall)
 
 def make_tile(
-    tile_system = 'OPENLOCK', 
-    tile_type = 'WALL', 
-    tile_name = 'Wall', 
-    tile_size = [2.0, 0.5, 2.0], 
-    base_size = [0.0, 0.0, 0.0]):
+    tile_system, 
+    tile_type, 
+    tile_size, 
+    base_size):
     
+    tile_name = tile_system.title() + tile_type.title()
+
     if tile_type == 'WALL':
         make_wall(tile_name, tile_size, base_size)
         
     elif tile_type == 'FLOOR':
-        make_floor(tile_size)
+        make_floor(tile_name, tile_size)
         
     else:
         return False
 
 def make_floor(
+    tile_name = 'Floor',
     tile_size = [2.0, 2.0, 0.3]):
     return {'FINISHED'}
+

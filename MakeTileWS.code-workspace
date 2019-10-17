@@ -8,7 +8,7 @@
 		"python.linting.enabled": true,
 		"python.autoComplete.extraPaths": ["e:/BlenderScripts/Autocomplete/2.80"],
 		"python.linting.pylintArgs": [
-			"--inti-hook",
+			"--init-hook",
 			"import sys; sys.path.append('e:/BlenderScripts/Autocomplete/2.80')"
 		]
 

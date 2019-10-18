@@ -1,7 +1,5 @@
-import os
 import bpy
 from . ut import mode, select_all
-from . vertex_groups import cuboid_sides_to_vert_groups
 
 def make_cuboid(size):
     #add vert
@@ -56,6 +54,7 @@ def make_cuboid(size):
          "snap":False,
          "gpencil_strokes":False,
          "cursor_transform":False,})
+    return (bpy.context.object)
 
 def make_wall(
         tile_name,
@@ -69,9 +68,8 @@ def make_wall(
     if 0 not in base_size:
 
         #make base
-        make_cuboid(base_size)
-        base = bpy.context.object
-        base.name = tile_name + '.Base'
+        base = make_cuboid(base_size)
+        base.name = tile_name + '.base'
 
         mode('OBJECT')
 
@@ -81,8 +79,7 @@ def make_wall(
         bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
 
         #make wall
-        make_cuboid([tile_size[0], tile_size[1], tile_size[2] - base_size[2]])
-        wall = bpy.context.object
+        wall = make_cuboid([tile_size[0], tile_size[1], tile_size[2] - base_size[2]])
         wall.name = tile_name
 
         mode('OBJECT')
@@ -97,8 +94,7 @@ def make_wall(
         return (base, wall)
 
     #make wall
-    make_cuboid(tile_size)
-    wall = bpy.context.object
+    wall = make_cuboid(tile_size)
     wall.name = tile_name
 
     mode('OBJECT')
@@ -112,13 +108,35 @@ def make_wall(
 
     return (base, wall)
 
+def make_openlock_base_slot_bool(base_size, base_name):
+
+    #move cursor to origin
+    bpy.context.scene.cursor.location = [0, 0, 0]
+
+    #work out bool size from base size
+    bool_size = [
+        base_size[0] - (0.236 * 2),
+        base_size[1] - 0.0787 - 0.236,
+        0.25,]
+
+    base_bool = make_cuboid(bool_size)
+    base_bool.name = base_name + "cutter.slot"
+
+    #move base_bool so centred and set origin to world origin + z = 0.01 
+    # (to avoid z fighting)
+
+    base_bool.location = (-bool_size[0] / 2, -bool_size[1] / 2, 0)
+    bpy.context.scene.cursor.location = [0, 0, 0]
+    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+
 def make_tile(
         tile_system,
         tile_type,
         tile_size,
         base_size):
 
-    tile_name = tile_system.title() + tile_type.title()
+#TODO: change this so all lower case
+    tile_name = tile_system.title() + "." + tile_type.title()
 
     if tile_type == 'WALL':
         make_wall(tile_name, tile_size, base_size)

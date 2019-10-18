@@ -1,4 +1,3 @@
-import os
 import bpy
 from . ut import mode, deselect_all
 from . selection import select_by_loc

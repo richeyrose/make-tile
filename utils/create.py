@@ -57,6 +57,7 @@ def make_cuboid(size):
     return (bpy.context.object)
 
 def make_wall(
+        tile_system,
         tile_name,
         tile_size,
         base_size):
@@ -78,6 +79,14 @@ def make_wall(
         bpy.context.scene.cursor.location = [0, 0, 0]
         bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
 
+        '''OpenLOCK options'''
+        if tile_system == 'OPENLOCK':
+            slot_cutter = make_openlock_base_slot_cutter(base)
+            slot_boolean = base.modifiers.new(slot_cutter.name, 'BOOLEAN')
+            slot_boolean.object = slot_cutter
+            slot_cutter.parent = base
+            slot_cutter.display_type = 'BOUNDS'
+        
         #make wall
         wall = make_cuboid([tile_size[0], tile_size[1], tile_size[2] - base_size[2]])
         wall.name = tile_name
@@ -108,46 +117,78 @@ def make_wall(
 
     return (base, wall)
 
-def make_openlock_base_slot_bool(base_size, base_name):
+def make_openlock_base_slot_cutter(base):
+    """Makes a cutter for the openlock base slot
+    
+    Keyword arguments:
+    object -- base the cutter will be used on 
+    """
+    cursor = bpy.context.scene.cursor
+    mode('OBJECT')
+    base_dim = base.dimensions
 
+    #get original location of object and cursor
+    base_loc = base.location.copy()
+    cursor_original_loc = cursor.location.copy()
+    
     #move cursor to origin
-    bpy.context.scene.cursor.location = [0, 0, 0]
+    cursor.location = [0, 0, 0]
 
     #work out bool size from base size
     bool_size = [
-        base_size[0] - (0.236 * 2),
-        base_size[1] - 0.0787 - 0.236,
+        base_dim[0] - (0.236 * 2),
+        base_dim[1] - 0.0787 - 0.236,
         0.25,]
 
-    base_bool = make_cuboid(bool_size)
-    base_bool.name = base_name + "cutter.slot"
+    cutter = make_cuboid(bool_size)
+    cutter.name = base.name + ".cutter.slot"
 
-    #move base_bool so centred and set origin to world origin + z = 0.01 
+    mode('OBJECT')
+
+    #move cutter so centred and set cutter origin to world origin + z = -0.01
     # (to avoid z fighting)
-
-    base_bool.location = (-bool_size[0] / 2, -bool_size[1] / 2, 0)
-    bpy.context.scene.cursor.location = [0, 0, 0]
+    cutter.location = (-bool_size[0] / 2, -bool_size[1] / 2, 0)
+    cursor.location = [0.0, 0.0, 0.01]
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+
+    #reset cursor location
+    cursor.location = cursor_original_loc
+
+    #set cutter location to base origin
+    cutter.location = base_loc
+
+    return (cutter)
 
 def make_tile(
         tile_system,
         tile_type,
         tile_size,
         base_size):
+    """spawns a tile at world origin.
 
-#TODO: change this so all lower case
-    tile_name = tile_system.title() + "." + tile_type.title()
+        Keyword arguments:
+        tile_system -- which tile system the tile will use. ENUM
+        tile_type -- e.g. 'WALL', 'FLOOR', 'DOORWAY', 'ROOF'
+        tile_size -- [x, y, z]
+        base_size -- if tile has a base [x, y, z]
+    """
+    #TODO: check to see if tile, cutters, props and greebles
+    # collections exist and create if not
+    tile_name = tile_system.lower() + "." + tile_type.lower()
 
     if tile_type == 'WALL':
-        make_wall(tile_name, tile_size, base_size)
+        make_wall(tile_system, tile_name, tile_size, base_size)
+        return {'FINISHED'}
 
     elif tile_type == 'FLOOR':
-        make_floor(tile_name, tile_size)
+        make_floor(tile_system, tile_name, tile_size)
+        return {'FINSIHED'}
 
     else:
         return False
 
 def make_floor(
+        tile_system,
         tile_name,
         tile_size):
     return {'FINISHED'}

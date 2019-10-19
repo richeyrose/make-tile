@@ -2,16 +2,17 @@ import bpy
 from . ut import mode, deselect_all
 from . selection import select_by_loc
 
-#makes a vertex group for each side of cuboid
-# and assigns vertices to it
+
 def cuboid_sides_to_vert_groups():
+    """makes a vertex group for each side of cuboid
+    and assigns vertices to it"""
 
     mode('OBJECT')
     obj = bpy.context.object
     dim = obj.dimensions / 2
 
     #get original location of object origin and of cursor
-    ob_original_loc = obj.location.copy()
+    obj_original_loc = obj.location.copy()
     cursor_original_loc = bpy.context.scene.cursor.location.copy()
 
     #set origin to center of bounds
@@ -103,6 +104,6 @@ def cuboid_sides_to_vert_groups():
     mode('OBJECT')
 
     #reset cursor and object origin
-    bpy.context.scene.cursor.location = ob_original_loc
+    bpy.context.scene.cursor.location = obj_original_loc
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
     bpy.context.scene.cursor.location = cursor_original_loc

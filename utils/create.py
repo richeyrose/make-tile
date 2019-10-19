@@ -119,9 +119,10 @@ def make_wall(
 
 def make_openlock_base_slot_cutter(base):
     """Makes a cutter for the openlock base slot
-    
+    based on the width of the base
+
     Keyword arguments:
-    object -- base the cutter will be used on 
+    object -- base the cutter will be used on
     """
     cursor = bpy.context.scene.cursor
     mode('OBJECT')
@@ -134,10 +135,10 @@ def make_openlock_base_slot_cutter(base):
     #move cursor to origin
     cursor.location = [0, 0, 0]
 
-    #work out bool size from base size
+    #work out bool size X from base size, y and z are constants
     bool_size = [
         base_dim[0] - (0.236 * 2),
-        base_dim[1] - 0.0787 - 0.236,
+        0.197,
         0.25,]
 
     cutter = make_cuboid(bool_size)
@@ -147,7 +148,7 @@ def make_openlock_base_slot_cutter(base):
 
     #move cutter so centred and set cutter origin to world origin + z = -0.01
     # (to avoid z fighting)
-    cutter.location = (-bool_size[0] / 2, -bool_size[1] / 2, 0)
+    cutter.location = (-bool_size[0] / 2, -0.014, 0)
     cursor.location = [0.0, 0.0, 0.01]
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
 

@@ -157,9 +157,9 @@ def make_openlock_base_slot_cutter(base):
 
     #work out bool size X from base size, y and z are constants
     bool_size = [
-        base_dim[0] - (0.236 * 2),
-        0.197,
-        0.25,]
+        base_dim[0] - ((0.236 * 2) * 2.54),
+        0.197 * 2.54,
+        0.25 * 2.54,]
 
     cutter = make_cuboid(bool_size)
     cutter.name = base.name + ".cutter.slot"
@@ -168,8 +168,8 @@ def make_openlock_base_slot_cutter(base):
 
     #move cutter so centred and set cutter origin to world origin + z = -0.01
     # (to avoid z fighting)
-    cutter.location = (-bool_size[0] / 2, -0.014, 0)
-    cursor.location = [0.0, 0.0, 0.01]
+    cutter.location = (-bool_size[0] / 2, -(0.014 * 2.54), 0)
+    cursor.location = [0.0, 0.0, 0.01 * 2.54]
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
 
     #reset cursor location
@@ -195,7 +195,18 @@ def make_tile(
     """
     #TODO: check to see if tile, cutters, props and greebles
     # collections exist and create if not
+    
+    #construct tile name based on system and type. 
     tile_name = tile_system.lower() + "." + tile_type.lower()
+
+    if tile_system == 'OPENLOCK' or tile_system == 'PLAIN_IMPERIAL':
+        #Switch unit display to inches
+        bpy.context.scene.unit_settings.system = 'IMPERIAL'
+        bpy.context.scene.unit_settings.length_unit = 'INCHES'
+        bpy.context.scene.unit_settings.scale_length = 0.01
+
+        tile_size = tile_size * 2.54
+        base_size = base_size * 2.54
 
     if tile_type == 'WALL':
         make_wall(tile_system, tile_name, tile_size, base_size)

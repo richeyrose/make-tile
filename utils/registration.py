@@ -3,7 +3,7 @@ import bpy
 
 # File and directory handling
 def get_path():
-    """returns file path of calling file"""
+    """returns addon path"""
     return os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 def get_addon_name():

@@ -22,9 +22,10 @@ bl_info = {
     "category" : "3D View"
 }
 
-import bpy
+
 import os
-from bpy.props import StringProperty
+import bpy
+
 from . ui.panels import MT_PT_Panel
 from . operators.maketile import MT_OT_makeTile
 from . operators.makevertgroups import MT_OT_makeVertGroupsFromFaces
@@ -33,6 +34,4 @@ from . preferences import MT_MakeTilePreferences
 classes = (MT_OT_makeTile, MT_PT_Panel, MT_OT_makeVertGroupsFromFaces, MT_MakeTilePreferences)
 
 register, unregister = bpy.utils.register_classes_factory(classes)
-
-
 

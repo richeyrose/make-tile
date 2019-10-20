@@ -27,8 +27,25 @@ def mode(mode_name):
         if mode_name == "EDIT":
             bpy.ops.mesh.select_all(action="DESELECT")
 
+#todo ensure these work in obejct mode as well as mesh mode
 def select_all():
-    bpy.ops.mesh.select_all(action="SELECT")
+    current_mode = bpy.context.object.mode
+    if current_mode == 'EDIT':
+        bpy.ops.mesh.select_all(action="SELECT")
+        return {'FINSIHED'}
+    elif current_mode == 'OBJECT':
+        bpy.ops.object.select_all(action="SELECT")
+        return {'FINISHED'}
+    else:
+        return {'FINSIHED'}
 
 def deselect_all():
-    bpy.ops.mesh.select_all(action="DESELECT")
+    current_mode = bpy.context.object.mode
+    if current_mode == 'EDIT':
+        bpy.ops.mesh.select_all(action="DESELECT")
+        return {'FINSIHED'}
+    elif current_mode == 'OBJECT':
+        bpy.ops.object.select_all(action="DESELECT")
+        return {'FINISHED'}
+    else:
+        return {'FINSIHED'}

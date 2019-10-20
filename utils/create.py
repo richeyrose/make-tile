@@ -1,6 +1,8 @@
+import os
 import bpy
-from . ut import mode, select_all
+from . ut import mode, select_all, deselect_all
 from . registration import get_addon_name
+from . registration import get_path
 
 def make_cuboid(size):
     #add vert
@@ -95,7 +97,7 @@ def make_wall(
             slot_boolean.object = slot_cutter
             slot_cutter.parent = base
             slot_cutter.display_type = 'BOUNDS'
-        
+
         #make wall
         wall = make_cuboid([tile_size[0], tile_size[1], tile_size[2] - base_size[2]])
         wall.name = tile_name
@@ -111,8 +113,12 @@ def make_wall(
 
         #OpenLOCK wall options
         if tile_system == 'OPENLOCK':
-            assets_path = bpy.context.preferences.addons[get_addon_name()].preferences.assets_path
             
+            deselect_all()
+
+            booleans_path = os.path.join(get_path(), "assets", "meshes", "booleans", "openlock.blend")
+            bpy.ops.wm.append(directory=booleans_path + "\\Object\\", filename="openlock.wall.cutter.side", autoselect=True)
+            side_cutter = bpy.context.selected_objects[0]     
 
         return (base, wall)
 
@@ -145,7 +151,7 @@ def make_openlock_base_slot_cutter(base):
     #get original location of object and cursor
     base_loc = base.location.copy()
     cursor_original_loc = cursor.location.copy()
-    
+
     #move cursor to origin
     cursor.location = [0, 0, 0]
 

@@ -12,33 +12,27 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 bl_info = {
-    "name" : "Make Tile",
+    "name" : "MakeTile",
     "author" : "Richard Rose",
     "description" : "Add on for creating 3d printable tiles",
     "blender" : (2, 80, 0),
     "version" : (0, 0, 1),
-    "location" : "View3D > UI > Make-Tile",
+    "location" : "View3D > UI > MakeTile",
     "warning" : "",
     "category" : "3D View"
 }
 
 import bpy
 import os
+from bpy.props import StringProperty
 from . ui.panels import MT_PT_Panel
 from . operators.maketile import MT_OT_makeTile
 from . operators.makevertgroups import MT_OT_makeVertGroupsFromFaces
-from . preferences import MT_makeTilePreferences
-from . utils.registration import get_path_name, get_path
+from . preferences import MT_MakeTilePreferences
 
-#Begin debug block
-
-#TODO: delete below debug messages
-print("get_path: " + get_path())
-print("get_path_name: " + get_path_name())
-
-#End debug block
-
-
-classes = (MT_OT_makeTile, MT_PT_Panel, MT_OT_makeVertGroupsFromFaces, MT_makeTilePreferences)
+classes = (MT_OT_makeTile, MT_PT_Panel, MT_OT_makeVertGroupsFromFaces, MT_MakeTilePreferences)
 
 register, unregister = bpy.utils.register_classes_factory(classes)
+
+
+

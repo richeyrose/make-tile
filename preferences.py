@@ -1,18 +1,20 @@
 # based on DECALmachine # 
-
 import os
-import bpy
 import shutil
+import bpy
 from bpy.props import StringProperty
-from . utils.registration import get_path, get_path_name
+from . utils.registration import get_path
 from . utils.system import makedir, abspath
 
-class MT_makeTilePreferences(bpy.types.AddonPreferences):
+class MT_MakeTilePreferences(bpy.types.AddonPreferences):
+    '''contains methods and properties for setting addon preferences'''
+
+    bl_idname = __package__
     path = get_path()
-    bl_idname = get_path_name()
 
     #asset libraries
     def update_assetspath(self, context):
+        '''method to update the asset path'''
         if self.avoid_update:
             self.avoid_update = False
             return
@@ -41,21 +43,23 @@ class MT_makeTilePreferences(bpy.types.AddonPreferences):
             self.assets_path = new_path
 
             # reload assets
-
+            reload_asset_libraries()
 
     assets_path: StringProperty(
         name="Assets Libraries",
         subtype='DIR_PATH',
         default=os.path.join(path, "assets"),
-        update=update_assetspath)
+        update=update_assetspath
+        )
 
     old_path: StringProperty(
-        name="Old Path", 
-        subtype='DIR_PATH', 
-        default=os.path.join(path, "assets"))
-
+        name="Old Path",
+        subtype='DIR_PATH',
+        default=os.path.join(path, "assets")
+        )
+        
     def draw(self, context):
-        layout = self. layout
-        layout. label(text='Assets Path')
+        layout = self.layout
+        layout.label(text='Assets Path')
         row = layout.row()
         row.prop(self, 'assets_path')

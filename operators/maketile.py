@@ -13,9 +13,9 @@ class MT_OT_makeTile(bpy.types.Operator):
             tile_size = context.scene.mt_tile_size, 
             base_size = context.scene.mt_base_size,
         )
-
+        
         return {'FINISHED'}
-
+    
     @classmethod
     def register(cls):
         print("Registered class: %s " % cls.bl_label)

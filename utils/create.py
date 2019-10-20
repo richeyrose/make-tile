@@ -1,5 +1,6 @@
 import bpy
 from . ut import mode, select_all
+from . registration import get_addon_name
 
 def make_cuboid(size):
     #add vert
@@ -56,12 +57,20 @@ def make_cuboid(size):
          "cursor_transform":False,})
     return (bpy.context.object)
 
+#TODO: make seperate make_wall_base method and ensure this only returns wall
 def make_wall(
         tile_system,
         tile_name,
         tile_size,
         base_size):
+    '''Makes a wall tile and returns bot it and the base if a base is created.
 
+    Keyword arguments:
+    tile_system -- What tile system to usee e.g. OpenLOCK, DragonLOCK, plain
+    tile_name   -- name
+    tile_size   -- [x, y, z]
+    base_size   -- [x, y, z]
+    '''
     #move cursor to origin
     bpy.context.scene.cursor.location = [0, 0, 0]
 
@@ -79,7 +88,7 @@ def make_wall(
         bpy.context.scene.cursor.location = [0, 0, 0]
         bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
 
-        '''OpenLOCK options'''
+        '''OpenLOCK base options'''
         if tile_system == 'OPENLOCK':
             slot_cutter = make_openlock_base_slot_cutter(base)
             slot_boolean = base.modifiers.new(slot_cutter.name, 'BOOLEAN')
@@ -99,6 +108,11 @@ def make_wall(
         bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
         #parent wall to base
         wall.parent = base
+
+        #OpenLOCK wall options
+        if tile_system == 'OPENLOCK':
+            assets_path = bpy.context.preferences.addons[get_addon_name()].preferences.assets_path
+            
 
         return (base, wall)
 

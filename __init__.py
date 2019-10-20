@@ -27,7 +27,18 @@ import os
 from . ui.panels import MT_PT_Panel
 from . operators.maketile import MT_OT_makeTile
 from . operators.makevertgroups import MT_OT_makeVertGroupsFromFaces
+from . preferences import MT_makeTilePreferences
+from . utils.registration import get_path_name, get_path
 
-classes = (MT_OT_makeTile, MT_PT_Panel, MT_OT_makeVertGroupsFromFaces)
+#Begin debug block
+
+#TODO: delete below debug messages
+print("get_path: " + get_path())
+print("get_path_name: " + get_path_name())
+
+#End debug block
+
+
+classes = (MT_OT_makeTile, MT_PT_Panel, MT_OT_makeVertGroupsFromFaces, MT_makeTilePreferences)
 
 register, unregister = bpy.utils.register_classes_factory(classes)

@@ -5,6 +5,7 @@ from . registration import get_addon_name
 from . registration import get_path
 
 def make_cuboid(size):
+    """Returns a cuboid"""
     #add vert
     bpy.ops.mesh.primitive_vert_add()
 
@@ -59,13 +60,11 @@ def make_cuboid(size):
          "cursor_transform":False,})
     return (bpy.context.object)
 
-#TODO: make seperate make_wall_base method and ensure this only returns wall
-def make_wall(
+def make_wall_base(
         tile_system,
         tile_name,
-        tile_size,
         base_size):
-    '''Makes a wall tile and returns bot it and the base if a base is created.
+    '''Returns a base for a wall tile
 
     Keyword arguments:
     tile_system -- What tile system to usee e.g. OpenLOCK, DragonLOCK, plain
@@ -73,69 +72,102 @@ def make_wall(
     tile_size   -- [x, y, z]
     base_size   -- [x, y, z]
     '''
-    #move cursor to origin
+    #make base
+    base = make_cuboid(base_size)
+    base.name = tile_name + '.base'
+
+    mode('OBJECT')
+
+    #move base so centred and set origin to world origin
+    base.location = (- base_size[0] / 2, - base_size[1] / 2, 0)
     bpy.context.scene.cursor.location = [0, 0, 0]
+    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
 
-    #check if we have a base
-    if 0 not in base_size:
+    #OpenLOCK base options
+    if tile_system == 'OPENLOCK':
+        slot_cutter = make_openlock_base_slot_cutter(base)
+        slot_boolean = base.modifiers.new(slot_cutter.name, 'BOOLEAN')
+        slot_boolean.operation = 'DIFFERENCE'
+        slot_boolean.object = slot_cutter
+        slot_cutter.parent = base
+        slot_cutter.display_type = 'BOUNDS'
 
-        #make base
-        base = make_cuboid(base_size)
-        base.name = tile_name + '.base'
+    return (base)
 
-        mode('OBJECT')
+def make_wall(
+        tile_system,
+        tile_name,
+        tile_size,
+        base_size):
+    '''Returns the wall part of a wall tile
 
-        #move base so centred and set origin to world origin
-        base.location = (- base_size[0] / 2, - base_size[1] / 2, 0)
-        bpy.context.scene.cursor.location = [0, 0, 0]
-        bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
-
-        '''OpenLOCK base options'''
-        if tile_system == 'OPENLOCK':
-            slot_cutter = make_openlock_base_slot_cutter(base)
-            slot_boolean = base.modifiers.new(slot_cutter.name, 'BOOLEAN')
-            slot_boolean.object = slot_cutter
-            slot_cutter.parent = base
-            slot_cutter.display_type = 'BOUNDS'
-
-        #make wall
-        wall = make_cuboid([tile_size[0], tile_size[1], tile_size[2] - base_size[2]])
-        wall.name = tile_name
-
-        mode('OBJECT')
-
-        #move wall so centred, move up so on top of base and set origin to world origin
-        wall.location = (-tile_size[0]/2, -tile_size[1] / 2, base_size[2])
-        bpy.context.scene.cursor.location = [0, 0, 0]
-        bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
-        #parent wall to base
-        wall.parent = base
-
-        #OpenLOCK wall options
-        if tile_system == 'OPENLOCK':
-            
-            deselect_all()
-
-            booleans_path = os.path.join(get_path(), "assets", "meshes", "booleans", "openlock.blend")
-            bpy.ops.wm.append(directory=booleans_path + "\\Object\\", filename="openlock.wall.cutter.side", autoselect=True)
-            side_cutter = bpy.context.selected_objects[0]     
-
-        return (base, wall)
-
+    Keyword arguments:
+    tile_system -- What tile system to usee e.g. OpenLOCK, DragonLOCK, plain
+    tile_name   -- name
+    tile_size   -- [x, y, z]
+    base_size   -- [x, y, z]
+    '''
     #make wall
-    wall = make_cuboid(tile_size)
+    wall = make_cuboid([tile_size[0], tile_size[1], tile_size[2] - base_size[2]])
     wall.name = tile_name
 
     mode('OBJECT')
 
-    #move wall so centred and set origin to world origin
-    wall.location = (-tile_size[0]/2, -tile_size[1] / 2, 0.0)
+    #move wall so centred, move up so on top of base and set origin to world origin
+    wall.location = (-tile_size[0]/2, -tile_size[1] / 2, base_size[2])
     bpy.context.scene.cursor.location = [0, 0, 0]
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
 
-    base = False
+    #OpenLOCK wall options
+    if tile_system == 'OPENLOCK':
+        wall_cutter = make_openlock_wall_cutters(wall, tile_size)
+        wall_cutter.parent = wall
+        wall_cutter.display_type = 'BOUNDS'
 
-    return (base, wall)
+        wall_cutter_bool = wall.modifiers.new('Wall Cutter', 'BOOLEAN')
+        wall_cutter_bool.operation = 'DIFFERENCE'
+        wall_cutter_bool.object = wall_cutter
+
+    return (wall)
+
+def make_openlock_wall_cutters(wall, tile_size):
+    """Creates the cutters for the wall and positions them correctly
+    
+    Keyword arguments:
+    wall -- wall object
+    tile_size --0 [x, y, z] Size of tile including any base but excluding any 
+    positive booleans
+    """
+    deselect_all()
+
+    booleans_path = os.path.join(get_path(), "assets", "meshes", "booleans", "openlock.blend")
+    bpy.ops.wm.append(directory=booleans_path + "\\Object\\", filename="openlock.wall.cutter.side", autoselect=True)
+    side_cutter = bpy.context.selected_objects[0]
+    
+    wall_location = wall.location
+    wall_size = tile_size
+
+    #get location of bottom front left corner of tile
+    front_left = [
+        wall_location[0] - (wall_size[0] / 2),
+        wall_location[1] - (wall_size[1] / 2),
+        0]
+    #move cutter to bottom front left corner then up by 0.63 inches
+    side_cutter.location = [
+        front_left[0],
+        front_left[1] + (wall_size[1] / 2),
+        front_left[2] + (0.63 * 2.54)]
+
+    array_mod = side_cutter.modifiers.new('Array', 'ARRAY')
+    array_mod.use_relative_offset = False
+    array_mod.use_constant_offset = True
+    array_mod.constant_offset_displace[2] = 0.75 * 2.54
+
+    mirror_mod = side_cutter.modifiers.new('Mirror', 'MIRROR')
+    mirror_mod.use_axis[0] = True
+    mirror_mod.mirror_object = wall
+
+    return(side_cutter)
 
 def make_openlock_base_slot_cutter(base):
     """Makes a cutter for the openlock base slot
@@ -185,7 +217,7 @@ def make_tile(
         tile_type,
         tile_size,
         base_size):
-    """spawns a tile at world origin.
+    """Returns a tile as a collection 
 
         Keyword arguments:
         tile_system -- which tile system the tile will use. ENUM
@@ -195,7 +227,8 @@ def make_tile(
     """
     #TODO: check to see if tile, cutters, props and greebles
     # collections exist and create if not
-    
+
+    #TODO: make method return a collection    
     #construct tile name based on system and type. 
     tile_name = tile_system.lower() + "." + tile_type.lower()
 
@@ -208,14 +241,18 @@ def make_tile(
         tile_size = tile_size * 2.54
         base_size = base_size * 2.54
 
-    if tile_type == 'WALL':
-        make_wall(tile_system, tile_name, tile_size, base_size)
-        return {'FINISHED'}
+        if tile_type == 'WALL':
+            base = make_wall_base(tile_system, tile_name, base_size)
+            wall = make_wall(tile_system, tile_name, tile_size, base_size)
+            wall.parent = base
+            return {'FINISHED'}
 
-    elif tile_type == 'FLOOR':
-        make_floor(tile_system, tile_name, tile_size)
-        return {'FINSIHED'}
+        elif tile_type == 'FLOOR':
+            make_floor(tile_system, tile_name, tile_size)
+            return {'FINISHED'}
 
+        else:
+            return False
     else:
         return False
 

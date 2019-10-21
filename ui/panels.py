@@ -8,6 +8,7 @@ class MT_PT_Panel(bpy.types.Panel):
     bl_space_type   = "VIEW_3D"
     bl_region_type  = "UI"
 
+    #TODO: refine so base size not shown excep when creating generic tile
     def draw(self, context):
         scn = context.scene
         lay = self.layout

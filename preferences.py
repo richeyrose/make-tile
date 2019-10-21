@@ -2,10 +2,10 @@
 import os
 import shutil
 import bpy
-from bpy.props import StringProperty
+from bpy.props import StringProperty, EnumProperty, BoolProperty
 from . utils.registration import get_path
 from . utils.system import makedir, abspath
-
+from . enums.enums import tile_systems, tile_units
 class MT_MakeTilePreferences(bpy.types.AddonPreferences):
     '''contains methods and properties for setting addon preferences'''
 
@@ -45,8 +45,10 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
             # reload assets
             reload_asset_libraries()
 
+
     assets_path: StringProperty(
         name="Assets Libraries",
+        description="Path to Assets Libraries",
         subtype='DIR_PATH',
         default=os.path.join(path, "assets"),
         update=update_assetspath
@@ -57,9 +59,38 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
         subtype='DIR_PATH',
         default=os.path.join(path, "assets")
         )
-        
+    
+    default_units: EnumProperty(
+        items=tile_units,
+        description="Units to use",
+        name="Tile Units",
+        default="IMPERIAL"
+    )
+    default_tile_system: EnumProperty(
+        items=tile_systems,
+        description="Default tile system to use",
+        name="Tile System",
+        default="OPENLOCK",
+    )
+
+    default_base_system: EnumProperty(
+        items=tile_systems,
+        description="Default base system to use",
+        name="Base System",
+        default="CUSTOM",
+    )
+
+    default_bhas_base: BoolProperty(
+        name="Seperate Base",
+        description="Do walls, steps etc. have seperate bases",
+        default=False,
+    )
+
     def draw(self, context):
         layout = self.layout
-        layout.label(text='Assets Path')
-        row = layout.row()
-        row.prop(self, 'assets_path')
+        row = layout.row()  
+        layout.prop(self, 'assets_path')
+        layout.prop(self, 'default_units')
+        layout.prop(self, 'default_tile_system')
+        layout.prop(self, 'default_base_system')
+        layout.prop(self, 'default_bhas_base')

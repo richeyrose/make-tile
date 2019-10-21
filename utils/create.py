@@ -217,6 +217,7 @@ def make_tile(
         tile_units,
         tile_system,
         tile_type,
+        bhas_base,
         tile_size,
         base_size):
     """Returns a tile as a collection 
@@ -234,26 +235,23 @@ def make_tile(
     #construct tile name based on system and type.
     tile_name = tile_system.lower() + "." + tile_type.lower()
 
-    if tile_system == 'OPENLOCK' or tile_system == 'PLAIN_IMPERIAL':
+    if tile_units == 'IMPERIAL':
         #Switch unit display to inches
         bpy.context.scene.unit_settings.system = 'IMPERIAL'
         bpy.context.scene.unit_settings.length_unit = 'INCHES'
         bpy.context.scene.unit_settings.scale_length = 0.01
 
-        if tile_type == 'WALL':
-            base = make_wall_base(tile_system, tile_name, base_size)
-            wall = make_wall(tile_system, tile_name, tile_size, base_size)
-            wall.parent = base
-            return {'FINISHED'}
+    if tile_type == 'WALL':
+        base = make_wall_base(tile_system, tile_name, base_size)
+        wall = make_wall(tile_system, tile_name, tile_size, base_size)
+        wall.parent = base
+        return {'FINISHED'}
 
-        elif tile_type == 'FLOOR':
-            make_floor(tile_system, tile_name, tile_size)
-            return {'FINISHED'}
+    if tile_type == 'FLOOR':
+        make_floor(tile_system, tile_name, tile_size)
+        return {'FINISHED'}
 
-        else:
-            return False
-    else:
-        return False
+    return {'CANCELLED'}
 
 def make_floor(
         tile_system,

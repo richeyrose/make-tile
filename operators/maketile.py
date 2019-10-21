@@ -1,6 +1,8 @@
 """Contains operator class to make tiles"""
 import bpy
 from .. utils.create import make_tile
+from .. enums.enums import tile_systems, tile_types, tile_units, base_types
+from .. utils.registration import get_prefs
 
 class MT_OT_Make_Tile(bpy.types.Operator):
     """Operator class used to create tiles"""
@@ -8,11 +10,14 @@ class MT_OT_Make_Tile(bpy.types.Operator):
     bl_label = "Create a tile"
 
     def execute(self, context):
+
         tile_system = context.scene.mt_tile_system
         tile_type = context.scene.mt_tile_type
         tile_size = context.scene.mt_tile_size
+        bhas_base = context.scene.mt_bhas_base
         base_size = context.scene.mt_base_size
         tile_units = context.scene.mt_tile_units
+        base_type = context.scene.mt_base_type
 
         if tile_system == 'OPENLOCK':
             tile_units = 'IMPERIAL'
@@ -25,6 +30,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             tile_units,
             tile_system,
             tile_type,
+            bhas_base,
             tile_size,
             base_size,
         )
@@ -34,38 +40,30 @@ class MT_OT_Make_Tile(bpy.types.Operator):
     @classmethod
     def register(cls):
         print("Registered class: %s " % cls.bl_label)
-
-        #Menus for EnumProperty's
-        tile_units = [
-            ("METRIC", "Metric", "", 1),
-            ("IMPERIAL", "Imperial", "", 2),
-        ]
-
-        tile_systems = [
-            ("OPENLOCK", "OpenLOCK", "", 1),
-            ("CUSTOM", "Custom", "", 2),
-        ]
-
-        tile_types = [
-            ("WALL", "Wall", "", 1),
-            ("FLOOR", "Floor", "", 2),
-        ]
+        
+        preferences = get_prefs()
 
         bpy.types.Scene.mt_tile_units = bpy.props.EnumProperty(
             items=tile_units,
             name="Tile Units",
-            default="IMPERIAL",
+            default=preferences.default_units,
         )
+
         bpy.types.Scene.mt_tile_system = bpy.props.EnumProperty(
             items=tile_systems,
             name="Tile System",
-            default="OPENLOCK",
+            default=preferences.default_tile_system,
         )
-
         bpy.types.Scene.mt_tile_type = bpy.props.EnumProperty(
             items=tile_types,
             name="Tile Type",
             default="WALL",
+        )
+        
+        bpy.types.Scene.mt_base_type = bpy.props.EnumProperty(
+            items=base_types,
+            name="Base Types",
+            default=preferences.default_base_system,
         )
 
         bpy.types.Scene.mt_tile_size = bpy.props.FloatVectorProperty(
@@ -84,10 +82,19 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             precision=3,
         )
 
+        bpy.types.Scene.mt_bhas_base = bpy.props.BoolProperty(
+            name="Seperate Base",
+            description="Does this tile have a seperate base?",
+            default=preferences.default_bhas_base,
+        )
+
     @classmethod
     def unregister(cls):
         print("Unregistered class: %s" % cls.bl_label)
+        del bpy.types.Scene.mt_bhas_base
         del bpy.types.Scene.mt_base_size
         del bpy.types.Scene.mt_tile_size
+        del bpy.types.Scene.mt_base_type
         del bpy.types.Scene.mt_tile_type
         del bpy.types.Scene.mt_tile_system
+        del bpy.types.Scene.mt_tile_units

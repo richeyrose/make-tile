@@ -93,6 +93,8 @@ def make_wall_base(
         slot_cutter.parent = base
         slot_cutter.display_type = 'BOUNDS'
 
+
+
     return (base)
 
 def make_wall(
@@ -121,13 +123,16 @@ def make_wall(
 
     #OpenLOCK wall options
     if tile_system == 'OPENLOCK':
-        wall_cutter = make_openlock_wall_cutters(wall, tile_size)
-        wall_cutter.parent = wall
-        wall_cutter.display_type = 'BOUNDS'
+        #check to see if tile is at least 1 inch high
+        if tile_size[2] >= 2.53:
+            wall_cutters = make_openlock_wall_cutters(wall, tile_size)
+            for wall_cutter in wall_cutters:
+                wall_cutter.parent = wall
+                wall_cutter.display_type = 'BOUNDS'
 
-        wall_cutter_bool = wall.modifiers.new('Wall Cutter', 'BOOLEAN')
-        wall_cutter_bool.operation = 'DIFFERENCE'
-        wall_cutter_bool.object = wall_cutter
+                wall_cutter_bool = wall.modifiers.new('Wall Cutter', 'BOOLEAN')
+                wall_cutter_bool.operation = 'DIFFERENCE'
+                wall_cutter_bool.object = wall_cutter
 
     return (wall)
 
@@ -143,7 +148,14 @@ def make_openlock_wall_cutters(wall, tile_size):
 
     booleans_path = os.path.join(get_path(), "assets", "meshes", "booleans", "openlock.blend")
     bpy.ops.wm.append(directory=booleans_path + "\\Object\\", filename="openlock.wall.cutter.side", autoselect=True)
-    side_cutter = bpy.context.selected_objects[0]
+    side_cutter1 = bpy.context.selected_objects[0]
+    
+    if 'Cutters' in bpy.data.collections:
+        bpy.data.collections['Cutters'].objects.link(side_cutter1)
+    else:
+        bpy.data.collections.new('Cutters')
+        bpy.data.collections['Cutters'].objects.link(side_cutter1)
+        bpy.context.scene.collection.children.link(bpy.data.collections['Cutters'])
     
     wall_location = wall.location
     wall_size = tile_size
@@ -154,21 +166,39 @@ def make_openlock_wall_cutters(wall, tile_size):
         wall_location[1] - (wall_size[1] / 2),
         0]
     #move cutter to bottom front left corner then up by 0.63 inches
-    side_cutter.location = [
+    side_cutter1.location = [
         front_left[0],
         front_left[1] + (wall_size[1] / 2),
         front_left[2] + (0.63 * 2.54)]
 
-    array_mod = side_cutter.modifiers.new('Array', 'ARRAY')
+    array_mod = side_cutter1.modifiers.new('Array', 'ARRAY')
     array_mod.use_relative_offset = False
     array_mod.use_constant_offset = True
-    array_mod.constant_offset_displace[2] = 0.75 * 2.54
+    array_mod.constant_offset_displace[2] = 2 * 2.54
+    array_mod.fit_type = 'FIT_LENGTH'
+    array_mod.fit_length = wall_size[2] - 2.6
 
-    mirror_mod = side_cutter.modifiers.new('Mirror', 'MIRROR')
+    mirror_mod = side_cutter1.modifiers.new('Mirror', 'MIRROR')
     mirror_mod.use_axis[0] = True
     mirror_mod.mirror_object = wall
 
-    return(side_cutter)
+    #make a copy of side cutter 1
+    side_cutter2 = side_cutter1.copy()
+    #link it to cutters collection
+    
+    if 'Cutters' in bpy.data.collections:
+        bpy.data.collections['Cutters'].objects.link(side_cutter2)
+    else:
+        bpy.data.collections.new('Cutters')
+        bpy.data.collections['Cutters'].objects.link(side_cutter2)
+        bpy.context.scene.collection.children.link(bpy.data.collections['Cutters'])
+    
+    side_cutter2.location[2] = side_cutter2.location[2] + 0.75 * 2.54
+    
+    array_mod = side_cutter2.modifiers["Array"]
+    array_mod.fit_length = wall_size[2] - 4.6
+
+    return [side_cutter1, side_cutter2]
 
 def make_openlock_base_slot_cutter(base):
     """Makes a cutter for the openlock base slot
@@ -230,6 +260,21 @@ def make_tile(
     """
     #TODO: check to see if tile, cutters, props and greebles
     # collections exist and create if not
+    if not 'Tiles' in bpy.data.collections:
+        bpy.data.collections.new('Tiles')
+        bpy.context.scene.collection.children.link(bpy.data.collections['Tiles'])
+
+    if not 'Cutters' in bpy.data.collections:
+        bpy.data.collections.new('Cutters')
+        bpy.context.scene.collection.children.link(bpy.data.collections['Cutters'])
+
+    if not 'Props' in bpy.data.collections:
+        bpy.data.collections.new('Props')
+        bpy.context.scene.collection.children.link(bpy.data.collections['Props'])
+
+    if not 'Greebles' in bpy.data.collections:
+        bpy.data.collections.new('Greebles')
+        bpy.context.scene.collection.children.link(bpy.data.collections['Greebles'])
 
     #TODO: make method return a collection
     #construct tile name based on system and type.

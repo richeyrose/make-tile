@@ -52,7 +52,7 @@ def deselect_all():
     current_mode = bpy.context.object.mode
     if current_mode == 'EDIT':
         bpy.ops.mesh.select_all(action="DESELECT")
-        return {'FINSIHED'}
+        return {'FINISHED'}
     if current_mode == 'OBJECT':
         bpy.ops.object.select_all(action="DESELECT")
         return {'FINISHED'}

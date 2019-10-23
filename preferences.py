@@ -5,7 +5,7 @@ import bpy
 from bpy.props import StringProperty, EnumProperty, BoolProperty
 from . utils.registration import get_path
 from . utils.system import makedir, abspath
-from . enums.enums import tile_systems, tile_units
+from . enums.enums import tile_systems, units
 class MT_MakeTilePreferences(bpy.types.AddonPreferences):
     '''contains methods and properties for setting addon preferences'''
 
@@ -61,7 +61,7 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
         )
     
     default_units: EnumProperty(
-        items=tile_units,
+        items=units,
         description="Units to use",
         name="Tile Units",
         default="IMPERIAL"

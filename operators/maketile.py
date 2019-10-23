@@ -1,7 +1,8 @@
 """Contains operator class to make tiles"""
 import bpy
+from mathutils import Vector
 from .. utils.create import make_tile
-from .. enums.enums import tile_systems, tile_types, tile_units, base_types
+from .. enums.enums import tile_systems, tile_types, units, base_types
 from .. utils.registration import get_prefs
 
 class MT_OT_Make_Tile(bpy.types.Operator):
@@ -17,14 +18,20 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         bhas_base = context.scene.mt_bhas_base
         base_size = context.scene.mt_base_size
         tile_units = context.scene.mt_tile_units
-        base_type = context.scene.mt_base_type
+        base_system = context.scene.mt_base_system
 
         if tile_system == 'OPENLOCK':
             tile_units = 'IMPERIAL'
-    
+            bhas_base = True
+            base_system = 'OPENLOCK'
+            base_size = Vector((tile_size[0], 0.5, 0.3))
+
         if tile_units == 'IMPERIAL':
             tile_size = tile_size * 2.54
-            base_size = (tile_size[0], tile_size[1], 0.3 * 2.54)
+            base_size = base_size * 2.54
+            
+        if not bhas_base:
+            base_size = Vector((0,0,0))
         
         make_tile(
             tile_units,
@@ -33,6 +40,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             bhas_base,
             tile_size,
             base_size,
+            base_system
         )
 
         return {'FINISHED'}
@@ -44,7 +52,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         preferences = get_prefs()
 
         bpy.types.Scene.mt_tile_units = bpy.props.EnumProperty(
-            items=tile_units,
+            items=units,
             name="Tile Units",
             default=preferences.default_units,
         )
@@ -60,7 +68,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             default="WALL",
         )
         
-        bpy.types.Scene.mt_base_type = bpy.props.EnumProperty(
+        bpy.types.Scene.mt_base_system = bpy.props.EnumProperty(
             items=base_types,
             name="Base Types",
             default=preferences.default_base_system,
@@ -94,7 +102,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         del bpy.types.Scene.mt_bhas_base
         del bpy.types.Scene.mt_base_size
         del bpy.types.Scene.mt_tile_size
-        del bpy.types.Scene.mt_base_type
+        del bpy.types.Scene.mt_base_system
         del bpy.types.Scene.mt_tile_type
         del bpy.types.Scene.mt_tile_system
         del bpy.types.Scene.mt_tile_units

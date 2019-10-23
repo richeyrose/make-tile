@@ -1,5 +1,5 @@
 #Menus for EnumProperty's
-tile_units = [
+units = [
     ("METRIC", "Metric", "", 1),
     ("IMPERIAL", "Imperial", "", 2),
 ]

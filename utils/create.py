@@ -1,83 +1,126 @@
 import os
 import bpy
-from . ut import mode, select_all, deselect_all
-from . registration import get_addon_name
+from . ut import mode, select_all, deselect_all, select, activate
 from . registration import get_path
 from . collections import create_collection, add_object_to_collection
 
-def make_cuboid(size):
-    """Returns a cuboid"""
-    #add vert
-    bpy.ops.mesh.primitive_vert_add()
+def make_tile(
+        tile_units,
+        tile_system,
+        tile_type,
+        bhas_base,
+        tile_size,
+        base_size,
+        base_system):
+    """Returns a tile as a collection
 
-    #extrude vert along X
-    bpy.ops.mesh.extrude_region_move(
-        MESH_OT_extrude_region={"use_normal_flip":False, "mirror":False},
-        TRANSFORM_OT_translate=
-        {"value":(size[0], 0, 0),
-         "orient_type":'GLOBAL',
-         "orient_matrix":((1, 0, 0), (0, 1, 0), (0, 0, 1)),
-         "orient_matrix_type":'GLOBAL',
-         "constraint_axis":(True, False, False),
-         "mirror":False,
-         "use_proportional_edit":False,
-         "snap":False,
-         "gpencil_strokes":False,
-         "cursor_transform":False,})
+        Keyword arguments:
+        tile_system -- which tile system the tile will use. ENUM
+        tile_type -- e.g. 'WALL', 'FLOOR', 'DOORWAY', 'ROOF'
+        tile_size -- [x, y, z]
+        base_size -- if tile has a base [x, y, z]
+    """
+    scene_collection = bpy.context.scene.collection
+    
+    #Check to see if tile, cutters, props and greebles
+    # collections exist and create if not
+    tiles_collection = create_collection('Tiles', scene_collection)
+    walls_collection = create_collection('Walls', tiles_collection)
+    floors_collection = create_collection('Floors', tiles_collection)
+    props_collection = create_collection('Props', scene_collection)
+    greebles_collection = create_collection('Greebles', scene_collection)
+    
+    if tile_units == 'IMPERIAL':
+        #Switch unit display to inches
+        bpy.context.scene.unit_settings.system = 'IMPERIAL'
+        bpy.context.scene.unit_settings.length_unit = 'INCHES'
+        bpy.context.scene.unit_settings.scale_length = 0.01
 
-    select_all()
+    if tile_units == 'METRIC':
+        bpy.context.scene.unit_settings.system = 'METRIC'
+        bpy.context.scene.unit_settings.length_unit = 'METERS'
+        bpy.context.scene.unit_settings.scale_length = 1
 
-    #extrude edge along Y
-    bpy.ops.mesh.extrude_region_move(
-        MESH_OT_extrude_region={
-            "use_normal_flip":False, "mirror":False},
-        TRANSFORM_OT_translate=
-        {"value":(0, size[1], 0),
-         "orient_type":'GLOBAL',
-         "orient_matrix":((1, 0, 0), (0, 1, 0), (0, 0, 1)),
-         "orient_matrix_type":'GLOBAL',
-         "constraint_axis":(False, True, False),
-         "mirror":False,
-         "use_proportional_edit":False,
-         "snap":False,
-         "gpencil_strokes":False,
-         "cursor_transform":False,})
+    # construct tile name based on system and type and create
+    # collection with same name.
+    tile_name = tile_system.lower() + "." + tile_type.lower()
+    new_collection = create_collection(tile_name, walls_collection)
 
-    select_all()
+    if tile_type == 'WALL':
+        wall = make_straight_wall(
+            tile_system,
+            tile_name,
+            tile_size,
+            base_size,
+            base_system,
+            bhas_base)
 
-    #extrude face along Z
-    bpy.ops.mesh.extrude_region_move(
-        MESH_OT_extrude_region={"use_normal_flip":False, "mirror":False},
-        TRANSFORM_OT_translate=
-        {"value":(0, 0, size[2]),
-         "orient_type":'GLOBAL',
-         "orient_matrix":((1, 0, 0), (0, 1, 0), (0, 0, 1)),
-         "orient_matrix_type":'GLOBAL',
-         "constraint_axis":(False, False, True),
-         "mirror":False,
-         "use_proportional_edit":False,
-         "snap":False,
-         "gpencil_strokes":False,
-         "cursor_transform":False,})
-    return bpy.context.object
+        add_object_to_collection(wall, new_collection.name)
+        return {'FINISHED'}
 
-def make_wall_base(
+    if tile_type == 'FLOOR':
+        create_collection('Floors', tiles_collection)
+        make_floor(tile_system, tile_name, tile_size)
+        return {'FINISHED'}
+
+    return {'CANCELLED'}
+
+def make_straight_wall(
         tile_system,
         tile_name,
+        tile_size,
+        base_size,
+        base_system,
+        bhas_base):
+    """Returns a wall
+    Keyword arguments:
+    tile_system -- tile system for slabs
+    tile_name   -- name,
+    tile_size   -- [x, y, z],
+    base_size   -- [x, y, z],
+    base_system -- tile system for bases
+    bhas_base --- whether tile has a seperate base
+    """
+
+    if bhas_base:
+        base = make_straight_wall_base(
+            base_system, 
+            tile_name, 
+            base_size)
+        wall = make_straight_wall_slab(
+            tile_system, 
+            tile_name, 
+            tile_size, 
+            base_size)
+        base.parent = wall
+        return wall
+
+    wall = make_straight_wall_slab(tile_system, tile_name, tile_size, base_size)
+    return wall
+
+def make_straight_wall_base(
+        base_system,
+        tile_name,
         base_size):
-    '''Returns a base for a wall tile
+    """Returns a base for a wall tile
 
     Keyword arguments:
     tile_system -- What tile system to usee e.g. OpenLOCK, DragonLOCK, plain,
     tile_name   -- name,
     tile_size   -- [x, y, z],
     base_size   -- [x, y, z]
-    '''
+    """
+    
     #make base
+    base_mesh = bpy.data.meshes.new("base_mesh")
+    base = bpy.data.objects.new(tile_name + '.base', base_mesh)
+    add_object_to_collection(base, tile_name)
+    select(base.name)
+    activate(base.name)
+    
+    mode('EDIT')
     base = make_cuboid(base_size)
-    base.name = tile_name + '.base'
-
-    mode('OBJECT')
+    mode('OBJECT') 
 
     #move base so centred and set origin to world origin
     base.location = (- base_size[0] / 2, - base_size[1] / 2, 0)
@@ -85,27 +128,29 @@ def make_wall_base(
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
 
     #OpenLOCK base options
-    if tile_system == 'OPENLOCK':
-        
-        slot_cutter = make_openlock_base_slot_cutter(base)
-        slot_boolean = base.modifiers.new(slot_cutter.name, 'BOOLEAN')
-        slot_boolean.operation = 'DIFFERENCE'
-        slot_boolean.object = slot_cutter
-        slot_cutter.parent = base
-        slot_cutter.display_type = 'BOUNDS'
-
-        clip_cutter = make_openlock_base_clip_cutter(base)
-        clip_boolean = base.modifiers.new(clip_cutter.name, 'BOOLEAN')
-        clip_boolean.operation = 'DIFFERENCE'
-        clip_boolean.object = clip_cutter
-        clip_cutter.parent = base
-        clip_cutter.display_type = 'BOUNDS'
-
-    add_object_to_collection(base, 'Walls')
+    if base_system == 'OPENLOCK':
+        make_openlock_base(base) 
+    
+    
 
     return (base)
 
-def make_wall(
+def make_openlock_base(base):
+    slot_cutter = make_openlock_base_slot_cutter(base)
+    slot_boolean = base.modifiers.new(slot_cutter.name, 'BOOLEAN')
+    slot_boolean.operation = 'DIFFERENCE'
+    slot_boolean.object = slot_cutter
+    slot_cutter.parent = base
+    slot_cutter.display_type = 'BOUNDS'
+
+    clip_cutter = make_openlock_base_clip_cutter(base)
+    clip_boolean = base.modifiers.new(clip_cutter.name, 'BOOLEAN')
+    clip_boolean.operation = 'DIFFERENCE'
+    clip_boolean.object = clip_cutter
+    clip_cutter.parent = base
+    clip_cutter.display_type = 'BOUNDS'
+
+def make_straight_wall_slab(
         tile_system,
         tile_name,
         tile_size,
@@ -118,15 +163,25 @@ def make_wall(
     tile_size   -- [x, y, z]
     base_size   -- [x, y, z]
     '''
-    #make wall
-    wall = make_cuboid([tile_size[0], tile_size[1], tile_size[2] - base_size[2]])
-    wall.name = tile_name
-    add_object_to_collection(wall, 'Walls')
 
+    #make wall slab
+    slab_mesh = bpy.data.meshes.new("slab_mesh")
+    slab = bpy.data.objects.new(tile_name + ".slab", slab_mesh)
+    add_object_to_collection(slab, tile_name)
+    select(slab.name)
+    activate(slab.name)
+    
+    mode('EDIT')
+
+    slab = make_cuboid([
+        tile_size[0],
+        tile_size[1],
+        tile_size[2] - base_size[2]])
+    
     mode('OBJECT')
 
-    #move wall so centred, move up so on top of base and set origin to world origin
-    wall.location = (-tile_size[0]/2, -tile_size[1] / 2, base_size[2])
+    #move slab so centred, move up so on top of base and set origin to world origin
+    slab.location = (-tile_size[0]/2, -tile_size[1] / 2, base_size[2])
     bpy.context.scene.cursor.location = [0, 0, 0]
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
 
@@ -134,16 +189,16 @@ def make_wall(
     if tile_system == 'OPENLOCK':
         #check to see if tile is at least 1 inch high
         if tile_size[2] >= 2.53:
-            wall_cutters = make_openlock_wall_cutters(wall, tile_size)
+            wall_cutters = make_openlock_wall_cutters(slab, tile_size)
             for wall_cutter in wall_cutters:
-                wall_cutter.parent = wall
+                wall_cutter.parent = slab
                 wall_cutter.display_type = 'BOUNDS'
 
-                wall_cutter_bool = wall.modifiers.new('Wall Cutter', 'BOOLEAN')
+                wall_cutter_bool = slab.modifiers.new('Wall Cutter', 'BOOLEAN')
                 wall_cutter_bool.operation = 'DIFFERENCE'
                 wall_cutter_bool.object = wall_cutter
 
-    return (wall)
+    return (slab)
 
 def make_openlock_wall_cutters(wall, tile_size):
     """Creates the cutters for the wall and positions them correctly
@@ -158,8 +213,6 @@ def make_openlock_wall_cutters(wall, tile_size):
     booleans_path = os.path.join(get_path(), "assets", "meshes", "booleans", "openlock.blend")
     bpy.ops.wm.append(directory=booleans_path + "\\Object\\", filename="openlock.wall.cutter.side", autoselect=True)
     side_cutter1 = bpy.context.selected_objects[0]
-    
-    add_object_to_collection(side_cutter1, 'Cutters')
     
     wall_location = wall.location
     wall_size = tile_size
@@ -188,9 +241,6 @@ def make_openlock_wall_cutters(wall, tile_size):
 
     #make a copy of side cutter 1
     side_cutter2 = side_cutter1.copy()
-    #link it to cutters collection
-    
-    add_object_to_collection(side_cutter2, 'Cutters')
 
     side_cutter2.location[2] = side_cutter2.location[2] + 0.75 * 2.54
     
@@ -248,12 +298,7 @@ def make_openlock_base_clip_cutter(base):
     array_mod.fit_type = 'FIT_LENGTH'
     array_mod.fit_length = base_size[0] - 2.54
     
-    add_object_to_collection(clip_cutter, 'Cutters')
-    add_object_to_collection(cutter_end_cap, 'Cutters')
-    add_object_to_collection(cutter_start_cap, 'Cutters')
-
     return (clip_cutter)
-
 
 def make_openlock_base_slot_cutter(base):
     """Makes a cutter for the openlock base slot
@@ -296,60 +341,68 @@ def make_openlock_base_slot_cutter(base):
     #set cutter location to base origin
     cutter.location = base_loc
 
-    add_object_to_collection(cutter, 'Cutters')
-
     return (cutter)
 
-def make_tile(
-        tile_units,
-        tile_system,
-        tile_type,
-        bhas_base,
-        tile_size,
-        base_size):
-    """Returns a tile as a collection 
 
-        Keyword arguments:
-        tile_system -- which tile system the tile will use. ENUM
-        tile_type -- e.g. 'WALL', 'FLOOR', 'DOORWAY', 'ROOF'
-        tile_size -- [x, y, z]
-        base_size -- if tile has a base [x, y, z]
-    """
-    scene_collection = bpy.context.scene.collection
-    
-    #Check to see if tile, cutters, props and greebles
-    # collections exist and create if not
-    tiles_collection = create_collection('Tiles', scene_collection)
-    create_collection('Cutters', scene_collection)
-    create_collection('Props', scene_collection)
-    create_collection('Greebles', scene_collection)
-    
-    #TODO: make method return a collection
-    #construct tile name based on system and type.
-    tile_name = tile_system.lower() + "." + tile_type.lower()
-
-    if tile_units == 'IMPERIAL':
-        #Switch unit display to inches
-        bpy.context.scene.unit_settings.system = 'IMPERIAL'
-        bpy.context.scene.unit_settings.length_unit = 'INCHES'
-        bpy.context.scene.unit_settings.scale_length = 0.01
-
-    if tile_type == 'WALL':
-        create_collection('Walls', tiles_collection)
-        base = make_wall_base(tile_system, tile_name, base_size)
-        wall = make_wall(tile_system, tile_name, tile_size, base_size)
-        wall.parent = base
-        return {'FINISHED'}
-
-    if tile_type == 'FLOOR':
-        create_collection('Floors', tiles_collection)
-        make_floor(tile_system, tile_name, tile_size)
-        return {'FINISHED'}
-
-    return {'CANCELLED'}
 
 def make_floor(
         tile_system,
         tile_name,
         tile_size):
     return {'FINISHED'}
+
+def make_cuboid(size):
+    """Returns a cuboid"""
+    #add vert
+    bpy.ops.mesh.primitive_vert_add()
+
+    #extrude vert along X
+    bpy.ops.mesh.extrude_region_move(
+        MESH_OT_extrude_region={"use_normal_flip":False, "mirror":False},
+        TRANSFORM_OT_translate=
+        {"value":(size[0], 0, 0),
+         "orient_type":'GLOBAL',
+         "orient_matrix":((1, 0, 0), (0, 1, 0), (0, 0, 1)),
+         "orient_matrix_type":'GLOBAL',
+         "constraint_axis":(True, False, False),
+         "mirror":False,
+         "use_proportional_edit":False,
+         "snap":False,
+         "gpencil_strokes":False,
+         "cursor_transform":False,})
+
+    select_all()
+
+    #extrude edge along Y
+    bpy.ops.mesh.extrude_region_move(
+        MESH_OT_extrude_region={
+            "use_normal_flip":False, "mirror":False},
+        TRANSFORM_OT_translate=
+        {"value":(0, size[1], 0),
+         "orient_type":'GLOBAL',
+         "orient_matrix":((1, 0, 0), (0, 1, 0), (0, 0, 1)),
+         "orient_matrix_type":'GLOBAL',
+         "constraint_axis":(False, True, False),
+         "mirror":False,
+         "use_proportional_edit":False,
+         "snap":False,
+         "gpencil_strokes":False,
+         "cursor_transform":False,})
+
+    select_all()
+
+    #extrude face along Z
+    bpy.ops.mesh.extrude_region_move(
+        MESH_OT_extrude_region={"use_normal_flip":False, "mirror":False},
+        TRANSFORM_OT_translate=
+        {"value":(0, 0, size[2]),
+         "orient_type":'GLOBAL',
+         "orient_matrix":((1, 0, 0), (0, 1, 0), (0, 0, 1)),
+         "orient_matrix_type":'GLOBAL',
+         "constraint_axis":(False, False, True),
+         "mirror":False,
+         "use_proportional_edit":False,
+         "snap":False,
+         "gpencil_strokes":False,
+         "cursor_transform":False,})
+    return bpy.context.object

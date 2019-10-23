@@ -3,6 +3,7 @@ import bpy
 from . ut import mode, select_all, deselect_all
 from . registration import get_addon_name
 from . registration import get_path
+from . collections import create_collection, add_object_to_collection
 
 def make_cuboid(size):
     """Returns a cuboid"""
@@ -100,6 +101,8 @@ def make_wall_base(
         clip_cutter.parent = base
         clip_cutter.display_type = 'BOUNDS'
 
+    add_object_to_collection(base, 'Walls')
+
     return (base)
 
 def make_wall(
@@ -118,6 +121,7 @@ def make_wall(
     #make wall
     wall = make_cuboid([tile_size[0], tile_size[1], tile_size[2] - base_size[2]])
     wall.name = tile_name
+    add_object_to_collection(wall, 'Walls')
 
     mode('OBJECT')
 
@@ -155,12 +159,7 @@ def make_openlock_wall_cutters(wall, tile_size):
     bpy.ops.wm.append(directory=booleans_path + "\\Object\\", filename="openlock.wall.cutter.side", autoselect=True)
     side_cutter1 = bpy.context.selected_objects[0]
     
-    if 'Cutters' in bpy.data.collections:
-        bpy.data.collections['Cutters'].objects.link(side_cutter1)
-    else:
-        bpy.data.collections.new('Cutters')
-        bpy.data.collections['Cutters'].objects.link(side_cutter1)
-        bpy.context.scene.collection.children.link(bpy.data.collections['Cutters'])
+    add_object_to_collection(side_cutter1, 'Cutters')
     
     wall_location = wall.location
     wall_size = tile_size
@@ -191,13 +190,8 @@ def make_openlock_wall_cutters(wall, tile_size):
     side_cutter2 = side_cutter1.copy()
     #link it to cutters collection
     
-    if 'Cutters' in bpy.data.collections:
-        bpy.data.collections['Cutters'].objects.link(side_cutter2)
-    else:
-        bpy.data.collections.new('Cutters')
-        bpy.data.collections['Cutters'].objects.link(side_cutter2)
-        bpy.context.scene.collection.children.link(bpy.data.collections['Cutters'])
-    
+    add_object_to_collection(side_cutter2, 'Cutters')
+
     side_cutter2.location[2] = side_cutter2.location[2] + 0.75 * 2.54
     
     array_mod = side_cutter2.modifiers["Array"]
@@ -250,10 +244,14 @@ def make_openlock_base_clip_cutter(base):
     array_mod.start_cap = cutter_start_cap
     array_mod.end_cap = cutter_end_cap
     array_mod.use_merge_vertices = True
-    
+
     array_mod.fit_type = 'FIT_LENGTH'
     array_mod.fit_length = base_size[0] - 2.54
     
+    add_object_to_collection(clip_cutter, 'Cutters')
+    add_object_to_collection(cutter_end_cap, 'Cutters')
+    add_object_to_collection(cutter_start_cap, 'Cutters')
+
     return (clip_cutter)
 
 
@@ -298,6 +296,8 @@ def make_openlock_base_slot_cutter(base):
     #set cutter location to base origin
     cutter.location = base_loc
 
+    add_object_to_collection(cutter, 'Cutters')
+
     return (cutter)
 
 def make_tile(
@@ -315,24 +315,15 @@ def make_tile(
         tile_size -- [x, y, z]
         base_size -- if tile has a base [x, y, z]
     """
-    #TODO: check to see if tile, cutters, props and greebles
+    scene_collection = bpy.context.scene.collection
+    
+    #Check to see if tile, cutters, props and greebles
     # collections exist and create if not
-    if not 'Tiles' in bpy.data.collections:
-        bpy.data.collections.new('Tiles')
-        bpy.context.scene.collection.children.link(bpy.data.collections['Tiles'])
-
-    if not 'Cutters' in bpy.data.collections:
-        bpy.data.collections.new('Cutters')
-        bpy.context.scene.collection.children.link(bpy.data.collections['Cutters'])
-
-    if not 'Props' in bpy.data.collections:
-        bpy.data.collections.new('Props')
-        bpy.context.scene.collection.children.link(bpy.data.collections['Props'])
-
-    if not 'Greebles' in bpy.data.collections:
-        bpy.data.collections.new('Greebles')
-        bpy.context.scene.collection.children.link(bpy.data.collections['Greebles'])
-
+    tiles_collection = create_collection('Tiles', scene_collection)
+    create_collection('Cutters', scene_collection)
+    create_collection('Props', scene_collection)
+    create_collection('Greebles', scene_collection)
+    
     #TODO: make method return a collection
     #construct tile name based on system and type.
     tile_name = tile_system.lower() + "." + tile_type.lower()
@@ -344,12 +335,14 @@ def make_tile(
         bpy.context.scene.unit_settings.scale_length = 0.01
 
     if tile_type == 'WALL':
+        create_collection('Walls', tiles_collection)
         base = make_wall_base(tile_system, tile_name, base_size)
         wall = make_wall(tile_system, tile_name, tile_size, base_size)
         wall.parent = base
         return {'FINISHED'}
 
     if tile_type == 'FLOOR':
+        create_collection('Floors', tiles_collection)
         make_floor(tile_system, tile_name, tile_size)
         return {'FINISHED'}
 

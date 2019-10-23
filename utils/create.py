@@ -93,7 +93,12 @@ def make_wall_base(
         slot_cutter.parent = base
         slot_cutter.display_type = 'BOUNDS'
 
-
+        clip_cutter = make_openlock_base_clip_cutter(base)
+        clip_boolean = base.modifiers.new(clip_cutter.name, 'BOOLEAN')
+        clip_boolean.operation = 'DIFFERENCE'
+        clip_boolean.object = clip_cutter
+        clip_cutter.parent = base
+        clip_cutter.display_type = 'BOUNDS'
 
     return (base)
 
@@ -199,6 +204,58 @@ def make_openlock_wall_cutters(wall, tile_size):
     array_mod.fit_length = wall_size[2] - 4.6
 
     return [side_cutter1, side_cutter2]
+
+def make_openlock_base_clip_cutter(base):
+    """Makes a cutter for the openlock base clip based 
+    on the width of the base and positions it correctly
+
+    Keyword arguments:
+    object -- base the cutter will be used on
+    """
+    
+    cursor = bpy.context.scene.cursor
+    mode('OBJECT')
+    base_size = base.dimensions
+
+    #get original location of base and cursor
+    base_location = base.location.copy()
+
+    #Get cutter
+    deselect_all()
+    booleans_path = os.path.join(get_path(), "assets", "meshes", "booleans", "openlock.blend")
+    bpy.ops.wm.append(directory=booleans_path + "\\Object\\", filename="openlock.wall.base.cutter.clip", autoselect=True)
+    clip_cutter = bpy.context.selected_objects[0]
+    #get start cap
+    deselect_all()
+    bpy.ops.wm.append(directory=booleans_path + "\\Object\\", filename="openlock.wall.base.cutter.clip.cap.start", autoselect=True)
+    cutter_start_cap = bpy.context.selected_objects[0]
+    #get end cap
+    deselect_all()
+    bpy.ops.wm.append(directory=booleans_path + "\\Object\\", filename="openlock.wall.base.cutter.clip.cap.end", autoselect=True)
+    cutter_end_cap = bpy.context.selected_objects[0]
+
+    #get location of bottom front left corner of tile
+    front_left = [
+        base_location[0] - (base_size[0] / 2),
+        base_location[1] - (base_size[1] / 2),
+        0]
+    
+    #move cutter to starting point
+    clip_cutter.location = [
+        front_left[0] + (0.5 *2.54), 
+        front_left[1] + (0.25 * 2.54),
+        front_left[2]]
+
+    array_mod = clip_cutter.modifiers.new('Array', 'ARRAY')
+    array_mod.start_cap = cutter_start_cap
+    array_mod.end_cap = cutter_end_cap
+    array_mod.use_merge_vertices = True
+    
+    array_mod.fit_type = 'FIT_LENGTH'
+    array_mod.fit_length = base_size[0] - 2.54
+    
+    return (clip_cutter)
+
 
 def make_openlock_base_slot_cutter(base):
     """Makes a cutter for the openlock base slot

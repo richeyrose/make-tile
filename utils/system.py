@@ -10,4 +10,3 @@ def makedir(pathstring):
     if not os.path.exists(pathstring):
         os.makedirs(pathstring)
     return pathstring
-

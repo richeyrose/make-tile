@@ -150,8 +150,12 @@ def make_openlock_wall_cutters(wall, tile_size, tile_name):
     deselect_all()
 
     booleans_path = os.path.join(get_path(), "assets", "meshes", "booleans", "openlock.blend")
-    bpy.ops.wm.append(directory=booleans_path + "\\Object\\", filename="openlock.wall.cutter.side", autoselect=True)
-    side_cutter1 = bpy.context.selected_objects[0]
+    
+    #load side cutter
+    with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
+        data_to.objects = ['openlock.wall.cutter.side']
+
+    side_cutter1 = data_to.objects[0]
     add_object_to_collection(side_cutter1, tile_name)
 
     wall_location = wall.location
@@ -207,19 +211,17 @@ def make_openlock_base_clip_cutter(base, tile_name):
     #Get cutter
     deselect_all()
     booleans_path = os.path.join(get_path(), "assets", "meshes", "booleans", "openlock.blend")
-    bpy.ops.wm.append(directory=booleans_path + "\\Object\\", filename="openlock.wall.base.cutter.clip", autoselect=True)
-    clip_cutter = bpy.context.selected_objects[0]
-    add_object_to_collection(clip_cutter, tile_name)
-    #get start cap
-    deselect_all()
-    bpy.ops.wm.append(directory=booleans_path + "\\Object\\", filename="openlock.wall.base.cutter.clip.cap.start", autoselect=True)
-    cutter_start_cap = bpy.context.selected_objects[0]
-    add_object_to_collection(cutter_start_cap, tile_name)
-    #get end cap
-    deselect_all()
-    bpy.ops.wm.append(directory=booleans_path + "\\Object\\", filename="openlock.wall.base.cutter.clip.cap.end", autoselect=True)
-    cutter_end_cap = bpy.context.selected_objects[0]
-    add_object_to_collection(cutter_end_cap, tile_name)
+
+    #load base cutters
+    with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
+        data_to.objects = ['openlock.wall.base.cutter.clip', 'openlock.wall.base.cutter.clip.cap.start', 'openlock.wall.base.cutter.clip.cap.end']
+    
+    for obj in data_to.objects:
+        add_object_to_collection(obj, tile_name)
+
+    clip_cutter = data_to.objects[0]
+    cutter_start_cap = data_to.objects[1]
+    cutter_end_cap = data_to.objects[2]
 
     #get location of bottom front left corner of tile
     front_left = [

@@ -5,7 +5,7 @@ def create_collection(collection_name, collection_parent):
     if not collection_name in bpy.data.collections:
         new_collection = bpy.data.collections.new(collection_name)
         #links collection to parent collection
-        collection_parent.children.link(bpy.data.collections[collection_name])
+        collection_parent.children.link(new_collection)
         return new_collection
     return bpy.data.collections[collection_name]
 

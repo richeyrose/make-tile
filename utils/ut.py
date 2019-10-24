@@ -19,14 +19,14 @@ def delete_object(obj_name):
 
 def delete_all():
     """delete all objects or verts / edges /faces"""
-    current_mode = bpy.context.object.mode
-    if current_mode == 'OBJECT':
-        if len(bpy.data.objects) != 0:
+    if len(bpy.data.objects) != 0:
+        current_mode = bpy.context.object.mode
+        if current_mode == 'OBJECT':
             select_all()
             bpy.ops.object.delete(use_global=False)
-    if current_mode == 'EDIT':
-        select_all()
-        bpy.ops.mesh.delete()
+        if current_mode == 'EDIT':
+            select_all()
+            bpy.ops.mesh.delete()
 
 def mode(mode_name):
     """switch modes, ensuring that if we enter edit mode we deselect all selected vertices"""
@@ -37,24 +37,26 @@ def mode(mode_name):
 
 def select_all():
     """Selects all objects if in OBJECT mode or verts / edges / faces if in EDIT mode"""
-    current_mode = bpy.context.object.mode
-    if current_mode == 'EDIT':
-        bpy.ops.mesh.select_all(action="SELECT")
-        return {'FINSIHED'}
-    elif current_mode == 'OBJECT':
-        bpy.ops.object.select_all(action="SELECT")
-        return {'FINISHED'}
-    else:
-        return {'FINSIHED'}
+    if len(bpy.data.objects) != 0:
+        current_mode = bpy.context.object.mode
+        if current_mode == 'EDIT':
+            bpy.ops.mesh.select_all(action="SELECT")
+            return {'FINSIHED'}
+        elif current_mode == 'OBJECT':
+            bpy.ops.object.select_all(action="SELECT")
+            return {'FINISHED'}
+        else:
+            return {'FINSIHED'}
 
 def deselect_all():
     """Deselects all objects if in OBJECT mode or verts / edges / faces if in EDIT mode"""
-    current_mode = bpy.context.object.mode
-    if current_mode == 'EDIT':
-        bpy.ops.mesh.select_all(action="DESELECT")
-        return {'FINISHED'}
-    if current_mode == 'OBJECT':
-        bpy.ops.object.select_all(action="DESELECT")
-        return {'FINISHED'}
+    if len(bpy.data.objects) != 0:    
+        current_mode = bpy.context.object.mode
+        if current_mode == 'EDIT':
+            bpy.ops.mesh.select_all(action="DESELECT")
+            return {'FINISHED'}
+        if current_mode == 'OBJECT':
+            bpy.ops.object.select_all(action="DESELECT")
+            return {'FINISHED'}
 
     return {'FINSIHED'}

@@ -24,19 +24,24 @@ def make_straight_wall(
     """
 
     if bhas_base:
-        base = make_straight_wall_base(
-            base_system,
-            tile_name,
-            base_size)
         wall = make_straight_wall_slab(
             tile_system,
             tile_name,
             tile_size,
             base_size)
+
+        base = make_straight_wall_base(
+        base_system,
+        tile_name,
+        base_size)
         base.parent = wall
         return wall
 
-    wall = make_straight_wall_slab(tile_system, tile_name, tile_size, base_size)
+    wall = make_straight_wall_slab(
+        tile_system, 
+        tile_name, 
+        tile_size, 
+        base_size)
     return wall
 
 def make_straight_wall_base(
@@ -105,8 +110,9 @@ def make_straight_wall_slab(
     base_size   -- [x, y, z]
     '''
     slab_mesh = bpy.data.meshes.new("slab_mesh")
-    slab = bpy.data.objects.new(tile_name + ".slab", slab_mesh)
+    slab = bpy.data.objects.new(tile_name + '.slab', slab_mesh)
     add_object_to_collection(slab, tile_name)
+
     select(slab.name)
     activate(slab.name)
 
@@ -139,11 +145,11 @@ def make_straight_wall_slab(
 
     return (slab)
 
-def make_openlock_wall_cutters(wall, tile_size, tile_name):
+def make_openlock_wall_cutters(slab, tile_size, tile_name):
     """Creates the cutters for the wall and positions them correctly
-    
+
     Keyword arguments:
-    wall -- wall object
+    slab -- wall slab object
     tile_size --0 [x, y, z] Size of tile including any base but excluding any 
     positive booleans
     """
@@ -158,18 +164,18 @@ def make_openlock_wall_cutters(wall, tile_size, tile_name):
     side_cutter1 = data_to.objects[0]
     add_object_to_collection(side_cutter1, tile_name)
 
-    wall_location = wall.location
-    wall_size = tile_size
+    slab_location = slab.location
+    
 
     #get location of bottom front left corner of tile
     front_left = [
-        wall_location[0] - (wall_size[0] / 2),
-        wall_location[1] - (wall_size[1] / 2),
+        slab_location[0] - (tile_size[0] / 2),
+        slab_location[1] - (tile_size[1] / 2),
         0]
     #move cutter to bottom front left corner then up by 0.63 inches
     side_cutter1.location = [
         front_left[0],
-        front_left[1] + (wall_size[1] / 2),
+        front_left[1] + (tile_size[1] / 2),
         front_left[2] + (0.63 * 2.54)]
 
     array_mod = side_cutter1.modifiers.new('Array', 'ARRAY')
@@ -177,20 +183,22 @@ def make_openlock_wall_cutters(wall, tile_size, tile_name):
     array_mod.use_constant_offset = True
     array_mod.constant_offset_displace[2] = 2 * 2.54
     array_mod.fit_type = 'FIT_LENGTH'
-    array_mod.fit_length = wall_size[2] - 2.6
+    array_mod.fit_length = tile_size[2] - 2.6
 
     mirror_mod = side_cutter1.modifiers.new('Mirror', 'MIRROR')
     mirror_mod.use_axis[0] = True
-    mirror_mod.mirror_object = wall
+    mirror_mod.mirror_object = slab
 
     #make a copy of side cutter 1
     side_cutter2 = side_cutter1.copy()
+    
     add_object_to_collection(side_cutter2, tile_name)
 
+    #move cutter up by 0.75 inches
     side_cutter2.location[2] = side_cutter2.location[2] + 0.75 * 2.54
 
     array_mod = side_cutter2.modifiers["Array"]
-    array_mod.fit_length = wall_size[2] - 4.6
+    array_mod.fit_length = tile_size[2] - 4.6
 
     return [side_cutter1, side_cutter2]
 
@@ -223,6 +231,8 @@ def make_openlock_base_clip_cutter(base, tile_name):
     cutter_start_cap = data_to.objects[1]
     cutter_end_cap = data_to.objects[2]
 
+    cutter_start_cap.hide_viewport = True
+    cutter_end_cap.hide_viewport = True
     #get location of bottom front left corner of tile
     front_left = [
         base_location[0] - (base_size[0] / 2),

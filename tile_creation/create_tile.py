@@ -2,6 +2,7 @@
 
 import os
 import bpy
+from .. utils.ut import deselect_all, mode
 from .. utils.collections import create_collection, add_object_to_collection
 from . create_wall_tile import make_straight_wall
 from . create_floor_tile import make_floor
@@ -22,6 +23,10 @@ def make_tile(
         tile_size -- [x, y, z]
         base_size -- if tile has a base [x, y, z]
     """
+    mode('OBJECT')
+
+    deselect_all()
+
     scene_collection = bpy.context.scene.collection
 
     #Check to see if tile, cutters, props and greebles
@@ -43,26 +48,38 @@ def make_tile(
         bpy.context.scene.unit_settings.length_unit = 'METERS'
         bpy.context.scene.unit_settings.scale_length = 1
 
-    # construct tile name based on system and type and create
-    # collection with same name.
-    tile_name = tile_system.lower() + "." + tile_type.lower()
-    new_collection = create_collection(tile_name, walls_collection)
+    # construct first part of tile name based on system and type
+    tile_name = tile_system.lower() + "." + tile_type.lower()     
 
-    if tile_type == 'WALL':
-        wall = make_straight_wall(
+    if tile_type == 'WALL':     
+        #create new collection that operates as our "tile"
+        new_collection = bpy.data.collections.new(tile_name)
+        bpy.data.collections['Walls'].children.link(new_collection)
+        tile_name = new_collection.name
+
+        make_straight_wall(
             tile_system,
             tile_name,
             tile_size,
             base_size,
             base_system,
             bhas_base)
-
-        add_object_to_collection(wall, new_collection.name)
-        return {'FINISHED'}
+        return new_collection
 
     if tile_type == 'FLOOR':
-        create_collection('Floors', tiles_collection)
-        make_floor(tile_system, tile_name, tile_size)
-        return {'FINISHED'}
+        #create new collection that operates as our "tile"
+        new_collection = bpy.data.collections.new(tile_name)
+        bpy.data.collections['Floors'].children.link(new_collection)
+        tile_name = new_collection.name
+        
+        make_floor(
+            tile_system, 
+            tile_name, 
+            tile_size,
+            base_size,
+            base_system,
+            bhas_base)
+        
+        return new_collection
 
     return {'CANCELLED'}

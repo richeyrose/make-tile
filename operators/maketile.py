@@ -1,7 +1,7 @@
 """Contains operator class to make tiles"""
 import bpy
 from mathutils import Vector
-from .. utils.create import make_tile
+from .. tile_creation.create_tile import make_tile
 from .. enums.enums import tile_systems, tile_types, units, base_types
 from .. utils.registration import get_prefs
 

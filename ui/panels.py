@@ -16,12 +16,27 @@ class MT_PT_Panel(bpy.types.Panel):
         layout.operator('scene.make_tile', text="Make Tile")
         layout.prop(scene, 'mt_tile_system')
         layout.prop(scene, 'mt_tile_type')
+                
+        if scene.mt_tile_system == 'OPENLOCK':
+            if scene.mt_tile_type == 'WALL':
+                layout.row()
+                layout.prop(scene, 'mt_tile_x')
+                layout.prop(scene, 'mt_tile_z')
 
         if scene.mt_tile_system == 'CUSTOM':
             layout.prop(scene, 'mt_tile_units')
-            layout.prop(scene, 'mt_bhas_base')
 
-            if scene.mt_bhas_base:
-                layout.prop(scene, 'mt_base_size')
+            if scene.mt_tile_type == 'WALL':
+                layout.row()
+                layout.prop(scene, 'mt_tile_x')
+                layout.prop(scene, 'mt_tile_y')
+                layout.prop(scene, 'mt_tile_z')
+                
+                layout.row()
+                layout.prop(scene, 'mt_bhas_base')
 
-        layout.prop(scene, 'mt_tile_size')
+                if scene.mt_bhas_base:
+                    layout.row()
+                    layout.prop(scene, 'mt_base_x')
+                    layout.prop(scene, 'mt_base_y')
+                    layout.prop(scene, 'mt_base_z')

@@ -10,12 +10,10 @@ class MT_OT_Make_Tile(bpy.types.Operator):
     bl_idname = "scene.make_tile"
     bl_label = "Create a tile"
 
-    
-
     def execute(self, context):
         
         scn = bpy.context.scene
-        
+
         tile_system = scn.mt_tile_system
         tile_type = scn.mt_tile_type
         tile_size = Vector((scn.mt_tile_x, scn.mt_tile_y, scn.mt_tile_z))
@@ -131,23 +129,6 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             precision=3,
         )
 
-        '''
-        bpy.types.Scene.mt_tile_size = bpy.props.FloatVectorProperty(
-            name="Tile Size",
-            default=(2.0, 0.5, 2.0),
-            subtype='XYZ', # see if we can add an enum of Width, thickness, height
-            size=3,
-            precision=3,
-        )
-
-        bpy.types.Scene.mt_base_size = bpy.props.FloatVectorProperty(
-            name="Base Size",
-            default=(2.0, 0.5, 0.3),
-            subtype='XYZ', # see if we can add an enum of Width, thickness, height
-            size=3,
-            precision=3,
-        )
-        '''
         bpy.types.Scene.mt_bhas_base = bpy.props.BoolProperty(
             name="Seperate Base",
             description="Does this tile have a seperate base?",

@@ -31,10 +31,11 @@ def make_straight_wall(
             base_size)
 
         base = make_straight_wall_base(
-        base_system,
-        tile_name,
-        base_size)
+            base_system,
+            tile_name,
+            base_size)
         base.parent = wall
+        #TODO: Should I be returning anything here?
         return wall
 
     wall = make_straight_wall_slab(
@@ -143,7 +144,7 @@ def make_straight_wall_slab(
                 wall_cutter_bool.operation = 'DIFFERENCE'
                 wall_cutter_bool.object = wall_cutter
 
-    return (slab)
+    return slab
 
 def make_openlock_wall_cutters(slab, tile_size, tile_name):
     """Creates the cutters for the wall and positions them correctly

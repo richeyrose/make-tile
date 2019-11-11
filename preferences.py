@@ -6,13 +6,15 @@ from bpy.props import StringProperty, EnumProperty, BoolProperty
 from . utils.registration import get_path
 from . utils.system import makedir, abspath
 from . enums.enums import tile_systems, units
+
+
 class MT_MakeTilePreferences(bpy.types.AddonPreferences):
     '''contains methods and properties for setting addon preferences'''
 
     bl_idname = __package__
     path = get_path()
 
-    #asset libraries
+    # asset libraries
     def update_assetspath(self, context):
         '''method to update the asset path'''
         if self.avoid_update:
@@ -35,7 +37,7 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
                     print(" » %s" % (lib))
                     shutil.copytree(src, dest)
 
-            #set the new old_path
+            # set the new old_path
             self. old_path = new_path
 
             # ensure the chosen assets_path is absolute
@@ -45,21 +47,20 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
             # reload assets
             reload_asset_libraries()
 
-
     assets_path: StringProperty(
         name="Assets Libraries",
         description="Path to Assets Libraries",
         subtype='DIR_PATH',
         default=os.path.join(path, "assets"),
         update=update_assetspath
-        )
+    )
 
     old_path: StringProperty(
         name="Old Path",
         subtype='DIR_PATH',
         default=os.path.join(path, "assets")
-        )
-    
+    )
+
     default_units: EnumProperty(
         items=units,
         description="Units to use",
@@ -88,7 +89,7 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
 
     def draw(self, context):
         layout = self.layout
-        row = layout.row()  
+        row = layout.row()
         layout.prop(self, 'assets_path')
         layout.prop(self, 'default_units')
         layout.prop(self, 'default_tile_system')

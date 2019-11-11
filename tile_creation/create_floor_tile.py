@@ -1,12 +1,14 @@
 import os
 import bpy
-from .. utils.collections import add_object_to_collection
-from .. utils.ut import mode, deselect_all, select, activate
+from .. lib.utils.collections import add_object_to_collection
+from .. lib.utils.utils import mode
+from .. lib.utils.selection import select, activate
 from .. utils.registration import get_path
-from .. utils.create import make_cuboid
+from .. lib.turtle.scripts.primitives import make_cuboid
 
-def  make_floor(
-        tile_system, 
+
+def make_floor(
+        tile_system,
         tile_name,
         tile_size,
         base_size,
@@ -28,7 +30,7 @@ def  make_floor(
             tile_name,
             tile_size,
             base_size)
-        
+
         base = make_floor_base(
             base_system,
             tile_size,
@@ -42,8 +44,9 @@ def  make_floor(
         tile_name,
         tile_size,
         base_size)
-    
+
     return {'FINISHED'}
+
 
 def make_floor_slab(
         tile_system,
@@ -66,8 +69,6 @@ def make_floor_slab(
     select(slab.name)
     activate(slab.name)
 
-    mode('EDIT')
-
     slab = make_cuboid([
         tile_size[0],
         tile_size[1],
@@ -75,12 +76,13 @@ def make_floor_slab(
 
     mode('OBJECT')
 
-    #move slab so centred, move up so on top of base and set origin to world origin
-    slab.location = (-tile_size[0]/2, -tile_size[1] / 2, base_size[2])
+    # move slab so centred, move up so on top of base and set origin to world origin
+    slab.location = (-tile_size[0] / 2, -tile_size[1] / 2, base_size[2])
     bpy.context.scene.cursor.location = [0, 0, 0]
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
 
     return slab
+
 
 def make_floor_base(
         base_system,
@@ -88,18 +90,17 @@ def make_floor_base(
         tile_name,
         base_size):
 
-    #make base
+    # make base
     base_mesh = bpy.data.meshes.new("base_mesh")
     base = bpy.data.objects.new(tile_name + '.base', base_mesh)
     add_object_to_collection(base, tile_name)
     select(base.name)
     activate(base.name)
-    
-    mode('EDIT')
-    base = make_cuboid(base_size)
-    mode('OBJECT') 
 
-    #move base so centred and set origin to world origin
+    base = make_cuboid(base_size)
+    mode('OBJECT')
+
+    # move base so centred and set origin to world origin
     base.location = (- base_size[0] / 2, - base_size[1] / 2, 0)
     bpy.context.scene.cursor.location = [0, 0, 0]
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')

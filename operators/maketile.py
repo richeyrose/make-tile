@@ -5,13 +5,14 @@ from .. tile_creation.create_tile import make_tile
 from .. enums.enums import tile_systems, tile_types, units, base_types
 from .. utils.registration import get_prefs
 
+
 class MT_OT_Make_Tile(bpy.types.Operator):
     """Operator class used to create tiles"""
     bl_idname = "scene.make_tile"
     bl_label = "Create a tile"
 
     def execute(self, context):
-        
+
         scn = bpy.context.scene
 
         tile_system = scn.mt_tile_system
@@ -37,10 +38,10 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         if tile_units == 'IMPERIAL':
             tile_size = tile_size * 2.54
             base_size = base_size * 2.54
-            
+
         if not bhas_base:
             base_size = Vector((0.0, 0.0, 0.0))
-        
+
         make_tile(
             tile_units,
             tile_system,
@@ -52,11 +53,11 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         )
 
         return {'FINISHED'}
-    
+
     @classmethod
     def register(cls):
         print("Registered class: %s " % cls.bl_label)
-        
+
         preferences = get_prefs()
 
         bpy.types.Scene.mt_tile_units = bpy.props.EnumProperty(
@@ -75,7 +76,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             name="Tile Type",
             default="WALL",
         )
-        
+
         bpy.types.Scene.mt_base_system = bpy.props.EnumProperty(
             items=base_types,
             name="Base Types",
@@ -86,14 +87,14 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         # customisable ones where appropriate. These are wrapped up
         # in a vector and passed on as tile_size and base_size
 
-        #Tile size
+        # Tile size
         bpy.types.Scene.mt_tile_x = bpy.props.FloatProperty(
             name="Tile X",
             default=2.0,
             step=0.5,
             precision=3,
         )
-        
+
         bpy.types.Scene.mt_tile_y = bpy.props.FloatProperty(
             name="Tile Y",
             default=0.5,
@@ -108,7 +109,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             precision=3,
         )
 
-        #Base size
+        # Base size
         bpy.types.Scene.mt_base_x = bpy.props.FloatProperty(
             name="Base X",
             default=2.0,

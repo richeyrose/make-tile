@@ -2,7 +2,7 @@ import bpy
 from bpy.props import FloatVectorProperty
 from bpy.types import Operator
 from mathutils import Vector
-from .. Utils.utils import select_by_loc
+from ...utils.selection import select_by_loc
 
 
 class TURTLE_OT_quadratic_curve(bpy.types.Operator):

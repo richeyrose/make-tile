@@ -3,7 +3,7 @@ import bpy
 from bpy.props import StringProperty, FloatProperty, FloatVectorProperty, IntProperty, EnumProperty, BoolProperty
 import bmesh
 from mathutils import Vector
-from .. Utils.utils import select_by_loc, select, activate
+from ...utils.selection import select_by_loc, select, activate
 from bpy.types import Operator
 from bpy_extras.object_utils import AddObjectHelper
 

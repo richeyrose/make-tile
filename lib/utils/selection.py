@@ -1,77 +1,64 @@
 import bpy
 import bmesh
-
-C = bpy.context
-D = bpy.data
-O = bpy.ops
+from mathutils import Vector
 
 
 def select_all():
     """Selects all objects if in OBJECT mode or verts / edges / faces if in EDIT mode"""
-    if len(D.objects) != 0:
-        current_mode = C.object.mode
+    if len(bpy.data.objects) != 0:
+        current_mode = bpy.context.object.mode
         if current_mode == 'EDIT':
-            O.mesh.select_all(action="SELECT")
+            bpy.ops.mesh.select_all(action="SELECT")
             return {'FINSIHED'}
         if current_mode == 'OBJECT':
-            O.object.select_all(action="SELECT")
+            bpy.ops.object.select_all(action="SELECT")
             return {'FINISHED'}
 
     return {'FINISHED'}
 
 
-def deselect_all(): #TODO:make work with curves
+# TODO:make work with curves
+def deselect_all():
     """Deselects all objects if in OBJECT mode or verts / edges / faces if in EDIT mode"""
-    if len(D.objects) != 0:
-        current_mode = C.object.mode
+    if len(bpy.data.objects) != 0:
+        current_mode = bpy.context.object.mode
         if current_mode == 'EDIT':
-            O.mesh.select_all(action="DESELECT")
+            bpy.ops.mesh.select_all(action="DESELECT")
             return {'FINISHED'}
         if current_mode == 'OBJECT':
-            O.object.select_all(action="DESELECT")
+            bpy.ops.object.select_all(action="DESELECT")
             return {'FINISHED'}
 
     return {'FINSIHED'}
 
-def delete_all():
-    """delete all objects or verts / edges /faces"""
-    if len(D.objects) != 0:
-        current_mode = C.object.mode
-        if current_mode == 'OBJECT':
-            select_all()
-            O.object.delete(use_global=False)
-        if current_mode == 'EDIT':
-            select_all()
-            O.mesh.delete()
 
-def mode(mode_name):
-    """switch modes, ensuring that if we enter edit mode we deselect all selected vertices"""
-    if len(D.objects) != 0:
-        O.object.mode_set(mode=mode_name)
-        if mode_name == "EDIT":
-            O.mesh.select_all(action="DESELECT")
-
-#select object by name
 def select(obj_name):
     """select object by name"""
     bpy.ops.object.select_all(action='DESELECT')
     bpy.data.objects[obj_name].select_set(True)
+
 
 def activate(obj_name):
     """activate object by name """
     bpy.context.view_layer.objects.active = bpy.data.objects[obj_name]
 
 
+# gets local object center relative to origin
+def get_local_bbox_center(obj):
+    local_bbox_center = 0.125 * sum((Vector(b) for b in obj.bound_box), Vector())
+    return local_bbox_center
+
+
+# gets global object center
+def get_global_bbox_center(obj):
+    local_bbox_center = get_local_bbox_center(obj)
+    global_bbox_center = obj.matrix_world @ local_bbox_center
+    return global_bbox_center
+
+
+# lbound = lowest left of cuboid
+# ubound = upper right of cuboid
 def in_bbox(lbound, ubound, v, buffer=0.001):
-    """Returns vertices that are in a bounding box
-
-    Keyword arguments:
-
-    lbound -- lower left bound of bounding box
-    rbound -- upper right bound of bounding box
-    v -- verts
-    buffer - buffer around selection box within which to also select verts
-    """
     return lbound[0] - buffer <= v[0] <= ubound[0] + buffer and \
         lbound[1] - buffer <= v[1] <= ubound[1] + buffer and \
         lbound[2] - buffer <= v[2] <= ubound[2] + buffer
@@ -156,3 +143,6 @@ def select_by_loc(
                 face_obj.select |= select
             else:
                 face_obj.select = select
+
+    # update the edit mesh so we get live highlighting
+    bmesh.update_edit_mesh(bpy.context.object.data)

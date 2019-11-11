@@ -1,10 +1,12 @@
 """ Contains functions for creating wall tiles """
 import os
 import bpy
-from .. utils.collections import add_object_to_collection
-from .. utils.ut import mode, deselect_all, select, activate
+from .. lib.utils.collections import add_object_to_collection
 from .. utils.registration import get_path
-from .. utils.create import make_cuboid
+from .. lib.turtle.scripts.primitives import make_cuboid
+from .. lib.utils.selection import deselect_all, select, activate
+from .. lib.utils.utils import mode
+
 
 def make_straight_wall(
         tile_system,
@@ -35,15 +37,16 @@ def make_straight_wall(
             tile_name,
             base_size)
         base.parent = wall
-        #TODO: Should I be returning anything here?
+        # TODO: Should I be returning anything here?
         return wall
 
     wall = make_straight_wall_slab(
-        tile_system, 
-        tile_name, 
-        tile_size, 
+        tile_system,
+        tile_name,
+        tile_size,
         base_size)
     return wall
+
 
 def make_straight_wall_base(
         base_system,
@@ -57,28 +60,28 @@ def make_straight_wall_base(
     tile_size   -- [x, y, z],
     base_size   -- [x, y, z]
     """
-    
-    #make base
+
+    # make base
     base_mesh = bpy.data.meshes.new("base_mesh")
     base = bpy.data.objects.new(tile_name + '.base', base_mesh)
     add_object_to_collection(base, tile_name)
     select(base.name)
     activate(base.name)
-    
-    mode('EDIT')
-    base = make_cuboid(base_size)
-    mode('OBJECT') 
 
-    #move base so centred and set origin to world origin
+    base = make_cuboid(base_size)
+    mode('OBJECT')
+
+    # move base so centred and set origin to world origin
     base.location = (- base_size[0] / 2, - base_size[1] / 2, 0)
     bpy.context.scene.cursor.location = [0, 0, 0]
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
 
-    #OpenLOCK base options
+    # OpenLOCK base options
     if base_system == 'OPENLOCK':
-        make_openlock_straight_wall_base(base, tile_name) 
+        make_openlock_straight_wall_base(base, tile_name)
 
     return (base)
+
 
 def make_openlock_straight_wall_base(straight_wall_base, tile_name):
     """takes a straight wall base and makes it into an openlock style base"""
@@ -96,6 +99,7 @@ def make_openlock_straight_wall_base(straight_wall_base, tile_name):
     clip_boolean.object = clip_cutter
     clip_cutter.parent = base
     clip_cutter.display_type = 'BOUNDS'
+
 
 def make_straight_wall_slab(
         tile_system,
@@ -117,8 +121,6 @@ def make_straight_wall_slab(
     select(slab.name)
     activate(slab.name)
 
-    mode('EDIT')
-
     slab = make_cuboid([
         tile_size[0],
         tile_size[1],
@@ -126,14 +128,14 @@ def make_straight_wall_slab(
 
     mode('OBJECT')
 
-    #move slab so centred, move up so on top of base and set origin to world origin
-    slab.location = (-tile_size[0]/2, -tile_size[1] / 2, base_size[2])
+    # move slab so centred, move up so on top of base and set origin to world origin
+    slab.location = (-tile_size[0] / 2, -tile_size[1] / 2, base_size[2])
     bpy.context.scene.cursor.location = [0, 0, 0]
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
 
-    #OpenLOCK wall options
+    # OpenLOCK wall options
     if tile_system == 'OPENLOCK':
-        #check to see if tile is at least 1 inch high
+        # check to see if tile is at least 1 inch high
         if tile_size[2] >= 2.53:
             wall_cutters = make_openlock_wall_cutters(slab, tile_size, tile_name)
             for wall_cutter in wall_cutters:
@@ -146,19 +148,20 @@ def make_straight_wall_slab(
 
     return slab
 
+
 def make_openlock_wall_cutters(slab, tile_size, tile_name):
     """Creates the cutters for the wall and positions them correctly
 
     Keyword arguments:
     slab -- wall slab object
-    tile_size --0 [x, y, z] Size of tile including any base but excluding any 
+    tile_size --0 [x, y, z] Size of tile including any base but excluding any
     positive booleans
     """
     deselect_all()
 
     booleans_path = os.path.join(get_path(), "assets", "meshes", "booleans", "openlock.blend")
-    
-    #load side cutter
+
+    # load side cutter
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
         data_to.objects = ['openlock.wall.cutter.side']
 
@@ -166,14 +169,13 @@ def make_openlock_wall_cutters(slab, tile_size, tile_name):
     add_object_to_collection(side_cutter1, tile_name)
 
     slab_location = slab.location
-    
 
-    #get location of bottom front left corner of tile
+    # get location of bottom front left corner of tile
     front_left = [
         slab_location[0] - (tile_size[0] / 2),
         slab_location[1] - (tile_size[1] / 2),
         0]
-    #move cutter to bottom front left corner then up by 0.63 inches
+    # move cutter to bottom front left corner then up by 0.63 inches
     side_cutter1.location = [
         front_left[0],
         front_left[1] + (tile_size[1] / 2),
@@ -190,12 +192,12 @@ def make_openlock_wall_cutters(slab, tile_size, tile_name):
     mirror_mod.use_axis[0] = True
     mirror_mod.mirror_object = slab
 
-    #make a copy of side cutter 1
+    # make a copy of side cutter 1
     side_cutter2 = side_cutter1.copy()
-    
+
     add_object_to_collection(side_cutter2, tile_name)
 
-    #move cutter up by 0.75 inches
+    # move cutter up by 0.75 inches
     side_cutter2.location[2] = side_cutter2.location[2] + 0.75 * 2.54
 
     array_mod = side_cutter2.modifiers["Array"]
@@ -203,28 +205,29 @@ def make_openlock_wall_cutters(slab, tile_size, tile_name):
 
     return [side_cutter1, side_cutter2]
 
+
 def make_openlock_base_clip_cutter(base, tile_name):
-    """Makes a cutter for the openlock base clip based 
+    """Makes a cutter for the openlock base clip based
     on the width of the base and positions it correctly
 
     Keyword arguments:
     object -- base the cutter will be used on
     """
-    
+
     mode('OBJECT')
     base_size = base.dimensions
 
-    #get original location of base and cursor
+    # get original location of base and cursor
     base_location = base.location.copy()
 
-    #Get cutter
+    # Get cutter
     deselect_all()
     booleans_path = os.path.join(get_path(), "assets", "meshes", "booleans", "openlock.blend")
 
-    #load base cutters
+    # load base cutters
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
         data_to.objects = ['openlock.wall.base.cutter.clip', 'openlock.wall.base.cutter.clip.cap.start', 'openlock.wall.base.cutter.clip.cap.end']
-    
+
     for obj in data_to.objects:
         add_object_to_collection(obj, tile_name)
 
@@ -234,15 +237,15 @@ def make_openlock_base_clip_cutter(base, tile_name):
 
     cutter_start_cap.hide_viewport = True
     cutter_end_cap.hide_viewport = True
-    #get location of bottom front left corner of tile
+    # get location of bottom front left corner of tile
     front_left = [
         base_location[0] - (base_size[0] / 2),
         base_location[1] - (base_size[1] / 2),
         0]
-    
-    #move cutter to starting point
+
+    # move cutter to starting point
     clip_cutter.location = [
-        front_left[0] + (0.5 *2.54), 
+        front_left[0] + (0.5 * 2.54),
         front_left[1] + (0.25 * 2.54),
         front_left[2]]
 
@@ -253,8 +256,9 @@ def make_openlock_base_clip_cutter(base, tile_name):
 
     array_mod.fit_type = 'FIT_LENGTH'
     array_mod.fit_length = base_size[0] - 2.54
-    
+
     return (clip_cutter)
+
 
 def make_openlock_base_slot_cutter(base, tile_name):
     """Makes a cutter for the openlock base slot
@@ -267,14 +271,14 @@ def make_openlock_base_slot_cutter(base, tile_name):
     mode('OBJECT')
     base_dim = base.dimensions
 
-    #get original location of object and cursor
+    # get original location of object and cursor
     base_loc = base.location.copy()
     cursor_original_loc = cursor.location.copy()
 
-    #move cursor to origin
+    # move cursor to origin
     cursor.location = [0, 0, 0]
 
-    #work out bool size X from base size, y and z are constants
+    # work out bool size X from base size, y and z are constants
     bool_size = [
         base_dim[0] - ((0.236 * 2) * 2.54),
         0.197 * 2.54,
@@ -286,20 +290,19 @@ def make_openlock_base_slot_cutter(base, tile_name):
     select(cutter.name)
     activate(cutter.name)
 
-    mode('EDIT')
     cutter = make_cuboid(bool_size)
     mode('OBJECT')
 
-    #move cutter so centred and set cutter origin to world origin + z = -0.01
+    # move cutter so centred and set cutter origin to world origin + z = -0.01
     # (to avoid z fighting)
     cutter.location = (-bool_size[0] / 2, -0.014 * 2.54, 0)
     cursor.location = [0.0, 0.0, 0.01]
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
 
-    #reset cursor location
+    # reset cursor location
     cursor.location = cursor_original_loc
 
-    #set cutter location to base origin
+    # set cutter location to base origin
     cutter.location = base_loc
 
     return (cutter)

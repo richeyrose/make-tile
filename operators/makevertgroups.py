@@ -1,6 +1,7 @@
 import os
 import bpy
-from .. utils.vertex_groups import cuboid_sides_to_vert_groups
+from ..lib.utils.vertex_groups import cuboid_sides_to_vert_groups
+
 
 class MT_OT_makeVertGroupsFromFaces(bpy.types.Operator):
     bl_idname = "scene.make_vert_groups_from_faces"

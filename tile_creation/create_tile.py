@@ -2,10 +2,13 @@
 
 import os
 import bpy
-from .. utils.ut import deselect_all, mode
-from .. utils.collections import create_collection, add_object_to_collection
+from .. lib.utils.selection import deselect_all
+from .. lib.utils.utils import mode
+
+from .. lib.utils.collections import create_collection, add_object_to_collection
 from . create_wall_tile import make_straight_wall
 from . create_floor_tile import make_floor
+
 
 def make_tile(
         tile_units,
@@ -29,7 +32,7 @@ def make_tile(
 
     scene_collection = bpy.context.scene.collection
 
-    #Check to see if tile, cutters, props and greebles
+    # Check to see if tile, cutters, props and greebles
     # collections exist and create if not
     tiles_collection = create_collection('Tiles', scene_collection)
     walls_collection = create_collection('Walls', tiles_collection)
@@ -38,7 +41,7 @@ def make_tile(
     greebles_collection = create_collection('Greebles', scene_collection)
 
     if tile_units == 'IMPERIAL':
-        #Switch unit display to inches
+        # Switch unit display to inches
         bpy.context.scene.unit_settings.system = 'IMPERIAL'
         bpy.context.scene.unit_settings.length_unit = 'INCHES'
         bpy.context.scene.unit_settings.scale_length = 0.01
@@ -49,10 +52,10 @@ def make_tile(
         bpy.context.scene.unit_settings.scale_length = 1
 
     # construct first part of tile name based on system and type
-    tile_name = tile_system.lower() + "." + tile_type.lower()     
+    tile_name = tile_system.lower() + "." + tile_type.lower()
 
     if tile_type == 'WALL':
-        #create new collection that operates as our "tile"
+        # create new collection that operates as our "tile"
         new_collection = bpy.data.collections.new(tile_name)
         bpy.data.collections['Walls'].children.link(new_collection)
         tile_name = new_collection.name
@@ -67,19 +70,19 @@ def make_tile(
         return new_collection
 
     if tile_type == 'FLOOR':
-        #create new collection that operates as our "tile"
+        # create new collection that operates as our "tile"
         new_collection = bpy.data.collections.new(tile_name)
         bpy.data.collections['Floors'].children.link(new_collection)
         tile_name = new_collection.name
-        
+
         make_floor(
-            tile_system, 
-            tile_name, 
+            tile_system,
+            tile_name,
             tile_size,
             base_size,
             base_system,
             bhas_base)
-        
+
         return new_collection
 
     return {'CANCELLED'}

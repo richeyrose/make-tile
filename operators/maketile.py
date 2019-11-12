@@ -32,19 +32,19 @@ class MT_OT_Make_Tile(bpy.types.Operator):
 
         if tile_system == 'OPENLOCK':
             tile_units = 'IMPERIAL'
-            tile_size = Vector((tile_size[0], 0.5, tile_size[2]))
-
             bhas_base = True
             base_system = 'OPENLOCK'
 
             if tile_type == 'WALL':
                 base_size = Vector((tile_size[0], 0.5, 0.3))
+                tile_size = Vector((tile_size[0], 0.5, tile_size[2]))
             if tile_type == 'FLOOR':
-                base_size = Vector((tile_size[0], tile_size[1], 0.28))
+                base_size = Vector((tile_size[0], tile_size[1], 0.3))
+                tile_size = Vector((tile_size[0], tile_size[1], 0.3))
 
         if tile_units == 'IMPERIAL':
-            tile_size = tile_size * 2.54
-            base_size = base_size * 2.54
+            tile_size = tile_size * 25.4
+            base_size = base_size * 25.4
 
         if not bhas_base:
             base_size = Vector((0.0, 0.0, 0.0))

@@ -179,12 +179,12 @@ def make_openlock_wall_cutters(slab, tile_size, tile_name):
     side_cutter1.location = [
         front_left[0],
         front_left[1] + (tile_size[1] / 2),
-        front_left[2] + (0.63 * 2.54)]
+        front_left[2] + (0.63 * 25.4)]
 
     array_mod = side_cutter1.modifiers.new('Array', 'ARRAY')
     array_mod.use_relative_offset = False
     array_mod.use_constant_offset = True
-    array_mod.constant_offset_displace[2] = 2 * 2.54
+    array_mod.constant_offset_displace[2] = 2 * 25.4
     array_mod.fit_type = 'FIT_LENGTH'
     array_mod.fit_length = tile_size[2] - 2.6
 
@@ -198,7 +198,7 @@ def make_openlock_wall_cutters(slab, tile_size, tile_name):
     add_object_to_collection(side_cutter2, tile_name)
 
     # move cutter up by 0.75 inches
-    side_cutter2.location[2] = side_cutter2.location[2] + 0.75 * 2.54
+    side_cutter2.location[2] = side_cutter2.location[2] + 0.75 * 25.4
 
     array_mod = side_cutter2.modifiers["Array"]
     array_mod.fit_length = tile_size[2] - 4.6
@@ -245,8 +245,8 @@ def make_openlock_base_clip_cutter(base, tile_name):
 
     # move cutter to starting point
     clip_cutter.location = [
-        front_left[0] + (0.5 * 2.54),
-        front_left[1] + (0.25 * 2.54),
+        front_left[0] + (0.5 * 25.4),
+        front_left[1] + (0.25 * 25.4),
         front_left[2]]
 
     array_mod = clip_cutter.modifiers.new('Array', 'ARRAY')
@@ -255,7 +255,7 @@ def make_openlock_base_clip_cutter(base, tile_name):
     array_mod.use_merge_vertices = True
 
     array_mod.fit_type = 'FIT_LENGTH'
-    array_mod.fit_length = base_size[0] - 2.54
+    array_mod.fit_length = base_size[0] - 25.4
 
     return (clip_cutter)
 
@@ -280,9 +280,9 @@ def make_openlock_base_slot_cutter(base, tile_name):
 
     # work out bool size X from base size, y and z are constants
     bool_size = [
-        base_dim[0] - ((0.236 * 2) * 2.54),
-        0.197 * 2.54,
-        0.25 * 2.54]
+        base_dim[0] - ((0.236 * 2) * 25.4),
+        0.197 * 25.4,
+        0.25 * 25.4]
 
     cutter_mesh = bpy.data.meshes.new("cutter_mesh")
     cutter = bpy.data.objects.new(tile_name + ".cutter.slot", cutter_mesh)
@@ -295,7 +295,7 @@ def make_openlock_base_slot_cutter(base, tile_name):
 
     # move cutter so centred and set cutter origin to world origin + z = -0.01
     # (to avoid z fighting)
-    cutter.location = (-bool_size[0] / 2, -0.014 * 2.54, 0)
+    cutter.location = (-bool_size[0] / 2, -0.014 * 25.4, 0)
     cursor.location = [0.0, 0.0, 0.01]
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
 

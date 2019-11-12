@@ -23,7 +23,7 @@ def delete_all():
     if len(D.objects) != 0:
         current_mode = C.object.mode
         if current_mode == 'OBJECT':
-            select_all()
+            select_all()    
             bpy.ops.object.delete(use_global=False)
         if current_mode == 'EDIT':
             select_all()

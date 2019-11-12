@@ -9,7 +9,7 @@ support_h = 1.39            # slot support height
 extra_sup_dist = 23.4       # distance between extra supports for large tiles
 
 
-def draw_floor(dimensions=(25.4, 25.4, 7)):
+def draw_floor(dimensions):
     turtle = bpy.context.scene.cursor
     t = bpy.ops.turtle
     x = dimensions[0]
@@ -32,17 +32,18 @@ def draw_floor(dimensions=(25.4, 25.4, 7)):
     mirror_mod.use_axis[0] = True
     mirror_mod.use_axis[1] = True
 
+
 def draw_quarter_floor(dimensions, start_loc):
     turtle = bpy.context.scene.cursor
     t = bpy.ops.turtle
     x = dimensions[0]
     y = dimensions[1]
     z = dimensions[2]
-    
+
     # draw loop 1
     t.ri(d=x / 2)
     t.fd(d=y / 2)
-    
+
     # move turtle
     t.pu()
     t.deselect_all()
@@ -90,7 +91,6 @@ def draw_quarter_floor(dimensions, start_loc):
     t.bk(d=slot_w)
     t.ri(d=slot_w)
     t.select_at_cursor()
-    
     t.ri(d=leg)
     t.fd(d=leg)
     t.select_at_cursor()

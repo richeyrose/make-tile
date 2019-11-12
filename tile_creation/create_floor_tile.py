@@ -8,7 +8,7 @@ from .. lib.turtle.scripts.primitives import make_cuboid
 from .. lib.turtle.scripts.openlock_floor_base import draw_floor
 
 
-def make_floor(
+def make_floor( 
         tile_system,
         tile_name,
         tile_size,
@@ -25,30 +25,8 @@ def make_floor(
     base_system -- tile system for bases
     bhas_base   -- whether tile has a seperate base or is a simple slab
     """
-
-    if bhas_base:
-        '''
-        slab = make_floor_slab(
-            tile_system,
-            tile_name,
-            tile_size,
-            base_size)
-        '''
-        base = make_floor_base(
-            base_system,
-            tile_size,
-            tile_name,
-            (101.6, 101.6, 7))
-        '''
-        base.parent = slab
-        return slab
-
-    slab = make_floor_slab(
-        tile_system,
-        tile_name,
-        tile_size,
-        base_size)
-        '''
+    draw_floor(tile_size)
+    mode('OBJECT')
     return {'FINISHED'}
 
 
@@ -95,23 +73,8 @@ def make_floor_base(
         base_size):
 
     if base_system == 'OPENLOCK':
-        draw_floor(dimensions=base_size)
-    '''
-    # make base
-    base_mesh = bpy.data.meshes.new("base_mesh")
-    base = bpy.data.objects.new(tile_name + '.base', base_mesh)
-    add_object_to_collection(base, tile_name)
-    select(base.name)
-    activate(base.name)
-
-    base = make_cuboid(base_size)
-    mode('OBJECT')
-
-    # move base so centred and set origin to world origin
-    base.location = (- base_size[0] / 2, - base_size[1] / 2, 0)
-    bpy.context.scene.cursor.location = [0, 0, 0]
-    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
-    '''
+        draw_floor(dimensions=tile_size)
+    
     mode('OBJECT')
     base = bpy.context.object
     return base

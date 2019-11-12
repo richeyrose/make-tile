@@ -35,10 +35,10 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             bhas_base = True
             base_system = 'OPENLOCK'
 
-            if tile_type == 'WALL':
+            if tile_type == 'STRAIGHT_WALL':
                 base_size = Vector((tile_size[0], 0.5, 0.3))
                 tile_size = Vector((tile_size[0], 0.5, tile_size[2]))
-            if tile_type == 'FLOOR':
+            if tile_type == 'RECTANGULAR_FLOOR':
                 base_size = Vector((tile_size[0], tile_size[1], 0.3))
                 tile_size = Vector((tile_size[0], tile_size[1], 0.3))
 
@@ -81,7 +81,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         bpy.types.Scene.mt_tile_type = bpy.props.EnumProperty(
             items=tile_types,
             name="Tile Type",
-            default="WALL",
+            default="STRAIGHT_WALL",
         )
 
         bpy.types.Scene.mt_base_system = bpy.props.EnumProperty(

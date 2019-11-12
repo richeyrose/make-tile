@@ -10,8 +10,8 @@ tile_systems = [
 ]
 
 tile_types = [
-    ("WALL", "Wall", "", 1),
-    ("FLOOR", "Floor", "", 2),
+    ("STRAIGHT_WALL", "Straight Wall", "", 1),
+    ("RECTANGULAR_FLOOR", "Rectangular Floor", "", 2),
 ]
 
 base_types = [

@@ -18,11 +18,11 @@ class MT_PT_Panel(bpy.types.Panel):
         layout.prop(scene, 'mt_tile_type')
 
         if scene.mt_tile_system == 'OPENLOCK':
-            if scene.mt_tile_type == 'WALL':
+            if scene.mt_tile_type == 'STRAIGHT_WALL':
                 layout.row()
                 layout.prop(scene, 'mt_tile_x')
                 layout.prop(scene, 'mt_tile_z')
-            elif scene.mt_tile_type == 'FLOOR':
+            elif scene.mt_tile_type == 'RECTANGULAR_FLOOR':
                 layout.row()
                 layout.prop(scene, 'mt_tile_x')
                 layout.prop(scene, 'mt_tile_y')
@@ -30,7 +30,7 @@ class MT_PT_Panel(bpy.types.Panel):
         if scene.mt_tile_system == 'CUSTOM':
             layout.prop(scene, 'mt_tile_units')
 
-            if scene.mt_tile_type == 'WALL' or 'FLOOR':
+            if scene.mt_tile_type == 'STRAIGHT_WALL' or 'RECTANGULAR_FLOOR':
                 layout.row()
                 layout.prop(scene, 'mt_tile_x')
                 layout.prop(scene, 'mt_tile_y')

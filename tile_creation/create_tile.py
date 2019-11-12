@@ -54,7 +54,7 @@ def make_tile(
     # construct first part of tile name based on system and type
     tile_name = tile_system.lower() + "." + tile_type.lower()
 
-    if tile_type == 'WALL':
+    if tile_type == 'STRAIGHT_WALL':
         # create new collection that operates as our "tile"
         new_collection = bpy.data.collections.new(tile_name)
         bpy.data.collections['Walls'].children.link(new_collection)
@@ -69,7 +69,7 @@ def make_tile(
             bhas_base)
         return new_collection
 
-    if tile_type == 'FLOOR':
+    if tile_type == 'RECTANGULAR_FLOOR':
         # create new collection that operates as our "tile"
         new_collection = bpy.data.collections.new(tile_name)
         bpy.data.collections['Floors'].children.link(new_collection)

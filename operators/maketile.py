@@ -1,7 +1,7 @@
 """Contains operator class to make tiles"""
 import bpy
 from mathutils import Vector
-from .. tile_creation.create_tile import make_tile
+from .. tile_creation.create_tile import create_tile
 from .. enums.enums import tile_systems, tile_types, units, base_types
 from .. utils.registration import get_prefs
 
@@ -30,26 +30,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         tile_units = context.scene.mt_tile_units
         base_system = context.scene.mt_base_system
 
-        if tile_system == 'OPENLOCK':
-            tile_units = 'IMPERIAL'
-            bhas_base = True
-            base_system = 'OPENLOCK'
-
-            if tile_type == 'STRAIGHT_WALL':
-                base_size = Vector((tile_size[0], 0.5, 0.3))
-                tile_size = Vector((tile_size[0], 0.5, tile_size[2]))
-            if tile_type == 'RECTANGULAR_FLOOR':
-                base_size = Vector((tile_size[0], tile_size[1], 0.3))
-                tile_size = Vector((tile_size[0], tile_size[1], 0.3))
-
-        if tile_units == 'IMPERIAL':
-            tile_size = tile_size * 25.4
-            base_size = base_size * 25.4
-
-        if not bhas_base:
-            base_size = Vector((0.0, 0.0, 0.0))
-
-        make_tile(
+        create_tile(
             tile_units,
             tile_system,
             tile_type,

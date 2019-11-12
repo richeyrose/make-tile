@@ -8,7 +8,11 @@ D = bpy.data
 
 def mode(mode_name):
     """switch modes, ensuring that if we enter edit mode we deselect all selected vertices"""
-    if len(bpy.data.objects) != 0:
+    if bpy.context.object is None:
+        return False
+    elif mode_name == bpy.context.object.mode:
+        return False
+    else:
         bpy.ops.object.mode_set(mode=mode_name)
         if mode_name == "EDIT":
             bpy.ops.mesh.select_all(action="DESELECT")

@@ -5,11 +5,13 @@ from mathutils import Vector
 
 def select_all():
     """Selects all objects if in OBJECT mode or verts / edges / faces if in EDIT mode"""
+    if bpy.context.object is None:
+        return False
     if len(bpy.data.objects) != 0:
         current_mode = bpy.context.object.mode
         if current_mode == 'EDIT':
             bpy.ops.mesh.select_all(action="SELECT")
-            return {'FINSIHED'}
+            return {'FINISHED'}
         if current_mode == 'OBJECT':
             bpy.ops.object.select_all(action="SELECT")
             return {'FINISHED'}
@@ -20,6 +22,8 @@ def select_all():
 # TODO:make work with curves
 def deselect_all():
     """Deselects all objects if in OBJECT mode or verts / edges / faces if in EDIT mode"""
+    if bpy.context.object is None:
+        return False
     if len(bpy.data.objects) != 0:
         current_mode = bpy.context.object.mode
         if current_mode == 'EDIT':

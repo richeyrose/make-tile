@@ -22,7 +22,7 @@ def make_straight_wall(
     tile_size   -- [x, y, z],
     base_size   -- [x, y, z],
     base_system -- tile system for bases
-    bhas_base --- whether tile has a seperate base
+    bhas_base   -- whether tile has a seperate base or is a simple slab
     """
 
     if bhas_base:

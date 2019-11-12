@@ -11,6 +11,13 @@ class MT_OT_Make_Tile(bpy.types.Operator):
     bl_idname = "scene.make_tile"
     bl_label = "Create a tile"
 
+    @classmethod
+    def poll(cls, context):
+        if bpy.context.object is not None:
+            return bpy.context.object.mode == 'OBJECT'
+        else:
+            return True
+
     def execute(self, context):
 
         scn = bpy.context.scene

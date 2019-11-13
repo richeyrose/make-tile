@@ -3,12 +3,12 @@ import os
 import bpy
 from .. lib.utils.collections import add_object_to_collection
 from .. utils.registration import get_path
-from .. lib.turtle.scripts.primitives import make_cuboid
+from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. lib.utils.selection import deselect_all, select, activate
 from .. lib.utils.utils import mode
 
 
-def make_straight_wall(
+def create_straight_wall(
         tile_system,
         tile_name,
         tile_size,
@@ -26,21 +26,20 @@ def make_straight_wall(
     """
 
     if bhas_base:
-        wall = make_straight_wall_slab(
+        wall = create_straight_wall_slab(
             tile_system,
             tile_name,
             tile_size,
             base_size)
 
-        base = make_straight_wall_base(
+        base = create_straight_wall_base(
             base_system,
             tile_name,
             base_size)
         base.parent = wall
-        # TODO: Should I be returning anything here?
         return wall
 
-    wall = make_straight_wall_slab(
+    wall = create_straight_wall_slab(
         tile_system,
         tile_name,
         tile_size,
@@ -48,7 +47,7 @@ def make_straight_wall(
     return wall
 
 
-def make_straight_wall_base(
+def create_straight_wall_base(
         base_system,
         tile_name,
         base_size):
@@ -68,7 +67,7 @@ def make_straight_wall_base(
     select(base.name)
     activate(base.name)
 
-    base = make_cuboid(base_size)
+    base = draw_cuboid(base_size)
     mode('OBJECT')
 
     # move base so centred and set origin to world origin
@@ -78,22 +77,22 @@ def make_straight_wall_base(
 
     # OpenLOCK base options
     if base_system == 'OPENLOCK':
-        make_openlock_straight_wall_base(base, tile_name)
+        create_openlock_straight_wall_base(base, tile_name)
 
     return (base)
 
 
-def make_openlock_straight_wall_base(straight_wall_base, tile_name):
+def create_openlock_straight_wall_base(straight_wall_base, tile_name):
     """takes a straight wall base and makes it into an openlock style base"""
     base = straight_wall_base
-    slot_cutter = make_openlock_base_slot_cutter(base, tile_name)
+    slot_cutter = create_openlock_base_slot_cutter(base, tile_name)
     slot_boolean = base.modifiers.new(slot_cutter.name, 'BOOLEAN')
     slot_boolean.operation = 'DIFFERENCE'
     slot_boolean.object = slot_cutter
     slot_cutter.parent = base
     slot_cutter.display_type = 'BOUNDS'
 
-    clip_cutter = make_openlock_base_clip_cutter(base, tile_name)
+    clip_cutter = create_openlock_base_clip_cutter(base, tile_name)
     clip_boolean = base.modifiers.new(clip_cutter.name, 'BOOLEAN')
     clip_boolean.operation = 'DIFFERENCE'
     clip_boolean.object = clip_cutter
@@ -101,7 +100,7 @@ def make_openlock_straight_wall_base(straight_wall_base, tile_name):
     clip_cutter.display_type = 'BOUNDS'
 
 
-def make_straight_wall_slab(
+def create_straight_wall_slab(
         tile_system,
         tile_name,
         tile_size,
@@ -121,7 +120,7 @@ def make_straight_wall_slab(
     select(slab.name)
     activate(slab.name)
 
-    slab = make_cuboid([
+    slab = draw_cuboid([
         tile_size[0],
         tile_size[1],
         tile_size[2] - base_size[2]])
@@ -137,7 +136,7 @@ def make_straight_wall_slab(
     if tile_system == 'OPENLOCK':
         # check to see if tile is at least 1 inch high
         if tile_size[2] >= 2.53:
-            wall_cutters = make_openlock_wall_cutters(slab, tile_size, tile_name)
+            wall_cutters = create_openlock_wall_cutters(slab, tile_size, tile_name)
             for wall_cutter in wall_cutters:
                 wall_cutter.parent = slab
                 wall_cutter.display_type = 'BOUNDS'
@@ -149,7 +148,7 @@ def make_straight_wall_slab(
     return slab
 
 
-def make_openlock_wall_cutters(slab, tile_size, tile_name):
+def create_openlock_wall_cutters(slab, tile_size, tile_name):
     """Creates the cutters for the wall and positions them correctly
 
     Keyword arguments:
@@ -206,7 +205,7 @@ def make_openlock_wall_cutters(slab, tile_size, tile_name):
     return [side_cutter1, side_cutter2]
 
 
-def make_openlock_base_clip_cutter(base, tile_name):
+def create_openlock_base_clip_cutter(base, tile_name):
     """Makes a cutter for the openlock base clip based
     on the width of the base and positions it correctly
 
@@ -260,7 +259,7 @@ def make_openlock_base_clip_cutter(base, tile_name):
     return (clip_cutter)
 
 
-def make_openlock_base_slot_cutter(base, tile_name):
+def create_openlock_base_slot_cutter(base, tile_name):
     """Makes a cutter for the openlock base slot
     based on the width of the base
 
@@ -290,7 +289,7 @@ def make_openlock_base_slot_cutter(base, tile_name):
     select(cutter.name)
     activate(cutter.name)
 
-    cutter = make_cuboid(bool_size)
+    cutter = draw_cuboid(bool_size)
     mode('OBJECT')
 
     # move cutter so centred and set cutter origin to world origin + z = -0.01

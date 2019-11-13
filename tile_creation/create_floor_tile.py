@@ -4,11 +4,11 @@ from .. lib.utils.collections import add_object_to_collection
 from .. lib.utils.utils import mode
 from .. lib.utils.selection import select, activate
 from .. utils.registration import get_path
-from .. lib.turtle.scripts.primitives import make_cuboid
-from .. lib.turtle.scripts.openlock_floor_base import draw_floor
+from .. lib.turtle.scripts.primitives import draw_cuboid
+from .. lib.turtle.scripts.openlock_floor_base import draw_openlock_rect_floor_base
 
 
-def make_floor( 
+def create_rectangular_floor( 
         tile_system,
         tile_name,
         tile_size,
@@ -25,16 +25,23 @@ def make_floor(
     base_system -- tile system for bases
     bhas_base   -- whether tile has a seperate base or is a simple slab
     """
-    draw_floor(tile_size)
-    mode('OBJECT')
-    return {'FINISHED'}
+    if bhas_base:
+        floor = create_rectangular_floor_base(
+            base_system,
+            tile_size,
+            tile_name,
+            base_size)
+        return floor
 
-
-def make_floor_slab(
-        tile_system,
+    floor = create_rectangular_floor_slab(
         tile_name,
-        tile_size,
-        base_size):
+        tile_size)
+    return floor
+
+
+def create_rectangular_floor_slab(
+        tile_name,
+        tile_size):
 
     '''Returns the slab part of a floor tile
 
@@ -51,30 +58,27 @@ def make_floor_slab(
     select(slab.name)
     activate(slab.name)
 
-    slab = make_cuboid([
-        tile_size[0],
-        tile_size[1],
-        tile_size[2] - base_size[2]])
+    slab = draw_cuboid(tile_size)
 
     mode('OBJECT')
 
-    # move slab so centred, move up so on top of base and set origin to world origin
-    slab.location = (-tile_size[0] / 2, -tile_size[1] / 2, base_size[2])
+    # move slab so centred and set origin to world origin
+    slab.location = (-tile_size[0] / 2, -tile_size[1] / 2, 0)
     bpy.context.scene.cursor.location = [0, 0, 0]
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
 
     return slab
 
 
-def make_floor_base(
+def create_rectangular_floor_base(
         base_system,
         tile_size,
         tile_name,
         base_size):
 
     if base_system == 'OPENLOCK':
-        draw_floor(dimensions=tile_size)
-    
+        draw_openlock_rect_floor_base(dimensions=tile_size)
+
     mode('OBJECT')
     base = bpy.context.object
     return base

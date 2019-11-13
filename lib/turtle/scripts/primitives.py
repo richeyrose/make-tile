@@ -1,7 +1,7 @@
 import bpy
 
 
-def make_cuboid(size):
+def draw_cuboid(size):
     """Returns a cuboid. size = (0, 0, 0)"""
     turtle = bpy.context.scene.cursor
     t = bpy.ops.turtle

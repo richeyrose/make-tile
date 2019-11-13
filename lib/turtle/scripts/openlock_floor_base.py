@@ -6,10 +6,10 @@ slot_w = 4.6                # slot width
 slot_h = 6.1                # slot height
 support_w = 3               # slot support width
 support_h = 1.39            # slot support height
-extra_sup_dist = 23.4       # distance between extra supports for large tiles
+extra_sup_dist = 21.67       # distance between extra supports for large tiles
 
 
-def draw_floor(dimensions):
+def draw_openlock_rect_floor_base(dimensions):
     turtle = bpy.context.scene.cursor
     t = bpy.ops.turtle
     x = dimensions[0]
@@ -113,26 +113,27 @@ def draw_quarter_floor(dimensions, start_loc):
     t.ri(d=leg)
     t.select_at_cursor()
     bpy.ops.mesh.delete(type='EDGE')
-    
 
-    # check if either side is greater than 101.6mm (4").
+    # check if either side is greater than 100.6mm (jut under 4").
     # if yes we add some extra support between outer and inner ring
-    if x >= 101.6:
-        x_supports = 1 + floor((x - 101.6) / 50.8)
-    else: x_supports = 0
+    if x >= 101.4:
+        x_supports = 1 + floor((x - 101.4) / 50.8)
+    else:
+        x_supports = 0
 
-    if y >= 101.6:
-        y_supports = 1 + floor((y - 101.6) / 50.8)
-    else: y_supports = 0
+    if y >= 101.4:
+        y_supports = 1 + floor((y - 101.4) / 50.8)
+    else:
+        y_supports = 0
 
     t.home()
     t.pu()
     t.set_position(v=start_loc)
     t.fd(d=outer_w)
-    t.rt(d=90) 
-   
+    t.rt(d=90)
+
     if x_supports > 0:
-        add_extra_supports(x_supports, 'x', support_w, slot_w, x, y, leg, outer_w, start_loc, side_length = x)
+        add_extra_supports(x_supports, 'x', support_w, slot_w, x, y, leg, outer_w, start_loc, side_length=x)
 
     t.home()
     t.ri(d=x / 2 - outer_w)
@@ -151,8 +152,8 @@ def draw_quarter_floor(dimensions, start_loc):
     t.home()
     t.set_position(v=start_loc)
 
-    #join outer edges
-    t.pd()    
+    # join outer edges
+    t.pd()
     t.select_at_cursor()
     t.fd(d=outer_w)
     t.deselect_all()

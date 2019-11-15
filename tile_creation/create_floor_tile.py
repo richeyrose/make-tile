@@ -8,7 +8,7 @@ from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. lib.turtle.scripts.openlock_floor_base import draw_openlock_rect_floor_base
 
 
-def create_rectangular_floor( 
+def create_rectangular_floor(
         tile_system,
         tile_name,
         tile_size,
@@ -25,6 +25,7 @@ def create_rectangular_floor(
     base_system -- tile system for bases
     bhas_base   -- whether tile has a seperate base or is a simple slab
     """
+
     if bhas_base:
         floor = create_rectangular_floor_base(
             base_system,
@@ -77,7 +78,7 @@ def create_rectangular_floor_base(
         base_size):
 
     if base_system == 'OPENLOCK':
-        draw_openlock_rect_floor_base(dimensions=tile_size)
+        base = draw_openlock_rect_floor_base(dimensions=tile_size)
 
     mode('OBJECT')
     base = bpy.context.object

@@ -32,6 +32,8 @@ def draw_openlock_rect_floor_base(dimensions):
     mirror_mod.use_axis[0] = True
     mirror_mod.use_axis[1] = True
 
+    return base
+
 
 def draw_quarter_floor(dimensions, start_loc):
     turtle = bpy.context.scene.cursor

@@ -4,8 +4,9 @@ import bpy
 from .. lib.utils.collections import add_object_to_collection
 from .. utils.registration import get_path
 from .. lib.turtle.scripts.primitives import draw_cuboid
-from .. lib.utils.selection import deselect_all, select, activate
+from .. lib.utils.selection import deselect_all, select_all, select, activate
 from .. lib.utils.utils import mode
+from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
 
 
 def create_straight_wall(
@@ -26,20 +27,22 @@ def create_straight_wall(
     """
 
     if bhas_base:
-        wall = create_straight_wall_slab(
-            tile_system,
-            tile_name,
-            tile_size,
-            base_size)
 
         base = create_straight_wall_base(
             base_system,
             tile_name,
             base_size)
+
+        wall = create_straight_wall_core(
+            tile_system,
+            tile_name,
+            tile_size,
+            base_size)
+
         base.parent = wall
         return wall
 
-    wall = create_straight_wall_slab(
+    wall = create_straight_wall_core(
         tile_system,
         tile_name,
         tile_size,
@@ -61,14 +64,14 @@ def create_straight_wall_base(
     """
 
     # make base
-    base_mesh = bpy.data.meshes.new("base_mesh")
-    base = bpy.data.objects.new(tile_name + '.base', base_mesh)
-    add_object_to_collection(base, tile_name)
-    select(base.name)
-    activate(base.name)
 
     base = draw_cuboid(base_size)
+    base.name = tile_name + '.base'
+    add_object_to_collection(base, tile_name)
+
     mode('OBJECT')
+    select(base.name)
+    activate(base.name)
 
     # move base so centred and set origin to world origin
     base.location = (- base_size[0] / 2, - base_size[1] / 2, 0)
@@ -79,6 +82,8 @@ def create_straight_wall_base(
     if base_system == 'OPENLOCK':
         create_openlock_straight_wall_base(base, tile_name)
 
+    # make base unselectable
+    # base.hide_select = True
     return (base)
 
 
@@ -91,6 +96,7 @@ def create_openlock_straight_wall_base(straight_wall_base, tile_name):
     slot_boolean.object = slot_cutter
     slot_cutter.parent = base
     slot_cutter.display_type = 'BOUNDS'
+    slot_cutter.hide_viewport = True
 
     clip_cutter = create_openlock_base_clip_cutter(base, tile_name)
     clip_boolean = base.modifiers.new(clip_cutter.name, 'BOOLEAN')
@@ -98,14 +104,15 @@ def create_openlock_straight_wall_base(straight_wall_base, tile_name):
     clip_boolean.object = clip_cutter
     clip_cutter.parent = base
     clip_cutter.display_type = 'BOUNDS'
+    clip_cutter.hide_viewport = True
 
 
-def create_straight_wall_slab(
+def create_straight_wall_core(
         tile_system,
         tile_name,
         tile_size,
         base_size):
-    '''Returns the slab part of a wall tile
+    '''Returns the core (vertical inner) part of a wall tile
 
     Keyword arguments:
     tile_system -- What tile system to usee e.g. OpenLOCK, DragonLOCK, plain
@@ -113,39 +120,56 @@ def create_straight_wall_slab(
     tile_size   -- [x, y, z]
     base_size   -- [x, y, z]
     '''
-    slab_mesh = bpy.data.meshes.new("slab_mesh")
-    slab = bpy.data.objects.new(tile_name + '.slab', slab_mesh)
-    add_object_to_collection(slab, tile_name)
+    mode('OBJECT')
 
-    select(slab.name)
-    activate(slab.name)
-
-    slab = draw_cuboid([
+    # make our slab
+    core = draw_cuboid([
         tile_size[0],
         tile_size[1],
         tile_size[2] - base_size[2]])
 
+    core.name = tile_name + '.core'
+    add_object_to_collection(core, tile_name)
+
     mode('OBJECT')
+    select(core.name)
+    activate(core.name)
+
+    # assign vertex group to each side of mesh
+    cuboid_sides_to_vert_groups(core)
+
+    # Add subsurf modifier that will be used by displacement textures
+    mode('EDIT')
+    select_all()
+    bpy.ops.transform.edge_crease(value=1)
+    mode('OBJECT')
+    subdiv = core.modifiers.new('disp_subsurf', 'SUBSURF')
+
+    # TODO: Decide if we need bevel
+    # bpy.ops.transform.edge_bevelweight(value=1)
+    # bevel = slab.modifiers.new('Bevel', 'BEVEL')
+    # slab.modifiers[bevel.name].limit_method = 'WEIGHT'
 
     # move slab so centred, move up so on top of base and set origin to world origin
-    slab.location = (-tile_size[0] / 2, -tile_size[1] / 2, base_size[2])
+    core.location = (-tile_size[0] / 2, -tile_size[1] / 2, base_size[2])
     bpy.context.scene.cursor.location = [0, 0, 0]
+    select(core.name)
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
 
     # OpenLOCK wall options
     if tile_system == 'OPENLOCK':
         # check to see if tile is at least 1 inch high
         if tile_size[2] >= 2.53:
-            wall_cutters = create_openlock_wall_cutters(slab, tile_size, tile_name)
+            wall_cutters = create_openlock_wall_cutters(core, tile_size, tile_name)
             for wall_cutter in wall_cutters:
-                wall_cutter.parent = slab
+                wall_cutter.parent = core
                 wall_cutter.display_type = 'BOUNDS'
-
-                wall_cutter_bool = slab.modifiers.new('Wall Cutter', 'BOOLEAN')
+                wall_cutter.hide_viewport = True
+                wall_cutter_bool = core.modifiers.new('Wall Cutter', 'BOOLEAN')
                 wall_cutter_bool.operation = 'DIFFERENCE'
                 wall_cutter_bool.object = wall_cutter
 
-    return slab
+    return core
 
 
 def create_openlock_wall_cutters(slab, tile_size, tile_name):

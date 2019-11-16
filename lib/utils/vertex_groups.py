@@ -3,12 +3,11 @@ from . selection import select_by_loc, deselect_all
 from . utils import mode
 
 
-def cuboid_sides_to_vert_groups():
+def cuboid_sides_to_vert_groups(obj):
     """makes a vertex group for each side of cuboid
     and assigns vertices to it"""
 
     mode('OBJECT')
-    obj = bpy.context.object
     dim = obj.dimensions / 2
 
     # get original location of object origin and of cursor

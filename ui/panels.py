@@ -44,3 +44,5 @@ class MT_PT_Panel(bpy.types.Panel):
                     layout.prop(scene, 'mt_base_x')
                     layout.prop(scene, 'mt_base_y')
                     layout.prop(scene, 'mt_base_z')
+        
+        layout.prop(scene, 'mt_tile_material')

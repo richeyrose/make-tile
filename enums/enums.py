@@ -1,4 +1,6 @@
-#Menus for EnumProperty's
+# Menus for EnumProperty's
+
+
 units = [
     ("METRIC", "Metric", "", 1),
     ("IMPERIAL", "Imperial", "", 2),
@@ -17,4 +19,10 @@ tile_types = [
 base_types = [
     ("OPENLOCK", "OpenLOCK", "", 1),
     ("CUSTOM", "Custom", "", 2),
+]
+
+tile_materials = [
+    ("NONE", "None", "", 1),
+    ("BRICKS", "Bricks", "", 2),
+    ("STONEWALL1", "Stone Wall 1", "", 3)
 ]

@@ -2,7 +2,7 @@
 import bpy
 from mathutils import Vector
 from .. tile_creation.create_tile import create_tile
-from .. enums.enums import tile_systems, tile_types, units, base_types
+from .. enums.enums import tile_systems, tile_types, units, base_types, tile_materials
 from .. utils.registration import get_prefs
 
 
@@ -20,15 +20,14 @@ class MT_OT_Make_Tile(bpy.types.Operator):
 
     def execute(self, context):
 
-        scn = bpy.context.scene
-
-        tile_system = scn.mt_tile_system
-        tile_type = scn.mt_tile_type
-        tile_size = Vector((scn.mt_tile_x, scn.mt_tile_y, scn.mt_tile_z))
+        tile_system = context.scene.mt_tile_system
+        tile_type = context.scene.mt_tile_type
+        tile_size = Vector((context.scene.mt_tile_x, context.scene.mt_tile_y, context.scene.mt_tile_z))
         bhas_base = context.scene.mt_bhas_base
-        base_size = Vector((scn.mt_base_x, scn.mt_base_y, scn.mt_base_z))
+        base_size = Vector((context.scene.mt_base_x, context.scene.mt_base_y, context.scene.mt_base_z))
         tile_units = context.scene.mt_tile_units
         base_system = context.scene.mt_base_system
+        tile_material = context.scene.mt_tile_material
 
         create_tile(
             tile_units,
@@ -37,7 +36,8 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             bhas_base,
             tile_size,
             base_size,
-            base_system
+            base_system,
+            tile_material
         )
 
         return {'FINISHED'}
@@ -71,6 +71,12 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             default=preferences.default_base_system,
         )
 
+        bpy.types.Scene.mt_tile_material = bpy.props.EnumProperty(
+            items=tile_materials,
+            name="Tile Material",
+            default="STONEWALL1",
+        )
+
         # Tile and base Size. We use seperate floats so that we can only show
         # customisable ones where appropriate. These are wrapped up
         # in a vector and passed on as tile_size and base_size
@@ -85,7 +91,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
 
         bpy.types.Scene.mt_tile_y = bpy.props.FloatProperty(
             name="Tile Y",
-            default=0.5,
+            default=2,
             step=0.5,
             precision=3,
         )
@@ -135,6 +141,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         del bpy.types.Scene.mt_tile_y
         del bpy.types.Scene.mt_tile_z
         del bpy.types.Scene.mt_base_system
+        del bpy.types.Scene.mt_tile_material
         del bpy.types.Scene.mt_tile_type
         del bpy.types.Scene.mt_tile_system
         del bpy.types.Scene.mt_tile_units

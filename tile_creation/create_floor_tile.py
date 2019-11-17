@@ -9,15 +9,18 @@ from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. lib.turtle.scripts.openlock_floor_base import draw_openlock_rect_floor_base
 from . create_wall_tile import create_straight_wall_base
 from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
+from .. add_materials.add_material import add_material
 
 
 def create_rectangular_floor(
+        tile_units,
         tile_system,
         tile_name,
         tile_size,
         base_size,
         base_system,
-        bhas_base):
+        bhas_base,
+        tile_material):
 
     """"Returns a floor
     Keyword arguments:
@@ -28,8 +31,12 @@ def create_rectangular_floor(
     base_system -- tile system for bases
     bhas_base   -- whether tile has a seperate base or is a simple slab
     """
-
-    if tile_system == "OPENLOCK":
+    
+    if base_system == "OPENLOCK":
+        tile_units = 'IMPERIAL'
+        base_size = Vector((tile_size[0], tile_size[1], 0.27559)) * 25.4
+        tile_size = Vector((tile_size[0], tile_size[1], 0.27559)) * 25.4
+        
         base = create_openlock_rectangular_floor_base(
             tile_name,
             base_size)
@@ -38,12 +45,19 @@ def create_rectangular_floor(
             tile_size=(tile_size[0], tile_size[1], 1),
             base_size=base_size)
         base.parent = floor
-        return floor
 
-    floor = create_rectangular_floor_slab(
-        tile_name,
-        tile_size,
-        base_size)
+        axes = ['z_pos']
+        add_material(axes, floor, tile_material)
+
+    else:
+        floor = create_rectangular_floor_slab(
+            tile_name,
+            tile_size,
+            base_size)
+
+    axes = ['z_pos']
+    add_material(axes, floor, tile_material)
+
     return floor
 
 

@@ -17,7 +17,8 @@ def create_tile(
         bhas_base,
         tile_size,
         base_size,
-        base_system):
+        base_system,
+        tile_material):
     """Returns a tile as a collection
 
         Keyword arguments:
@@ -26,26 +27,6 @@ def create_tile(
         tile_size -- [x, y, z]
         base_size -- if tile has a base [x, y, z]
     """
-
-    if tile_system == 'OPENLOCK':
-        tile_units = 'IMPERIAL'
-        bhas_base = True
-        base_system = 'OPENLOCK'
-
-        if tile_type == 'STRAIGHT_WALL':
-            base_size = Vector((tile_size[0], 0.5, 0.27559))
-            tile_size = Vector((tile_size[0], 0.31496, tile_size[2]))
-        if tile_type == 'RECTANGULAR_FLOOR':
-            base_size = Vector((tile_size[0], tile_size[1], 0.27559))
-            tile_size = Vector((tile_size[0], tile_size[1], 0.27559))
-
-    if tile_units == 'IMPERIAL':
-        tile_size = tile_size * 25.4
-        base_size = base_size * 25.4
-
-    if not bhas_base:
-        base_size = Vector((0.0, 0.0, 0.0))
-
     scene_collection = bpy.context.scene.collection
 
     # Check to see if tile collection exist and create if not
@@ -60,39 +41,41 @@ def create_tile(
         walls_collection = create_collection('Walls', tiles_collection)
 
         # create new collection that operates as our "tile"
-        new_collection = bpy.data.collections.new(tile_name)
-        bpy.data.collections['Walls'].children.link(new_collection)
+        tile_collection = bpy.data.collections.new(tile_name)
+        bpy.data.collections['Walls'].children.link(tile_collection)
 
         # make final tile name
-        tile_name = new_collection.name
+        tile_name = tile_collection.name
 
         create_straight_wall(
+            tile_units,
             tile_system,
             tile_name,
             tile_size,
             base_size,
             base_system,
-            bhas_base)
-        return new_collection
+            bhas_base,
+            tile_material)
 
     if tile_type == 'RECTANGULAR_FLOOR':
+
         # create floor collection if one doesn't already exist
         floors_collection = create_collection('Floors', tiles_collection)
         # create new collection that operates as our "tile"
-        new_collection = bpy.data.collections.new(tile_name)
-        bpy.data.collections['Floors'].children.link(new_collection)
+        tile_collection = bpy.data.collections.new(tile_name)
+        bpy.data.collections['Floors'].children.link(tile_collection)
 
         # make final tile name
-        tile_name = new_collection.name
+        tile_name = tile_collection.name
 
         create_rectangular_floor(
+            tile_units,
             tile_system,
             tile_name,
             tile_size,
             base_size,
             base_system,
-            bhas_base)
+            bhas_base,
+            tile_material)
 
-        return new_collection
-
-    return {'CANCELLED'}
+    return tile_collection

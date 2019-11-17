@@ -78,13 +78,13 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
         items=tile_systems,
         description="Default base system to use",
         name="Base System",
-        default="CUSTOM",
+        default="OPENLOCK",
     )
 
     default_bhas_base: BoolProperty(
         name="Seperate Base",
         description="Do walls, steps etc. have seperate bases",
-        default=False,
+        default=True,
     )
 
     def draw(self, context):

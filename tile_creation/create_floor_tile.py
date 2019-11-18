@@ -30,12 +30,12 @@ def create_rectangular_floor(
     base_system -- tile system for bases
     bhas_base   -- whether tile has a seperate base or is a simple slab
     """
-    
+
     if base_system == "OPENLOCK":
         tile_units = 'IMPERIAL'
         base_size = Vector((tile_size[0], tile_size[1], 0.27559)) * 25.4
         tile_size = Vector((tile_size[0], tile_size[1], 0.27559)) * 25.4
-        
+
         base = create_openlock_rectangular_floor_base(
             tile_name,
             base_size)

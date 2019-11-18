@@ -64,7 +64,8 @@ def create_tile(
         # create new collection that operates as our "tile"
         tile_collection = bpy.data.collections.new(tile_name)
         bpy.data.collections['Floors'].children.link(tile_collection)
-
+        # select tile collection
+        
         # make final tile name
         tile_name = tile_collection.name
 

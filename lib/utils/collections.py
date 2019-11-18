@@ -18,3 +18,16 @@ def add_object_to_collection(obj, collection_name):
     if not (obj.name, obj) in bpy.data.collections[collection_name].objects.items():
         bpy.data.collections[collection_name].objects.link(obj)
     return {'FINISHED'}
+
+
+def get_collection(layer_collection, collection_name):
+    """Recursively searches for a layer collection and returns it.
+    God knows why this isn't part of the API!
+    """
+    found = None
+    if (layer_collection.name == collection_name):
+        return layer_collection
+    for layer in layer_collection.children:
+        found = get_collection(layer_collection, collection_name)
+        if found:
+            return found

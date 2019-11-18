@@ -8,7 +8,7 @@ from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. lib.utils.selection import deselect_all, select_all, select, activate
 from .. lib.utils.utils import mode
 from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
-from .. add_materials.add_material import add_blank_material, load_material, assign_mat_to_vert_group
+from .. add_materials.add_material import add_blank_material, load_material, assign_mat_to_vert_group, bake_displacement_map
 
 
 def create_straight_wall(
@@ -46,13 +46,13 @@ def create_straight_wall(
             'outer',
             True)
 
-        outer_slab_displacement = create_straight_wall_slab(
+        outer_slab_final = create_straight_wall_slab(
             tile_name,
             core.dimensions,
             base.dimensions,
             'outer',
             False)
-        outer_slab_displacement.hide_viewport = True
+        # outer_slab_final.hide_viewport = True
 
         inner_slab_preview = create_straight_wall_slab(
             tile_name,
@@ -61,26 +61,68 @@ def create_straight_wall(
             'inner',
             True)
 
-        inner_slab_displacement = create_straight_wall_slab(
+        inner_slab_final = create_straight_wall_slab(
             tile_name,
             core.dimensions,
             base.dimensions,
             'inner',
             False)
+        # inner_slab_final.hide_viewport = True
 
-        inner_slab_displacement.hide_viewport = True
+        # add modifiers and set up textures
+        outer_slab_subsurf = outer_slab_final.modifiers.new('Subsurf', 'SUBSURF')
+        outer_slab_subsurf.subdivision_type = 'SIMPLE'
+        outer_slab_subsurf.levels = 0
 
-        preview_material = load_material(tile_material)
+        outer_slab_disp_mod = outer_slab_final.modifiers.new('Displacement', 'DISPLACE')
+        outer_slab_disp_mod.strength = 0
+        outer_slab_disp_mod.texture_coords = 'UV'
+        outer_slab_disp_mod.direction = 'Y'
+        outer_slab_disp_mod.vertex_group = 'y_pos'
+        outer_slab_disp_mod.mid_level = 0
+
+        outer_slab_disp_texture = bpy.data.textures.new('outer_slab_displacement_texture', 'IMAGE')
+
+        inner_slab_subsurf = inner_slab_final.modifiers.new('Subsurf', 'SUBSURF')
+        inner_slab_subsurf.subdivision_type = 'SIMPLE'
+        inner_slab_subsurf.levels = 0
+
+        inner_slab_disp_mod = inner_slab_final.modifiers.new('Displacement', 'DISPLACE')
+        inner_slab_disp_mod.texture_coords = 'UV'
+        inner_slab_disp_mod.direction = 'Y'
+        inner_slab_disp_mod.vertex_group = 'y_neg'
+        inner_slab_texture = bpy.data.textures.new('inner_slab_displacement_texture', 'IMAGE')
+
+        add_blank_material(outer_slab_preview)
+        add_blank_material(outer_slab_preview)
+
+        preview_material = load_material(tile_material)    
+
         outer_slab_preview.data.materials.append(preview_material)
+        outer_slab_final.data.materials.append(preview_material)
+
         inner_slab_preview.data.materials.append(preview_material)
+        inner_slab_final.data.materials.append(preview_material)
 
         select(outer_slab_preview.name)
         activate(outer_slab_preview.name)
+
         assign_mat_to_vert_group('y_pos', outer_slab_preview, tile_material)
 
         select(inner_slab_preview.name)
         activate(inner_slab_preview.name)
         assign_mat_to_vert_group('y_neg', inner_slab_preview, tile_material)
+        
+        '''
+        select(outer_slab_final.name)
+        activate(outer_slab_final.name)
+
+        bake_displacement_map(preview_material, outer_slab_final)
+
+        outer_slab_image = bpy.data.images['disp_image']
+        outer_slab_disp_texture.image = outer_slab_image
+        outer_slab_disp_mod.texture = outer_slab_disp_texture
+        '''
 
     else:
 
@@ -112,12 +154,12 @@ def create_straight_wall_slab(
     if bis_preview:
         slab_size = Vector((core_size[0], (base_size[1] - core_size[1]) / 2, core_size[2]))
         slab = draw_cuboid(slab_size)
-        slab.name = tile_name + 'slab.preview.' + slab_type
+        slab.name = tile_name + '.slab.preview.' + slab_type
         add_object_to_collection(slab, tile_name)
     else:
         slab_size = Vector((core_size[0], 0.1, core_size[2]))
         slab = draw_cuboid(slab_size)
-        slab.name = tile_name + 'slab.displacement.' + slab_type
+        slab.name = tile_name + '.slab.displacement.' + slab_type
         add_object_to_collection(slab, tile_name)
 
     if slab_type == 'inner':
@@ -132,9 +174,9 @@ def create_straight_wall_slab(
         bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
 
     select(slab.name)
+    activate(slab.name)
     bpy.ops.uv.smart_project()
-    add_blank_material(slab)
-    cuboid_sides_to_vert_groups(slab)    
+    cuboid_sides_to_vert_groups(slab)
 
     return slab
 

@@ -9,7 +9,6 @@ from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. lib.turtle.scripts.openlock_floor_base import draw_openlock_rect_floor_base
 from . create_wall_tile import create_straight_wall_base
 from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
-from .. add_materials.add_material import add_material
 
 
 def create_rectangular_floor(
@@ -47,7 +46,6 @@ def create_rectangular_floor(
         base.parent = floor
 
         axes = ['z_pos']
-        add_material(axes, floor, tile_material)
 
     else:
         floor = create_rectangular_floor_slab(
@@ -56,7 +54,6 @@ def create_rectangular_floor(
             base_size)
 
     axes = ['z_pos']
-    add_material(axes, floor, tile_material)
 
     return floor
 

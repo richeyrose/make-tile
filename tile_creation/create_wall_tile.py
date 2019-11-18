@@ -8,7 +8,7 @@ from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. lib.utils.selection import deselect_all, select_all, select, activate
 from .. lib.utils.utils import mode
 from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
-from .. add_materials.add_material import add_material
+from .. add_materials.add_material import add_blank_material, load_material, assign_mat_to_vert_group
 
 
 def create_straight_wall(
@@ -39,20 +39,48 @@ def create_straight_wall(
         tile_size = Vector((tile_size[0], 0.31496, tile_size[2])) * 25.4
         core = create_openlock_straight_wall_core(tile_name, tile_size, base_size)
 
-        outer_slab = create_straight_wall_slab(
+        outer_slab_preview = create_straight_wall_slab(
             tile_name,
             core.dimensions,
             base.dimensions,
-            'outer')
+            'outer',
+            True)
 
-        inner_slab = create_straight_wall_slab(
+        outer_slab_displacement = create_straight_wall_slab(
             tile_name,
             core.dimensions,
             base.dimensions,
-            'inner')
+            'outer',
+            False)
+        outer_slab_displacement.hide_viewport = True
 
-        add_material('y_pos', inner_slab, tile_material)
-        add_material('y_neg', inner_slab, tile_material)
+        inner_slab_preview = create_straight_wall_slab(
+            tile_name,
+            core.dimensions,
+            base.dimensions,
+            'inner',
+            True)
+
+        inner_slab_displacement = create_straight_wall_slab(
+            tile_name,
+            core.dimensions,
+            base.dimensions,
+            'inner',
+            False)
+
+        inner_slab_displacement.hide_viewport = True
+
+        preview_material = load_material(tile_material)
+        outer_slab_preview.data.materials.append(preview_material)
+        inner_slab_preview.data.materials.append(preview_material)
+
+        select(outer_slab_preview.name)
+        activate(outer_slab_preview.name)
+        assign_mat_to_vert_group('y_pos', outer_slab_preview, tile_material)
+
+        select(inner_slab_preview.name)
+        activate(inner_slab_preview.name)
+        assign_mat_to_vert_group('y_neg', inner_slab_preview, tile_material)
 
     else:
 
@@ -62,13 +90,13 @@ def create_straight_wall(
             tile_size,
             base_size)
 
-        outer_slab = create_straight_wall_slab(
+        outer_slab_preview = create_straight_wall_slab(
             tile_name,
             tile_size,
             base_size,
             'outer')
 
-        inner_slab = create_straight_wall_slab(
+        inner_slab_preview = create_straight_wall_slab(
             tile_name,
             tile_size,
             base_size,
@@ -79,23 +107,34 @@ def create_straight_wall_slab(
         tile_name,
         core_size,
         base_size,
-        slab_type):
-    slab_size = Vector((core_size[0], (base_size[1] - core_size[1]) / 4, core_size[2]))
-    slab = draw_cuboid(slab_size)
-    slab.name = tile_name + 'slab' + slab_type
-    add_object_to_collection(slab, tile_name)
+        slab_type,
+        bis_preview):
+    if bis_preview:
+        slab_size = Vector((core_size[0], (base_size[1] - core_size[1]) / 2, core_size[2]))
+        slab = draw_cuboid(slab_size)
+        slab.name = tile_name + 'slab.preview.' + slab_type
+        add_object_to_collection(slab, tile_name)
+    else:
+        slab_size = Vector((core_size[0], 0.1, core_size[2]))
+        slab = draw_cuboid(slab_size)
+        slab.name = tile_name + 'slab.displacement.' + slab_type
+        add_object_to_collection(slab, tile_name)
+
     if slab_type == 'inner':
-        slab.location = (-base_size[0] / 2, -base_size[1] / 2, base_size[2])
+        slab.location = (-base_size[0] / 2, -core_size[1] / 2 - slab.dimensions[1], base_size[2])
         bpy.context.scene.cursor.location = [0, 0, 0]
         mode('OBJECT')
         bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
     else:
-        slab.location = (-base_size[0] / 2, (base_size[1] / 2) - slab.dimensions[1], base_size[2])
+        slab.location = (-base_size[0] / 2, core_size[1] / 2, base_size[2])
         bpy.context.scene.cursor.location = [0, 0, 0]
         mode('OBJECT')
         bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
 
-    cuboid_sides_to_vert_groups(slab)
+    select(slab.name)
+    bpy.ops.uv.smart_project()
+    add_blank_material(slab)
+    cuboid_sides_to_vert_groups(slab)    
 
     return slab
 

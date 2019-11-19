@@ -22,6 +22,7 @@ def add_blank_material(obj):
     else:
         blank_material = bpy.data.materials['Blank_Material']
     obj.data.materials.append(blank_material)
+    return blank_material
 
 
 def assign_mat_to_vert_group(vert_group, obj, material):
@@ -57,4 +58,17 @@ def bake_displacement_map(material, obj):
     displacement_emission_node = tree.nodes['disp_emission']
     tree.links.new(displacement_emission_node.outputs['Emission'], mat_output_node.inputs['Surface'])
 
+    # bake
     bpy.ops.object.bake(type='EMIT')
+
+    # reset shader
+    surface_shader_node = tree.nodes['surface_shader']
+    tree.links.new(surface_shader_node.outputs['BSDF'], mat_output_node.inputs['Surface'])
+
+    # reset engine
+    bpy.context.scene.cycles.samples = orig_samples
+    bpy.context.scene.render.tile_x = orig_x
+    bpy.context.scene.render.tile_y = orig_y
+    bpy.context.scene.cycles.bake_type = orig_bake_type
+    bpy.context.scene.render.engine = orig_engine
+    

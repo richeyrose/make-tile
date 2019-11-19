@@ -44,5 +44,9 @@ class MT_PT_Panel(bpy.types.Panel):
                     layout.prop(scene, 'mt_base_x')
                     layout.prop(scene, 'mt_base_y')
                     layout.prop(scene, 'mt_base_z')
-        
+      
         layout.prop(scene, 'mt_tile_material')
+
+        if bpy.context.object is not None:
+            if bpy.context.object['bispreview'] is not None:
+                layout.operator('scene.bake_displacement', text="Make 3D")

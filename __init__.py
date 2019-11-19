@@ -17,6 +17,8 @@ import bpy
 from . ui.panels import MT_PT_Panel
 from . operators.maketile import MT_OT_Make_Tile
 from . operators.makevertgroups import MT_OT_makeVertGroupsFromFaces
+from . operators.bakedisplacement import MT_OT_Bake_Displacement
+
 from . preferences import MT_MakeTilePreferences
 from . lib.turtle.operators.basic_commands import *
 from . lib.turtle.operators.curve import *
@@ -43,6 +45,7 @@ classes = (
     MT_OT_Make_Tile,
     MT_PT_Panel,
     MT_OT_makeVertGroupsFromFaces,
+    MT_OT_Bake_Displacement,
     TURTLE_OT_add_turtle,
     TURTLE_OT_clear_screen,
     TURTLE_OT_clean,

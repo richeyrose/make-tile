@@ -8,11 +8,11 @@ from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. lib.utils.selection import deselect_all, select_all, select, activate
 from .. lib.utils.utils import mode
 from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
-from .. materials.materials import add_blank_material, load_material, assign_mat_to_vert_group, bake_displacement_map
+from .. materials.materials import add_blank_material, load_material, assign_mat_to_vert_group
 from .. enums.enums import geometry_types
 
 
-def add_displacement_mesh_modifiers(obj, disp_axis, vert_group, disp_dir, image_size):
+def add_displacement_mesh_modifiers(obj, disp_axis, vert_group, disp_dir, image_size, material_name):
     obj_subsurf = obj.modifiers.new('Subsurf', 'SUBSURF')
     obj_subsurf.subdivision_type = 'SIMPLE'
     obj_subsurf.levels = 0
@@ -32,11 +32,10 @@ def add_displacement_mesh_modifiers(obj, disp_axis, vert_group, disp_dir, image_
     obj['disp_dir'] = disp_dir
     obj['subsurf_mod_name'] = obj_subsurf.name
     obj['disp_mod_name'] = obj_disp_mod.name
+    obj['disp_material'] = material_name
 
 
 def create_openlock_wall(tile_name, tile_size, base_size, tile_material):
-    tile_units = 'IMPERIAL'
-    tile_size = Vector((tile_size[0], 0.31496, tile_size[2])) * 25.4
     core = create_openlock_straight_wall_core(tile_name, tile_size, base_size)
     core['geometry_type'] = 'CORE'
 
@@ -45,7 +44,7 @@ def create_openlock_wall(tile_name, tile_size, base_size, tile_material):
         core.dimensions,
         base_size,
         'outer',
-        True)
+        'PREVIEW')
     outer_slab_preview['geometry_type'] = 'PREVIEW'
 
     outer_slab_final = create_straight_wall_slab(
@@ -53,7 +52,7 @@ def create_openlock_wall(tile_name, tile_size, base_size, tile_material):
         core.dimensions,
         base_size,
         'outer',
-        False)
+        'DISPLACEMENT')
     outer_slab_final['geometry_type'] = 'DISPLACEMENT'
 
     inner_slab_preview = create_straight_wall_slab(
@@ -61,7 +60,7 @@ def create_openlock_wall(tile_name, tile_size, base_size, tile_material):
         core.dimensions,
         base_size,
         'inner',
-        True)
+        'PREVIEW')
     inner_slab_preview['geometry_type'] = 'PREVIEW'
 
     inner_slab_final = create_straight_wall_slab(
@@ -69,7 +68,7 @@ def create_openlock_wall(tile_name, tile_size, base_size, tile_material):
         core.dimensions,
         base_size,
         'inner',
-        False)
+        'DISPLACEMENT')
     inner_slab_final['geometry_type'] = 'DISPLACEMENT'
 
     # associate final slabs with preview slabs and vice versa
@@ -79,8 +78,8 @@ def create_openlock_wall(tile_name, tile_size, base_size, tile_material):
     inner_slab_preview['displacement_obj'] = inner_slab_final
     inner_slab_final['preview_obj'] = inner_slab_preview
 
-    add_displacement_mesh_modifiers(outer_slab_final, 'Y', 'y_pos', 'pos', [2048, 2048])
-    add_displacement_mesh_modifiers(inner_slab_final, 'Y', 'y_neg', 'neg', [2048, 2048])
+    add_displacement_mesh_modifiers(outer_slab_final, 'Y', 'y_pos', 'pos', [2048, 2048], tile_material)
+    add_displacement_mesh_modifiers(inner_slab_final, 'Y', 'y_neg', 'neg', [2048, 2048], tile_material)
 
     add_blank_material(outer_slab_preview)
     add_blank_material(inner_slab_preview)
@@ -108,6 +107,42 @@ def create_openlock_wall(tile_name, tile_size, base_size, tile_material):
     inner_slab_final.hide_viewport = True
 
 
+def create_straight_wall_core(
+        tile_name,
+        tile_size,
+        base_size):
+    '''Returns the core (vertical inner) part of a wall tile
+
+    Keyword arguments:
+    tile_system -- What tile system to usee e.g. OpenLOCK, DragonLOCK, plain
+    tile_name   -- name
+    tile_size   -- [x, y, z]
+    base_size   -- [x, y, z]
+    '''
+    mode('OBJECT')
+
+    # make our slab
+    core = draw_cuboid([
+        tile_size[0],
+        tile_size[1],
+        tile_size[2] - base_size[2]])
+
+    core.name = tile_name + '.core'
+    add_object_to_collection(core, tile_name)
+
+    mode('OBJECT')
+    select(core.name)
+    activate(core.name)
+
+    # move slab so centred, move up so on top of base and set origin to world origin
+    core.location = (-tile_size[0] / 2, -tile_size[1] / 2, base_size[2])
+    bpy.context.scene.cursor.location = [0, 0, 0]
+    select(core.name)
+    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+
+    return core
+
+
 def create_straight_wall(
         tile_units,
         tile_system,
@@ -127,16 +162,15 @@ def create_straight_wall(
     bhas_base   -- whether tile has a seperate base or is a simple slab
     """
     if base_system == 'OPENLOCK':
-        tile_units == 'IMPERIAL'
-        base_size = Vector((tile_size[0], 0.5, 0.27559)) * 25.4
+        base_size = Vector((tile_size[0], 12.7, 7))
         base = create_openlock_straight_wall_base(tile_name, base_size)
-        base['geometry_type'] = 'BASE'
 
     if tile_system == 'OPENLOCK':
+        tile_size = Vector((tile_size[0], 8, tile_size[2]))
         create_openlock_wall(tile_name, tile_size, base_size, tile_material)
+
     else:
         core = create_straight_wall_core(
-            tile_system,
             tile_name,
             tile_size,
             base_size)
@@ -145,13 +179,39 @@ def create_straight_wall(
             tile_name,
             tile_size,
             base_size,
-            'outer')
+            'outer',
+            'PREVIEW')
 
         inner_slab_preview = create_straight_wall_slab(
             tile_name,
             tile_size,
             base_size,
-            'inner')
+            'inner',
+            'PREVIEW')
+
+
+def create_preview_slab(
+        tile_name,
+        core_size,
+        base_size,
+        slab_type):
+    slab_size = Vector((core_size[0], (base_size[1] - core_size[1]) / 2, core_size[2]))
+    slab = draw_cuboid(slab_size)
+    slab.name = tile_name + '.slab.preview.' + slab_type
+    add_object_to_collection(slab, tile_name)
+    return slab
+
+
+def create_displacement_slab(
+        tile_name,
+        core_size,
+        base_size,
+        slab_type):
+    slab_size = Vector((core_size[0], 0.1, core_size[2]))
+    slab = draw_cuboid(slab_size)
+    slab.name = tile_name + '.slab.displacement.' + slab_type
+    add_object_to_collection(slab, tile_name)
+    return slab
 
 
 def create_straight_wall_slab(
@@ -159,38 +219,33 @@ def create_straight_wall_slab(
         core_size,
         base_size,
         slab_type,
-        bis_preview):
-    if bis_preview:
-        slab_size = Vector((core_size[0], (base_size[1] - core_size[1]) / 2, core_size[2]))
-        slab = draw_cuboid(slab_size)
-        slab.name = tile_name + '.slab.preview.' + slab_type
-        add_object_to_collection(slab, tile_name)
+        geometry_type):
+
+    if geometry_type == 'PREVIEW':
+        slab = create_preview_slab(tile_name, core_size, base_size, slab_type)
     else:
-        slab_size = Vector((core_size[0], 0.1, core_size[2]))
-        slab = draw_cuboid(slab_size)
-        slab.name = tile_name + '.slab.displacement.' + slab_type
-        add_object_to_collection(slab, tile_name)
+        slab = create_displacement_slab(tile_name, core_size, base_size, slab_type)
+
+    slab['geometry_type'] = geometry_type
 
     if slab_type == 'inner':
         slab.location = (-base_size[0] / 2, -core_size[1] / 2 - slab.dimensions[1], base_size[2])
-        bpy.context.scene.cursor.location = [0, 0, 0]
-        mode('OBJECT')
-        bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
     else:
         slab.location = (-base_size[0] / 2, core_size[1] / 2, base_size[2])
-        bpy.context.scene.cursor.location = [0, 0, 0]
-        mode('OBJECT')
-        bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+
+    bpy.context.scene.cursor.location = [0, 0, 0]
+    mode('OBJECT')
+    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
 
     select(slab.name)
     activate(slab.name)
     bpy.ops.uv.smart_project()
     cuboid_sides_to_vert_groups(slab)
+
     return slab
 
 
 def create_straight_wall_base(
-        base_system,
         tile_name,
         base_size):
     """Returns a base for a wall tile
@@ -216,32 +271,14 @@ def create_straight_wall_base(
     base.location = (- base_size[0] / 2, - base_size[1] / 2, 0)
     bpy.context.scene.cursor.location = [0, 0, 0]
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
-
-    # OpenLOCK base options
-    if base_system == 'OPENLOCK':
-        create_openlock_straight_wall_base(base, tile_name)
-
-    # make base unselectable
-    # base.hide_select = True
+    base['geometry_type'] = 'BASE'
     return base
 
 
 def create_openlock_straight_wall_base(tile_name, base_size):
     """takes a straight wall base and makes it into an openlock style base"""
-    # make base
-
-    base = draw_cuboid(base_size)
-    base.name = tile_name + '.base'
-    add_object_to_collection(base, tile_name)
-
-    mode('OBJECT')
-    select(base.name)
-    activate(base.name)
-
-    # move base so centred and set origin to world origin
-    base.location = (- base_size[0] / 2, - base_size[1] / 2, 0)
-    bpy.context.scene.cursor.location = [0, 0, 0]
-    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+    # make base 
+    base = create_straight_wall_base(tile_name, base_size)
 
     slot_cutter = create_openlock_base_slot_cutter(base, tile_name)
     slot_boolean = base.modifiers.new(slot_cutter.name, 'BOOLEAN')
@@ -274,26 +311,7 @@ def create_openlock_straight_wall_core(
     tile_size   -- [x, y, z]
     base_size   -- [x, y, z]
     '''
-    mode('OBJECT')
-
-    # make our slab
-    core = draw_cuboid([
-        tile_size[0],
-        tile_size[1],
-        tile_size[2] - base_size[2]])
-
-    core.name = tile_name + '.core'
-    add_object_to_collection(core, tile_name)
-
-    mode('OBJECT')
-    select(core.name)
-    activate(core.name)
-
-    # move slab so centred, move up so on top of base and set origin to world origin
-    core.location = (-tile_size[0] / 2, -tile_size[1] / 2, base_size[2])
-    bpy.context.scene.cursor.location = [0, 0, 0]
-    select(core.name)
-    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+    core = create_straight_wall_core(tile_name, tile_size, base_size)
 
     # check to see if tile is at least 1 inch high
     if tile_size[2] >= 2.53:

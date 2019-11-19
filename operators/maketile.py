@@ -29,6 +29,14 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         base_system = context.scene.mt_base_system
         tile_material = context.scene.mt_tile_material
 
+        if tile_system == 'OPENLOCK':
+            tile_units = 'IMPERIAL'
+            base_system = 'OPENLOCK'
+
+        if tile_units == 'IMPERIAL':
+            base_size = base_size * 25.4
+            tile_size = tile_size * 25.4
+        
         create_tile(
             tile_units,
             tile_system,

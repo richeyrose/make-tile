@@ -8,7 +8,7 @@ from .. lib.utils.selection import select, select_all, deselect_all, activate
 from .. utils.registration import get_path
 from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. lib.turtle.scripts.openlock_floor_base import draw_openlock_rect_floor_base
-from . create_wall_tile import create_straight_wall_base
+from . create_straight_wall_tile import create_straight_wall_base
 from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
 
 

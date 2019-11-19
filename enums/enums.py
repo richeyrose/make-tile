@@ -24,5 +24,15 @@ base_types = [
 tile_materials = [
     ("NONE", "None", "", 1),
     ("BRICKS", "Bricks", "", 2),
-    ("STONEWALL1", "Stone Wall 1", "", 3)
+    ("STONEWALL1", "Stone Wall 1", "", 3),
+]
+
+geometry_types = [
+    ("BASE", "Base", "", 1),
+    ("CORE", "Core", "", 2),
+    ("CUTTER", "Cutter", "", 3),
+    ("PREVIEW", "Preview", "", 4),
+    ("DISPLACEMENT", "Displacement", "", 5),
+    ("PROP", "Prop", "", 6),
+    ("GREEBLE", "Greeble", "", 7)
 ]

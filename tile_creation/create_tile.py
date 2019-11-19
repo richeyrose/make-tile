@@ -6,7 +6,7 @@ from mathutils import Vector
 from .. lib.utils.selection import deselect_all
 from .. lib.utils.utils import mode
 from .. lib.utils.collections import create_collection, add_object_to_collection, get_collection, activate_collection
-from . create_wall_tile import create_straight_wall
+from . create_straight_wall_tile import create_straight_wall
 from . create_floor_tile import create_rectangular_floor
 
 

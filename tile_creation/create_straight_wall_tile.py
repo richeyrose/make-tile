@@ -9,6 +9,103 @@ from .. lib.utils.selection import deselect_all, select_all, select, activate
 from .. lib.utils.utils import mode
 from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
 from .. materials.materials import add_blank_material, load_material, assign_mat_to_vert_group, bake_displacement_map
+from .. enums.enums import geometry_types
+
+
+def add_displacement_mesh_modifiers(obj, disp_axis, vert_group, disp_dir, image_size):
+    obj_subsurf = obj.modifiers.new('Subsurf', 'SUBSURF')
+    obj_subsurf.subdivision_type = 'SIMPLE'
+    obj_subsurf.levels = 0
+
+    obj_disp_mod = obj.modifiers.new('Displacement', 'DISPLACE')
+    obj_disp_mod.strength = 0
+    obj_disp_mod.texture_coords = 'UV'
+    obj_disp_mod.direction = disp_axis
+    obj_disp_mod.vertex_group = vert_group
+    obj_disp_mod.mid_level = 0
+
+    obj_disp_texture = bpy.data.textures.new(obj.name + '.texture', 'IMAGE')
+    obj_disp_image = bpy.data.images.new(obj.name + '.image', width=image_size[0], height=image_size[1])
+
+    obj['disp_texture'] = obj_disp_texture
+    obj['disp_image'] = obj_disp_image
+    obj['disp_dir'] = disp_dir
+    obj['subsurf_mod_name'] = obj_subsurf.name
+    obj['disp_mod_name'] = obj_disp_mod.name
+
+
+def create_openlock_wall(tile_name, tile_size, base_size, tile_material):
+    tile_units = 'IMPERIAL'
+    tile_size = Vector((tile_size[0], 0.31496, tile_size[2])) * 25.4
+    core = create_openlock_straight_wall_core(tile_name, tile_size, base_size)
+    core['geometry_type'] = 'CORE'
+
+    outer_slab_preview = create_straight_wall_slab(
+        tile_name,
+        core.dimensions,
+        base_size,
+        'outer',
+        True)
+    outer_slab_preview['geometry_type'] = 'PREVIEW'
+
+    outer_slab_final = create_straight_wall_slab(
+        tile_name,
+        core.dimensions,
+        base_size,
+        'outer',
+        False)
+    outer_slab_final['geometry_type'] = 'DISPLACEMENT'
+
+    inner_slab_preview = create_straight_wall_slab(
+        tile_name,
+        core.dimensions,
+        base_size,
+        'inner',
+        True)
+    inner_slab_preview['geometry_type'] = 'PREVIEW'
+
+    inner_slab_final = create_straight_wall_slab(
+        tile_name,
+        core.dimensions,
+        base_size,
+        'inner',
+        False)
+    inner_slab_final['geometry_type'] = 'DISPLACEMENT'
+
+    # associate final slabs with preview slabs and vice versa
+    outer_slab_preview['displacement_obj'] = outer_slab_final
+    outer_slab_final['preview_obj'] = outer_slab_preview
+
+    inner_slab_preview['displacement_obj'] = inner_slab_final
+    inner_slab_final['preview_obj'] = inner_slab_preview
+
+    add_displacement_mesh_modifiers(outer_slab_final, 'Y', 'y_pos', 'pos', [2048, 2048])
+    add_displacement_mesh_modifiers(inner_slab_final, 'Y', 'y_neg', 'neg', [2048, 2048])
+
+    add_blank_material(outer_slab_preview)
+    add_blank_material(inner_slab_preview)
+
+    preview_material = load_material(tile_material)
+
+    outer_slab_preview.data.materials.append(preview_material)
+    outer_slab_final.data.materials.append(preview_material)
+
+    inner_slab_preview.data.materials.append(preview_material)
+    inner_slab_final.data.materials.append(preview_material)
+
+    select(outer_slab_preview.name)
+    activate(outer_slab_preview.name)
+
+    assign_mat_to_vert_group('y_pos', outer_slab_preview, tile_material)
+
+    select(inner_slab_preview.name)
+    activate(inner_slab_preview.name)
+
+    assign_mat_to_vert_group('y_neg', inner_slab_preview, tile_material)
+
+    # hide final slabs for now
+    outer_slab_final.hide_viewport = True
+    inner_slab_final.hide_viewport = True
 
 
 def create_straight_wall(
@@ -33,111 +130,11 @@ def create_straight_wall(
         tile_units == 'IMPERIAL'
         base_size = Vector((tile_size[0], 0.5, 0.27559)) * 25.4
         base = create_openlock_straight_wall_base(tile_name, base_size)
+        base['geometry_type'] = 'BASE'
 
     if tile_system == 'OPENLOCK':
-        tile_units == 'IMPERIAL'
-        tile_size = Vector((tile_size[0], 0.31496, tile_size[2])) * 25.4
-        core = create_openlock_straight_wall_core(tile_name, tile_size, base_size)
-
-        outer_slab_preview = create_straight_wall_slab(
-            tile_name,
-            core.dimensions,
-            base.dimensions,
-            'outer',
-            True)
-        outer_slab_preview['bispreview'] = True
-
-        outer_slab_final = create_straight_wall_slab(
-            tile_name,
-            core.dimensions,
-            base.dimensions,
-            'outer',
-            False)
-        # associate final slab with preview slab and vice versa
-        outer_slab_preview['displacement_obj'] = outer_slab_final
-        outer_slab_final['preview_obj'] = outer_slab_preview
-        outer_slab_final.hide_viewport = True
-
-        inner_slab_preview = create_straight_wall_slab(
-            tile_name,
-            core.dimensions,
-            base.dimensions,
-            'inner',
-            True)
-        inner_slab_preview['bispreview'] = True
-
-        inner_slab_final = create_straight_wall_slab(
-            tile_name,
-            core.dimensions,
-            base.dimensions,
-            'inner',
-            False)
-        inner_slab_preview['displacement_obj'] = inner_slab_final
-        inner_slab_final['preview_obj'] = inner_slab_preview
-        inner_slab_final.hide_viewport = True
-
-        # add modifiers and set up textures for displacement
-        outer_slab_subsurf = outer_slab_final.modifiers.new('Subsurf', 'SUBSURF')
-        outer_slab_subsurf.subdivision_type = 'SIMPLE'
-        outer_slab_subsurf.levels = 0
-
-        outer_slab_disp_mod = outer_slab_final.modifiers.new('Displacement', 'DISPLACE')
-        outer_slab_disp_mod.strength = 0
-        outer_slab_disp_mod.texture_coords = 'UV'
-        outer_slab_disp_mod.direction = 'Y'
-        outer_slab_disp_mod.vertex_group = 'y_pos'
-        outer_slab_disp_mod.mid_level = 0
-
-        outer_slab_disp_texture = bpy.data.textures.new(tile_name + '.outer_slab_texture', 'IMAGE')
-        outer_slab_disp_image = bpy.data.images.new(name=tile_name + '.outer_slab_image', width=2048, height=2048)
-
-        inner_slab_subsurf = inner_slab_final.modifiers.new('Subsurf', 'SUBSURF')
-        inner_slab_subsurf.subdivision_type = 'SIMPLE'
-        inner_slab_subsurf.levels = 0
-
-        inner_slab_disp_mod = inner_slab_final.modifiers.new('Displacement', 'DISPLACE')
-        inner_slab_disp_mod.texture_coords = 'UV'
-        inner_slab_disp_mod.direction = 'Y'
-        inner_slab_disp_mod.vertex_group = 'y_neg'
-
-        inner_slab_disp_texture = bpy.data.textures.new(tile_name + '.inner_slab_texture', 'IMAGE')
-        inner_slab_disp_image = bpy.data.images.new(name=tile_name + '.inner_slab_image', width=2048, height=2048)
-
-        add_blank_material(outer_slab_preview)
-        add_blank_material(inner_slab_preview)
-
-        preview_material = load_material(tile_material)
-
-        outer_slab_preview.data.materials.append(preview_material)
-        outer_slab_final.data.materials.append(preview_material)
-
-        inner_slab_preview.data.materials.append(preview_material)
-        inner_slab_final.data.materials.append(preview_material)
-
-        select(outer_slab_preview.name)
-        activate(outer_slab_preview.name)
-
-        assign_mat_to_vert_group('y_pos', outer_slab_preview, tile_material)
-
-        select(inner_slab_preview.name)
-        activate(inner_slab_preview.name)
-        assign_mat_to_vert_group('y_neg', inner_slab_preview, tile_material)
-
-        # save properties on slab for easy access
-        outer_slab_final['disp_texture'] = outer_slab_disp_texture
-        outer_slab_final['disp_image'] = outer_slab_disp_image
-        outer_slab_final['disp_dir'] = 'pos'
-        outer_slab_final['subsurf_mod_name'] = outer_slab_subsurf.name
-        outer_slab_final['disp_mod_name'] = outer_slab_disp_mod.name
-
-        inner_slab_final['disp_texture'] = inner_slab_disp_texture
-        inner_slab_final['disp_image'] = inner_slab_disp_image
-        inner_slab_final['disp_dir'] = 'neg'
-        inner_slab_final['subsurf_mod_name'] = inner_slab_subsurf.name
-        inner_slab_final['disp_mod_name'] = inner_slab_disp_mod.name
-
+        create_openlock_wall(tile_name, tile_size, base_size, tile_material)
     else:
-
         core = create_straight_wall_core(
             tile_system,
             tile_name,
@@ -165,7 +162,7 @@ def create_straight_wall_slab(
         bis_preview):
     if bis_preview:
         slab_size = Vector((core_size[0], (base_size[1] - core_size[1]) / 2, core_size[2]))
-        slab = draw_cuboid(slab_size)  
+        slab = draw_cuboid(slab_size)
         slab.name = tile_name + '.slab.preview.' + slab_type
         add_object_to_collection(slab, tile_name)
     else:
@@ -189,7 +186,6 @@ def create_straight_wall_slab(
     activate(slab.name)
     bpy.ops.uv.smart_project()
     cuboid_sides_to_vert_groups(slab)
-
     return slab
 
 
@@ -292,11 +288,6 @@ def create_openlock_straight_wall_core(
     mode('OBJECT')
     select(core.name)
     activate(core.name)
-
-    # TODO: Decide if we need bevel
-    # bpy.ops.transform.edge_bevelweight(value=1)
-    # bevel = slab.modifiers.new('Bevel', 'BEVEL')
-    # slab.modifiers[bevel.name].limit_method = 'WEIGHT'
 
     # move slab so centred, move up so on top of base and set origin to world origin
     core.location = (-tile_size[0] / 2, -tile_size[1] / 2, base_size[2])

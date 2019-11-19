@@ -5,7 +5,7 @@ import bpy
 from mathutils import Vector
 from .. lib.utils.selection import deselect_all
 from .. lib.utils.utils import mode
-from .. lib.utils.collections import create_collection, add_object_to_collection
+from .. lib.utils.collections import create_collection, add_object_to_collection, get_collection, activate_collection
 from . create_wall_tile import create_straight_wall
 from . create_floor_tile import create_rectangular_floor
 
@@ -40,10 +40,11 @@ def create_tile(
         # create walls collection if it doesn't already exist
         walls_collection = create_collection('Walls', tiles_collection)
 
-        # create new collection that operates as our "tile"
+        # create new collection that operates as our "tile" and activate it
         tile_collection = bpy.data.collections.new(tile_name)
         bpy.data.collections['Walls'].children.link(tile_collection)
-
+        activate_collection(tile_collection.name)
+        
         # make final tile name
         tile_name = tile_collection.name
 
@@ -61,11 +62,11 @@ def create_tile(
 
         # create floor collection if one doesn't already exist
         floors_collection = create_collection('Floors', tiles_collection)
-        # create new collection that operates as our "tile"
+        # create new collection that operates as our "tile" and activate it
         tile_collection = bpy.data.collections.new(tile_name)
         bpy.data.collections['Floors'].children.link(tile_collection)
-        # select tile collection
-        
+
+        activate_collection(tile_collection.name)
         # make final tile name
         tile_name = tile_collection.name
 

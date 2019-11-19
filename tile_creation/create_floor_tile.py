@@ -1,6 +1,7 @@
 import os
 import math
 import bpy
+from mathutils import Vector
 from .. lib.utils.collections import add_object_to_collection
 from .. lib.utils.utils import mode
 from .. lib.utils.selection import select, select_all, deselect_all, activate

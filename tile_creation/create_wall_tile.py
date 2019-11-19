@@ -153,7 +153,7 @@ def create_straight_wall_slab(
         bis_preview):
     if bis_preview:
         slab_size = Vector((core_size[0], (base_size[1] - core_size[1]) / 2, core_size[2]))
-        slab = draw_cuboid(slab_size)
+        slab = draw_cuboid(slab_size)  
         slab.name = tile_name + '.slab.preview.' + slab_type
         add_object_to_collection(slab, tile_name)
     else:

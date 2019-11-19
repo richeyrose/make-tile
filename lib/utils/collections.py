@@ -20,14 +20,20 @@ def add_object_to_collection(obj, collection_name):
     return {'FINISHED'}
 
 
-def get_collection(layer_collection, collection_name):
+def get_collection(gp_collection, collection_name):
     """Recursively searches for a layer collection and returns it.
     God knows why this isn't part of the API!
     """
     found = None
-    if (layer_collection.name == collection_name):
-        return layer_collection
-    for layer in layer_collection.children:
-        found = get_collection(layer_collection, collection_name)
+    if (gp_collection.name == collection_name):
+        return gp_collection
+    for layer in gp_collection.children:
+        found = get_collection(layer, collection_name)
         if found:
             return found
+
+
+def activate_collection(collection_name):
+    collection = get_collection(bpy.context.view_layer.layer_collection, collection_name)
+    bpy.context.view_layer.active_layer_collection = collection
+    return collection

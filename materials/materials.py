@@ -5,14 +5,17 @@ from .. lib.utils.utils import mode
 from .. lib.utils.selection import deselect_all, select_all, select, activate
 
 
-def load_material(material):
+def load_material(material_name):
     '''loads a material into the scene from external blend file'''
-    material_file = material + ".blend"
-    materials_path = os.path.join(get_path(), "assets", "materials", material_file)
-    with bpy.data.libraries.load(materials_path) as (data_from, data_to):
-        data_to.materials = [material]
-    material = data_to.materials[0]
-    return material
+    if material_name not in bpy.data.materials:
+        material_file = material_name + ".blend"
+        materials_path = os.path.join(get_path(), "assets", "materials", material_file)
+        with bpy.data.libraries.load(materials_path) as (data_from, data_to):
+            data_to.materials = [material_name]
+        material = data_to.materials[0]
+        return material
+    else:
+        return bpy.data.materials[material_name]
 
 
 def add_blank_material(obj):
@@ -36,7 +39,7 @@ def assign_mat_to_vert_group(vert_group, obj, material):
     mode('OBJECT')
 
 
-def bake_displacement_map(material, obj):
+def bake_displacement_map(material, image, obj):
     # save original settings
     orig_engine = bpy.context.scene.render.engine
     # cycles settings
@@ -49,6 +52,7 @@ def bake_displacement_map(material, obj):
     bpy.context.scene.render.engine = 'CYCLES'
     bpy.context.scene.cycles.samples = 1
     bpy.context.scene.render.tile_x = 2048
+
     bpy.context.scene.render.tile_y = 2048
     bpy.context.scene.cycles.bake_type = 'EMIT'
 
@@ -57,6 +61,10 @@ def bake_displacement_map(material, obj):
     mat_output_node = tree.nodes['Material Output']
     displacement_emission_node = tree.nodes['disp_emission']
     tree.links.new(displacement_emission_node.outputs['Emission'], mat_output_node.inputs['Surface'])
+
+    # assign image to image node
+    texture_node = tree.nodes['disp_texture_node']
+    texture_node.image = image
 
     # bake
     bpy.ops.object.bake(type='EMIT')
@@ -71,4 +79,3 @@ def bake_displacement_map(material, obj):
     bpy.context.scene.render.tile_y = orig_y
     bpy.context.scene.cycles.bake_type = orig_bake_type
     bpy.context.scene.render.engine = orig_engine
-    

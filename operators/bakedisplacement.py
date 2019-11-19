@@ -26,10 +26,12 @@ class MT_OT_Bake_Displacement(bpy.types.Operator):
         select(displacement_obj.name)
         activate(displacement_obj.name)
 
-        bake_displacement_map(preview_material, displacement_obj)
+        disp_image = displacement_obj['disp_image']
+
+        bake_displacement_map(preview_material, disp_image, displacement_obj)
 
         disp_texture = displacement_obj['disp_texture']
-        disp_image = bpy.data.images['disp_image']
+        disp_image = displacement_obj['disp_image']
         disp_texture.image = disp_image
         disp_mod = displacement_obj.modifiers[displacement_obj['disp_mod_name']]
         disp_mod.texture = disp_texture

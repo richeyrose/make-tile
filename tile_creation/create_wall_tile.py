@@ -76,7 +76,7 @@ def create_straight_wall(
         inner_slab_final['preview_obj'] = inner_slab_preview
         inner_slab_final.hide_viewport = True
 
-        # add modifiers and set up textures
+        # add modifiers and set up textures for displacement
         outer_slab_subsurf = outer_slab_final.modifiers.new('Subsurf', 'SUBSURF')
         outer_slab_subsurf.subdivision_type = 'SIMPLE'
         outer_slab_subsurf.levels = 0
@@ -88,7 +88,8 @@ def create_straight_wall(
         outer_slab_disp_mod.vertex_group = 'y_pos'
         outer_slab_disp_mod.mid_level = 0
 
-        outer_slab_disp_texture = bpy.data.textures.new('outer_slab_displacement_texture', 'IMAGE')
+        outer_slab_disp_texture = bpy.data.textures.new(tile_name + '.outer_slab_texture', 'IMAGE')
+        outer_slab_disp_image = bpy.data.images.new(name=tile_name + '.outer_slab_image', width=2048, height=2048)
 
         inner_slab_subsurf = inner_slab_final.modifiers.new('Subsurf', 'SUBSURF')
         inner_slab_subsurf.subdivision_type = 'SIMPLE'
@@ -99,12 +100,13 @@ def create_straight_wall(
         inner_slab_disp_mod.direction = 'Y'
         inner_slab_disp_mod.vertex_group = 'y_neg'
 
-        inner_slab_disp_texture = bpy.data.textures.new('inner_slab_displacement_texture', 'IMAGE')
+        inner_slab_disp_texture = bpy.data.textures.new(tile_name + '.inner_slab_texture', 'IMAGE')
+        inner_slab_disp_image = bpy.data.images.new(name=tile_name + '.inner_slab_image', width=2048, height=2048)
 
         add_blank_material(outer_slab_preview)
         add_blank_material(inner_slab_preview)
 
-        preview_material = load_material(tile_material)    
+        preview_material = load_material(tile_material)
 
         outer_slab_preview.data.materials.append(preview_material)
         outer_slab_final.data.materials.append(preview_material)
@@ -123,25 +125,16 @@ def create_straight_wall(
 
         # save properties on slab for easy access
         outer_slab_final['disp_texture'] = outer_slab_disp_texture
+        outer_slab_final['disp_image'] = outer_slab_disp_image
         outer_slab_final['disp_dir'] = 'pos'
         outer_slab_final['subsurf_mod_name'] = outer_slab_subsurf.name
         outer_slab_final['disp_mod_name'] = outer_slab_disp_mod.name
 
         inner_slab_final['disp_texture'] = inner_slab_disp_texture
+        inner_slab_final['disp_image'] = inner_slab_disp_image
         inner_slab_final['disp_dir'] = 'neg'
         inner_slab_final['subsurf_mod_name'] = inner_slab_subsurf.name
         inner_slab_final['disp_mod_name'] = inner_slab_disp_mod.name
-
-        '''
-        select(outer_slab_final.name)
-        activate(outer_slab_final.name)
-
-        bake_displacement_map(preview_material, outer_slab_final)
-
-        outer_slab_image = bpy.data.images['disp_image']
-        outer_slab_disp_texture.image = outer_slab_image
-        outer_slab_disp_mod.texture = outer_slab_disp_texture
-        '''
 
     else:
 

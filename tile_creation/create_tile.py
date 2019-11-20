@@ -14,7 +14,6 @@ def create_tile(
         tile_units,
         tile_system,
         tile_type,
-        bhas_base,
         tile_size,
         base_size,
         base_system,
@@ -55,7 +54,6 @@ def create_tile(
             tile_size,
             base_size,
             base_system,
-            bhas_base,
             tile_material)
 
     if tile_type == 'RECTANGULAR_FLOOR':
@@ -77,7 +75,6 @@ def create_tile(
             tile_size,
             base_size,
             base_system,
-            bhas_base,
             tile_material)
 
     return tile_collection

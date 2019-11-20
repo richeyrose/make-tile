@@ -17,7 +17,6 @@ def create_rectangular_floor(
         tile_system,
         tile_name,
         tile_size,
-        base_size,
         base_system,
         bhas_base,
         tile_material):
@@ -29,7 +28,6 @@ def create_rectangular_floor(
     tile_size   -- [x, y, z],
     base_size   -- [x, y, z],
     base_system -- tile system for bases
-    bhas_base   -- whether tile has a seperate base or is a simple slab
     """
 
     if base_system == "OPENLOCK":

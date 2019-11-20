@@ -12,6 +12,53 @@ from .. materials.materials import add_blank_material, load_material, assign_mat
 from .. enums.enums import geometry_types
 
 
+def create_straight_wall(
+        tile_units,
+        tile_system,
+        tile_name,
+        tile_size,
+        base_size,
+        base_system,
+        tile_material):
+    """Returns a straight wall
+    Keyword arguments:
+    tile_units  -- Metric (mm) or Imperial (Inches)
+    tile_system -- tile system for slabs
+    tile_name   -- name,
+    tile_size   -- [x, y, z],
+    base_size   -- [x, y, z],
+    base_system -- tile system for bases
+    tile_material -- material name
+    """
+    if base_system == 'OPENLOCK':
+        base_size = Vector((tile_size[0], 12.7, 7))
+        base = create_openlock_straight_wall_base(tile_name, base_size)
+
+    if tile_system == 'OPENLOCK':
+        tile_size = Vector((tile_size[0], 8, tile_size[2]))
+        create_openlock_wall(tile_name, tile_size, base_size, tile_material)
+
+    else:
+        core = create_straight_wall_core(
+            tile_name,
+            tile_size,
+            base_size)
+
+        outer_slab_preview = create_straight_wall_slab(
+            tile_name,
+            tile_size,
+            base_size,
+            'outer',
+            'PREVIEW')
+
+        inner_slab_preview = create_straight_wall_slab(
+            tile_name,
+            tile_size,
+            base_size,
+            'inner',
+            'PREVIEW')
+
+
 def add_displacement_mesh_modifiers(obj, disp_axis, vert_group, disp_dir, image_size, material_name):
     obj_subsurf = obj.modifiers.new('Subsurf', 'SUBSURF')
     obj_subsurf.subdivision_type = 'SIMPLE'
@@ -143,51 +190,7 @@ def create_straight_wall_core(
     return core
 
 
-def create_straight_wall(
-        tile_units,
-        tile_system,
-        tile_name,
-        tile_size,
-        base_size,
-        base_system,
-        bhas_base,
-        tile_material):
-    """Returns a straight wall
-    Keyword arguments:
-    tile_system -- tile system for slabs
-    tile_name   -- name,
-    tile_size   -- [x, y, z],
-    base_size   -- [x, y, z],
-    base_system -- tile system for bases
-    bhas_base   -- whether tile has a seperate base or is a simple slab
-    """
-    if base_system == 'OPENLOCK':
-        base_size = Vector((tile_size[0], 12.7, 7))
-        base = create_openlock_straight_wall_base(tile_name, base_size)
 
-    if tile_system == 'OPENLOCK':
-        tile_size = Vector((tile_size[0], 8, tile_size[2]))
-        create_openlock_wall(tile_name, tile_size, base_size, tile_material)
-
-    else:
-        core = create_straight_wall_core(
-            tile_name,
-            tile_size,
-            base_size)
-
-        outer_slab_preview = create_straight_wall_slab(
-            tile_name,
-            tile_size,
-            base_size,
-            'outer',
-            'PREVIEW')
-
-        inner_slab_preview = create_straight_wall_slab(
-            tile_name,
-            tile_size,
-            base_size,
-            'inner',
-            'PREVIEW')
 
 
 def create_preview_slab(

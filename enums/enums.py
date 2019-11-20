@@ -6,19 +6,25 @@ units = [
     ("IMPERIAL", "Imperial", "", 2),
 ]
 
-tile_systems = [
+tile_blueprints = [
     ("OPENLOCK", "OpenLOCK", "", 1),
     ("CUSTOM", "Custom", "", 2),
+]
+
+tile_main_systems = [
+    ("OPENLOCK", "OpenLOCK", "", 1),
+    ("PLAIN", "Plain", "", 2),
+]
+
+base_systems = [
+    ("OPENLOCK", "OpenLOCK", "", 1),
+    ("PLAIN", "Plain", "", 2),
+    ("NONE", "None", "", 3),
 ]
 
 tile_types = [
     ("STRAIGHT_WALL", "Straight Wall", "", 1),
     ("RECTANGULAR_FLOOR", "Rectangular Floor", "", 2),
-]
-
-base_types = [
-    ("OPENLOCK", "OpenLOCK", "", 1),
-    ("CUSTOM", "Custom", "", 2),
 ]
 
 tile_materials = [

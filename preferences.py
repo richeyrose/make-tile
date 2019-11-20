@@ -5,7 +5,7 @@ import bpy
 from bpy.props import StringProperty, EnumProperty, BoolProperty
 from . utils.registration import get_path
 from . utils.system import makedir, abspath
-from . enums.enums import tile_systems, units
+from . enums.enums import tile_main_systems, base_systems, tile_blueprints, units
 
 
 class MT_MakeTilePreferences(bpy.types.AddonPreferences):
@@ -67,15 +67,23 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
         name="Tile Units",
         default="IMPERIAL"
     )
-    default_tile_system: EnumProperty(
-        items=tile_systems,
-        description="Default tile system to use",
+
+    default_tile_blueprint: EnumProperty(
+        items=tile_blueprints,
+        description="Default blueprint to use",
+        name="Tile Blueprint",
+        default="OPENLOCK",
+    )
+
+    default_tile_main_system: EnumProperty(
+        items=tile_main_systems,
+        description="Default tile system to use for main part of tile",
         name="Tile System",
         default="OPENLOCK",
     )
 
     default_base_system: EnumProperty(
-        items=tile_systems,
+        items=base_systems,
         description="Default base system to use",
         name="Base System",
         default="OPENLOCK",

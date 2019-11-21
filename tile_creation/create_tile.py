@@ -11,7 +11,7 @@ from . create_floor_tile import create_rectangular_floor
 
 
 def create_tile(
-        tile_units,
+        tile_blueprint,
         tile_system,
         tile_type,
         tile_size,
@@ -48,7 +48,7 @@ def create_tile(
         tile_name = tile_collection.name
 
         create_straight_wall(
-            tile_units,
+            tile_blueprint,
             tile_system,
             tile_name,
             tile_size,
@@ -69,7 +69,7 @@ def create_tile(
         tile_name = tile_collection.name
 
         create_rectangular_floor(
-            tile_units,
+            tile_blueprint,
             tile_system,
             tile_name,
             tile_size,

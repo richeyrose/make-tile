@@ -25,16 +25,22 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         tile_type = context.scene.mt_tile_type
         tile_size = Vector((context.scene.mt_tile_x, context.scene.mt_tile_y, context.scene.mt_tile_z))
         base_size = Vector((context.scene.mt_base_x, context.scene.mt_base_y, context.scene.mt_base_z))
-        tile_units = context.scene.mt_tile_units
         base_system = context.scene.mt_base_system
         tile_material = context.scene.mt_tile_material
 
-        if tile_units == 'IMPERIAL':
-            base_size = base_size * 25.4
-            tile_size = tile_size * 25.4
+        if tile_blueprint == 'OPENLOCK':
+            tile_main_system = 'OPENLOCK'
+            base_system = 'OPENLOCK'
+
+        if tile_blueprint == 'PLAIN':
+            tile_main_system = 'PLAIN'
+            base_system = 'PLAIN'
+
+        base_size = base_size * 25.4
+        tile_size = tile_size * 25.4
 
         create_tile(
-            tile_units,
+            tile_blueprint,
             tile_main_system,
             tile_type,
             tile_size,

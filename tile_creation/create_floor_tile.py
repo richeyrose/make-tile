@@ -13,7 +13,7 @@ from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
 
 
 def create_rectangular_floor(
-        tile_units,
+        tile_blueprint,
         tile_system,
         tile_name,
         tile_size,

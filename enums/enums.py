@@ -7,8 +7,9 @@ units = [
 ]
 
 tile_blueprints = [
-    ("OPENLOCK", "OpenLOCK", "", 1),
-    ("CUSTOM", "Custom", "", 2),
+    ("PLAIN", "Plain", "", 1),
+    ("OPENLOCK", "OpenLOCK", "", 2),
+    ("CUSTOM", "Custom", "", 3),
 ]
 
 tile_main_systems = [

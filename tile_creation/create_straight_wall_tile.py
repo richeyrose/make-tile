@@ -13,7 +13,7 @@ from .. enums.enums import geometry_types
 
 
 def create_straight_wall(
-        tile_units,
+        tile_blueprint,
         tile_system,
         tile_name,
         tile_size,
@@ -22,7 +22,7 @@ def create_straight_wall(
         tile_material):
     """Returns a straight wall
     Keyword arguments:
-    tile_units  -- Metric (mm) or Imperial (Inches)
+    tile_blueprint -- 
     tile_system -- tile system for slabs
     tile_name   -- name,
     tile_size   -- [x, y, z],
@@ -30,33 +30,23 @@ def create_straight_wall(
     base_system -- tile system for bases
     tile_material -- material name
     """
+
     if base_system == 'OPENLOCK':
         base_size = Vector((tile_size[0], 12.7, 7))
         base = create_openlock_straight_wall_base(tile_name, base_size)
+
+    if base_system == 'PLAIN':
+        base = create_straight_wall_base(tile_name, base_size)
+
+    if base_system == 'NONE':
+        base_size = Vector((0, 0, 0))
 
     if tile_system == 'OPENLOCK':
         tile_size = Vector((tile_size[0], 8, tile_size[2]))
         create_openlock_wall(tile_name, tile_size, base_size, tile_material)
 
-    else:
-        core = create_straight_wall_core(
-            tile_name,
-            tile_size,
-            base_size)
-
-        outer_slab_preview = create_straight_wall_slab(
-            tile_name,
-            tile_size,
-            base_size,
-            'outer',
-            'PREVIEW')
-
-        inner_slab_preview = create_straight_wall_slab(
-            tile_name,
-            tile_size,
-            base_size,
-            'inner',
-            'PREVIEW')
+    if tile_system == 'PLAIN':
+        create_plain_wall(tile_name, tile_size, base_size, tile_material)
 
 
 def add_displacement_mesh_modifiers(obj, disp_axis, vert_group, disp_dir, image_size, material_name):
@@ -82,13 +72,10 @@ def add_displacement_mesh_modifiers(obj, disp_axis, vert_group, disp_dir, image_
     obj['disp_material'] = material_name
 
 
-def create_openlock_wall(tile_name, tile_size, base_size, tile_material):
-    core = create_openlock_straight_wall_core(tile_name, tile_size, base_size)
-    core['geometry_type'] = 'CORE'
-
+def create_wall_slabs(tile_name, core_size, base_size, tile_size, tile_material):
     outer_slab_preview = create_straight_wall_slab(
         tile_name,
-        core.dimensions,
+        core_size,
         base_size,
         'outer',
         'PREVIEW')
@@ -96,7 +83,7 @@ def create_openlock_wall(tile_name, tile_size, base_size, tile_material):
 
     outer_slab_final = create_straight_wall_slab(
         tile_name,
-        core.dimensions,
+        core_size,
         base_size,
         'outer',
         'DISPLACEMENT')
@@ -104,7 +91,7 @@ def create_openlock_wall(tile_name, tile_size, base_size, tile_material):
 
     inner_slab_preview = create_straight_wall_slab(
         tile_name,
-        core.dimensions,
+        core_size,
         base_size,
         'inner',
         'PREVIEW')
@@ -112,7 +99,7 @@ def create_openlock_wall(tile_name, tile_size, base_size, tile_material):
 
     inner_slab_final = create_straight_wall_slab(
         tile_name,
-        core.dimensions,
+        core_size,
         base_size,
         'inner',
         'DISPLACEMENT')
@@ -154,6 +141,17 @@ def create_openlock_wall(tile_name, tile_size, base_size, tile_material):
     inner_slab_final.hide_viewport = True
 
 
+def create_openlock_wall(tile_name, tile_size, base_size, tile_material):
+    core = create_openlock_straight_wall_core(tile_name, tile_size, base_size)
+    create_wall_slabs(tile_name, core.dimensions, base_size, tile_size, tile_material)
+
+
+def create_plain_wall(tile_name, tile_size, base_size, tile_material):
+    core_size = Vector((tile_size[0], tile_size[1] - 4.7, tile_size[2]))
+    core = create_straight_wall_core(tile_name, core_size, base_size)
+    create_wall_slabs(tile_name, core.dimensions, base_size, tile_size, tile_material)
+
+
 def create_straight_wall_core(
         tile_name,
         tile_size,
@@ -187,10 +185,9 @@ def create_straight_wall_core(
     select(core.name)
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
 
+    core['geometry_type'] = 'CORE'
+
     return core
-
-
-
 
 
 def create_preview_slab(
@@ -198,7 +195,7 @@ def create_preview_slab(
         core_size,
         base_size,
         slab_type):
-    slab_size = Vector((core_size[0], (base_size[1] - core_size[1]) / 2, core_size[2]))
+    slab_size = Vector((core_size[0], 2.35, core_size[2]))
     slab = draw_cuboid(slab_size)
     slab.name = tile_name + '.slab.preview.' + slab_type
     add_object_to_collection(slab, tile_name)
@@ -232,9 +229,9 @@ def create_straight_wall_slab(
     slab['geometry_type'] = geometry_type
 
     if slab_type == 'inner':
-        slab.location = (-base_size[0] / 2, -core_size[1] / 2 - slab.dimensions[1], base_size[2])
+        slab.location = (-core_size[0] / 2, -core_size[1] / 2 - slab.dimensions[1], base_size[2])
     else:
-        slab.location = (-base_size[0] / 2, core_size[1] / 2, base_size[2])
+        slab.location = (-core_size[0] / 2, core_size[1] / 2, base_size[2])
 
     bpy.context.scene.cursor.location = [0, 0, 0]
     mode('OBJECT')
@@ -280,7 +277,7 @@ def create_straight_wall_base(
 
 def create_openlock_straight_wall_base(tile_name, base_size):
     """takes a straight wall base and makes it into an openlock style base"""
-    # make base 
+    # make base
     base = create_straight_wall_base(tile_name, base_size)
 
     slot_cutter = create_openlock_base_slot_cutter(base, tile_name)

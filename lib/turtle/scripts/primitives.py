@@ -2,12 +2,11 @@ import bpy
 
 
 def draw_cuboid(size):
-    """Returns a cuboid. size = (0, 0, 0)"""
+    """Returns a cuboid. size = (x, y, z)"""
     turtle = bpy.context.scene.cursor
     t = bpy.ops.turtle
 
     t.add_turtle()
-    t.home()
     t.pd()
     t.add_vert()
     t.begin_path()

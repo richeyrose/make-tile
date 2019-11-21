@@ -220,6 +220,8 @@ def create_straight_wall_slab(
         slab_type,
         geometry_type):
 
+    cursor_start_location = bpy.context.scene.cursor.location.copy()
+
     if geometry_type == 'PREVIEW':
         slab = create_preview_slab(tile_name, core_size, base_size)
     else:
@@ -235,6 +237,9 @@ def create_straight_wall_slab(
     bpy.context.scene.cursor.location = [0, 0, 0]
     mode('OBJECT')
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+
+    slab.location = cursor_start_location
+    bpy.context.scene.cursor.location = cursor_start_location
 
     select(slab.name)
     activate(slab.name)

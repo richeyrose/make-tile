@@ -20,9 +20,10 @@ def create_straight_wall(
         base_size,
         base_system,
         tile_material):
+
     """Returns a straight wall
     Keyword arguments:
-    tile_blueprint -- 
+    tile_blueprint -- a blueprint consists of a tile type and base type
     tile_system -- tile system for slabs
     tile_name   -- name,
     tile_size   -- [x, y, z],
@@ -193,11 +194,10 @@ def create_straight_wall_core(
 def create_preview_slab(
         tile_name,
         core_size,
-        base_size,
-        slab_type):
+        base_size):
     slab_size = Vector((core_size[0], 2.35, core_size[2]))
     slab = draw_cuboid(slab_size)
-    slab.name = tile_name + '.slab.preview.' + slab_type
+    slab.name = tile_name + '.slab.preview'
     add_object_to_collection(slab, tile_name)
     return slab
 
@@ -205,11 +205,10 @@ def create_preview_slab(
 def create_displacement_slab(
         tile_name,
         core_size,
-        base_size,
-        slab_type):
+        base_size):
     slab_size = Vector((core_size[0], 0.1, core_size[2]))
     slab = draw_cuboid(slab_size)
-    slab.name = tile_name + '.slab.displacement.' + slab_type
+    slab.name = tile_name + '.slab.displacement'
     add_object_to_collection(slab, tile_name)
     return slab
 
@@ -222,9 +221,9 @@ def create_straight_wall_slab(
         geometry_type):
 
     if geometry_type == 'PREVIEW':
-        slab = create_preview_slab(tile_name, core_size, base_size, slab_type)
+        slab = create_preview_slab(tile_name, core_size, base_size)
     else:
-        slab = create_displacement_slab(tile_name, core_size, base_size, slab_type)
+        slab = create_displacement_slab(tile_name, core_size, base_size)
 
     slab['geometry_type'] = geometry_type
 

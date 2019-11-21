@@ -17,44 +17,79 @@ def create_rectangular_floor(
         tile_system,
         tile_name,
         tile_size,
+        base_size,
         base_system,
-        bhas_base,
         tile_material):
 
     """"Returns a floor
     Keyword arguments:
+    tile_blueprint -- a blueprint consists of a tile type and base type
     tile_system -- tile system for slabs
     tile_name   -- name,
     tile_size   -- [x, y, z],
     base_size   -- [x, y, z],
     base_system -- tile system for bases
+    tile_material -- material name
     """
 
     if base_system == "OPENLOCK":
-        tile_units = 'IMPERIAL'
-        base_size = Vector((tile_size[0], tile_size[1], 0.27559)) * 25.4
-        tile_size = Vector((tile_size[0], tile_size[1], 0.27559)) * 25.4
+        base_size = Vector((tile_size[0], tile_size[1], 7))
+        base = create_openlock_rectangular_floor_base(tile_name, base_size)
 
-        base = create_openlock_rectangular_floor_base(
-            tile_name,
-            base_size)
-        floor = create_rectangular_floor_slab(
-            tile_name,
-            tile_size=(tile_size[0], tile_size[1], 1),
-            base_size=base_size)
-        base.parent = floor
+    if tile_system == 'OPENLOCK':
+        floor = create_openlock_floor(tile_name, tile_size, base_size, tile_material)
 
-        axes = ['z_pos']
 
+def create_openlock_floor(tile_name, tile_size, base_size, tile_material):
+
+    floor_preview_slab = create_floor_slab(
+        tile_name,
+        tile_size,
+        base_size,
+        'PREVIEW')
+
+    floor_displacement_slab = create_floor_slab(
+        tile_name,
+        tile_size,
+        base_size,
+        'DISPLACEMENT')
+
+
+def create_floor_slab(tile_name, tile_size, base_size, geometry_type):
+    if geometry_type == 'PREVIEW':
+        slab = create_preview_slab(tile_name, tile_size, base_size)
     else:
-        floor = create_rectangular_floor_slab(
-            tile_name,
-            tile_size,
-            base_size)
+        slab = create_displacement_slab(tile_name, tile_size, base_size)
+    slab['geometry_type'] = geometry_type
 
-    axes = ['z_pos']
+    slab.location = (-tile_size[0] / 2, -tile_size[1] / 2, base_size[2])
 
-    return floor
+    bpy.context.scene.cursor.location = [0, 0, 0]
+    mode('OBJECT')
+    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+
+    select(slab.name)
+    activate(slab.name)
+    bpy.ops.uv.smart_project()
+    cuboid_sides_to_vert_groups(slab)
+
+    return slab
+
+
+def create_preview_slab(tile_name, tile_size, base_size):
+    slab_size = Vector((tile_size[0], tile_size[1], 2.5))
+    slab = draw_cuboid(slab_size)
+    slab.name = tile_name + '.slab.preview'
+    add_object_to_collection(slab, tile_name)
+    return slab
+
+
+def create_displacement_slab(tile_name, tile_size, base_size):
+    slab_size = Vector((tile_size[0], tile_size[1], 0.1))
+    slab = draw_cuboid(slab_size)
+    slab.name = tile_name + '.slab.displacement'
+    add_object_to_collection(slab, tile_name)
+    return slab
 
 
 def create_rectangular_floor_slab(
@@ -129,6 +164,7 @@ def create_openlock_rectangular_floor_base(
             clip_cutter_bool.object = clip_cutter
 
     mode('OBJECT')
+    base['geomentry_type'] = 'BASE'
     return base
 
 

@@ -35,10 +35,10 @@ def create_rectangular_floor(
     if base_system == "OPENLOCK":
         base_size = Vector((tile_size[0], tile_size[1], 7))
         base = create_openlock_base(tile_name, base_size)
-    '''
+
     if tile_system == 'OPENLOCK':
         floor = create_openlock_floor(tile_name, tile_size, base_size, tile_material)
-    '''
+
 
 def create_openlock_floor(tile_name, tile_size, base_size, tile_material):
 

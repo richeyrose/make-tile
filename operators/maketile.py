@@ -36,9 +36,6 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             tile_main_system = 'PLAIN'
             base_system = 'PLAIN'
 
-        base_size = base_size * 25.4
-        tile_size = tile_size * 25.4
-
         create_tile(
             tile_blueprint,
             tile_main_system,

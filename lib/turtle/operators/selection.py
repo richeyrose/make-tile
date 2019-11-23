@@ -56,7 +56,7 @@ class TURTLE_OT_select_by_location(bpy.types.Operator):
     lbound: FloatVectorProperty()
     ubound: FloatVectorProperty()
     select_mode: StringProperty(default='VERT')
-    buffer: FloatProperty(default=0.1)
+    buffer: FloatProperty(default=0.01)
     additive: BoolProperty(default=False)
 
     @classmethod
@@ -77,7 +77,7 @@ class TURTLE_OT_select_at_cursor(bpy.types.Operator):
 
     select_mode: StringProperty(default='VERT')
     additive: BoolProperty(default=True)
-    buffer: FloatProperty(default=0.1)
+    buffer: FloatProperty(default=0.01)
 
     @classmethod
     def poll(cls, context):

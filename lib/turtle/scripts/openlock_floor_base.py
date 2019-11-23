@@ -1,12 +1,12 @@
 from math import floor, sqrt
 import bpy
 from mathutils import *
-outer_w = 6                 # outer ring width
-slot_w = 4.6                # slot width
-slot_h = 6.1                # slot height
-support_w = 3               # slot support width
-support_h = 1.39            # slot support height
-extra_sup_dist = 21.67       # distance between extra supports for large tiles
+outer_w = 0.2362                 # outer ring width
+slot_w = 0.1811                # slot width
+slot_h = 0.2402                # slot height
+support_w = 0.11811              # slot support width
+support_h = 0.05472            # slot support height
+extra_sup_dist = 0.8531       # distance between extra supports for large tiles
 
 
 def draw_openlock_rect_floor_base(dimensions):
@@ -52,16 +52,16 @@ def draw_quarter_floor(dimensions, start_loc):
     t.set_position(v=start_loc)
     t.fd(d=outer_w)
     t.pd()
-    
+
     # draw loop 2
     t.add_vert()
     t.begin_path()
     t.ri(d=x / 2 - outer_w)
     t.fd(d=y / 2 - outer_w)
     t.select_path()
-    
+
     # create bevel for corner supports
-    bpy.ops.mesh.bevel(offset_type='WIDTH', offset=3, offset_pct=0, vertex_only=True)
+    bpy.ops.mesh.bevel(offset_type='WIDTH', offset=0.11811, offset_pct=0, vertex_only=True)
 
     # move turtle
     t.pu()
@@ -74,14 +74,14 @@ def draw_quarter_floor(dimensions, start_loc):
     # draw loop 3
     t.add_vert()
     t.begin_path()
-    t.ri(d= x / 2 - slot_w - outer_w)
-    t.fd(d= y / 2 - slot_w - outer_w)
+    t.ri(d=x / 2 - slot_w - outer_w)
+    t.fd(d=y / 2 - slot_w - outer_w)
     t.select_path()
-    
-    # create bevel for corner supports
-    bpy.ops.mesh.bevel(offset_type='WIDTH', offset=3, offset_pct=0, vertex_only=True)
 
-    #bridge bevels
+    # create bevel for corner supports
+    bpy.ops.mesh.bevel(offset_type='WIDTH', offset=0.11811, offset_pct=0, vertex_only=True)
+
+    # bridge bevels
     leg = support_w / sqrt(2)
     t.pu()
     t.home()
@@ -118,13 +118,13 @@ def draw_quarter_floor(dimensions, start_loc):
 
     # check if either side is greater than 100.6mm (jut under 4").
     # if yes we add some extra support between outer and inner ring
-    if x >= 101.4:
-        x_supports = 1 + floor((x - 101.4) / 50.8)
+    if x >= 3.99:
+        x_supports = 1 + floor((x - 3.99) / 2)
     else:
         x_supports = 0
 
-    if y >= 101.4:
-        y_supports = 1 + floor((y - 101.4) / 50.8)
+    if y >= 3.99:
+        y_supports = 1 + floor((y - 3.99) / 2)
     else:
         y_supports = 0
 
@@ -180,11 +180,11 @@ def draw_quarter_floor(dimensions, start_loc):
     t.home()
     t.set_position(v=start_loc)
     t.select_by_location(
-            lbound=turtle.location, 
+            lbound=turtle.location,
             ubound=(turtle.location[0] + x / 2,
                     turtle.location[1] + y / 2,
                     turtle.location[2]))
-               
+
     bpy.ops.mesh.fill()
     t.select_all()
     bpy.ops.mesh.normals_make_consistent()
@@ -201,15 +201,15 @@ def draw_quarter_floor(dimensions, start_loc):
  
     if x_supports > 0:
         fill_extra_supports(x_supports, 'x', support_w, slot_w)
-  
+
     t.home()
     t.ri(d=x / 2 - outer_w)
     t.rt(d=180)
     t.up(d=support_h)
-    
+
     if y_supports > 0:
         fill_extra_supports(y_supports, 'y', support_w, -slot_w)
-    
+
     # draw corner support roofs
     t.deselect_all()
     t.pu
@@ -260,7 +260,7 @@ def draw_quarter_floor(dimensions, start_loc):
                 ubound=(turtle.location[0] + x / 2 - outer_w,
                         turtle.location[1] + y / 2 - outer_w,
                         turtle.location[2]))
-    
+ 
     bpy.ops.mesh.duplicate_move(
         TRANSFORM_OT_translate={
                     "value": (0, 0, slot_h - support_h),
@@ -323,8 +323,7 @@ def draw_quarter_floor(dimensions, start_loc):
     bpy.ops.mesh.normals_make_consistent()
     t.deselect_all()
     t.home()
-      
-    
+
 def add_extra_supports(num_supports, axis, support_w, slot_w, x, y, leg, outer_w, start_loc, side_length):
     turtle = bpy.context.scene.cursor
     t = bpy.ops.turtle
@@ -408,10 +407,10 @@ def add_extra_supports(num_supports, axis, support_w, slot_w, x, y, leg, outer_w
             t.fd(d=side_length /2  - a - b - c + d + slot_w)
  
         else:
-            t.fd(d=side_length / 2  - b - support_w +d)
+            t.fd(d=side_length / 2  - b - support_w + d)
             t.pu()
             t.deselect_all()
-            t.bk(d=side_length / 2  - b - support_w +d)
+            t.bk(d=side_length / 2  - b - support_w + d)
             t.select_at_cursor()
             t.pd()
             t.lf(d=slot_w)
@@ -422,7 +421,7 @@ def add_extra_supports(num_supports, axis, support_w, slot_w, x, y, leg, outer_w
         t.deselect_all()
         t.pu()
 
-    
+
 def fill_extra_supports(num_supports, axis, support_w, slot_w):
     turtle = bpy.context.scene.cursor
     t = bpy.ops.turtle

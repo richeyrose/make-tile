@@ -33,7 +33,7 @@ def create_straight_wall(
     """
 
     if base_system == 'OPENLOCK':
-        base_size = Vector((tile_size[0], 12.7, 7))
+        base_size = Vector((tile_size[0], 0.5, 0.2755))
         base = create_openlock_straight_wall_base(tile_name, base_size)
 
     if base_system == 'PLAIN':
@@ -43,7 +43,7 @@ def create_straight_wall(
         base_size = Vector((0, 0, 0))
 
     if tile_system == 'OPENLOCK':
-        tile_size = Vector((tile_size[0], 8, tile_size[2]))
+        tile_size = Vector((tile_size[0], 0.3149, tile_size[2]))
         create_openlock_wall(tile_name, tile_size, base_size, tile_material)
 
     if tile_system == 'PLAIN':
@@ -148,7 +148,7 @@ def create_openlock_wall(tile_name, tile_size, base_size, tile_material):
 
 
 def create_plain_wall(tile_name, tile_size, base_size, tile_material):
-    core_size = Vector((tile_size[0], tile_size[1] - 4.7, tile_size[2]))
+    core_size = Vector((tile_size[0], tile_size[1] - 0.1850, tile_size[2]))
     core = create_straight_wall_core(tile_name, core_size, base_size)
     create_wall_slabs(tile_name, core.dimensions, base_size, tile_size, tile_material)
 
@@ -195,7 +195,7 @@ def create_preview_slab(
         tile_name,
         core_size,
         base_size):
-    slab_size = Vector((core_size[0], 2.35, core_size[2]))
+    slab_size = Vector((core_size[0], 0.0925, core_size[2]))
     slab = draw_cuboid(slab_size)
     slab.name = tile_name + '.slab.preview'
     add_object_to_collection(slab, tile_name)
@@ -206,7 +206,7 @@ def create_displacement_slab(
         tile_name,
         core_size,
         base_size):
-    slab_size = Vector((core_size[0], 0.1, core_size[2]))
+    slab_size = Vector((core_size[0], 0.0039, core_size[2]))
     slab = draw_cuboid(slab_size)
     slab.name = tile_name + '.slab.displacement'
     add_object_to_collection(slab, tile_name)
@@ -318,7 +318,7 @@ def create_openlock_straight_wall_core(
     core = create_straight_wall_core(tile_name, tile_size, base_size)
 
     # check to see if tile is at least 1 inch high
-    if tile_size[2] >= 2.53:
+    if tile_size[2] >= 0.99:
         wall_cutters = create_openlock_wall_cutters(core, tile_size, tile_name)
         for wall_cutter in wall_cutters:
             wall_cutter.parent = core
@@ -361,14 +361,14 @@ def create_openlock_wall_cutters(slab, tile_size, tile_name):
     side_cutter1.location = [
         front_left[0],
         front_left[1] + (tile_size[1] / 2),
-        front_left[2] + (0.63 * 25.4)]
+        front_left[2] + 0.63]
 
     array_mod = side_cutter1.modifiers.new('Array', 'ARRAY')
     array_mod.use_relative_offset = False
     array_mod.use_constant_offset = True
-    array_mod.constant_offset_displace[2] = 2 * 25.4
+    array_mod.constant_offset_displace[2] = 2
     array_mod.fit_type = 'FIT_LENGTH'
-    array_mod.fit_length = tile_size[2] - 2.6
+    array_mod.fit_length = tile_size[2] - 0.10236
 
     mirror_mod = side_cutter1.modifiers.new('Mirror', 'MIRROR')
     mirror_mod.use_axis[0] = True
@@ -380,10 +380,10 @@ def create_openlock_wall_cutters(slab, tile_size, tile_name):
     add_object_to_collection(side_cutter2, tile_name)
 
     # move cutter up by 0.75 inches
-    side_cutter2.location[2] = side_cutter2.location[2] + 0.75 * 25.4
+    side_cutter2.location[2] = side_cutter2.location[2] + 0.75
 
     array_mod = side_cutter2.modifiers["Array"]
-    array_mod.fit_length = tile_size[2] - 4.6
+    array_mod.fit_length = tile_size[2] - 0.18110
 
     return [side_cutter1, side_cutter2]
 
@@ -427,8 +427,8 @@ def create_openlock_base_clip_cutter(base, tile_name):
 
     # move cutter to starting point
     clip_cutter.location = [
-        front_left[0] + (0.5 * 25.4),
-        front_left[1] + (0.25 * 25.4),
+        front_left[0] + 0.5,
+        front_left[1] + 0.25,
         front_left[2]]
 
     array_mod = clip_cutter.modifiers.new('Array', 'ARRAY')
@@ -437,7 +437,7 @@ def create_openlock_base_clip_cutter(base, tile_name):
     array_mod.use_merge_vertices = True
 
     array_mod.fit_type = 'FIT_LENGTH'
-    array_mod.fit_length = base_size[0] - 25.4
+    array_mod.fit_length = base_size[0] - 1
 
     return (clip_cutter)
 
@@ -462,9 +462,9 @@ def create_openlock_base_slot_cutter(base, tile_name):
 
     # work out bool size X from base size, y and z are constants
     bool_size = [
-        base_dim[0] - ((0.236 * 2) * 25.4),
-        0.197 * 25.4,
-        0.25 * 25.4]
+        base_dim[0] - (0.236 * 2),
+        0.197,
+        0.25]
 
     cutter_mesh = bpy.data.meshes.new("cutter_mesh")
     cutter = bpy.data.objects.new(tile_name + ".cutter.slot", cutter_mesh)
@@ -475,10 +475,10 @@ def create_openlock_base_slot_cutter(base, tile_name):
     cutter = draw_cuboid(bool_size)
     mode('OBJECT')
 
-    # move cutter so centred and set cutter origin to world origin + z = -0.01
+    # move cutter so centred and set cutter origin to world origin + z = -0.001
     # (to avoid z fighting)
-    cutter.location = (-bool_size[0] / 2, -0.014 * 25.4, 0)
-    cursor.location = [0.0, 0.0, 0.01]
+    cutter.location = (-bool_size[0] / 2, -0.014, 0)
+    cursor.location = [0.0, 0.0, 0.001]
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
 
     # reset cursor location

@@ -37,9 +37,9 @@ class MT_OT_Bake_Displacement(bpy.types.Operator):
         disp_mod.texture = disp_texture
         disp_mod.mid_level = 0
         if displacement_obj['disp_dir'] == 'pos':
-            disp_mod.strength = 8
+            disp_mod.strength = 0.31
         else:
-            disp_mod.strength = -8
+            disp_mod.strength = -0.31
 
         subsurf_mod = displacement_obj.modifiers[displacement_obj['subsurf_mod_name']]
         subsurf_mod.levels = 8

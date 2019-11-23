@@ -33,7 +33,7 @@ def create_rectangular_floor(
     """
 
     if base_system == "OPENLOCK":
-        base_size = Vector((tile_size[0], tile_size[1], 7))
+        base_size = Vector((tile_size[0], tile_size[1], .2756))
         base = create_openlock_base(tile_name, base_size)
 
     if tile_system == 'OPENLOCK':
@@ -83,7 +83,7 @@ def create_floor_slab(tile_name, tile_size, base_size, geometry_type):
 
 
 def create_preview_slab(tile_name, tile_size, base_size):
-    slab_size = Vector((tile_size[0], tile_size[1], 2.5))
+    slab_size = Vector((tile_size[0], tile_size[1], 0.09843))
     slab = draw_cuboid(slab_size)
     slab.name = tile_name + '.slab.preview'
     add_object_to_collection(slab, tile_name)
@@ -91,7 +91,7 @@ def create_preview_slab(tile_name, tile_size, base_size):
 
 
 def create_displacement_slab(tile_name, tile_size, base_size):
-    slab_size = Vector((tile_size[0], tile_size[1], 0.1))
+    slab_size = Vector((tile_size[0], tile_size[1], 0.001))
     slab = draw_cuboid(slab_size)
     slab.name = tile_name + '.slab.displacement'
     add_object_to_collection(slab, tile_name)
@@ -102,11 +102,11 @@ def create_openlock_base(
         tile_name,
         base_size):
 
-    if base_size[0] <= 25.5 and base_size[0] > 12.6 or base_size[1] <= 25.5 and base_size[1] > 12.6:
+    if base_size[0] <= 1.004 and base_size[0] > 0.496 or base_size[1] <= 1.0039 and base_size[1] > 0.496:
         # if base is less than an inch use a wall type base
         base = create_straight_wall_base('OPENLOCK', tile_name, base_size)
         base.name
-    elif base_size[0] <= 12.6 or base_size[1] <= 12.6:
+    elif base_size[0] <= 0.496 or base_size[1] <= 0.496:
         print('Tile too small')
         col = bpy.data.collections[tile_name]
         bpy.data.collections.remove(col)
@@ -167,8 +167,8 @@ def create_openlock_base_clip_cutter(base, tile_name):
         base_location[2]))
 
     clip_cutter.location = (
-        front_left[0] + 12.7,
-        front_left[1] + 6.35,
+        front_left[0] + 0.5,
+        front_left[1] + 0.25,
         front_left[2])
 
     array_mod = clip_cutter.modifiers.new('Array', 'ARRAY')
@@ -177,7 +177,7 @@ def create_openlock_base_clip_cutter(base, tile_name):
     array_mod.use_merge_vertices = True
 
     array_mod.fit_type = 'FIT_LENGTH'
-    array_mod.fit_length = base_size[0] - 25.4
+    array_mod.fit_length = base_size[0] - 1
 
     select(clip_cutter.name)
     activate(clip_cutter.name)
@@ -196,13 +196,13 @@ def create_openlock_base_clip_cutter(base, tile_name):
         base_location[2]))
 
     clip_cutter2.location = (
-        front_right[0] - 6.35,
-        front_right[1] + 12.7,
+        front_right[0] - 0.25,
+        front_right[1] + 0.5,
         front_right[2])
 
     array_mod2 = clip_cutter2.modifiers['Array']
     array_mod2.fit_type = 'FIT_LENGTH'
-    array_mod2.fit_length = base_size[1] - 25.4
+    array_mod2.fit_length = base_size[1] - 1
     mirror_mod2 = clip_cutter2.modifiers['Mirror']
     mirror_mod2.use_axis[0] = True
     mirror_mod2.use_axis[1] = False

@@ -38,7 +38,6 @@ def deselect_all():
 
 def select(obj_name):
     """select object by name"""
-    bpy.ops.object.select_all(action='DESELECT')
     bpy.data.objects[obj_name].select_set(True)
 
 

@@ -10,7 +10,8 @@ from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. lib.turtle.scripts.openlock_floor_base import draw_openlock_rect_floor_base
 from . create_straight_wall_tile import create_straight_wall_base
 from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
-from .. materials.materials import load_secondary_material, load_material, assign_mat_to_vert_group, add_displacement_mesh_modifiers
+from .. materials.materials import load_secondary_material, load_material, assign_mat_to_vert_group, add_displacement_mesh_modifiers,  assign_displacement_materials, assign_preview_materials
+
 
 def create_rectangular_floor(
         tile_blueprint,
@@ -37,10 +38,10 @@ def create_rectangular_floor(
         base = create_openlock_base(tile_name, base_size)
 
     if tile_system == 'OPENLOCK':
-        floor = create_openlock_floor(tile_name, tile_size, base_size, tile_material)
+        floor = create_openlock_slab(tile_name, tile_size, base_size, tile_material)
 
 
-def create_openlock_floor(tile_name, tile_size, base_size, tile_material):
+def create_openlock_slab(tile_name, tile_size, base_size, tile_material):
 
     preview_slab = create_floor_slab(
         tile_name,
@@ -58,17 +59,14 @@ def create_openlock_floor(tile_name, tile_size, base_size, tile_material):
 
     preview_slab['displacement_obj'] = displacement_slab
     displacement_slab['preview_obj'] = preview_slab
-    '''
-    preview_material = load_material(tile_material)
-    assign_displacement_materials(displacement_slab, 'Z', 'z_pos', 'pos', [2048, 2048], preview_material)
-    
 
-    load_secondary_material(preview_slab)
-    
-    preview_slab.data.materials.append(preview_material)
-    displacement_slab.data.materials
-    '''
+    primary_material = load_material(tile_material)
+    secondary_material = load_secondary_material()
 
+    assign_displacement_materials(displacement_slab, 'Z', 'z_pos', 'pos', [2048, 2048], primary_material)
+    assign_preview_materials(preview_slab, 'z_pos', primary_material, secondary_material)
+
+    displacement_slab.hide_viewport = True
 
 def create_floor_slab(tile_name, tile_size, base_size, geometry_type):
 
@@ -106,7 +104,7 @@ def create_preview_slab(tile_name, tile_size, base_size):
 
 
 def create_displacement_slab(tile_name, tile_size, base_size):
-    slab_size = Vector((tile_size[0], tile_size[1], 0.001))
+    slab_size = Vector((tile_size[0], tile_size[1], 0.01))
     slab = draw_cuboid(slab_size)
     slab.name = tile_name + '.slab.displacement'
     add_object_to_collection(slab, tile_name)

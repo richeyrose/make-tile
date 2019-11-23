@@ -74,9 +74,23 @@ def bake_displacement_map(material, image, obj):
     displacement_emission_node = tree.nodes['disp_emission']
     tree.links.new(displacement_emission_node.outputs['Emission'], mat_output_node.inputs['Surface'])
 
+    # sever displacement node link because otherwise it screws up baking
+    displacement_node = tree.nodes['final_disp']
+    link = displacement_node.outputs[0].links[0]
+    tree.links.remove(link)
+
     # assign image to image node
     texture_node = tree.nodes['disp_texture_node']
     texture_node.image = image
+
+    # TODO: project from preview to displacement mesh when baking
+    preview_mesh = bpy.data.objects[obj['preview_obj'].name]
+    deselect_all()
+    select(preview_mesh.name)
+    select(obj.name)
+    activate(obj.name)
+    bpy.context.scene.render.bake.use_selected_to_active = True
+    bpy.context.scene.render.bake.cage_extrusion = 1
 
     # bake
     bpy.ops.object.bake(type='EMIT')
@@ -84,6 +98,7 @@ def bake_displacement_map(material, image, obj):
     # reset shader
     surface_shader_node = tree.nodes['surface_shader']
     tree.links.new(surface_shader_node.outputs['BSDF'], mat_output_node.inputs['Surface'])
+    tree.links.new(displacement_node.outputs['Displacement'], mat_output_node.inputs['Displacement'])
 
     # reset engine
     bpy.context.scene.cycles.samples = orig_samples

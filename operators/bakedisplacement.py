@@ -1,6 +1,6 @@
 '''contains operator class for baking displacement maps to tiles'''
 import bpy
-from .. materials.materials import add_blank_material
+from .. materials.materials import load_secondary_material
 from .. lib.utils.selection import deselect_all, select_all, select, activate
 
 
@@ -47,7 +47,7 @@ class MT_OT_Bake_Displacement(bpy.types.Operator):
         preview_obj.hide_viewport = True
 
         displacement_obj.data.materials.clear()
-        add_blank_material(displacement_obj)
+        load_secondary_material()
 
         return {'FINISHED'}
 
@@ -65,7 +65,6 @@ def bake_displacement_map(material, image, obj):
     bpy.context.scene.render.engine = 'CYCLES'
     bpy.context.scene.cycles.samples = 1
     bpy.context.scene.render.tile_x = 2048
-
     bpy.context.scene.render.tile_y = 2048
     bpy.context.scene.cycles.bake_type = 'EMIT'
 

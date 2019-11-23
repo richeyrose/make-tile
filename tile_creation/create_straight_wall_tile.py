@@ -8,7 +8,7 @@ from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. lib.utils.selection import deselect_all, select_all, select, activate
 from .. lib.utils.utils import mode
 from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
-from .. materials.materials import add_blank_material, load_material, assign_mat_to_vert_group
+from .. materials.materials import load_secondary_material, load_material, assign_mat_to_vert_group, add_displacement_mesh_modifiers, assign_displacement_materials, assign_preview_materials
 from .. enums.enums import geometry_types
 
 
@@ -50,96 +50,56 @@ def create_straight_wall(
         create_plain_wall(tile_name, tile_size, base_size, tile_material)
 
 
-def add_displacement_mesh_modifiers(obj, disp_axis, vert_group, disp_dir, image_size, material_name):
-    obj_subsurf = obj.modifiers.new('Subsurf', 'SUBSURF')
-    obj_subsurf.subdivision_type = 'SIMPLE'
-    obj_subsurf.levels = 0
-
-    obj_disp_mod = obj.modifiers.new('Displacement', 'DISPLACE')
-    obj_disp_mod.strength = 0
-    obj_disp_mod.texture_coords = 'UV'
-    obj_disp_mod.direction = disp_axis
-    obj_disp_mod.vertex_group = vert_group
-    obj_disp_mod.mid_level = 0
-
-    obj_disp_texture = bpy.data.textures.new(obj.name + '.texture', 'IMAGE')
-    obj_disp_image = bpy.data.images.new(obj.name + '.image', width=image_size[0], height=image_size[1])
-
-    obj['disp_texture'] = obj_disp_texture
-    obj['disp_image'] = obj_disp_image
-    obj['disp_dir'] = disp_dir
-    obj['subsurf_mod_name'] = obj_subsurf.name
-    obj['disp_mod_name'] = obj_disp_mod.name
-    obj['disp_material'] = material_name
-
-
 def create_wall_slabs(tile_name, core_size, base_size, tile_size, tile_material):
-    outer_slab_preview = create_straight_wall_slab(
+    outer_preview_slab = create_straight_wall_slab(
         tile_name,
         core_size,
         base_size,
         'outer',
         'PREVIEW')
-    outer_slab_preview['geometry_type'] = 'PREVIEW'
+    outer_preview_slab['geometry_type'] = 'PREVIEW'
 
-    outer_slab_final = create_straight_wall_slab(
+    outer_displacement_slab = create_straight_wall_slab(
         tile_name,
         core_size,
         base_size,
         'outer',
         'DISPLACEMENT')
-    outer_slab_final['geometry_type'] = 'DISPLACEMENT'
+    outer_displacement_slab['geometry_type'] = 'DISPLACEMENT'
 
-    inner_slab_preview = create_straight_wall_slab(
+    outer_preview_slab['displacement_obj'] = outer_displacement_slab
+    outer_displacement_slab['preview_obj'] = outer_preview_slab
+
+    inner_preview_slab = create_straight_wall_slab(
         tile_name,
         core_size,
         base_size,
         'inner',
         'PREVIEW')
-    inner_slab_preview['geometry_type'] = 'PREVIEW'
+    inner_preview_slab['geometry_type'] = 'PREVIEW'
 
-    inner_slab_final = create_straight_wall_slab(
+    inner_displacement_slab = create_straight_wall_slab(
         tile_name,
         core_size,
         base_size,
         'inner',
         'DISPLACEMENT')
-    inner_slab_final['geometry_type'] = 'DISPLACEMENT'
+    inner_displacement_slab['geometry_type'] = 'DISPLACEMENT'
 
-    # associate final slabs with preview slabs and vice versa
-    outer_slab_preview['displacement_obj'] = outer_slab_final
-    outer_slab_final['preview_obj'] = outer_slab_preview
+    inner_preview_slab['displacement_obj'] = inner_displacement_slab
+    inner_displacement_slab['preview_obj'] = inner_preview_slab
 
-    inner_slab_preview['displacement_obj'] = inner_slab_final
-    inner_slab_final['preview_obj'] = inner_slab_preview
+    primary_material = load_material(tile_material)
+    secondary_material = load_secondary_material()
 
-    add_displacement_mesh_modifiers(outer_slab_final, 'Y', 'y_pos', 'pos', [2048, 2048], tile_material)
-    add_displacement_mesh_modifiers(inner_slab_final, 'Y', 'y_neg', 'neg', [2048, 2048], tile_material)
+    assign_displacement_materials(inner_displacement_slab, 'Y', 'y_neg', 'neg', [2048, 2048], primary_material)
+    assign_preview_materials(inner_preview_slab, 'y_neg', primary_material, secondary_material)
 
-    add_blank_material(outer_slab_preview)
-    add_blank_material(inner_slab_preview)
-
-    preview_material = load_material(tile_material)
-
-    outer_slab_preview.data.materials.append(preview_material)
-    outer_slab_final.data.materials.append(preview_material)
-
-    inner_slab_preview.data.materials.append(preview_material)
-    inner_slab_final.data.materials.append(preview_material)
-
-    select(outer_slab_preview.name)
-    activate(outer_slab_preview.name)
-
-    assign_mat_to_vert_group('y_pos', outer_slab_preview, tile_material)
-
-    select(inner_slab_preview.name)
-    activate(inner_slab_preview.name)
-
-    assign_mat_to_vert_group('y_neg', inner_slab_preview, tile_material)
-
+    assign_displacement_materials(outer_displacement_slab, 'Y', 'y_pos', 'pos', [2048, 2048], primary_material)
+    assign_preview_materials(outer_preview_slab, 'y_pos', primary_material, secondary_material)
     # hide final slabs for now
-    outer_slab_final.hide_viewport = True
-    inner_slab_final.hide_viewport = True
+    outer_displacement_slab.hide_viewport = True
+    inner_displacement_slab.hide_viewport = True
 
 
 def create_openlock_wall(tile_name, tile_size, base_size, tile_material):

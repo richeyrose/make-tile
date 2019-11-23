@@ -10,7 +10,7 @@ from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. lib.turtle.scripts.openlock_floor_base import draw_openlock_rect_floor_base
 from . create_straight_wall_tile import create_straight_wall_base
 from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
-
+from .. materials.materials import load_secondary_material, load_material, assign_mat_to_vert_group, add_displacement_mesh_modifiers
 
 def create_rectangular_floor(
         tile_blueprint,
@@ -42,17 +42,32 @@ def create_rectangular_floor(
 
 def create_openlock_floor(tile_name, tile_size, base_size, tile_material):
 
-    floor_preview_slab = create_floor_slab(
+    preview_slab = create_floor_slab(
         tile_name,
         tile_size,
         base_size,
         'PREVIEW')
+    preview_slab['geometry_type'] = 'PREVIEW'
 
-    floor_displacement_slab = create_floor_slab(
+    displacement_slab = create_floor_slab(
         tile_name,
         tile_size,
         base_size,
         'DISPLACEMENT')
+    displacement_slab['geometry_type'] = 'DISPLACEMENT'
+
+    preview_slab['displacement_obj'] = displacement_slab
+    displacement_slab['preview_obj'] = preview_slab
+    '''
+    preview_material = load_material(tile_material)
+    assign_displacement_materials(displacement_slab, 'Z', 'z_pos', 'pos', [2048, 2048], preview_material)
+    
+
+    load_secondary_material(preview_slab)
+    
+    preview_slab.data.materials.append(preview_material)
+    displacement_slab.data.materials
+    '''
 
 
 def create_floor_slab(tile_name, tile_size, base_size, geometry_type):

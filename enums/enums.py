@@ -29,10 +29,11 @@ tile_types = [
 
 tile_materials = [
     ("NONE", "None", "", 1),
-    ("BRICKS", "Bricks", "", 2),
-    ("STONEWALL1", "Stone Wall 1", "", 3),
+    ("BRICKS1", "Bricks 1", "", 2),
+    ("BRICKS2", "Bricks 2", "", 3),
+    ("BRICKS3", "Bricks 3", "", 4),
+    ("STONEWALL1", "Stone Wall 1", "", 5),
 ]
-
 
 geometry_types = [
     ("BASE", "Base", "", 1),

@@ -89,6 +89,15 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             default="STONEWALL1",
         )
 
+        bpy.types.Scene.mt_tile_resolution = bpy.props.IntProperty(
+            name="Tile resolution",
+            description="Bake resolution of displacement maps. Higher = better quality but slower",
+            default=2048,
+            min=1024,
+            max=8192,
+            step=1024,
+        )
+
         # Tile and base Size. We use seperate floats so that we can only show
         # customisable ones where appropriate. These are wrapped up
         # in a vector and passed on as tile_size and base_size
@@ -146,6 +155,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         del bpy.types.Scene.mt_tile_y
         del bpy.types.Scene.mt_tile_z
         del bpy.types.Scene.mt_base_system
+        del bpy.types.Scene.mt_tile_resolution
         del bpy.types.Scene.mt_tile_material
         del bpy.types.Scene.mt_tile_type
         del bpy.types.Scene.mt_tile_blueprint

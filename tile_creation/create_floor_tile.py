@@ -10,7 +10,7 @@ from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. lib.turtle.scripts.openlock_floor_base import draw_openlock_rect_floor_base
 from . create_straight_wall_tile import create_straight_wall_base
 from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
-from .. materials.materials import load_secondary_material, load_material, assign_mat_to_vert_group, add_displacement_mesh_modifiers,  assign_displacement_materials, assign_preview_materials
+from .. materials.materials import load_secondary_material, load_material, assign_mat_to_vert_group, add_displacement_mesh_modifiers, assign_displacement_materials, assign_preview_materials
 
 
 def create_rectangular_floor(
@@ -33,15 +33,37 @@ def create_rectangular_floor(
     tile_material -- material name
     """
 
-    if base_system == "OPENLOCK":
+    if base_system == 'OPENLOCK':
         base_size = Vector((tile_size[0], tile_size[1], .2756))
         base = create_openlock_base(tile_name, base_size)
 
-    if tile_system == 'OPENLOCK':
-        floor = create_openlock_slab(tile_name, tile_size, base_size, tile_material)
+    if base_system == 'PLAIN':
+        base = create_plain_base(tile_name, base_size)
+    
+    if base_system == 'NONE':
+        base_size = (0, 0, 0)
+
+    floor = create_floor(tile_name, tile_size, base_size, tile_material)
 
 
-def create_openlock_slab(tile_name, tile_size, base_size, tile_material):
+def create_plain_base(tile_name, base_size):
+    cursor_start_location = bpy.context.scene.cursor.location.copy()
+    base = draw_cuboid(base_size)
+    base.name = tile_name + '.base'
+    add_object_to_collection(base, tile_name)
+
+    base['geometry_type'] = 'BASE'
+    base.location = (-base_size[0] / 2, -base_size[1] / 2, 0)
+    bpy.context.scene.cursor.location = [0, 0, 0]
+    mode('OBJECT')
+    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+
+    base.location = cursor_start_location
+    bpy.context.scene.cursor.location = cursor_start_location
+    return base
+
+
+def create_floor(tile_name, tile_size, base_size, tile_material):
 
     preview_slab = create_floor_slab(
         tile_name,
@@ -63,13 +85,16 @@ def create_openlock_slab(tile_name, tile_size, base_size, tile_material):
     primary_material = load_material(tile_material)
     secondary_material = load_secondary_material()
 
-    assign_displacement_materials(displacement_slab, 'Z', 'z_pos', 'pos', [2048, 2048], primary_material)
+    image_size = bpy.context.scene.mt_tile_resolution
+
+    assign_displacement_materials(displacement_slab, 'Z', 'z_pos', 'pos', [image_size, image_size], primary_material)
     assign_preview_materials(preview_slab, 'z_pos', primary_material, secondary_material)
 
     displacement_slab.hide_viewport = True
 
-def create_floor_slab(tile_name, tile_size, base_size, geometry_type):
 
+def create_floor_slab(tile_name, tile_size, base_size, geometry_type):
+    """creates the floor bit of the floor tile"""
     cursor_start_location = bpy.context.scene.cursor.location.copy()
 
     if geometry_type == 'PREVIEW':
@@ -96,7 +121,7 @@ def create_floor_slab(tile_name, tile_size, base_size, geometry_type):
 
 
 def create_preview_slab(tile_name, tile_size, base_size):
-    slab_size = Vector((tile_size[0], tile_size[1], 0.09843))
+    slab_size = Vector((tile_size[0], tile_size[1], tile_size[2] - base_size[2]))
     slab = draw_cuboid(slab_size)
     slab.name = tile_name + '.slab.preview'
     add_object_to_collection(slab, tile_name)

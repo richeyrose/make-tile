@@ -20,7 +20,6 @@ tile_main_systems = [
 base_systems = [
     ("OPENLOCK", "OpenLOCK", "", 1),
     ("PLAIN", "Plain", "", 2),
-    ("NONE", "None", "", 3),
 ]
 
 tile_types = [
@@ -33,6 +32,7 @@ tile_materials = [
     ("BRICKS", "Bricks", "", 2),
     ("STONEWALL1", "Stone Wall 1", "", 3),
 ]
+
 
 geometry_types = [
     ("BASE", "Base", "", 1),

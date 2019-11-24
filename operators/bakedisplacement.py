@@ -20,15 +20,14 @@ class MT_OT_Bake_Displacement(bpy.types.Operator):
         preview_obj = bpy.context.object
         displacement_obj = preview_obj['displacement_obj']
         preview_material = bpy.data.materials[context.scene.mt_tile_material]
+        resolution = context.scene.mt_tile_resolution
         displacement_obj.hide_viewport = False
 
         deselect_all()
         select(displacement_obj.name)
         activate(displacement_obj.name)
 
-        disp_image = displacement_obj['disp_image']
-
-        bake_displacement_map(preview_material, disp_image, displacement_obj)
+        bake_displacement_map(preview_material, displacement_obj, resolution)
 
         disp_texture = displacement_obj['disp_texture']
         disp_image = displacement_obj['disp_image']
@@ -52,7 +51,7 @@ class MT_OT_Bake_Displacement(bpy.types.Operator):
         return {'FINISHED'}
 
 
-def bake_displacement_map(material, image, obj):
+def bake_displacement_map(material, obj, resolution):
     # save original settings
     orig_engine = bpy.context.scene.render.engine
     # cycles settings
@@ -64,8 +63,8 @@ def bake_displacement_map(material, image, obj):
     # switch to Cycles and set up rendering settings for baking
     bpy.context.scene.render.engine = 'CYCLES'
     bpy.context.scene.cycles.samples = 1
-    bpy.context.scene.render.tile_x = 2048
-    bpy.context.scene.render.tile_y = 2048
+    bpy.context.scene.render.tile_x = resolution
+    bpy.context.scene.render.tile_y = resolution
     bpy.context.scene.cycles.bake_type = 'EMIT'
 
     # plug emission node into output for baking
@@ -79,11 +78,15 @@ def bake_displacement_map(material, image, obj):
     link = displacement_node.outputs[0].links[0]
     tree.links.remove(link)
 
+    # create image
+    image = bpy.data.images.new(obj.name + '.image', width=resolution, height=resolution)
+    obj['disp_image'] = image
+
     # assign image to image node
     texture_node = tree.nodes['disp_texture_node']
     texture_node.image = image
 
-    # TODO: project from preview to displacement mesh when baking
+    # project from preview to displacement mesh when baking
     preview_mesh = bpy.data.objects[obj['preview_obj'].name]
     deselect_all()
     select(preview_mesh.name)

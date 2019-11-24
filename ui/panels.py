@@ -31,10 +31,12 @@ class MT_PT_Panel(bpy.types.Panel):
         layout.prop(scene, 'mt_tile_material')
 
         if bpy.context.object is not None:
-            if bpy.context.object['geometry_type'] == 'PREVIEW':
-                layout.operator('scene.bake_displacement', text='Make 3D')
-            if bpy.context.object['geometry_type'] == 'DISPLACEMENT':
-                layout.operator('scene.return_to_preview', text='Return to Preview')
+            if bpy.context.object['geometry_type']:
+                if bpy.context.object['geometry_type'] == 'PREVIEW':
+                    layout.prop(scene, 'mt_tile_resolution')
+                    layout.operator('scene.bake_displacement', text='Make 3D')
+                if bpy.context.object['geometry_type'] == 'DISPLACEMENT':
+                    layout.operator('scene.return_to_preview', text='Return to Preview')
 
     def draw_openlock_panel(self, context):
         scene = context.scene
@@ -73,14 +75,21 @@ class MT_PT_Panel(bpy.types.Panel):
         layout = self.layout
 
         layout.row()
-        layout.prop(scene, 'mt_base_system')
-        layout.prop(scene, 'mt_tile_main_system')
+        if scene.mt_tile_type == 'STRAIGHT_WALL':
+            layout.prop(scene, 'mt_base_system')
+            layout.prop(scene, 'mt_tile_main_system')
 
-        # TODO: Find out way of setting x y z defaults here.
+            if scene.mt_base_system == 'PLAIN':
+                self.draw_plain_base_panel(context)
+            if scene.mt_tile_main_system == 'PLAIN':
+                self.draw_plain_main_part_panel(context)
+            if scene.mt_tile_main_system == 'OPENLOCK':
+                self.draw_openlock_panel(context)
 
-        if scene.mt_base_system == 'PLAIN':
-            self.draw_plain_base_panel(context)
-        if scene.mt_tile_main_system == 'PLAIN':
-            self.draw_plain_main_part_panel(context)
-        if scene.mt_tile_main_system == 'OPENLOCK':
-            self.draw_openlock_panel(context)
+        if scene.mt_tile_type == 'RECTANGULAR_FLOOR':
+            layout.prop(scene, 'mt_base_system')
+            if scene.mt_base_system == 'PLAIN':
+                self.draw_plain_base_panel(context)
+                self.draw_plain_main_part_panel(context)
+            if scene.mt_base_system == 'OPENLOCK':
+                self.draw_openlock_panel(context)

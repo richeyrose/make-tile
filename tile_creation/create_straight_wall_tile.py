@@ -39,9 +39,6 @@ def create_straight_wall(
     if base_system == 'PLAIN':
         base = create_straight_wall_base(tile_name, base_size)
 
-    if base_system == 'NONE':
-        base_size = Vector((0, 0, 0))
-
     if tile_system == 'OPENLOCK':
         tile_size = Vector((tile_size[0], 0.3149, tile_size[2]))
         create_openlock_wall(tile_name, tile_size, base_size, tile_material)
@@ -92,6 +89,8 @@ def create_wall_slabs(tile_name, core_size, base_size, tile_size, tile_material)
     primary_material = load_material(tile_material)
     secondary_material = load_secondary_material()
 
+    #image_size = bpy.context.scene.mt_tile_resolution
+    #print(image_size)
     assign_displacement_materials(inner_displacement_slab, 'Y', 'y_neg', 'neg', [2048, 2048], primary_material)
     assign_preview_materials(inner_preview_slab, 'y_neg', primary_material, secondary_material)
 
@@ -127,7 +126,7 @@ def create_straight_wall_core(
     '''
     mode('OBJECT')
 
-    # make our slab
+    # make our core
     core = draw_cuboid([
         tile_size[0],
         tile_size[1],
@@ -140,7 +139,7 @@ def create_straight_wall_core(
     select(core.name)
     activate(core.name)
 
-    # move slab so centred, move up so on top of base and set origin to world origin
+    # move core so centred, move up so on top of base and set origin to world origin
     core.location = (-tile_size[0] / 2, -tile_size[1] / 2, base_size[2])
     bpy.context.scene.cursor.location = [0, 0, 0]
     select(core.name)

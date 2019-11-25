@@ -35,12 +35,12 @@ def create_rectangular_floor(
 
     if base_system == 'OPENLOCK':
         base_size = Vector((tile_size[0], tile_size[1], .2756))
-        tile_size[2]=0.374
+        tile_size[2] = 0.374
         base = create_openlock_base(tile_name, base_size)
 
     if base_system == 'PLAIN':
         base = create_plain_base(tile_name, base_size)
-    
+
     if base_system == 'NONE':
         base_size = (0, 0, 0)
 

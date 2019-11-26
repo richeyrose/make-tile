@@ -39,8 +39,9 @@ class MT_PT_Panel(bpy.types.Panel):
                     layout.operator('scene.return_to_preview', text='Return to Preview')
 
         input_nodes = get_material_inputs(context)
-        for node in input_nodes:
-            layout.prop(node.outputs['Value'], 'default_value', text=node.name)
+        if input_nodes is not None:
+            for node in input_nodes:
+                layout.prop(node.outputs['Value'], 'default_value', text=node.name)
 
     def draw_openlock_panel(self, context):
         scene = context.scene
@@ -101,15 +102,14 @@ class MT_PT_Panel(bpy.types.Panel):
 
 def get_material_inputs(context):
     # get all nodes in material that are within the 'editable_inputs' frame
-    if len(bpy.data.materials) is not 0:
+    if context.scene.mt_tile_material in bpy.data.materials:
         material = bpy.data.materials[context.scene.mt_tile_material]
         tree = material.node_tree
         nodes = tree.nodes
-        inputs_frame = nodes['editable_inputs']
-        input_nodes = []
-        for node in nodes:
-            if node.parent == inputs_frame:
-                input_nodes.append(node)
-        return input_nodes
-
-
+        if 'editable_inputs' in nodes:
+            inputs_frame = nodes['editable_inputs']
+            input_nodes = []
+            for node in nodes:
+                if node.parent == inputs_frame:
+                    input_nodes.append(node)
+            return input_nodes

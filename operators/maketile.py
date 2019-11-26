@@ -1,6 +1,7 @@
 """Contains operator class to make tiles"""
 import os
 import bpy
+import bpy.utils.previews
 from mathutils import Vector
 from .. tile_creation.create_tile import create_tile
 from .. enums.enums import tile_main_systems, tile_types, units, base_systems, tile_blueprints
@@ -14,6 +15,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
     bl_idname = "scene.make_tile"
     bl_label = "Create a tile"
 
+    
 
     @classmethod
     def poll(cls, context):
@@ -57,6 +59,10 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         print("Registered class: %s " % cls.bl_label)
 
         preferences = get_prefs()
+        material_enum_collection = bpy.utils.previews.new()
+        material_enum_collection.directory = ''
+        material_enum_collection.enums = ()
+        enum_collections["materials"] = material_enum_collection
 
         bpy.types.Scene.mt_tile_units = bpy.props.EnumProperty(
             items=units,
@@ -173,9 +179,18 @@ def load_material_enums(self, context):
 
     materials_path = os.path.join(get_path(), "assets", "materials")
     blend_filenames = get_blend_filenames(materials_path)
+    enum_collection = enum_collections['materials']
+    if materials_path == enum_collection.directory:
+        return enum_collection.enums
 
-    all_material_names = []
     materials = load_materials(materials_path, blend_filenames)
     for material in materials:
-        all_material_names.append(material.name)
-    return all_material_names
+        enum = (material.name, material.name, "")
+        enum_items.append(enum)
+
+    enum_collection.enums = enum_items
+    enum_collection.directory = materials_path
+    return enum_collection.enums
+
+
+enum_collections = {}

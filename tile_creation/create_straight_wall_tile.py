@@ -253,7 +253,7 @@ def create_openlock_straight_wall_base(tile_name, base_size):
     slot_boolean.object = slot_cutter
     # slot_cutter.parent = base
     slot_cutter.display_type = 'BOUNDS'
-    # slot_cutter.hide_viewport = True
+    slot_cutter.hide_viewport = True
 
     clip_cutter = create_openlock_base_clip_cutter(base, tile_name)
     clip_boolean = base.modifiers.new(clip_cutter.name, 'BOOLEAN')
@@ -261,7 +261,7 @@ def create_openlock_straight_wall_base(tile_name, base_size):
     clip_boolean.object = clip_cutter
     # clip_cutter.parent = base
     clip_cutter.display_type = 'BOUNDS'
-    # clip_cutter.hide_viewport = True
+    clip_cutter.hide_viewport = True
 
     return base
 
@@ -287,7 +287,7 @@ def create_openlock_straight_wall_core(
         for wall_cutter in wall_cutters:
             # wall_cutter.parent = core
             wall_cutter.display_type = 'BOUNDS'
-            # wall_cutter.hide_viewport = True
+            wall_cutter.hide_viewport = True
             wall_cutter_bool = core.modifiers.new('Wall Cutter', 'BOOLEAN')
             wall_cutter_bool.operation = 'DIFFERENCE'
             wall_cutter_bool.object = wall_cutter
@@ -384,12 +384,11 @@ def create_openlock_base_clip_cutter(base, tile_name):
     cutter_start_cap.hide_viewport = True
     cutter_end_cap.hide_viewport = True
 
-
     clip_cutter.location = Vector((
         base_location[0] - (base_size[0] / 2) + 0.5,
         base_location[1] - (base_size[1] / 2) + 0.25,
         base_location[2]))
- 
+
     array_mod = clip_cutter.modifiers.new('Array', 'ARRAY')
     array_mod.start_cap = cutter_start_cap
     array_mod.end_cap = cutter_end_cap

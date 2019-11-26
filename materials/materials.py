@@ -76,10 +76,7 @@ def add_displacement_mesh_modifiers(obj, disp_axis, vert_group, disp_dir, image_
     obj_disp_mod.mid_level = 0
 
     obj_disp_texture = bpy.data.textures.new(obj.name + '.texture', 'IMAGE')
-    # obj_disp_image = bpy.data.images.new(obj.name + '.image', width=image_size[0], height=image_size[1])
-
     obj['disp_texture'] = obj_disp_texture
-    # obj['disp_image'] = obj_disp_image
     obj['disp_dir'] = disp_dir
     obj['subsurf_mod_name'] = obj_subsurf.name
     obj['disp_mod_name'] = obj_disp_mod.name

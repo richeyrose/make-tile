@@ -36,9 +36,9 @@ class MT_OT_Bake_Displacement(bpy.types.Operator):
         disp_mod.texture = disp_texture
         disp_mod.mid_level = 0
         if displacement_obj['disp_dir'] == 'pos':
-            disp_mod.strength = 0.31
+            disp_mod.strength = displacement_obj['disp_strength']
         else:
-            disp_mod.strength = -0.31
+            disp_mod.strength = -displacement_obj['disp_strength']
 
         subsurf_mod = displacement_obj.modifiers[displacement_obj['subsurf_mod_name']]
         subsurf_mod.levels = 8
@@ -77,6 +77,9 @@ def bake_displacement_map(material, obj, resolution):
     displacement_node = tree.nodes['final_disp']
     link = displacement_node.outputs[0].links[0]
     tree.links.remove(link)
+
+    # save displacement strength
+    obj['disp_strength'] = displacement_node.inputs[2].default_value
 
     # create image
     image = bpy.data.images.new(obj.name + '.image', width=resolution, height=resolution)

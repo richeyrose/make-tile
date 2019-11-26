@@ -96,6 +96,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         bpy.types.Scene.mt_tile_material = bpy.props.EnumProperty(
             items=load_material_enums,
             name="Tile Material",
+            update=update_material,
         )
 
         bpy.types.Scene.mt_tile_resolution = bpy.props.IntProperty(
@@ -191,6 +192,11 @@ def load_material_enums(self, context):
     enum_collection.enums = enum_items
     enum_collection.directory = materials_path
     return enum_collection.enums
+
+
+def update_material(self, context):
+    # TODO implement update material function
+    print('update material', self)
 
 
 enum_collections = {}

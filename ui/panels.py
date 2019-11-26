@@ -13,6 +13,7 @@ class MT_PT_Panel(bpy.types.Panel):
 
         scene = context.scene
         layout = self.layout
+        #layout.operator_context = 'INVOKE_DEFAULT'
         layout.operator('scene.make_tile', text="Make Tile")
         layout.prop(scene, 'mt_tile_blueprint')
 

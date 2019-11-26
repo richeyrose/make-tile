@@ -1,12 +1,35 @@
 import os
 import bpy
+
 from .. utils.registration import get_path
 from .. lib.utils.utils import mode
 from .. lib.utils.selection import deselect_all, select_all, select, activate
 
 
+def load_materials(directory_path, blend_filenames):
+    all_materials = []
+    for filename in blend_filenames:
+        file_path = os.path.join(directory_path, filename)
+        materials = get_materials_from_file(file_path)
+        for material in materials:
+            all_materials.append(material)
+    return all_materials
+
+
+def get_blend_filenames(directory_path):
+    blend_filenames = [name for name in os.listdir(directory_path)
+                       if name.endswith('.blend')]
+    return blend_filenames
+
+
+def get_materials_from_file(file_path):
+    with bpy.data.libraries.load(file_path) as (data_from, data_to):
+        data_to.materials = data_from.materials
+    return data_to.materials
+
+
 def load_material(material_name):
-    '''loads a material into the scene from external blend file'''
+    '''loads a named material into the scene from external blend file'''
     if material_name not in bpy.data.materials:
         material_file = material_name + ".blend"
         materials_path = os.path.join(get_path(), "assets", "materials", material_file)

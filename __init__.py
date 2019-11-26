@@ -13,7 +13,7 @@
 
 import os
 import bpy
-
+from bpy.props import PointerProperty
 from . ui.panels import MT_PT_Panel
 from . operators.maketile import MT_OT_Make_Tile
 from . operators.makevertgroups import MT_OT_makeVertGroupsFromFaces
@@ -27,6 +27,7 @@ from . lib.turtle.operators.path import *
 from . lib.turtle.operators.selection import *
 from . lib.turtle.operators.vertex_group import *
 from . lib.turtle.operators.aliases import *
+
 
 bl_info = {
     "name": "MakeTile",
@@ -118,3 +119,4 @@ classes = (
     TURTLE_OT_remove_from_vert_group_alias)
 
 register, unregister = bpy.utils.register_classes_factory(classes)
+

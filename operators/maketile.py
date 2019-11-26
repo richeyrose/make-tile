@@ -1,15 +1,19 @@
 """Contains operator class to make tiles"""
+import os
 import bpy
 from mathutils import Vector
 from .. tile_creation.create_tile import create_tile
-from .. enums.enums import tile_main_systems, tile_types, units, base_systems, tile_materials, tile_blueprints
+from .. enums.enums import tile_main_systems, tile_types, units, base_systems, tile_blueprints
 from .. utils.registration import get_prefs
+from .. utils.registration import get_path
+from .. materials.materials import load_materials, get_blend_filenames
 
 
 class MT_OT_Make_Tile(bpy.types.Operator):
     """Operator class used to create tiles"""
     bl_idname = "scene.make_tile"
     bl_label = "Create a tile"
+
 
     @classmethod
     def poll(cls, context):
@@ -84,9 +88,8 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         )
 
         bpy.types.Scene.mt_tile_material = bpy.props.EnumProperty(
-            items=tile_materials,
+            items=load_material_enums,
             name="Tile Material",
-            default="STONEWALL1",
         )
 
         bpy.types.Scene.mt_tile_resolution = bpy.props.IntProperty(
@@ -161,3 +164,18 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         del bpy.types.Scene.mt_tile_blueprint
         del bpy.types.Scene.mt_tile_main_system
         del bpy.types.Scene.mt_tile_units
+
+
+def load_material_enums(self, context):
+    enum_items = []
+    if context is None:
+        return enum_items
+
+    materials_path = os.path.join(get_path(), "assets", "materials")
+    blend_filenames = get_blend_filenames(materials_path)
+
+    all_material_names = []
+    materials = load_materials(materials_path, blend_filenames)
+    for material in materials:
+        all_material_names.append(material.name)
+    return all_material_names

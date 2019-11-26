@@ -1,4 +1,5 @@
 import bpy
+import bmesh
 
 
 class TURTLE_OT_merge(bpy.types.Operator):
@@ -40,16 +41,19 @@ class TURTLE_OT_add_vert(bpy.types.Operator):
     bl_idname = "turtle.add_vert"
     bl_label = "Add Vert"
     bl_description = "adds a Vert at the turtle's location"
+    bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(cls, context):
         return context.object.mode == 'EDIT'
 
     def execute(self, context):
+        mesh = bpy.data.meshes.new("Vert")
+        mesh.vertices.add(1)
 
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.object.editmode_toggle()
-
-        bpy.ops.mesh.primitive_vert_add()
+        from bpy_extras import object_utils
+        object_utils.object_data_add(context, mesh, operator=None)
+        bpy.ops.object.mode_set(mode='EDIT')
 
         return {'FINISHED'}
+

@@ -7,15 +7,19 @@ from .. tile_creation.create_tile import create_tile
 from .. enums.enums import tile_main_systems, tile_types, units, base_systems, tile_blueprints
 from .. utils.registration import get_prefs
 from .. utils.registration import get_path
-from .. materials.materials import load_materials, get_blend_filenames
+from .. materials.materials import (
+    load_materials,
+    get_blend_filenames,
+    assign_displacement_materials,
+    assign_preview_materials,
+    update_displacement_material,
+    update_preview_material)
 
 
 class MT_OT_Make_Tile(bpy.types.Operator):
     """Operator class used to create tiles"""
     bl_idname = "scene.make_tile"
     bl_label = "Create a tile"
-
-    
 
     @classmethod
     def poll(cls, context):
@@ -195,8 +199,13 @@ def load_material_enums(self, context):
 
 
 def update_material(self, context):
-    # TODO implement update material function
-    print('update material', self)
+    preview_obj = bpy.context.object
+
+    if preview_obj['geometry_type']:
+        if preview_obj['geometry_type'] == 'PREVIEW':
+            disp_obj = preview_obj['displacement_obj']
+            update_preview_material(preview_obj, bpy.context.scene.mt_tile_material)
+            update_displacement_material(disp_obj, bpy.context.scene.mt_tile_material)
 
 
 enum_collections = {}

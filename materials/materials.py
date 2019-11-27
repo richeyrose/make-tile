@@ -51,6 +51,12 @@ def load_secondary_material():
 
 
 def assign_mat_to_vert_group(vert_group, obj, material):
+    '''
+    Assigns the passed in material to the object's Vertex group
+    Keyword arguments   -- vert_group (str) Vertex group
+                        -- obj (bpy.types.Object)
+                        -- material (bpy.types.Material)
+    '''
     select(obj.name)
     activate(obj.name)
     mode('EDIT')
@@ -78,19 +84,63 @@ def add_displacement_mesh_modifiers(obj, disp_axis, vert_group, disp_dir, image_
     obj_disp_texture = bpy.data.textures.new(obj.name + '.texture', 'IMAGE')
     obj['disp_texture'] = obj_disp_texture
     obj['disp_dir'] = disp_dir
+    obj['disp_axis'] = disp_axis
     obj['subsurf_mod_name'] = obj_subsurf.name
     obj['disp_mod_name'] = obj_disp_mod.name
 
 
+def update_displacement_material(obj, primary_material_name):
+    deselect_all()
+    obj.hide_viewport = False
+    select(obj.name)
+    activate(obj.name)
+
+    for material_slot in obj.material_slots:
+        obj.active_material_index = 0
+        bpy.ops.object.material_slot_remove()
+
+    primary_material = bpy.data.materials[primary_material_name]
+    obj['primary_material'] = primary_material
+    obj.data.materials.append(primary_material)
+    obj.hide_viewport = True
+
+
+def update_preview_material(obj, primary_material_name):
+    deselect_all()
+    select(obj.name)
+    activate(obj.name)
+
+    for material_slot in obj.material_slots:
+        obj.active_material_index = 0
+        bpy.ops.object.material_slot_remove()
+
+    vert_group = obj['vert_group']
+    primary_material = bpy.data.materials[primary_material_name]
+    obj['primary_material'] = primary_material
+    secondary_material = obj['secondary_material']
+    obj.data.materials.append(secondary_material)
+    obj.data.materials.append(primary_material)
+    assign_mat_to_vert_group(vert_group, obj, primary_material)
+
+
 def assign_displacement_materials(obj, disp_axis, vert_group, disp_dir, image_size, primary_material):
+    for material_slot in obj.material_slots:
+        obj.active_material_index = 0
+        bpy.ops.object.material_slot_remove()
+
     obj['primary_material'] = primary_material
     add_displacement_mesh_modifiers(obj, disp_axis, vert_group, disp_dir, image_size)
     obj.data.materials.append(primary_material)
 
 
 def assign_preview_materials(obj, vert_group, primary_material, secondary_material):
+    for material_slot in obj.material_slots:
+        obj.active_material_index = 0
+        bpy.ops.object.material_slot_remove()
+
     obj['primary_material'] = primary_material
     obj['secondary_material'] = secondary_material
+    obj['vert_group'] = vert_group
     obj.data.materials.append(secondary_material)
     obj.data.materials.append(primary_material)
     assign_mat_to_vert_group(vert_group, obj, primary_material)

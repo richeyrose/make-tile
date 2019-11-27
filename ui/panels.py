@@ -29,20 +29,19 @@ class MT_PT_Panel(bpy.types.Panel):
         if scene.mt_tile_blueprint == 'CUSTOM':
             self.draw_custom_panel(context)
 
-        layout.prop(scene, 'mt_tile_material')
-
+        # TODO: Neaten this up - too many ifs!
         if bpy.context.object is not None:
             if bpy.context.object['geometry_type']:
                 if bpy.context.object['geometry_type'] == 'PREVIEW':
+                    layout.prop(scene, 'mt_tile_material')
                     layout.prop(scene, 'mt_tile_resolution')
+                    input_nodes = get_material_inputs(context)
+                    if input_nodes is not None:
+                        for node in input_nodes:
+                            layout.prop(node.outputs['Value'], 'default_value', text=node.name)
                     layout.operator('scene.bake_displacement', text='Make 3D')
                 if bpy.context.object['geometry_type'] == 'DISPLACEMENT':
                     layout.operator('scene.return_to_preview', text='Return to Preview')
-
-        input_nodes = get_material_inputs(context)
-        if input_nodes is not None:
-            for node in input_nodes:
-                layout.prop(node.outputs['Value'], 'default_value', text=node.name)
 
     def draw_openlock_panel(self, context):
         scene = context.scene

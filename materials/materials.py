@@ -7,13 +7,9 @@ from .. lib.utils.selection import deselect_all, select_all, select, activate
 
 
 def load_materials(directory_path, blend_filenames):
-    all_materials = []
     for filename in blend_filenames:
         file_path = os.path.join(directory_path, filename)
         materials = get_materials_from_file(file_path)
-        for material in materials:
-            all_materials.append(material)
-    return all_materials
 
 
 def get_blend_filenames(directory_path):
@@ -23,8 +19,14 @@ def get_blend_filenames(directory_path):
 
 
 def get_materials_from_file(file_path):
+    unique_materials = []
     with bpy.data.libraries.load(file_path) as (data_from, data_to):
-        data_to.materials = data_from.materials
+        i = 0
+        for material in data_from.materials:
+            if material not in bpy.data.materials:
+                unique_materials.append(data_from.materials[i])
+            i += 1
+        data_to.materials = unique_materials
     return data_to.materials
 
 

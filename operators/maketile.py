@@ -188,10 +188,13 @@ def load_material_enums(self, context):
     if materials_path == enum_collection.directory:
         return enum_collection.enums
 
-    materials = load_materials(materials_path, blend_filenames)
+    load_materials(materials_path, blend_filenames)
+    materials = bpy.data.materials
     for material in materials:
-        enum = (material.name, material.name, "")
-        enum_items.append(enum)
+        # prevent make-tile adding the default material to the list
+        if material.name != 'Material':
+            enum = (material.name, material.name, "")
+            enum_items.append(enum)
 
     enum_collection.enums = enum_items
     enum_collection.directory = materials_path
@@ -204,8 +207,8 @@ def update_material(self, context):
     if preview_obj['geometry_type']:
         if preview_obj['geometry_type'] == 'PREVIEW':
             disp_obj = preview_obj['displacement_obj']
-            update_preview_material(preview_obj, bpy.context.scene.mt_tile_material)
             update_displacement_material(disp_obj, bpy.context.scene.mt_tile_material)
+            update_preview_material(preview_obj, bpy.context.scene.mt_tile_material)
 
 
 enum_collections = {}

@@ -306,7 +306,6 @@ def create_openlock_straight_wall_core(
     return core
 
 
-# TODO: Fix create_openlock_wall_cutters. Currently array i snot scaling correctly
 def create_openlock_wall_cutters(slab, tile_size, tile_name):
     """Creates the cutters for the wall and positions them correctly
 
@@ -316,8 +315,8 @@ def create_openlock_wall_cutters(slab, tile_size, tile_name):
     tile_name -- tile name
     """
     deselect_all()
-
-    booleans_path = os.path.join(get_path(), "assets", "meshes", "booleans", "openlock.blend")
+    preferences = get_prefs()
+    booleans_path = os.path.join(preferences.assets_path, "meshes", "booleans", "openlock.blend")
 
     # load side cutter
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
@@ -344,7 +343,7 @@ def create_openlock_wall_cutters(slab, tile_size, tile_name):
     array_mod.use_constant_offset = True
     array_mod.constant_offset_displace[2] = 2
     array_mod.fit_type = 'FIT_LENGTH'
-    array_mod.fit_length = tile_size[2] - 0.10236
+    array_mod.fit_length = tile_size[2] - 1
 
     mirror_mod = side_cutter1.modifiers.new('Mirror', 'MIRROR')
     mirror_mod.use_axis[0] = True
@@ -359,7 +358,7 @@ def create_openlock_wall_cutters(slab, tile_size, tile_name):
     side_cutter2.location[2] = side_cutter2.location[2] + 0.75
 
     array_mod = side_cutter2.modifiers["Array"]
-    array_mod.fit_length = tile_size[2] - 0.18110
+    array_mod.fit_length = tile_size[2] - 1.8
 
     return [side_cutter1, side_cutter2]
 
@@ -380,7 +379,8 @@ def create_openlock_base_clip_cutter(base, tile_name):
     base_location = base.location.copy()
     # Get cutter
     deselect_all()
-    booleans_path = os.path.join(get_path(), "assets", "meshes", "booleans", "openlock.blend")
+    preferences = get_prefs()
+    booleans_path = os.path.join(preferences.assets_path, "meshes", "booleans", "openlock.blend")
 
     # load base cutters
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):

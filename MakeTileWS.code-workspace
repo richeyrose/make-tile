@@ -2,10 +2,6 @@
 	"folders": [
 		{
 			"path": "."
-		},
-		{
-			"name": "Scripts",
-			"path": "E:\\BlenderScripts\\Scripts"
 		}
 	],
 	"settings": {

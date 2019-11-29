@@ -194,8 +194,8 @@ def create_openlock_base_clip_cutter(base, tile_name):
 
     base_size = base.dimensions.copy()
     base_location = base.location.copy()
-
-    booleans_path = os.path.join(get_path(), "assets", "meshes", "booleans", "openlock.blend")
+    preferences = get_prefs()
+    booleans_path = os.path.join(preferences.assets_path, "meshes", "booleans", "openlock.blend")
 
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
         data_to.objects = ['openlock.wall.base.cutter.clip', 'openlock.wall.base.cutter.clip.cap.start', 'openlock.wall.base.cutter.clip.cap.end']

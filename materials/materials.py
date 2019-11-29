@@ -1,7 +1,6 @@
 import os
 import bpy
-
-from .. utils.registration import get_path
+from .. utils.registration import get_path, get_prefs
 from .. lib.utils.utils import mode
 from .. lib.utils.selection import deselect_all, select_all, select, activate
 
@@ -30,19 +29,7 @@ def get_materials_from_file(file_path):
     return data_to.materials
 
 
-def load_material(material_name):
-    '''loads a named material into the scene from external blend file'''
-    if material_name not in bpy.data.materials:
-        material_file = material_name + ".blend"
-        materials_path = os.path.join(get_path(), "assets", "materials", material_file)
-        with bpy.data.libraries.load(materials_path) as (data_from, data_to):
-            data_to.materials = [material_name]
-        material = data_to.materials[0]
-        return material
-    else:
-        return bpy.data.materials[material_name]
-
-
+# TODO: Change this so get to choose what secondary material to load
 def load_secondary_material():
     '''Adds a blank material to the passed in object'''
     if "Blank_Material" not in bpy.data.materials:

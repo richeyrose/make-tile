@@ -3,12 +3,21 @@ import os
 import bpy
 from mathutils import Vector
 from .. lib.utils.collections import add_object_to_collection
-from .. utils.registration import get_path
+from .. utils.registration import get_path, get_prefs
 from .. lib.turtle.scripts.primitives import draw_cuboid
-from .. lib.utils.selection import deselect_all, select_all, select, activate
+from .. lib.utils.selection import (
+    deselect_all,
+    select_all,
+    select,
+    activate)
 from .. lib.utils.utils import mode
 from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
-from .. materials.materials import load_secondary_material, load_material, assign_mat_to_vert_group, add_displacement_mesh_modifiers, assign_displacement_materials, assign_preview_materials
+from .. materials.materials import (
+    load_secondary_material,
+    assign_mat_to_vert_group,
+    add_displacement_mesh_modifiers,
+    assign_displacement_materials,
+    assign_preview_materials)
 from .. enums.enums import geometry_types
 
 
@@ -86,8 +95,10 @@ def create_wall_slabs(tile_name, core_size, base_size, tile_size, tile_material)
     inner_preview_slab['displacement_obj'] = inner_displacement_slab
     inner_displacement_slab['preview_obj'] = inner_preview_slab
 
-    primary_material = load_material(tile_material)
-    secondary_material = load_secondary_material()
+    preferences = get_prefs()
+
+    primary_material = bpy.data.materials[tile_material]
+    secondary_material = bpy.data.materials[preferences.secondary_material]
 
     image_size = bpy.context.scene.mt_tile_resolution
 
@@ -295,6 +306,7 @@ def create_openlock_straight_wall_core(
     return core
 
 
+# TODO: Fix create_openlock_wall_cutters. Currently array i snot scaling correctly
 def create_openlock_wall_cutters(slab, tile_size, tile_name):
     """Creates the cutters for the wall and positions them correctly
 

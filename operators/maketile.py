@@ -3,10 +3,16 @@ import os
 import bpy
 import bpy.utils.previews
 from mathutils import Vector
+from .. utils.registration import get_path, get_prefs
 from .. tile_creation.create_tile import create_tile
-from .. enums.enums import tile_main_systems, tile_types, units, base_systems, tile_blueprints
-from .. utils.registration import get_prefs
-from .. utils.registration import get_path
+
+from .. enums.enums import (
+    tile_main_systems,
+    tile_types,
+    units,
+    base_systems,
+    tile_blueprints)
+
 from .. materials.materials import (
     load_materials,
     get_blend_filenames,
@@ -179,10 +185,11 @@ class MT_OT_Make_Tile(bpy.types.Operator):
 
 def load_material_enums(self, context):
     enum_items = []
+    preferences = get_prefs()
     if context is None:
         return enum_items
 
-    materials_path = os.path.join(get_path(), "assets", "materials")
+    materials_path = os.path.join(preferences.assets_path, "materials")
     blend_filenames = get_blend_filenames(materials_path)
     enum_collection = enum_collections['materials']
     if materials_path == enum_collection.directory:

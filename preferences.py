@@ -1,4 +1,3 @@
-# based on DECALmachine # 
 import os
 import shutil
 import bpy
@@ -17,9 +16,7 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
     # asset libraries
     def update_assetspath(self, context):
         '''method to update the asset path'''
-        if self.avoid_update:
-            self.avoid_update = False
-            return
+        ''''Based on DECALMachine'''
 
         new_path = makedir(abspath(self.assets_path))
         old_path = abspath(self.old_path)
@@ -38,14 +35,14 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
                     shutil.copytree(src, dest)
 
             # set the new old_path
-            self. old_path = new_path
-
-            # ensure the chosen assets_path is absolute
-            self.avoid_update = True
-            self.assets_path = new_path
+            self.old_path = new_path
 
             # reload assets
             reload_asset_libraries()
+
+    # TODO: Stub - update_secondary_material
+    def update_secondary_material(self, context):
+        print('update_secondary_material')
 
     assets_path: StringProperty(
         name="Assets Libraries",
@@ -61,9 +58,16 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
         default=os.path.join(path, "assets")
     )
 
+    secondary_material: StringProperty(
+        name="Secondary Material",
+        description="Material to use for none textured bits of tiles",
+        default="Material",
+        update=update_secondary_material
+    )
+
     default_units: EnumProperty(
         items=units,
-        description="Units to use",
+        description="Default units to use",
         name="Tile Units",
         default="IMPERIAL"
     )
@@ -89,17 +93,15 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
         default="OPENLOCK",
     )
 
-    default_bhas_base: BoolProperty(
-        name="Seperate Base",
-        description="Do walls, steps etc. have seperate bases",
-        default=True,
-    )
-
     def draw(self, context):
         layout = self.layout
         row = layout.row()
         layout.prop(self, 'assets_path')
         layout.prop(self, 'default_units')
-        layout.prop(self, 'default_tile_system')
+        layout.prop(self, 'default_tile_main_system')
         layout.prop(self, 'default_base_system')
-        layout.prop(self, 'default_bhas_base')
+
+
+# TODO: Stub - reload_asset_libraries
+def reload_asset_libraries():
+    print('reload_asset_libraries')

@@ -5,12 +5,17 @@ from mathutils import Vector
 from .. lib.utils.collections import add_object_to_collection
 from .. lib.utils.utils import mode
 from .. lib.utils.selection import select, select_all, deselect_all, activate
-from .. utils.registration import get_path
+from .. utils.registration import get_path, get_prefs
 from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. lib.turtle.scripts.openlock_floor_base import draw_openlock_rect_floor_base
-from . create_straight_wall_tile import create_straight_wall_base
+from . create_straight_wall_tile import create_openlock_straight_wall_base
 from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
-from .. materials.materials import load_secondary_material, load_material, assign_mat_to_vert_group, add_displacement_mesh_modifiers, assign_displacement_materials, assign_preview_materials
+from .. materials.materials import (
+    load_secondary_material,
+    assign_mat_to_vert_group,
+    add_displacement_mesh_modifiers,
+    assign_displacement_materials,
+    assign_preview_materials)
 
 
 def create_rectangular_floor(
@@ -44,10 +49,12 @@ def create_rectangular_floor(
     if base_system == 'NONE':
         base_size = (0, 0, 0)
 
-    floor = create_floor(tile_name, tile_size, base_size, tile_material)
+    if base:
+        floor = create_floor(tile_name, tile_size, base_size, tile_material)
 
 
 def create_plain_base(tile_name, base_size):
+    '''Creates a plain cuboid base'''
     cursor_start_location = bpy.context.scene.cursor.location.copy()
     base = draw_cuboid(base_size)
     base.name = tile_name + '.base'
@@ -65,7 +72,7 @@ def create_plain_base(tile_name, base_size):
 
 
 def create_floor(tile_name, tile_size, base_size, tile_material):
-
+    ''''creates the preview and displacement slabs for the floor tile'''
     preview_slab = create_floor_slab(
         tile_name,
         tile_size,
@@ -83,8 +90,10 @@ def create_floor(tile_name, tile_size, base_size, tile_material):
     preview_slab['displacement_obj'] = displacement_slab
     displacement_slab['preview_obj'] = preview_slab
 
-    primary_material = load_material(tile_material)
-    secondary_material = load_secondary_material()
+    preferences = get_prefs()
+
+    primary_material = bpy.data.materials[tile_material]
+    secondary_material = bpy.data.materials[preferences.secondary_material]
 
     image_size = bpy.context.scene.mt_tile_resolution
 
@@ -95,7 +104,7 @@ def create_floor(tile_name, tile_size, base_size, tile_material):
 
 
 def create_floor_slab(tile_name, tile_size, base_size, geometry_type):
-    """creates the floor bit of the floor tile"""
+    """Returns a displacement or preview floor slab depending on the geometry type"""
     cursor_start_location = bpy.context.scene.cursor.location.copy()
 
     if geometry_type == 'PREVIEW':
@@ -122,6 +131,7 @@ def create_floor_slab(tile_name, tile_size, base_size, geometry_type):
 
 
 def create_preview_slab(tile_name, tile_size, base_size):
+    '''Returns the preview floor slab'''
     slab_size = Vector((tile_size[0], tile_size[1], tile_size[2] - base_size[2]))
     slab = draw_cuboid(slab_size)
     slab.name = tile_name + '.slab.preview'
@@ -130,6 +140,7 @@ def create_preview_slab(tile_name, tile_size, base_size):
 
 
 def create_displacement_slab(tile_name, tile_size, base_size):
+    '''Returns the displacement floor slab'''
     slab_size = Vector((tile_size[0], tile_size[1], 0.01))
     slab = draw_cuboid(slab_size)
     slab.name = tile_name + '.slab.displacement'
@@ -140,12 +151,12 @@ def create_displacement_slab(tile_name, tile_size, base_size):
 def create_openlock_base(
         tile_name,
         base_size):
-
-    if base_size[0] <= 1.004 and base_size[0] > 0.496 or base_size[1] <= 1.0039 and base_size[1] > 0.496:
-        # if base is less than an inch use a wall type base
-        base = create_straight_wall_base('OPENLOCK', tile_name, base_size)
-        base.name
-    elif base_size[0] <= 0.496 or base_size[1] <= 0.496:
+    '''Creates an openlock style base'''
+    if base_size[0] >= 1 and base_size[1] < 1 and base_size[1] > 0.496:
+        # if base is less than an inch wide use a wall type base
+        base = create_openlock_straight_wall_base(tile_name, base_size)
+    elif base_size[0] < 1 or base_size[1] <= 0.496:
+        # TODO: Display message in viewport
         print('Tile too small')
         col = bpy.data.collections[tile_name]
         bpy.data.collections.remove(col)
@@ -167,7 +178,7 @@ def create_openlock_base(
             clip_cutter_bool.object = clip_cutter
 
     mode('OBJECT')
-    base['geomentry_type'] = 'BASE'
+    base['geometry_type'] = 'BASE'
     return base
 
 

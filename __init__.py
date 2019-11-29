@@ -60,6 +60,7 @@ classes = (
     TURTLE_OT_down,
     TURTLE_OT_left,
     TURTLE_OT_right,
+    TURTLE_OT_arc,
     TURTLE_OT_left_turn,
     TURTLE_OT_right_turn,
     TURTLE_OT_look_up,

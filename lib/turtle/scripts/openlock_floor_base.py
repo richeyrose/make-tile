@@ -103,7 +103,7 @@ def draw_quarter_floor(dimensions, start_loc):
     bpy.ops.mesh.edge_face_add()
     t.deselect_all()
     t.select_at_cursor()
-    t.lf(d=leg)   
+    t.lf(d=leg)
     t.bk(d=leg)
     t.select_at_cursor()
     bpy.ops.mesh.delete(type='EDGE')
@@ -142,7 +142,17 @@ def draw_quarter_floor(dimensions, start_loc):
     t.rt(d=180)
 
     if y_supports > 0:
-        add_extra_supports(y_supports, 'y', support_w, -slot_w, x, y, leg, -outer_w, start_loc, side_length = y)
+        add_extra_supports(
+            y_supports,
+            'y',
+            support_w,
+            -slot_w,
+            x,
+            y,
+            leg,
+            -outer_w,
+            start_loc,
+            side_length=y)
 
     # extrude inner sides up
     t.pd()
@@ -160,11 +170,11 @@ def draw_quarter_floor(dimensions, start_loc):
     t.fd(d=outer_w)
     t.deselect_all()
     t.pu()
-    t.fd(d=slot_w)  
+    t.fd(d=slot_w)
     t.pd()
     t.select_at_cursor()
     t.fd(d=y / 2 - slot_w - outer_w)
-    t.ri(d = x / 2 - slot_w - outer_w)
+    t.ri(d=x / 2 - slot_w - outer_w)
     t.pu()
     t.deselect_all()
     t.ri(d=slot_w)
@@ -180,15 +190,14 @@ def draw_quarter_floor(dimensions, start_loc):
     t.home()
     t.set_position(v=start_loc)
     t.select_by_location(
-            lbound=turtle.location,
-            ubound=(turtle.location[0] + x / 2,
-                    turtle.location[1] + y / 2,
-                    turtle.location[2]))
+        lbound=turtle.location,
+        ubound=(turtle.location[0] + x / 2,
+                turtle.location[1] + y / 2,
+                turtle.location[2]))
 
     bpy.ops.mesh.fill()
     t.select_all()
     bpy.ops.mesh.normals_make_consistent()
-
 
     # draw extra support roofs
     t.pu()
@@ -196,9 +205,9 @@ def draw_quarter_floor(dimensions, start_loc):
     t.home()
     t.set_position(v=start_loc)
     t.fd(d=outer_w)
-    t.rt(d=90) 
+    t.rt(d=90)
     t.up(d=support_h)
- 
+
     if x_supports > 0:
         fill_extra_supports(x_supports, 'x', support_w, slot_w)
 
@@ -230,8 +239,7 @@ def draw_quarter_floor(dimensions, start_loc):
     t.select_at_cursor()
     bpy.ops.mesh.edge_face_add()
 
-  
-    #bridge_slot
+    # bridge_slot
     t.deselect_all()
     t.home()
     t.set_position(v=start_loc)
@@ -249,25 +257,24 @@ def draw_quarter_floor(dimensions, start_loc):
     t.ri(d=slot_w)
     t.pu()
 
-    #draw duplicate top of supports and slot
+    # draw duplicate top of supports and slot
     t.deselect_all()
     t.home()
     t.set_position(v=start_loc)
     t.fd(d=outer_w)
     t.up(d=support_h)
     t.select_by_location(
-                lbound=turtle.location,
-                ubound=(turtle.location[0] + x / 2 - outer_w,
-                        turtle.location[1] + y / 2 - outer_w,
-                        turtle.location[2]))
- 
+        lbound=turtle.location,
+        ubound=(turtle.location[0] + x / 2 - outer_w,
+                turtle.location[1] + y / 2 - outer_w,
+                turtle.location[2]))
+
     bpy.ops.mesh.duplicate_move(
         TRANSFORM_OT_translate={
-                    "value": (0, 0, slot_h - support_h),
-                    "orient_type": 'CURSOR'})
+            "value": (0, 0, slot_h - support_h),
+            "orient_type": 'CURSOR'})
     t.merge()
     bpy.ops.mesh.edge_face_add()
-    
 
     # extrude down and clean
     t.pd()
@@ -285,7 +292,7 @@ def draw_quarter_floor(dimensions, start_loc):
     t.fd(d=slot_w)
     t.select_at_cursor()
     bpy.ops.mesh.delete(type='EDGE')
-    t.ri(d= x / 2 - outer_w)
+    t.ri(d=x / 2 - outer_w)
     t.fd(d=y / 2 - outer_w - slot_w)
     t.select_at_cursor()
     t.lf(d=slot_w)
@@ -310,21 +317,32 @@ def draw_quarter_floor(dimensions, start_loc):
     t.deselect_all()
     t.home()
     t.up(d=z)
-    t.pd()  
+    t.pd()
     t.add_vert()
     t.begin_path()
     t.ri(d=x / 2)
     t.select_path()
     t.bk(d=y / 2)
 
-    #clean up
+    # clean up
     t.select_all()
     t.merge()
     bpy.ops.mesh.normals_make_consistent()
     t.deselect_all()
     t.home()
 
-def add_extra_supports(num_supports, axis, support_w, slot_w, x, y, leg, outer_w, start_loc, side_length):
+
+def add_extra_supports(
+        num_supports,
+        axis,
+        support_w,
+        slot_w,
+        x,
+        y,
+        leg,
+        outer_w,
+        start_loc,
+        side_length):
     turtle = bpy.context.scene.cursor
     t = bpy.ops.turtle
     t.select_at_cursor()
@@ -340,8 +358,8 @@ def add_extra_supports(num_supports, axis, support_w, slot_w, x, y, leg, outer_w
     t.deselect_all()
     t.pu()
     t.fd(d=(extra_sup_dist / 2) + support_w)
-    
-    for i in range(num_supports-1):
+
+    for i in range(num_supports - 1):
         t.pd()
         t.add_vert()
         t.begin_path()
@@ -352,26 +370,26 @@ def add_extra_supports(num_supports, axis, support_w, slot_w, x, y, leg, outer_w
         t.pu()
         t.deselect_all()
         t.ri(d=slot_w)
-        t.fd(d=extra_sup_dist+support_w)
+        t.fd(d=extra_sup_dist + support_w)
 
-    if axis == 'x':        
+    if axis == 'x':
         a = num_supports * extra_sup_dist
         b = extra_sup_dist / 2
-        c = support_w * (num_supports+1)
+        c = support_w * (num_supports + 1)
         d = outer_w + leg
-        
+
         t.pd()
         t.add_vert()
 
         if num_supports > 1:
-            t.fd(d=side_length /2 - a + b - c - d + support_w)
+            t.fd(d=side_length / 2 - a + b - c - d + support_w)
             t.pu()
             t.deselect_all()
-            t.bk(d=side_length /2 - a + b - c - d + support_w)
+            t.bk(d=side_length / 2 - a + b - c - d + support_w)
             t.select_at_cursor()
             t.pd()
             t.lf(d=slot_w)
-            t.fd(d=side_length /2 - a + b- c - d - slot_w + support_w)
+            t.fd(d=side_length / 2 - a + b - c - d - slot_w + support_w)
         else:
             t.fd(d=side_length / 2 - b - d - support_w)
             t.pu()
@@ -381,40 +399,40 @@ def add_extra_supports(num_supports, axis, support_w, slot_w, x, y, leg, outer_w
             t.pd()
             t.lf(d=slot_w)
             t.fd(d=side_length / 2 - b - d - support_w - slot_w)
-            
+
         t.select_all()
         t.merge()
         t.deselect_all()
         t.pu()
-        
+
     else:
-        a = extra_sup_dist * (num_supports-1) - support_w
+        a = extra_sup_dist * (num_supports - 1) - support_w
         b = extra_sup_dist / 2
-        c = support_w * (num_supports+1)
+        c = support_w * (num_supports + 1)
         d = outer_w - leg
-        
+
         t.pd()
         t.add_vert()
 
         if num_supports > 1:
-            t.fd(d=side_length /2  - a - b - c + d )
+            t.fd(d=side_length / 2 - a - b - c + d)
             t.pu()
             t.deselect_all()
-            t.bk(d=side_length /2  - a - b - c + d )
+            t.bk(d=side_length / 2 - a - b - c + d)
             t.select_at_cursor()
             t.pd()
             t.lf(d=slot_w)
-            t.fd(d=side_length /2  - a - b - c + d + slot_w)
- 
+            t.fd(d=side_length / 2 - a - b - c + d + slot_w)
+
         else:
-            t.fd(d=side_length / 2  - b - support_w + d)
+            t.fd(d=side_length / 2 - b - support_w + d)
             t.pu()
             t.deselect_all()
-            t.bk(d=side_length / 2  - b - support_w + d)
+            t.bk(d=side_length / 2 - b - support_w + d)
             t.select_at_cursor()
             t.pd()
             t.lf(d=slot_w)
-            t.fd(d=side_length / 2  - b - support_w + d + slot_w)
+            t.fd(d=side_length / 2 - b - support_w + d + slot_w)
 
         t.select_all()
         t.merge()

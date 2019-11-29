@@ -5,7 +5,7 @@ from bpy.props import StringProperty, FloatProperty, FloatVectorProperty, IntPro
 class TURTLE_OT_clear_screen_alias(bpy.types.Operator):
     bl_idname = "turtle.cs"
     bl_label = "Clear Turtle World"
-    bl_description = "Deletes mesh in turtle world and homes turtle."
+    bl_description = "Deletes mesh in turtle world."
 
     def execute(self, context):
         bpy.ops.turtle.clear_screen()
@@ -41,6 +41,7 @@ class TURTLE_OT_forward_alias(bpy.types.Operator):
 
     d: FloatProperty()
     m: BoolProperty()
+    
     def execute(self, context):
         bpy.ops.turtle.forward(d=self.d, m=self.m)
 

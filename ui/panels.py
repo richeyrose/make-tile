@@ -31,7 +31,7 @@ class MT_PT_Panel(bpy.types.Panel):
 
         # TODO: Neaten this up - too many ifs!
         if bpy.context.object is not None:
-            if bpy.context.object['geometry_type']:
+            if 'geometry_type' in bpy.context.object:
                 if bpy.context.object['geometry_type'] == 'PREVIEW':
                     layout.prop(scene, 'mt_tile_material')
                     layout.prop(scene, 'mt_tile_resolution')

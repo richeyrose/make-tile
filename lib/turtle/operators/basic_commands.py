@@ -1,4 +1,4 @@
-from math import degrees, radians
+from math import degrees, radians, pi
 import bpy
 from bpy.props import StringProperty, FloatProperty, FloatVectorProperty, IntProperty, EnumProperty, BoolProperty
 import bmesh
@@ -436,6 +436,50 @@ class TURTLE_OT_right(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class TURTLE_OT_arc(bpy.types.Operator):
+    bl_idname = "turtle.arc"
+    bl_label = "Draw Arc"
+    bl_description = "Draws an arc with the Turtle at its center, leaving the turtle in place. \
+        r = radius, d = degrees of arc, s = segments in arc"
+
+    r: FloatProperty()
+    d: FloatProperty()
+    s: IntProperty()
+
+    @classmethod
+    def poll(cls, context):
+        return context.object.mode == 'EDIT'
+
+    def execute(self, context):
+        bpy.ops.object.editmode_toggle()
+        bpy.ops.object.editmode_toggle()
+
+        circumference = 2 * pi * self.r
+        segment_length = circumference / ((360 / self.d) * self.s)
+        rotation_amount = self.d / self.s
+
+        turtle = bpy.context.scene.cursor
+        t = bpy.ops.turtle
+        start_loc = turtle.location.copy()
+        start_rot = turtle.rotation_euler.copy()
+        t.deselect_all()
+        t.pu()
+        t.fd(d=self.r)
+        t.add_vert()
+        t.pd()
+        t.rt(d=90)
+        t.rt(d=rotation_amount / 2)
+
+        for i in range(self.s):
+            t.fd(d=segment_length)
+            t.rt(d=rotation_amount)
+
+        t.pu()
+        turtle.location = start_loc
+        turtle.rotation_euler = start_rot
+        return {'FINISHED'}
+
+
 class TURTLE_OT_left_turn(bpy.types.Operator):
     bl_idname = "turtle.left_turn"
     bl_label = "Rotate left"
@@ -560,7 +604,7 @@ class TURTLE_OT_roll_right(bpy.types.Operator):
 class TURTLE_OT_set_pos(bpy.types.Operator):
     bl_idname = "turtle.set_position"
     bl_label = "Set turtle posiiton"
-    bl_description = "moves the turtle to the specified location. v = location"
+    bl_description = "moves     the turtle to the specified location. v = location"
 
     v: FloatVectorProperty()
 

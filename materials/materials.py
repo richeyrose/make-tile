@@ -58,6 +58,15 @@ def assign_mat_to_vert_group(vert_group, obj, material):
     mode('OBJECT')
 
 
+def add_preview_mesh_modifiers(obj):
+    obj_subsurf = obj.modifiers.new('Subsurf', 'SUBSURF')
+    obj_subsurf.subdivision_type = 'SIMPLE'
+    obj_subsurf.levels = 1
+    select(obj.name)
+    activate(obj.name)
+    bpy.context.object.cycles.use_adaptive_subdivision = True
+
+
 def add_displacement_mesh_modifiers(obj, disp_axis, vert_group, disp_dir, image_size):
     obj_subsurf = obj.modifiers.new('Subsurf', 'SUBSURF')
     obj_subsurf.subdivision_type = 'SIMPLE'
@@ -130,6 +139,7 @@ def assign_preview_materials(obj, vert_group, primary_material, secondary_materi
     obj['primary_material'] = primary_material
     obj['secondary_material'] = secondary_material
     obj['vert_group'] = vert_group
+    add_preview_mesh_modifiers(obj)
     obj.data.materials.append(secondary_material)
     obj.data.materials.append(primary_material)
     assign_mat_to_vert_group(vert_group, obj, primary_material)

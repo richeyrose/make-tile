@@ -19,7 +19,6 @@ class MT_OT_Bake_Displacement(bpy.types.Operator):
     def execute(self, context):
         preview_obj = bpy.context.object
         displacement_obj = preview_obj['displacement_obj']
-        #preview_material = bpy.data.materials[context.scene.mt_tile_material]
         preview_material = preview_obj['primary_material']
         resolution = context.scene.mt_tile_resolution
         displacement_obj.hide_viewport = False
@@ -80,7 +79,8 @@ def bake_displacement_map(material, obj, resolution):
     tree.links.remove(link)
 
     # save displacement strength
-    obj['disp_strength'] = displacement_node.inputs[2].default_value
+    strength_node = tree.nodes['Strength']
+    obj['disp_strength'] = strength_node.outputs[0].default_value
 
     # create image
     image = bpy.data.images.new(obj.name + '.image', width=resolution, height=resolution)

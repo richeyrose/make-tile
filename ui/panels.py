@@ -15,6 +15,14 @@ class MT_PT_Panel(bpy.types.Panel):
         layout = self.layout
 
         layout.operator('scene.make_tile', text="Make Tile")
+        layout.operator('scene.create_lighting_setup', text="Create Lighting Setup")
+
+        layout.row()
+        layout.prop(scene, 'mt_view_mode')
+
+        layout.prop(scene, 'mt_use_gpu')
+        layout.prop(scene, 'mt_cycles_subdivision_quality')
+
         layout.prop(scene, 'mt_tile_blueprint')
 
         layout.prop(scene, 'mt_tile_type')

@@ -16,6 +16,7 @@ from .. materials.materials import (
     load_secondary_material,
     assign_mat_to_vert_group,
     add_displacement_mesh_modifiers,
+    add_preview_mesh_modifiers,
     assign_displacement_materials,
     assign_preview_materials)
 from .. enums.enums import geometry_types
@@ -165,7 +166,7 @@ def create_preview_slab(
         tile_name,
         core_size,
         base_size):
-    slab_size = Vector((core_size[0], 0.0925, core_size[2]))
+    slab_size = Vector((core_size[0], 0.0039, core_size[2]))
     slab = draw_cuboid(slab_size)
     slab.name = tile_name + '.slab.preview'
     add_object_to_collection(slab, tile_name)

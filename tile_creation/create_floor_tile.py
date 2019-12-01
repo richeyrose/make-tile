@@ -132,7 +132,7 @@ def create_floor_slab(tile_name, tile_size, base_size, geometry_type):
 
 def create_preview_slab(tile_name, tile_size, base_size):
     '''Returns the preview floor slab'''
-    slab_size = Vector((tile_size[0], tile_size[1], tile_size[2] - base_size[2]))
+    slab_size = Vector((tile_size[0], tile_size[1], 0.01))
     slab = draw_cuboid(slab_size)
     slab.name = tile_name + '.slab.preview'
     add_object_to_collection(slab, tile_name)

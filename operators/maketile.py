@@ -118,7 +118,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             step=1024,
         )
 
-        # Tile and base Size. We use seperate floats so that we can only show
+        # Tile and base size. We use seperate floats so that we can only show
         # customisable ones where appropriate. These are wrapped up
         # in a vector and passed on as tile_size and base_size
 

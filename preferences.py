@@ -12,6 +12,8 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
 
     bl_idname = __package__
     path = get_path()
+    user_path = os.path.expanduser('~')
+    export_path = os.path.join(user_path, 'MakeTile')
 
     # asset libraries
     def update_assetspath(self, context):
@@ -52,6 +54,13 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
         update=update_assetspath
     )
 
+    default_export_path: StringProperty(
+        name="Export Path",
+        subtype='DIR_PATH',
+        description="Default folder to export tiles to",
+        default=export_path,
+    )
+
     old_path: StringProperty(
         name="Old Path",
         subtype='DIR_PATH',
@@ -69,7 +78,7 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
         items=units,
         description="Default units to use",
         name="Tile Units",
-        default="IMPERIAL"
+        default="INCHES"
     )
 
     default_tile_blueprint: EnumProperty(
@@ -81,14 +90,14 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
 
     default_tile_main_system: EnumProperty(
         items=tile_main_systems,
-        description="Default tile system to use for main part of tile",
+        description="Default tile system to use for main part of tile for custom tiles",
         name="Tile System",
         default="OPENLOCK",
     )
 
     default_base_system: EnumProperty(
         items=base_systems,
-        description="Default base system to use",
+        description="Default base system to use for custom tiles",
         name="Base System",
         default="OPENLOCK",
     )
@@ -97,9 +106,12 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
         layout = self.layout
         row = layout.row()
         layout.prop(self, 'assets_path')
+        layout.prop(self, 'default_export_path')
         layout.prop(self, 'default_units')
+        layout.prop(self, 'default_tile_blueprint')
         layout.prop(self, 'default_tile_main_system')
         layout.prop(self, 'default_base_system')
+        layout.prop(self, 'secondary_material')
 
 
 # TODO: Stub - reload_asset_libraries

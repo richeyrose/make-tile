@@ -2,8 +2,8 @@
 
 
 units = [
-    ("METRIC", "Metric", "", 1),
-    ("IMPERIAL", "Imperial", "", 2),
+    ("CM", "Centimeter", "", 1),
+    ("INCHES", "Inches", "", 2),
 ]
 
 tile_blueprints = [

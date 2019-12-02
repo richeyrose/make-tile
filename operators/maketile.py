@@ -26,6 +26,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
     """Operator class used to create tiles"""
     bl_idname = "scene.make_tile"
     bl_label = "Create a tile"
+    bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(cls, context):
@@ -211,7 +212,7 @@ def load_material_enums(self, context):
 def update_material(self, context):
     preview_obj = bpy.context.object
 
-    if preview_obj['geometry_type']:
+    if 'geometry_type' in preview_obj:
         if preview_obj['geometry_type'] == 'PREVIEW':
             disp_obj = preview_obj['displacement_obj']
             update_displacement_material(disp_obj, bpy.context.scene.mt_tile_material)

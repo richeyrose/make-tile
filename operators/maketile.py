@@ -77,41 +77,41 @@ class MT_OT_Make_Tile(bpy.types.Operator):
 
         bpy.types.Scene.mt_tile_units = bpy.props.EnumProperty(
             items=units,
-            name="Tile Units",
+            name="Units",
             default=preferences.default_units,
         )
 
         bpy.types.Scene.mt_tile_blueprint = bpy.props.EnumProperty(
             items=tile_blueprints,
-            name="Tile Blueprint",
+            name="Blueprint",
             default=preferences.default_tile_blueprint,
         )
 
         bpy.types.Scene.mt_tile_main_system = bpy.props.EnumProperty(
             items=tile_main_systems,
-            name="Tile Main System",
+            name="Main System",
             default=preferences.default_tile_main_system,
         )
         bpy.types.Scene.mt_tile_type = bpy.props.EnumProperty(
             items=tile_types,
-            name="Tile Type",
+            name="Type",
             default="STRAIGHT_WALL",
         )
 
         bpy.types.Scene.mt_base_system = bpy.props.EnumProperty(
             items=base_systems,
-            name="Base Types",
+            name="Base Type",
             default=preferences.default_base_system,
         )
 
         bpy.types.Scene.mt_tile_material = bpy.props.EnumProperty(
             items=load_material_enums,
-            name="Tile Material",
+            name="Material",
             update=update_material,
         )
 
         bpy.types.Scene.mt_tile_resolution = bpy.props.IntProperty(
-            name="Tile resolution",
+            name="resolution",
             description="Bake resolution of displacement maps. Higher = better quality but slower",
             default=2048,
             min=1024,
@@ -125,21 +125,21 @@ class MT_OT_Make_Tile(bpy.types.Operator):
 
         # Tile size
         bpy.types.Scene.mt_tile_x = bpy.props.FloatProperty(
-            name="Tile X",
+            name="X",
             default=2.0,
             step=0.5,
             precision=3,
         )
 
         bpy.types.Scene.mt_tile_y = bpy.props.FloatProperty(
-            name="Tile Y",
+            name="Y",
             default=2,
             step=0.5,
             precision=3,
         )
 
         bpy.types.Scene.mt_tile_z = bpy.props.FloatProperty(
-            name="Tile Z",
+            name="Z",
             default=2.0,
             step=0.1,
             precision=3,
@@ -147,20 +147,20 @@ class MT_OT_Make_Tile(bpy.types.Operator):
 
         # Base size
         bpy.types.Scene.mt_base_x = bpy.props.FloatProperty(
-            name="Base X",
+            name="X",
             default=2.0,
             step=0.5,
             precision=3,
         )
 
         bpy.types.Scene.mt_base_y = bpy.props.FloatProperty(
-            name="Base Y",
+            name="Y",
             default=0.5,
             step=0.5,
             precision=3,
         )
         bpy.types.Scene.mt_base_z = bpy.props.FloatProperty(
-            name="Base Z",
+            name="Z",
             default=0.3,
             step=0.1,
             precision=3,

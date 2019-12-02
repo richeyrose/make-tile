@@ -99,20 +99,20 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
         print("Registered class: %s " % cls.bl_label)
 
         bpy.types.Scene.mt_use_gpu = bpy.props.BoolProperty(
-            name="Use GPU",
+            name="GPU",
             description="Use GPU for Cycles render",
             default=True,
         )
 
         bpy.types.Scene.mt_cycles_subdivision_quality = bpy.props.IntProperty(
-            name="Cycles subdivision quality",
+            name="Subdivision",
             description="Dicing rate for Cycles subdivision - lower = higher quality",
             default=1,
         )
 
         bpy.types.Scene.mt_view_mode = bpy.props.EnumProperty(
             items=view_mode,
-            name="View Mode",
+            name="View",
             default="PREVIEW",
             update=update_view_mode,
         )

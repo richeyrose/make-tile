@@ -42,20 +42,20 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
     @classmethod
     def register(cls):
         bpy.types.Scene.mt_voxel_quality = bpy.props.FloatProperty(
-            name="Voxel Quality",
+            name="Quality",
             description="Quality of the voxelisation. Smaller = Better",
             min=0.005,
-            default=0.01,
+            default=0.005,
         )
 
         bpy.types.Scene.mt_voxel_adaptivity = bpy.props.FloatProperty(
-            name="Voxel Adaptivity",
+            name="Adaptivity",
             description="Amount by which to simplify mesh",
             default=0.01,
         )
 
         bpy.types.Scene.mt_merge_and_voxelise = bpy.props.BoolProperty(
-            name="Merge and Voxelise",
+            name="Merge",
             description="Merge tile before voxelising? Creates a single mesh.",
             default=True
         )
@@ -148,24 +148,24 @@ class MT_OT_Export_Tile(bpy.types.Operator):
         )
 
         bpy.types.Scene.mt_units = bpy.props.EnumProperty(
-            name="Export Units",
+            name="Units",
             items=units,
             description="Export units",
             default=preferences.default_units
         )
 
         bpy.types.Scene.mt_merge_on_export = bpy.props.BoolProperty(
-            name="Merge on Export",
+            name="Merge",
             description="Merge all meshes on export",
             default=False,
         )
 
         bpy.types.Scene.mt_voxelise_on_export = bpy.props.BoolProperty(
-            name="Voxelise on Export",
+            name="Voxelise",
             description="Voxelise on Export.\
                 If mesh has been merged this will voxelise everything,\
                 otherwise it will just voxelise the displacement meshes",
-            default=True
+            default=False
         )
 
     @classmethod

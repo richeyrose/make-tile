@@ -45,7 +45,7 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
         light_1.shape = 'RECTANGLE'
         light_1.size = 1
         light_1.size_y = 2
-        light_1.energy = 200
+        light_1.energy = 250
 
         light_obj.location = (-5, -5, 5)
         light_obj.rotation_euler = (1, 0, -0.8)
@@ -57,7 +57,7 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
         light_2.shape = 'RECTANGLE'
         light_2.size = 1
         light_2.size_y = 2
-        light_2.energy = 10
+        light_2.energy = 50
 
         light_2_obj.location = (5, -5, -5)
         light_2_obj.rotation_euler = (2.5, 0.8, 1.5)
@@ -69,7 +69,7 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
         light_3.shape = 'RECTANGLE'
         light_3.size = 1
         light_3.size_y = 2
-        light_3.energy = 200
+        light_3.energy = 250
 
         light_3_obj.location = (-5, 5, 5)
         light_3_obj.rotation_euler = (1, 0, -2.3)
@@ -81,7 +81,7 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
         light_4.shape = 'RECTANGLE'
         light_4.size = 1
         light_4.size_y = 2
-        light_4.energy = 10
+        light_4.energy = 50
 
         light_4_obj.location = (5, 5, -5)
         light_4_obj.rotation_euler = (2.5, 0.8, 3)
@@ -99,7 +99,7 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
         print("Registered class: %s " % cls.bl_label)
 
         bpy.types.Scene.mt_use_gpu = bpy.props.BoolProperty(
-            name="GPU",
+            name="Use GPU",
             description="Use GPU for Cycles render",
             default=True,
         )
@@ -112,8 +112,8 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
 
         bpy.types.Scene.mt_view_mode = bpy.props.EnumProperty(
             items=view_mode,
-            name="View",
-            default="PREVIEW",
+            name="Render Engine",
+            default="EEVEE",
             update=update_view_mode,
         )
 

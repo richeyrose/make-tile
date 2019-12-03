@@ -48,5 +48,4 @@ geometry_types = [
 view_mode = [
     ("CYCLES", "Cycles", "", 1),
     ("EEVEE", "Eevee", "", 2),
-    ("PREVIEW", "Preview", "", 3)
 ]

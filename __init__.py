@@ -15,7 +15,7 @@ import os
 import bpy
 from bpy.props import PointerProperty
 from . preferences import MT_MakeTilePreferences
-from . ui.panels import MT_PT_Display_Panel, MT_PT_Export_Panel, MT_PT_Main_Panel, MT_PT_Material_Panel, MT_PT_Voxelise_Panel
+from . ui.panels import MT_PT_Display_Panel, MT_PT_Export_Panel, MT_PT_Main_Panel, MT_PT_Material_Panel, MT_PT_Voxelise_Panel, MT_PT_Material_Options_Panel
 from . operators.maketile import MT_OT_Make_Tile
 from . operators.makevertgroups import MT_OT_makeVertGroupsFromFaces
 from . operators.bakedisplacement import MT_OT_Bake_Displacement
@@ -55,6 +55,7 @@ classes = (
     MT_PT_Main_Panel,
     MT_PT_Display_Panel,
     MT_PT_Material_Panel,
+    MT_PT_Material_Options_Panel,
     MT_PT_Voxelise_Panel,
     MT_PT_Export_Panel,
     TURTLE_OT_add_turtle,

@@ -111,7 +111,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         )
 
         bpy.types.Scene.mt_tile_resolution = bpy.props.IntProperty(
-            name="resolution",
+            name="Resolution",
             description="Bake resolution of displacement maps. Higher = better quality but slower",
             default=2048,
             min=1024,

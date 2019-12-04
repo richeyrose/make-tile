@@ -47,6 +47,8 @@ def create_tile(
         # make final tile name
         tile_name = tile_collection.name
 
+        bpy.context.scene.mt_tile_name = tile_name
+
         create_straight_wall(
             tile_blueprint,
             tile_system,

@@ -47,7 +47,7 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
             soft_min=0.005,
             default=0.005,
             precision=3,
-            
+
         )
 
         bpy.types.Scene.mt_voxel_adaptivity = bpy.props.FloatProperty(
@@ -62,6 +62,7 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
             description="Merge tile before voxelising? Creates a single mesh.",
             default=True
         )
+
 
     @classmethod
     def unregister(cls):
@@ -84,6 +85,7 @@ class MT_OT_Export_Tile(bpy.types.Operator):
             return True
 
     def execute(self, context):
+        # TODO: Implement overwrite option
         deselect_all()
         bpy.ops.object.select_by_type(type='MESH')
         meshes = bpy.context.selected_objects.copy()
@@ -129,7 +131,7 @@ class MT_OT_Export_Tile(bpy.types.Operator):
         if not os.path.exists(export_path):
             os.mkdir(export_path)
 
-        file_path = os.path.join(context.scene.mt_export_path, bpy.context.object.name + '.stl')
+        file_path = os.path.join(context.scene.mt_export_path, context.scene.mt_tile_name + '.stl')
         bpy.ops.export_mesh.stl(filepath=file_path, check_existing=True, filter_glob="*.stl", use_selection=True, global_scale=unit_multiplier, use_mesh_modifiers=True)
 
         bpy.ops.object.delete()
@@ -171,8 +173,17 @@ class MT_OT_Export_Tile(bpy.types.Operator):
             default=False
         )
 
+        bpy.types.Scene.mt_tile_name = bpy.props.StringProperty(
+            name="Tile Export Name",
+            description="Name to save tile as",
+            default="Tile"
+        )
+
     @classmethod
     def unregister(cls):
+        del bpy.types.Scene.mt_tile_name
+        del bpy.types.Scene.mt_voxelise_on_export
+        del bpy.types.Scene.mt_merge_on_export
         del bpy.types.Scene.mt_units
         del bpy.types.Scene.mt_export_path
 

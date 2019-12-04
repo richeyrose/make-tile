@@ -11,6 +11,7 @@ class MT_PT_Panel:
 class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
     bl_idname = "MT_PT_Main_Panel"
     bl_label = "Make Tile"
+    bl_description = "Options to configure the type and dimensions of tile"
 
     def draw(self, context):
         scene = context.scene
@@ -108,31 +109,6 @@ class MT_PT_Display_Panel(MT_PT_Panel, bpy.types.Panel):
             layout.prop(scene, 'mt_cycles_subdivision_quality')
 
 
-class MT_PT_Material_Options_Panel(MT_PT_Panel, bpy.types.Panel):
-    bl_idname = "MT_PT_Material_Options_Panel"
-    bl_label = "Material Options"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw(self, context):
-        scene = context.scene
-        layout = self.layout
-
-        layout.prop(scene, 'mt_tile_resolution')
-        # TODO: Sort alphabetically
-        # get all nodes in material that are within the 'editable_inputs' frame
-        if context.scene.mt_tile_material in bpy.data.materials:
-            material = bpy.data.materials[context.scene.mt_tile_material]
-            tree = material.node_tree
-            nodes = tree.nodes
-
-            for frame in nodes:
-                if frame.parent == nodes['editable_inputs']:
-                    layout.label(text=frame.label)
-                    for node in nodes:
-                        if node.parent == frame:
-                            layout.prop(node.outputs['Value'], 'default_value', text=node.label)
-
-
 class MT_PT_Material_Panel(MT_PT_Panel, bpy.types.Panel):
     bl_idname = "MT_PT_Material_Panel"
     bl_label = "Materials"
@@ -148,6 +124,49 @@ class MT_PT_Material_Panel(MT_PT_Panel, bpy.types.Panel):
                     layout.operator('scene.return_to_preview', text='Return to Preview')
 
         layout.prop(scene, 'mt_tile_material')
+
+
+class MT_PT_Material_Options_Panel(MT_PT_Panel, bpy.types.Panel):
+    bl_idname = "MT_PT_Material_Options_Panel"
+    bl_label = "Material Options"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        scene = context.scene
+        layout = self.layout
+
+        layout.prop(scene, 'mt_tile_resolution')
+
+        if context.scene.mt_tile_material in bpy.data.materials:
+            material = bpy.data.materials[context.scene.mt_tile_material]
+            tree = material.node_tree
+            nodes = tree.nodes
+
+            # get all frame nodes in material that are within the 'editable_inputs' frame          
+            frame_names = []
+
+            for frame in nodes:
+                if frame.parent == nodes['editable_inputs']:
+                    frame_names.append(frame.name)
+
+            frame_names.sort()
+            # Use frame labels as headings in side panel
+            for name in frame_names:
+                frame = nodes[name]
+                layout.label(text=frame.label)
+
+                node_names = []
+
+                # get all nodes in each frame
+                for node in nodes:
+                    if node.parent == frame:
+                        node_names.append(node.name)
+
+                node_names.sort()
+                # expose their properties in side panel
+                for name in node_names:
+                    node = nodes[name]
+                    layout.prop(node.outputs['Value'], 'default_value', text=node.label)
 
 
 class MT_PT_Voxelise_Panel(MT_PT_Panel, bpy.types.Panel):
@@ -177,6 +196,7 @@ class MT_PT_Export_Panel(MT_PT_Panel, bpy.types.Panel):
 
         layout.operator('scene.export_tile', text='Export Tile')
         layout.prop(scene, 'mt_export_path')
+        layout.prop(scene, 'mt_tile_name')
 
         row = layout.row()
         layout.prop(scene, 'mt_units')

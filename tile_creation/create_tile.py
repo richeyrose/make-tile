@@ -8,6 +8,7 @@ from .. lib.utils.utils import mode
 from .. lib.utils.collections import create_collection, add_object_to_collection, get_collection, activate_collection
 from . create_straight_wall_tile import create_straight_wall
 from . create_floor_tile import create_rectangular_floor
+from . create_curved_wall_tile import create_curved_wall
 
 
 def create_tile(
@@ -34,7 +35,7 @@ def create_tile(
     # construct first part of tile name based on system and type
     tile_name = tile_system.lower() + "." + tile_type.lower()
 
-    if tile_type == 'STRAIGHT_WALL':
+    if tile_type == 'STRAIGHT_WALL' or 'CURVED_WALL':
 
         # create walls collection if it doesn't already exist
         walls_collection = create_collection('Walls', tiles_collection)
@@ -49,6 +50,7 @@ def create_tile(
 
         bpy.context.scene.mt_tile_name = tile_name
 
+    if tile_type == 'STRAIGHT_WALL':
         create_straight_wall(
             tile_blueprint,
             tile_system,
@@ -57,6 +59,9 @@ def create_tile(
             base_size,
             base_system,
             tile_material)
+
+    if tile_type == 'CURVED_WALL':
+        create_curved_wall(tile_name)
 
     if tile_type == 'RECTANGULAR_FLOOR':
 

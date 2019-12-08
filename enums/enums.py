@@ -2,7 +2,7 @@
 
 
 units = [
-    ("CM", "Centimeter", "", 1),
+    ("CM", "Centimeters", "", 1),
     ("INCHES", "Inches", "", 2),
 ]
 
@@ -24,15 +24,8 @@ base_systems = [
 
 tile_types = [
     ("STRAIGHT_WALL", "Straight Wall", "", 1),
-    ("RECTANGULAR_FLOOR", "Rectangular Floor", "", 2),
-]
-
-tile_materials = [
-    ("NONE", "None", "", 1),
-    ("BRICKS1", "Bricks 1", "", 2),
-    ("BRICKS2", "Bricks 2", "", 3),
-    ("BRICKS3", "Bricks 3", "", 4),
-    ("STONEWALL1", "Stone Wall 1", "", 5),
+    ("CURVED_WALL", "Curved Wall", "", 2),
+    ("RECTANGULAR_FLOOR", "Rectangular Floor", "", 3),
 ]
 
 geometry_types = [

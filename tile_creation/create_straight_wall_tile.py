@@ -33,13 +33,13 @@ def create_straight_wall(
 
     """Returns a straight wall
     Keyword arguments:
-    tile_blueprint -- a blueprint consists of a tile type and base type
-    tile_system -- tile system for slabs
-    tile_name   -- name,
-    tile_size   -- [x, y, z],
-    base_size   -- [x, y, z],
-    base_system -- tile system for bases
-    tile_material -- material name
+    tile_blueprint -- STR, a blueprint consists of a tile type and base type
+    tile_system -- STR, tile system for slabs
+    tile_name   -- STR, name,
+    tile_size   -- VECTOR [x, y, z],
+    base_size   -- VECTOR [x, y, z],
+    base_system -- STR tile system for bases
+    tile_material -- STR material name
     """
 
     if base_system == 'OPENLOCK':
@@ -221,7 +221,7 @@ def create_straight_wall_slab(
 
     return slab
 
-
+# TODO: make a "wall" class as sharing this function with curved wall now
 def create_straight_wall_base(
         tile_name,
         base_size):

@@ -47,6 +47,23 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
             row.prop(scene, 'mt_tile_x')
             row.prop(scene, 'mt_tile_y')
 
+        elif scene.mt_tile_type == 'CURVED_WALL':
+            layout.label(text="Tile Properties")
+            layout.prop(scene, 'mt_base_inner_radius')
+            layout.prop(scene, 'mt_wall_inner_radius')
+            layout.prop(scene, 'mt_degrees_of_arc')
+            layout.prop(scene, 'mt_segments')
+
+            layout.label(text="Base Thickness and Height")
+            row = layout.row()
+            layout.prop(scene, 'mt_base_y')
+            layout.prop(scene, 'mt_base_z')
+
+            layout.label(text="Wall Thickness and Height")
+            row = layout.row()
+            row.prop(scene, 'mt_tile_y')
+            row.prop(scene, 'mt_tile_y')
+
     def draw_plain_base_panel(self, context):
         scene = context.scene
         layout = self.layout
@@ -142,7 +159,7 @@ class MT_PT_Material_Options_Panel(MT_PT_Panel, bpy.types.Panel):
             tree = material.node_tree
             nodes = tree.nodes
 
-            # get all frame nodes in material that are within the 'editable_inputs' frame          
+            # get all frame nodes in material that are within the 'editable_inputs' frame
             frame_names = []
 
             for frame in nodes:

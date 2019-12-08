@@ -173,15 +173,8 @@ class MT_OT_Export_Tile(bpy.types.Operator):
             default=False
         )
 
-        bpy.types.Scene.mt_tile_name = bpy.props.StringProperty(
-            name="Tile Export Name",
-            description="Name to save tile as",
-            default="Tile"
-        )
-
     @classmethod
     def unregister(cls):
-        del bpy.types.Scene.mt_tile_name
         del bpy.types.Scene.mt_voxelise_on_export
         del bpy.types.Scene.mt_merge_on_export
         del bpy.types.Scene.mt_units

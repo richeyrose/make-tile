@@ -166,9 +166,46 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             precision=3,
         )
 
+        # Used for curved wall tiles
+        bpy.types.Scene.mt_base_inner_radius = bpy.props.FloatProperty(
+            name="Base inner radius",
+            default=2.0,
+            step=0.5,
+            precision=3,
+        )
+
+        bpy.types.Scene.mt_wall_inner_radius = bpy.props.FloatProperty(
+            name="Wall inner radius",
+            default=2.0,
+            step=0.5,
+            precision=3,
+        )
+
+        bpy.types.Scene.mt_degrees_of_arc = bpy.props.FloatProperty(
+            name="Degrees of arc",
+            default=90,
+            step=45,
+            precision=1,
+        )
+
+        bpy.types.Scene.mt_segments = bpy.props.IntProperty(
+            name="Number of segments",
+            default=32,
+        )
+
+        bpy.types.Scene.mt_tile_name = bpy.props.StringProperty(
+            name="Tile Name",
+            default="Tile"
+        )
+
     @classmethod
     def unregister(cls):
         print("Unregistered class: %s" % cls.bl_label)
+        del bpy.types.Scene.mt_tile_name
+        del bpy.types.Scene.mt_segments
+        del bpy.types.Scene.mt_base_inner_radius
+        del bpy.types.Scene.mt_wall_inner_radius
+        del bpy.types.Scene.mt_degrees_of_arc
         del bpy.types.Scene.mt_base_x
         del bpy.types.Scene.mt_base_y
         del bpy.types.Scene.mt_base_z

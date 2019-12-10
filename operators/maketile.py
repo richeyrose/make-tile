@@ -46,7 +46,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         wall_inner_radius = bpy.context.scene.mt_wall_inner_radius
         degrees_of_arc = bpy.context.scene.mt_degrees_of_arc
         segments = bpy.context.scene.mt_segments
-        
+
         base_system = context.scene.mt_base_system
         tile_material = context.scene.mt_tile_material
 
@@ -126,6 +126,14 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             min=1024,
             max=8192,
             step=1024,
+        )
+        
+        bpy.types.Scene.mt_subdivisions = bpy.props.IntProperty(
+            name="Subdivisions",
+            description="How many times to subdivide the displacement mesh. Higher = better but slower. \
+            Going above 8 is really not recommended and may cause Blender to freeze up for a loooooong time!",
+            default=7,
+            soft_max=8,
         )
 
         # Tile and base size. We use seperate floats so that we can only show

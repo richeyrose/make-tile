@@ -73,7 +73,7 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
             row = layout.row()
             row.prop(scene, 'mt_base_x')
             row.prop(scene, 'mt_base_y')
-            row.prop(scene, 'mt_base_z')
+            row.prop(scene, 'mt_base_z')           
 
     def draw_plain_main_part_panel(self, context):
         scene = context.scene
@@ -83,6 +83,23 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
             layout.label(text="Tile Size")
             row = layout.row()
             row.prop(scene, 'mt_tile_x')
+            row.prop(scene, 'mt_tile_y')
+            row.prop(scene, 'mt_tile_z')
+
+        elif scene.mt_tile_type == 'CURVED_WALL':
+            layout.label(text="Tile Properties")
+            layout.prop(scene, 'mt_base_inner_radius')
+            layout.prop(scene, 'mt_wall_inner_radius')
+            layout.prop(scene, 'mt_degrees_of_arc')
+            layout.prop(scene, 'mt_segments')
+
+            layout.label(text="Base Thickness and Height")
+            row = layout.row()
+            row.prop(scene, 'mt_base_y')
+            row.prop(scene, 'mt_base_z')
+
+            layout.label(text="Wall Thickness and Height")
+            row = layout.row()
             row.prop(scene, 'mt_tile_y')
             row.prop(scene, 'mt_tile_z')
 
@@ -137,9 +154,9 @@ class MT_PT_Material_Panel(MT_PT_Panel, bpy.types.Panel):
             if 'geometry_type' in bpy.context.object:
                 if bpy.context.object['geometry_type'] == 'PREVIEW':
                     layout.operator('scene.bake_displacement', text='Make 3D')
+                    layout.prop(scene, 'mt_subdivisions')
                 if bpy.context.object['geometry_type'] == 'DISPLACEMENT':
                     layout.operator('scene.return_to_preview', text='Return to Preview')
-
         layout.prop(scene, 'mt_tile_material')
 
 

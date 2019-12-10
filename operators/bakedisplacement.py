@@ -43,8 +43,7 @@ class MT_OT_Bake_Displacement(bpy.types.Operator):
 
         subsurf_mod = displacement_obj.modifiers[displacement_obj['subsurf_mod_name']]
 
-        # TODO: Paramaterise
-        subsurf_mod.levels = 6
+        subsurf_mod.levels = bpy.context.scene.mt_subdivisions
 
         preview_obj.hide_viewport = True
 

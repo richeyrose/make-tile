@@ -57,7 +57,17 @@ def create_straight_wall(
         create_plain_wall(tile_name, tile_size, base_size, tile_material)
 
 
-def create_wall_slabs(tile_name, core_size, base_size, tile_size, tile_material):
+def create_wall_slabs(displacement_type, tile_name, core_size, base_size, tile_size, tile_material):
+    """Returns a list of slabs
+    Keyword arguments:
+    displacement_type -- STR - whether to use an 'AXIS' or 'NORMAL' for material displacement
+    tile_name   -- STR, name,
+    core_size -- VECTOR [x, y, z]
+    base_sized -- VECTOR [x, y, z]
+    tile_size -- VECTOR [x, y, z]
+    tile_material -- STR material name
+    """
+    
     outer_preview_slab = create_straight_wall_slab(
         tile_name,
         core_size,
@@ -103,19 +113,30 @@ def create_wall_slabs(tile_name, core_size, base_size, tile_size, tile_material)
 
     image_size = bpy.context.scene.mt_tile_resolution
 
-    assign_displacement_materials(inner_displacement_slab, 'Y', 'y_neg', 'neg', [image_size, image_size], primary_material)
-    assign_preview_materials(inner_preview_slab, 'y_neg', primary_material, secondary_material)
+    if displacement_type is not 'NORMAL':
+        assign_displacement_materials(inner_displacement_slab, 'Y', 'y_neg', 'neg', [image_size, image_size], primary_material)
+        assign_displacement_materials(outer_displacement_slab, 'Y', 'y_pos', 'pos', [image_size, image_size], primary_material)
 
-    assign_displacement_materials(outer_displacement_slab, 'Y', 'y_pos', 'pos', [image_size, image_size], primary_material)
+    else:
+        assign_displacement_materials(inner_displacement_slab, 'NORMAL', 'y_neg', 'pos', [image_size, image_size], primary_material)
+        assign_displacement_materials(outer_displacement_slab, 'NORMAL', 'y_pos', 'pos', [image_size, image_size], primary_material)
+
+    assign_preview_materials(inner_preview_slab, 'y_neg', primary_material, secondary_material)
     assign_preview_materials(outer_preview_slab, 'y_pos', primary_material, secondary_material)
+
     # hide final slabs for now
+
     outer_displacement_slab.hide_viewport = True
     inner_displacement_slab.hide_viewport = True
 
+    slabs = [outer_preview_slab, outer_displacement_slab, inner_preview_slab, inner_displacement_slab] 
+    return slabs
+
 
 def create_openlock_wall(tile_name, tile_size, base_size, tile_material):
+    displacement_type = 'AXIS'
     core = create_openlock_straight_wall_core(tile_name, tile_size, base_size)
-    create_wall_slabs(tile_name, core.dimensions, base_size, tile_size, tile_material)
+    create_wall_slabs(displacement_type, tile_name, core.dimensions, base_size, tile_size, tile_material)
 
 
 def create_plain_wall(tile_name, tile_size, base_size, tile_material):

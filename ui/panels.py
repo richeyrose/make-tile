@@ -56,13 +56,13 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
 
             layout.label(text="Base Thickness and Height")
             row = layout.row()
-            layout.prop(scene, 'mt_base_y')
-            layout.prop(scene, 'mt_base_z')
+            row.prop(scene, 'mt_base_y')
+            row.prop(scene, 'mt_base_z')
 
             layout.label(text="Wall Thickness and Height")
             row = layout.row()
             row.prop(scene, 'mt_tile_y')
-            row.prop(scene, 'mt_tile_y')
+            row.prop(scene, 'mt_tile_z')
 
     def draw_plain_base_panel(self, context):
         scene = context.scene

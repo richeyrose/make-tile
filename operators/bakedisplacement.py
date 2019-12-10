@@ -35,13 +35,16 @@ class MT_OT_Bake_Displacement(bpy.types.Operator):
         disp_mod = displacement_obj.modifiers[displacement_obj['disp_mod_name']]
         disp_mod.texture = disp_texture
         disp_mod.mid_level = 0
-        if displacement_obj['disp_dir'] == 'pos':
+
+        if displacement_obj['disp_dir'] == 'pos' or 'NORMAL':
             disp_mod.strength = displacement_obj['disp_strength']
-        else:
+        elif displacement_obj['disp_dir'] == 'neg':
             disp_mod.strength = -displacement_obj['disp_strength']
 
         subsurf_mod = displacement_obj.modifiers[displacement_obj['subsurf_mod_name']]
-        subsurf_mod.levels = 8
+
+        # TODO: Paramaterise
+        subsurf_mod.levels = 6
 
         preview_obj.hide_viewport = True
 
@@ -80,7 +83,11 @@ def bake_displacement_map(material, obj, resolution):
 
     # save displacement strength
     strength_node = tree.nodes['Strength']
-    obj['disp_strength'] = strength_node.outputs[0].default_value
+
+    if obj['disp_dir'] == 'neg':
+        obj['disp_strength'] = -strength_node.outputs[0].default_value
+    else:
+        obj['disp_strength'] = strength_node.outputs[0].default_value
 
     # create image
     image = bpy.data.images.new(obj.name + '.image', width=resolution, height=resolution)

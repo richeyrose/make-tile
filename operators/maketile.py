@@ -42,6 +42,11 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         tile_type = context.scene.mt_tile_type
         tile_size = Vector((context.scene.mt_tile_x, context.scene.mt_tile_y, context.scene.mt_tile_z))
         base_size = Vector((context.scene.mt_base_x, context.scene.mt_base_y, context.scene.mt_base_z))
+        base_inner_radius = bpy.context.scene.mt_base_inner_radius
+        wall_inner_radius = bpy.context.scene.mt_wall_inner_radius
+        degrees_of_arc = bpy.context.scene.mt_degrees_of_arc
+        segments = bpy.context.scene.mt_segments
+        
         base_system = context.scene.mt_base_system
         tile_material = context.scene.mt_tile_material
 
@@ -59,6 +64,10 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             tile_type,
             tile_size,
             base_size,
+            base_inner_radius,
+            wall_inner_radius,
+            degrees_of_arc,
+            segments,
             base_system,
             tile_material
         )

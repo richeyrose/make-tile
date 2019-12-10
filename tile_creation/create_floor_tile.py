@@ -41,7 +41,7 @@ def create_rectangular_floor(
     if base_system == 'OPENLOCK':
         base_size = Vector((tile_size[0], tile_size[1], .2756))
         tile_size[2] = 0.374
-        base = create_openlock_base(tile_name, base_size)
+        base = create_openlock_straight_wall_base(tile_name, base_size)
 
     if base_system == 'PLAIN':
         base = create_plain_base(tile_name, base_size)
@@ -148,7 +148,7 @@ def create_displacement_slab(tile_name, tile_size, base_size):
     return slab
 
 
-def create_openlock_base(
+def create_openlock_straight_wall_base(
         tile_name,
         base_size):
     '''Creates an openlock style base'''

@@ -17,15 +17,14 @@ def create_tile(
         tile_type,
         tile_size,
         base_size,
+        base_inner_radius,
+        wall_inner_radius,
+        degrees_of_arc,
+        segments,
         base_system,
         tile_material):
     """Returns a tile as a collection
 
-        Keyword arguments:
-        tile_system -- which tile system the tile will use. ENUM
-        tile_type -- e.g. 'WALL', 'FLOOR', 'DOORWAY', 'ROOF'
-        tile_size -- [x, y, z]
-        base_size -- if tile has a base [x, y, z]
     """
     scene_collection = bpy.context.scene.collection
 
@@ -61,7 +60,18 @@ def create_tile(
             tile_material)
 
     if tile_type == 'CURVED_WALL':
-        create_curved_wall(tile_name)
+        create_curved_wall(
+            tile_blueprint,
+            tile_system,
+            tile_name,
+            tile_size,
+            base_size,
+            base_system,
+            tile_material,
+            base_inner_radius,
+            wall_inner_radius,
+            degrees_of_arc,
+            segments)
 
     if tile_type == 'RECTANGULAR_FLOOR':
 

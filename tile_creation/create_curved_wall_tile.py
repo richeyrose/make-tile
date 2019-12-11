@@ -23,7 +23,8 @@ from .. enums.enums import geometry_types
 from . create_straight_wall_tile import (
     create_straight_wall_base,
     create_straight_wall_core,
-    create_wall_slabs)
+    create_wall_slabs,
+    create_openlock_base_slot_cutter)
 
 
 def create_curved_wall(
@@ -39,12 +40,53 @@ def create_curved_wall(
         degrees_of_arc,
         segments):
 
-    base, base_size = create_plain_curved_wall_base(
+    if base_system == 'OPENLOCK':
+        base_size = Vector((base_size[0], 0.5, 0.2755))
+        base, base_size = create_openlock_curved_wall_base(
+            base_size,
+            wall_inner_radius,
+            degrees_of_arc,
+            segments,
+            tile_name)
+
+    if base_system == 'PLAIN':
+        base, base_size = create_plain_curved_wall_base(
+            base_size,
+            base_inner_radius,
+            degrees_of_arc,
+            segments,
+            tile_name)
+
+    if tile_system == 'OPENLOCK':
+        tile_size = Vector((tile_size[0], 0.5, tile_size[2]))
+        wall = create_openlock_curved_wall(
+            base_size,
+            tile_size,
+            wall_inner_radius,
+            degrees_of_arc,
+            segments,
+            tile_name,
+            tile_material)
+
+    if tile_system == 'PLAIN':
+        wall = create_plain_wall(
+            base_size,
+            tile_size,
+            wall_inner_radius,
+            degrees_of_arc,
+            segments,
+            tile_name,
+            tile_material)
+
+
+def create_openlock_curved_wall(
         base_size,
-        base_inner_radius,
+        tile_size,
+        wall_inner_radius,
         degrees_of_arc,
         segments,
-        tile_name)
+        tile_name,
+        tile_material):
 
     wall = create_plain_wall(
         base_size,
@@ -54,6 +96,36 @@ def create_curved_wall(
         segments,
         tile_name,
         tile_material)
+
+    return wall
+
+
+def create_openlock_curved_wall_base(
+        base_size,
+        wall_inner_radius,
+        degrees_of_arc,
+        segments,
+        tile_name):
+
+    base, base_size = create_plain_curved_wall_base(
+        base_size,
+        wall_inner_radius,
+        degrees_of_arc,
+        segments,
+        tile_name)
+
+    slot_cutter = create_openlock_base_slot_cutter(base, tile_name)
+
+    slot_boolean = base.modifiers.new(slot_cutter.name, 'BOOLEAN')
+    slot_boolean.operation = 'DIFFERENCE'
+    slot_boolean.object = slot_cutter
+
+    #TODO: correct for difference in degrees of arc caused by space at ends of slot
+
+    
+    add_deform_modifiers(slot_cutter, segments, degrees_of_arc)
+
+    return base, base_size
 
 
 def create_curved_wall_slabs(
@@ -130,10 +202,15 @@ def create_plain_wall(
         tile_name,
         tile_material):
 
+    # correct for the Y thickness
+    wall_inner_radius = wall_inner_radius + (tile_size[1] / 2)
+
     circumference = 2 * pi * wall_inner_radius
     wall_length = circumference / (360 / degrees_of_arc)
     tile_size = Vector((wall_length, tile_size[1] - 0.1850, tile_size[2]))
+
     core, core_size = create_curved_wall_core(tile_name, tile_size, base_size, segments, degrees_of_arc)
+
     create_curved_wall_slabs(tile_name, core_size, base_size, tile_size, segments, degrees_of_arc, tile_material)
 
 
@@ -144,7 +221,11 @@ def create_plain_curved_wall_base(
         segments,
         tile_name):
 
+    # correct for the Y thickness
+    base_inner_radius = base_inner_radius + (base_size[1] / 2)
+
     circumference = 2 * pi * base_inner_radius
+
     base_length = circumference / (360 / degrees_of_arc)
     base_size = Vector((base_length, base_size[1], base_size[2]))
 

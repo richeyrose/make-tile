@@ -49,19 +49,12 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
 
         elif scene.mt_tile_type == 'CURVED_WALL':
             layout.label(text="Tile Properties")
-            layout.prop(scene, 'mt_base_inner_radius')
             layout.prop(scene, 'mt_wall_inner_radius')
             layout.prop(scene, 'mt_degrees_of_arc')
             layout.prop(scene, 'mt_segments')
 
-            layout.label(text="Base Thickness and Height")
+            layout.label(text="Wall Height")
             row = layout.row()
-            row.prop(scene, 'mt_base_y')
-            row.prop(scene, 'mt_base_z')
-
-            layout.label(text="Wall Thickness and Height")
-            row = layout.row()
-            row.prop(scene, 'mt_tile_y')
             row.prop(scene, 'mt_tile_z')
 
     def draw_plain_base_panel(self, context):

@@ -51,10 +51,10 @@ def create_straight_wall(
 
     if tile_system == 'OPENLOCK':
         tile_size = Vector((tile_size[0], 0.3149, tile_size[2]))
-        create_openlock_wall(tile_name, tile_size, base_size, tile_material)
+        create_openlock_wall(tile_name, tile_size, base, tile_material)
 
     if tile_system == 'PLAIN':
-        create_plain_wall(tile_name, tile_size, base_size, tile_material)
+        create_plain_wall(tile_name, tile_size, base, tile_material)
 
 
 def create_wall_slabs(displacement_type, tile_name, core_size, base_size, tile_size, tile_material):
@@ -67,7 +67,7 @@ def create_wall_slabs(displacement_type, tile_name, core_size, base_size, tile_s
     tile_size -- VECTOR [x, y, z]
     tile_material -- STR material name
     """
-    
+
     outer_preview_slab = create_straight_wall_slab(
         tile_name,
         core_size,
@@ -129,20 +129,32 @@ def create_wall_slabs(displacement_type, tile_name, core_size, base_size, tile_s
     outer_displacement_slab.hide_viewport = True
     inner_displacement_slab.hide_viewport = True
 
-    slabs = [outer_preview_slab, outer_displacement_slab, inner_preview_slab, inner_displacement_slab] 
+    slabs = [outer_preview_slab, outer_displacement_slab, inner_preview_slab, inner_displacement_slab]
     return slabs
 
 
-def create_openlock_wall(tile_name, tile_size, base_size, tile_material):
+def create_openlock_wall(tile_name, tile_size, base, tile_material):
     displacement_type = 'AXIS'
-    core = create_openlock_straight_wall_core(tile_name, tile_size, base_size)
-    create_wall_slabs(displacement_type, tile_name, core.dimensions, base_size, tile_size, tile_material)
+    base_size = base.dimensions
+
+    core, wall_cutters = create_openlock_straight_wall_core(tile_name, tile_size, base_size)
+
+    core.parent = base
+
+    slabs = create_wall_slabs(displacement_type, tile_name, core.dimensions, base_size, tile_size, tile_material)
+
+    for slab in slabs:
+        slab.parent = base
 
 
-def create_plain_wall(tile_name, tile_size, base_size, tile_material):
+def create_plain_wall(tile_name, tile_size, base, tile_material):
+    base_size = base.dimensions
     core_size = Vector((tile_size[0], tile_size[1] - 0.1850, tile_size[2]))
     core = create_straight_wall_core(tile_name, core_size, base_size)
-    create_wall_slabs(tile_name, core.dimensions, base_size, tile_size, tile_material)
+    core.parent = base
+    slabs = create_wall_slabs(tile_name, core.dimensions, base_size, tile_size, tile_material)
+    for slab in slabs:
+        slab.parent = base
 
 
 def create_straight_wall_core(
@@ -152,9 +164,9 @@ def create_straight_wall_core(
     '''Returns the core (vertical inner) part of a wall tile
 
     Keyword arguments:
-    tile_name   -- name
-    tile_size   -- [x, y, z]
-    base_size   -- [x, y, z]
+    tile_name   -- STR, name
+    tile_size   -- VECTOR, [x, y, z]
+    base_size   -- VECTOR, [x, y, z]
     '''
     cursor = bpy.context.scene.cursor
     cursor_start_location = cursor.location.copy()
@@ -250,8 +262,8 @@ def create_straight_wall_base(
     """Returns a base for a wall tile
 
     Keyword arguments:
-    tile_name   -- name,
-    base_size   -- [x, y, z]
+    tile_name   -- STR, name,
+    base_size   -- VECTOR, [x, y, z]
     """
     cursor = bpy.context.scene.cursor
     cursor_start_location = cursor.location.copy()
@@ -285,7 +297,7 @@ def create_openlock_straight_wall_base(tile_name, base_size):
     slot_boolean = base.modifiers.new(slot_cutter.name, 'BOOLEAN')
     slot_boolean.operation = 'DIFFERENCE'
     slot_boolean.object = slot_cutter
-    # slot_cutter.parent = base
+    slot_cutter.parent = base
     slot_cutter.display_type = 'BOUNDS'
     slot_cutter.hide_viewport = True
 
@@ -293,7 +305,7 @@ def create_openlock_straight_wall_base(tile_name, base_size):
     clip_boolean = base.modifiers.new(clip_cutter.name, 'BOOLEAN')
     clip_boolean.operation = 'DIFFERENCE'
     clip_boolean.object = clip_cutter
-    # clip_cutter.parent = base
+    clip_cutter.parent = base
     clip_cutter.display_type = 'BOUNDS'
     clip_cutter.hide_viewport = True
 
@@ -307,10 +319,9 @@ def create_openlock_straight_wall_core(
     '''Returns the core (vertical inner) part of a wall tile
 
     Keyword arguments:
-    tile_system -- What tile system to usee e.g. OpenLOCK, DragonLOCK, plain
-    tile_name   -- name
-    tile_size   -- [x, y, z]
-    base_size   -- [x, y, z]
+    tile_name   -- STR, name
+    tile_size   -- VECTOR, [x, y, z]
+    base_size   -- VECTOR, [x, y, z]
     '''
 
     core = create_straight_wall_core(tile_name, tile_size, base_size)
@@ -319,23 +330,23 @@ def create_openlock_straight_wall_core(
     if tile_size[2] >= 0.99:
         wall_cutters = create_openlock_wall_cutters(core, tile_size, tile_name)
         for wall_cutter in wall_cutters:
-            # wall_cutter.parent = core
+            wall_cutter.parent = core
             wall_cutter.display_type = 'BOUNDS'
             wall_cutter.hide_viewport = True
             wall_cutter_bool = core.modifiers.new('Wall Cutter', 'BOOLEAN')
             wall_cutter_bool.operation = 'DIFFERENCE'
             wall_cutter_bool.object = wall_cutter
 
-    return core
+    return core, wall_cutters
 
 
-def create_openlock_wall_cutters(slab, tile_size, tile_name):
+def create_openlock_wall_cutters(core, tile_size, tile_name):
     """Creates the cutters for the wall and positions them correctly
 
     Keyword arguments:
-    slab -- wall slab object
-    tile_size --0 [x, y, z] Size of tile including any base
-    tile_name -- tile name
+    core -- OBJ, wall core object
+    tile_size -- VECTOR [x, y, z] Size of tile including any base
+    tile_name -- STR, tile name
     """
     deselect_all()
     preferences = get_prefs()
@@ -348,13 +359,13 @@ def create_openlock_wall_cutters(slab, tile_size, tile_name):
     side_cutter1 = data_to.objects[0]
     add_object_to_collection(side_cutter1, tile_name)
 
-    slab_location = slab.location
+    core_location = core.location
 
     # get location of bottom front left corner of tile
     front_left = [
-        slab_location[0] - (tile_size[0] / 2),
-        slab_location[1] - (tile_size[1] / 2),
-        slab_location[2]]
+        core_location[0] - (tile_size[0] / 2),
+        core_location[1] - (tile_size[1] / 2),
+        core_location[2]]
     # move cutter to bottom front left corner then up by 0.63 inches
     side_cutter1.location = [
         front_left[0],
@@ -370,7 +381,7 @@ def create_openlock_wall_cutters(slab, tile_size, tile_name):
 
     mirror_mod = side_cutter1.modifiers.new('Mirror', 'MIRROR')
     mirror_mod.use_axis[0] = True
-    mirror_mod.mirror_object = slab
+    mirror_mod.mirror_object = core
 
     # make a copy of side cutter 1
     side_cutter2 = side_cutter1.copy()
@@ -391,7 +402,8 @@ def create_openlock_base_clip_cutter(base, tile_name):
     on the width of the base and positions it correctly
 
     Keyword arguments:
-    object -- base the cutter will be used on
+    base -- OBJ, base the cutter will be used on
+    tile_name -- STR, tilename
     """
 
     mode('OBJECT')
@@ -435,12 +447,13 @@ def create_openlock_base_clip_cutter(base, tile_name):
     return (clip_cutter)
 
 
-def create_openlock_base_slot_cutter(base, tile_name):
+def create_openlock_base_slot_cutter(base, tile_name, offset=0.18):
     """Makes a cutter for the openlock base slot
     based on the width of the base
 
     Keyword arguments:
-    object -- base the cutter will be used on
+    base -- OBJ, base the cutter will be used on
+    tile_name -- STR
     """
     cursor = bpy.context.scene.cursor
     mode('OBJECT')
@@ -466,7 +479,7 @@ def create_openlock_base_slot_cutter(base, tile_name):
     select(cutter.name)
     activate(cutter.name)
 
-    cutter.location = (base_location[0] - bool_size[0] / 2, base_location[1] + 0.18, base_location[2] + cutter.dimensions[2] - 0.001)
+    cutter.location = (base_location[0] - bool_size[0] / 2, base_location[1] + offset, base_location[2] + cutter.dimensions[2] - 0.001)
 
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
 

@@ -50,7 +50,7 @@ def create_rectangular_floor(
         base_size = (0, 0, 0)
 
     if base:
-        floor = create_floor(tile_name, tile_size, base_size, tile_material)
+        floor = create_floor(tile_name, tile_size, base_size, tile_material, base)
 
 
 def create_plain_base(tile_name, base_size):
@@ -71,7 +71,7 @@ def create_plain_base(tile_name, base_size):
     return base
 
 
-def create_floor(tile_name, tile_size, base_size, tile_material):
+def create_floor(tile_name, tile_size, base_size, tile_material, base):
     ''''creates the preview and displacement slabs for the floor tile'''
     preview_slab = create_floor_slab(
         tile_name,
@@ -99,6 +99,11 @@ def create_floor(tile_name, tile_size, base_size, tile_material):
 
     assign_displacement_materials(displacement_slab, 'Z', 'z_pos', 'pos', [image_size, image_size], primary_material)
     assign_preview_materials(preview_slab, 'z_pos', primary_material, secondary_material)
+
+    slabs = [preview_slab, displacement_slab]
+
+    for slab in slabs:
+        slab.parent = base
 
     displacement_slab.hide_viewport = True
 

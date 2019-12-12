@@ -41,6 +41,13 @@ def create_straight_wall(
     base_system -- STR tile system for bases
     tile_material -- STR material name
     """
+    # hack to correct for parenting issues.
+    # moves cursor to origin and creates objects
+    # their then moves base to cursor original location and resets cursor
+    # TODO: get rid of hack and parent properly
+    cursor = bpy.context.scene.cursor
+    cursor_orig_loc = cursor.location.copy()
+    cursor.location = (0, 0, 0)
 
     if base_system == 'OPENLOCK':
         base_size = Vector((tile_size[0], 0.5, 0.2755))
@@ -55,6 +62,9 @@ def create_straight_wall(
 
     if tile_system == 'PLAIN':
         create_plain_wall(tile_name, tile_size, base, tile_material)
+
+    base.location = cursor_orig_loc
+    cursor.location = cursor_orig_loc
 
 
 def create_wall_slabs(displacement_type, tile_name, core_size, base_size, tile_size, tile_material):
@@ -292,7 +302,7 @@ def create_openlock_straight_wall_base(tile_name, base_size):
     # make base
     base = create_straight_wall_base(tile_name, base_size)
 
-    slot_cutter = create_openlock_base_slot_cutter(base, tile_name)
+    slot_cutter = create_openlock_base_slot_cutter(base, base_size, tile_name)
 
     slot_boolean = base.modifiers.new(slot_cutter.name, 'BOOLEAN')
     slot_boolean.operation = 'DIFFERENCE'
@@ -447,7 +457,7 @@ def create_openlock_base_clip_cutter(base, tile_name):
     return (clip_cutter)
 
 
-def create_openlock_base_slot_cutter(base, tile_name, offset=0.18):
+def create_openlock_base_slot_cutter(base, base_size, tile_name, offset=0.18):
     """Makes a cutter for the openlock base slot
     based on the width of the base
 
@@ -465,7 +475,7 @@ def create_openlock_base_slot_cutter(base, tile_name, offset=0.18):
 
     # work out bool size X from base size, y and z are constants
     bool_size = [
-        base_dimensions[0] - (0.236 * 2),
+        base_size[0] - (0.236 * 2),
         0.197,
         0.25]
 

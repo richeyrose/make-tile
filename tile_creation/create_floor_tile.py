@@ -37,6 +37,13 @@ def create_rectangular_floor(
     base_system -- tile system for bases
     tile_material -- material name
     """
+    # hack to correct for parenting issues.
+    # moves cursor to origin and creates objects
+    # their then moves base to cursor original location and resets cursor
+    # TODO: get rid of hack and parent properly
+    cursor = bpy.context.scene.cursor
+    cursor_orig_loc = cursor.location.copy()
+    cursor.location = (0, 0, 0)
 
     if base_system == 'OPENLOCK':
         base_size = Vector((tile_size[0], tile_size[1], .2756))
@@ -51,6 +58,9 @@ def create_rectangular_floor(
 
     if base:
         floor = create_floor(tile_name, tile_size, base_size, tile_material, base)
+
+    base.location = cursor_orig_loc
+    cursor.location = cursor_orig_loc
 
 
 def create_plain_base(tile_name, base_size):

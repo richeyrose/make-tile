@@ -33,7 +33,7 @@ def create_tile(
 
     # construct first part of tile name based on system and type
     tile_name = tile_system.lower() + "." + tile_type.lower()
-
+    deselect_all()
     if tile_type == 'STRAIGHT_WALL' or 'CURVED_WALL':
 
         # create walls collection if it doesn't already exist

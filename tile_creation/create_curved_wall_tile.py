@@ -1,7 +1,7 @@
 import os
 import bpy
 from mathutils import Vector
-from math import degrees, radians, pi
+from math import degrees, radians, pi, modf
 from .. lib.utils.collections import add_object_to_collection
 from .. utils.registration import get_path, get_prefs
 from .. lib.turtle.scripts.primitives import draw_cuboid
@@ -44,8 +44,17 @@ def create_curved_wall(
     # correct for the Y thickness
     base_inner_radius = base_inner_radius + (base_size[1] / 2)
 
+    # hack to correct for parenting issues.
+    # moves cursor to origin and creates objects
+    # their then moves base to cursor original location and resets cursor
+    # TODO: get rid of hack and parent properly
+    cursor = bpy.context.scene.cursor
+    cursor_orig_loc = cursor.location.copy()
+    cursor.location = (0, 0, 0)
+
     if base_system == 'OPENLOCK':
-        base_size = Vector((base_size[0], 0.5, 0.2755))
+        base_inner_radius = wall_inner_radius + (base_size[1] / 2)
+        base_size = Vector((tile_size[0], 0.5, 0.2755))
         base, base_size = create_openlock_curved_wall_base(
             base_size,
             base_inner_radius,
@@ -83,6 +92,8 @@ def create_curved_wall(
             segments,
             tile_name,
             tile_material)
+    base.location = cursor_orig_loc
+    cursor.location = cursor_orig_loc
 
 
 def create_openlock_curved_wall_base(
@@ -100,7 +111,7 @@ def create_openlock_curved_wall_base(
         tile_name)
 
     # make base slot
-    slot_cutter = create_openlock_base_slot_cutter(base, tile_name, offset=0.017)
+    slot_cutter = create_openlock_base_slot_cutter(base, base_size, tile_name, offset=0.017)
 
     slot_boolean = base.modifiers.new(slot_cutter.name, 'BOOLEAN')
     slot_boolean.operation = 'DIFFERENCE'
@@ -129,10 +140,10 @@ def create_openlock_curved_wall_base(
     circle_center = Vector((loc[0], loc[1] + base_inner_radius, loc[2]))
 
     # TODO: parameterise
-    bpy.ops.transform.rotate(value=radians(22.5), orient_axis='Z', center_override=circle_center)
+    bpy.ops.transform.rotate(value=radians((degrees_of_arc / 2) - 22.5), orient_axis='Z', center_override=circle_center)
     bpy.ops.object.transform_apply(location=False, scale=False, properties=False)
-
-    array_name, empty = add_circle_array(base_cutter, circle_center, 3, 'Z', 67.5)
+    num_cutters = modf((degrees_of_arc - 22.5) / 22.5)
+    array_name, empty = add_circle_array(base_cutter, circle_center, num_cutters[1], 'Z', degrees_of_arc - 22.5)
     empty.parent = base
     empty.hide_viewport = True
     base_cutter.parent = base

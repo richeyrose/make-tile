@@ -11,6 +11,7 @@ class MT_OT_makeVertGroupsFromFaces(bpy.types.Operator):
     def execute(self, context):
         cuboid_sides_to_vert_groups()
         return {'FINISHED'}
+
     @classmethod
     def register(cls):
         print("Registered class: %s " % cls.bl_label)

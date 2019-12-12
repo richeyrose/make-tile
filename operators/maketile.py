@@ -122,12 +122,12 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         bpy.types.Scene.mt_tile_resolution = bpy.props.IntProperty(
             name="Resolution",
             description="Bake resolution of displacement maps. Higher = better quality but slower",
-            default=2048,
+            default=1024,
             min=1024,
             max=8192,
             step=1024,
         )
-        
+
         bpy.types.Scene.mt_subdivisions = bpy.props.IntProperty(
             name="Subdivisions",
             description="How many times to subdivide the displacement mesh. Higher = better but slower. \
@@ -146,6 +146,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             default=2.0,
             step=0.5,
             precision=3,
+            min=0
         )
 
         bpy.types.Scene.mt_tile_y = bpy.props.FloatProperty(
@@ -153,6 +154,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             default=2,
             step=0.5,
             precision=3,
+            min=0
         )
 
         bpy.types.Scene.mt_tile_z = bpy.props.FloatProperty(
@@ -160,6 +162,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             default=2.0,
             step=0.1,
             precision=3,
+            min=0
         )
 
         # Base size
@@ -168,6 +171,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             default=2.0,
             step=0.5,
             precision=3,
+            min=0
         )
 
         bpy.types.Scene.mt_base_y = bpy.props.FloatProperty(
@@ -175,12 +179,14 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             default=0.5,
             step=0.5,
             precision=3,
+            min=0
         )
         bpy.types.Scene.mt_base_z = bpy.props.FloatProperty(
             name="Z",
             default=0.3,
             step=0.1,
             precision=3,
+            min=0
         )
 
         # Used for curved wall tiles
@@ -189,6 +195,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             default=2.0,
             step=0.5,
             precision=3,
+            min=0,
         )
 
         bpy.types.Scene.mt_wall_inner_radius = bpy.props.FloatProperty(
@@ -196,13 +203,17 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             default=2.0,
             step=0.5,
             precision=3,
+            min=0
         )
 
+        # TODO: Fix hack to make 360 curved wall work
         bpy.types.Scene.mt_degrees_of_arc = bpy.props.FloatProperty(
             name="Degrees of arc",
             default=90,
             step=45,
             precision=1,
+            max=359.999,
+            min=1
         )
 
         bpy.types.Scene.mt_segments = bpy.props.IntProperty(

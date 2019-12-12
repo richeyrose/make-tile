@@ -61,18 +61,25 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
         scene = context.scene
         layout = self.layout
 
-        if scene.mt_tile_type == 'STRAIGHT_WALL' or 'RECTANGULAR_FLOOR':
+        if scene.mt_tile_type == 'STRAIGHT_WALL' or scene.mt_tile_type == 'RECTANGULAR_FLOOR':
             layout.label(text="Base Size")
             row = layout.row()
             row.prop(scene, 'mt_base_x')
             row.prop(scene, 'mt_base_y')
-            row.prop(scene, 'mt_base_z')           
+            row.prop(scene, 'mt_base_z')
+
+        elif scene.mt_tile_type == 'CURVED_WALL':
+            layout.label(text="Base Properties")
+            layout.prop(scene, 'mt_base_inner_radius')
+            row = layout.row()
+            row.prop(scene, 'mt_base_y')
+            row.prop(scene, 'mt_base_z')
 
     def draw_plain_main_part_panel(self, context):
         scene = context.scene
         layout = self.layout
 
-        if scene.mt_tile_type == 'STRAIGHT_WALL' or 'RECTANGULAR_FLOOR':
+        if scene.mt_tile_type == 'STRAIGHT_WALL' or scene.mt_tile_type == 'RECTANGULAR_FLOOR':
             layout.label(text="Tile Size")
             row = layout.row()
             row.prop(scene, 'mt_tile_x')
@@ -81,15 +88,9 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
 
         elif scene.mt_tile_type == 'CURVED_WALL':
             layout.label(text="Tile Properties")
-            layout.prop(scene, 'mt_base_inner_radius')
             layout.prop(scene, 'mt_wall_inner_radius')
             layout.prop(scene, 'mt_degrees_of_arc')
             layout.prop(scene, 'mt_segments')
-
-            layout.label(text="Base Thickness and Height")
-            row = layout.row()
-            row.prop(scene, 'mt_base_y')
-            row.prop(scene, 'mt_base_z')
 
             layout.label(text="Wall Thickness and Height")
             row = layout.row()
@@ -118,6 +119,17 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
                 self.draw_plain_base_panel(context)
                 self.draw_plain_main_part_panel(context)
             if scene.mt_base_system == 'OPENLOCK':
+                self.draw_openlock_panel(context)
+
+        if scene.mt_tile_type == 'CURVED_WALL':
+            layout.prop(scene, 'mt_base_system')
+            layout.prop(scene, 'mt_tile_main_system')
+
+            if scene.mt_base_system == 'PLAIN':
+                self.draw_plain_base_panel(context)
+            if scene.mt_tile_main_system == 'PLAIN':
+                self.draw_plain_main_part_panel(context)
+            if scene.mt_tile_main_system == 'OPENLOCK':
                 self.draw_openlock_panel(context)
 
 
@@ -227,6 +239,4 @@ class MT_PT_Export_Panel(MT_PT_Panel, bpy.types.Panel):
 
         row = layout.row()
         layout.prop(scene, 'mt_units')
-        # TODO: fix merge on export so voxelises properly
-        # layout.prop(scene, 'mt_merge_on_export')
-        # layout.prop(scene, 'mt_voxelise_on_export')
+        layout.prop(scene, 'mt_voxelise_on_export')

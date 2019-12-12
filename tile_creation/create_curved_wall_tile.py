@@ -167,7 +167,7 @@ def create_curved_wall_slabs(
         degrees_of_arc,
         tile_material):
 
-    displacement_type = 'NORMAL'
+    displacement_type = 'AXIS'
 
     slabs = create_wall_slabs(
         displacement_type,
@@ -180,10 +180,15 @@ def create_curved_wall_slabs(
     for slab in slabs:
         slab.hide_viewport = False
 
-        add_deform_modifiers(slab, segments, degrees_of_arc)
+        curve_mod_name = add_deform_modifiers(slab, segments, degrees_of_arc)
         select(slab.name)
         if slab['geometry_type'] == 'DISPLACEMENT':
             slab.hide_viewport = True
+        # for preview meshes we want the modifier at the top so adaptive subdivision works
+        # for displacement meshes we want it at the bottom so we can displace along axis
+        if slab['geometry_type'] == 'PREVIEW':
+            bpy.ops.object.modifier_move_up(modifier=curve_mod_name)
+            bpy.ops.object.modifier_move_up(modifier=curve_mod_name)
     return slabs
 
 
@@ -212,9 +217,8 @@ def add_deform_modifiers(obj, segments, degrees_of_arc):
     curve_mod.deform_axis = 'Z'
     curve_mod.show_render = False
     curve_mod.angle = radians(degrees_of_arc)
-    bpy.ops.object.modifier_move_up(modifier=curve_mod.name)
-    bpy.ops.object.modifier_move_up(modifier=curve_mod.name)
 
+    return curve_mod.name
 
 def create_openlock_curved_wall_core(tile_name, tile_size, base_size, segments, degrees_of_arc, wall_inner_radius):
     core = create_straight_wall_core(tile_name, tile_size, base_size)

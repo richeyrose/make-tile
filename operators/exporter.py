@@ -19,9 +19,10 @@ class MT_OT_Export_Tile(bpy.types.Operator):
             return True
 
     def execute(self, context):
-        # TODO: Implement overwrite option
         deselect_all()
-        bpy.ops.object.select_by_type(type='MESH')
+        for obj in context.layer_collection.collection.all_objects:
+            obj.select_set(True)
+
         meshes = bpy.context.selected_objects.copy()
         mesh_copies = []
 
@@ -33,26 +34,19 @@ class MT_OT_Export_Tile(bpy.types.Operator):
         for copy in mesh_copies:
             context.layer_collection.collection.objects.link(copy)
 
-        bpy.ops.object.select_by_type(type='MESH')
+        for obj in context.layer_collection.collection.all_objects:
+            obj.select_set(True)
+    
         bpy.ops.object.make_single_user(type='SELECTED_OBJECTS', obdata=True)
 
         for copy in mesh_copies:
             apply_all_modifiers(copy)
-
-        if bpy.context.scene.mt_merge_on_export is True:
-            if len(mesh_copies) > 1:
-                activate(mesh_copies[0].name)
-                bpy.ops.object.join()
+        if len(mesh_copies) > 1:
+            activate(mesh_copies[0].name)
+            bpy.ops.object.join()
 
         if bpy.context.scene.mt_voxelise_on_export is True:
-            if bpy.context.scene.mt_merge_on_export is True:
-                voxelise_mesh(bpy.context.object)
-            else:
-                for copy in mesh_copies:
-                    if 'geometry_type' in copy:
-                        if copy['geometry_type'] == 'DISPLACEMENT':
-                            apply_all_modifiers(copy)
-                            voxelise_mesh(copy)
+            voxelise_mesh(bpy.context.object)
 
         units = bpy.context.scene.mt_units
         export_path = context.scene.mt_export_path
@@ -65,9 +59,8 @@ class MT_OT_Export_Tile(bpy.types.Operator):
         if not os.path.exists(export_path):
             os.mkdir(export_path)
         file_path = os.path.join(context.scene.mt_export_path, context.scene.mt_tile_name + '.stl')
-        bpy.ops.export_mesh.stl(filepath=file_path, check_existing=True, filter_glob="*.stl", use_selection=True, global_scale=unit_multiplier, use_mesh_modifiers=True)
+        bpy.ops.export_mesh.stl('INVOKE_DEFAULT', filepath=file_path, check_existing=True, filter_glob="*.stl", use_selection=True, global_scale=unit_multiplier, use_mesh_modifiers=True)
 
-        bpy.ops.object.delete()
         for mesh in meshes:
             mesh.hide_viewport = False
 
@@ -92,12 +85,6 @@ class MT_OT_Export_Tile(bpy.types.Operator):
             default=preferences.default_units
         )
 
-        bpy.types.Scene.mt_merge_on_export = bpy.props.BoolProperty(
-            name="Merge",
-            description="Merge all meshes on export",
-            default=False,
-        )
-
         bpy.types.Scene.mt_voxelise_on_export = bpy.props.BoolProperty(
             name="Voxelise",
             description="Voxelise on Export.\
@@ -109,7 +96,6 @@ class MT_OT_Export_Tile(bpy.types.Operator):
     @classmethod
     def unregister(cls):
         del bpy.types.Scene.mt_voxelise_on_export
-        del bpy.types.Scene.mt_merge_on_export
         del bpy.types.Scene.mt_units
         del bpy.types.Scene.mt_export_path
 

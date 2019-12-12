@@ -1,5 +1,5 @@
 import bpy
-from .. lib.utils.selection import select, deselect_all, select_all
+from .. lib.utils.selection import select, deselect_all, select_all, activate
 
 
 class MT_OT_Tile_Voxeliser(bpy.types.Operator):
@@ -17,7 +17,8 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
 
     def execute(self, context):
         deselect_all()
-        bpy.ops.object.select_by_type(type='MESH')
+        for obj in context.layer_collection.collection.all_objects:
+            obj.select_set(True)
         meshes = bpy.context.selected_objects.copy()
 
         if context.scene.mt_merge_and_voxelise is True:
@@ -65,3 +66,21 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
         del bpy.types.Scene.mt_merge_and_voxelise
         del bpy.types.Scene.mt_voxel_adaptivity
         del bpy.types.Scene.mt_voxel_quality
+
+
+def voxelise_mesh(mesh):
+    activate(mesh.name)
+    mesh.data.remesh_voxel_size = bpy.context.scene.mt_voxel_quality
+    mesh.data.remesh_voxel_adaptivity = bpy.context.scene.mt_voxel_adaptivity
+    bpy.ops.object.voxel_remesh()
+
+
+def apply_all_modifiers(mesh):
+    contxt = bpy.context.copy()
+    contxt['object'] = mesh
+
+    for mod in mesh.modifiers[:]:
+        contxt['modifier'] = mod
+        bpy.ops.object.modifier_apply(
+            contxt, apply_as='DATA',
+            modifier=contxt['modifier'].name)

@@ -6,6 +6,7 @@ from ..lib.utils.vertex_groups import cuboid_sides_to_vert_groups
 class MT_OT_makeVertGroupsFromFaces(bpy.types.Operator):
     bl_idname = "scene.make_vert_groups_from_faces"
     bl_label = "Make vert groups from faces of cuboid"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         cuboid_sides_to_vert_groups()

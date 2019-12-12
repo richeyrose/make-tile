@@ -5,74 +5,8 @@ from .. utils.registration import get_prefs
 from .. enums.enums import units
 
 
-class MT_OT_Tile_Voxeliser(bpy.types.Operator):
-    """Operator class used to voxelise tiles"""
-    bl_idname = "scene.voxelise_tile"
-    bl_label = "Voxelise tile"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    @classmethod
-    def poll(cls, context):
-        if bpy.context.object is not None:
-            return bpy.context.object.mode == 'OBJECT'
-        else:
-            return True
-
-    def execute(self, context):
-        deselect_all()
-        bpy.ops.object.select_by_type(type='MESH')
-        meshes = bpy.context.selected_objects.copy()
-
-        if context.scene.mt_merge_and_voxelise is True:
-            for mesh in meshes:
-                apply_all_modifiers(mesh)
-            if len(meshes) > 1:
-                bpy.ops.object.join()
-            voxelise_mesh(bpy.context.object)
-        else:
-            # apply all displacement modifiers
-            for mesh in meshes:
-                if 'geometry_type' in mesh:
-                    if mesh['geometry_type'] == 'DISPLACEMENT':
-                        apply_all_modifiers(mesh)
-                        voxelise_mesh(mesh)
-
-        return {'FINISHED'}
-
-    @classmethod
-    def register(cls):
-        bpy.types.Scene.mt_voxel_quality = bpy.props.FloatProperty(
-            name="Quality",
-            description="Quality of the voxelisation. Smaller = Better",
-            soft_min=0.005,
-            default=0.005,
-            precision=3,
-
-        )
-
-        bpy.types.Scene.mt_voxel_adaptivity = bpy.props.FloatProperty(
-            name="Adaptivity",
-            description="Amount by which to simplify mesh",
-            default=0.01,
-            precision=3,
-        )
-
-        bpy.types.Scene.mt_merge_and_voxelise = bpy.props.BoolProperty(
-            name="Merge",
-            description="Merge tile before voxelising? Creates a single mesh.",
-            default=True
-        )
-
-
-    @classmethod
-    def unregister(cls):
-        del bpy.types.Scene.mt_merge_and_voxelise
-        del bpy.types.Scene.mt_voxel_adaptivity
-        del bpy.types.Scene.mt_voxel_quality
-
-
 class MT_OT_Export_Tile(bpy.types.Operator):
-    """Operator class used to export tiles"""
+    """Operator class used to export tiles as .stl"""
     bl_idname = "scene.export_tile"
     bl_label = "Export tile"
     bl_options = {'REGISTER', 'UNDO'}
@@ -130,7 +64,6 @@ class MT_OT_Export_Tile(bpy.types.Operator):
 
         if not os.path.exists(export_path):
             os.mkdir(export_path)
-
         file_path = os.path.join(context.scene.mt_export_path, context.scene.mt_tile_name + '.stl')
         bpy.ops.export_mesh.stl(filepath=file_path, check_existing=True, filter_glob="*.stl", use_selection=True, global_scale=unit_multiplier, use_mesh_modifiers=True)
 

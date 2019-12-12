@@ -7,6 +7,7 @@ class MT_OT_Return_To_Preview(bpy.types.Operator):
     makes preview meshes visible again"""
     bl_idname = "scene.return_to_preview"
     bl_label = "Return to preview mesh"
+    bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(cls, context):

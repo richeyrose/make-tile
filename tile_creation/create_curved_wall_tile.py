@@ -113,12 +113,14 @@ def create_openlock_curved_wall_base(
     # make base slot
     slot_cutter = create_openlock_base_slot_cutter(base, base_size, tile_name, offset=0.017)
 
+    cutter_degrees_of_arc = degrees_of_arc * (slot_cutter.dimensions[0] / base_size[0])
+
     slot_boolean = base.modifiers.new(slot_cutter.name, 'BOOLEAN')
     slot_boolean.operation = 'DIFFERENCE'
     slot_boolean.object = slot_cutter
     slot_cutter.parent = base
     slot_cutter.display_type = 'BOUNDS'
-    add_deform_modifiers(slot_cutter, segments, (degrees_of_arc - 12))
+    add_deform_modifiers(slot_cutter, segments, cutter_degrees_of_arc)
     slot_cutter.hide_viewport = True
 
     deselect_all()
@@ -139,7 +141,7 @@ def create_openlock_curved_wall_base(
     loc = base_cutter.location
     circle_center = Vector((loc[0], loc[1] + base_inner_radius, loc[2]))
 
-    # TODO: parameterise
+    # TODO: Introduce check for 360 tile and also small curvature
     bpy.ops.transform.rotate(value=radians((degrees_of_arc / 2) - 22.5), orient_axis='Z', center_override=circle_center)
     bpy.ops.object.transform_apply(location=False, scale=False, properties=False)
     num_cutters = modf((degrees_of_arc - 22.5) / 22.5)

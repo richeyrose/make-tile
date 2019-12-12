@@ -10,6 +10,7 @@ extra_sup_dist = 0.8531       # distance between extra supports for large tiles
 
 
 def draw_openlock_rect_floor_base(dimensions):
+    '''Returns an openlock rectangular floor base'''
     turtle = bpy.context.scene.cursor
     t = bpy.ops.turtle
     x = dimensions[0]

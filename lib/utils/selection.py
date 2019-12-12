@@ -46,25 +46,30 @@ def activate(obj_name):
     bpy.context.view_layer.objects.active = bpy.data.objects[obj_name]
 
 
-# gets local object center relative to origin
 def get_local_bbox_center(obj):
+    """gets local object center relative to origin"""
     local_bbox_center = 0.125 * sum((Vector(b) for b in obj.bound_box), Vector())
     return local_bbox_center
 
 
-# gets global object center
 def get_global_bbox_center(obj):
+    """gets global object center"""
     local_bbox_center = get_local_bbox_center(obj)
     global_bbox_center = obj.matrix_world @ local_bbox_center
     return global_bbox_center
 
 
-# lbound = lowest left of cuboid
-# ubound = upper right of cuboid
-def in_bbox(lbound, ubound, v, buffer=0.001):
-    return lbound[0] - buffer <= v[0] <= ubound[0] + buffer and \
-        lbound[1] - buffer <= v[1] <= ubound[1] + buffer and \
-        lbound[2] - buffer <= v[2] <= ubound[2] + buffer
+def in_bbox(lbound, ubound, vert, buffer=0.001):
+    """Checks whether a vertex is within a bounding cube
+    Keyword arguments:
+    lbound -- VECTOR lower left of cuboid
+    ubound -- VECTOR upper right of cuboid
+    vert -- bmesh.vert vertex
+    buffer -- FLOAT buffer distance to add to cuboid. Useful when checking if single vert is at location
+    """
+    return lbound[0] - buffer <= vert[0] <= ubound[0] + buffer and \
+        lbound[1] - buffer <= vert[1] <= ubound[1] + buffer and \
+        lbound[2] - buffer <= vert[2] <= ubound[2] + buffer
 
 
 def select_by_loc(

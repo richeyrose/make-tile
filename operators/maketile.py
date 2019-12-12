@@ -237,6 +237,10 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         del bpy.types.Scene.mt_tile_main_system
         del bpy.types.Scene.mt_tile_units
 
+        for pcoll in enum_collections.values():
+            bpy.utils.previews.remove(pcoll)
+        enum_collections.clear()
+
 
 def load_material_enums(self, context):
     enum_items = []

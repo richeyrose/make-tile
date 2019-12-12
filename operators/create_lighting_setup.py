@@ -13,6 +13,7 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
     """Creates a lighting setup for Cycles and Eevee previews"""
     bl_idname = "scene.create_lighting_setup"
     bl_label = "Create Lighting"
+    bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(cls, context):

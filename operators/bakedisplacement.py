@@ -8,6 +8,7 @@ class MT_OT_Bake_Displacement(bpy.types.Operator):
     """Operator class to bake displacement maps"""
     bl_idname = "scene.bake_displacement"
     bl_label = "Bake a displacement map"
+    bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(cls, context):
@@ -107,6 +108,9 @@ def bake_displacement_map(material, obj, resolution):
 
     # bake
     bpy.ops.object.bake(type='EMIT')
+
+    # pack image
+    image.pack()
 
     # reset shader
     surface_shader_node = tree.nodes['surface_shader']

@@ -23,7 +23,8 @@ def create_tile(
         segments,
         base_system,
         tile_material,
-        socket_side):
+        socket_side,
+        textured_faces):
     """Returns a tile as a collection
 
     """
@@ -58,7 +59,8 @@ def create_tile(
             tile_size,
             base_size,
             base_system,
-            tile_material)
+            tile_material,
+            textured_faces)
 
     if tile_type == 'CURVED_WALL':
         create_curved_wall(

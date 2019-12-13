@@ -18,7 +18,9 @@ from .. materials.materials import (
     add_displacement_mesh_modifiers,
     add_preview_mesh_modifiers,
     assign_displacement_materials,
-    assign_preview_materials)
+    assign_preview_materials,
+    assign_displacement_materials_2,
+    assign_preview_materials_2)
 from .. enums.enums import geometry_types
 
 
@@ -29,7 +31,8 @@ def create_straight_wall(
         tile_size,
         base_size,
         base_system,
-        tile_material):
+        tile_material,
+        textured_faces):
 
     """Returns a straight wall
     Keyword arguments:
@@ -61,7 +64,8 @@ def create_straight_wall(
         create_openlock_wall(tile_name, tile_size, base, tile_material)
 
     if tile_system == 'PLAIN':
-        create_plain_wall(tile_name, tile_size, base, tile_material)
+        # create_plain_wall(tile_name, tile_size, base, tile_material)
+        create_plain_wall_2(tile_name, tile_size, base, tile_material, textured_faces)
 
     base.location = cursor_orig_loc
     cursor.location = cursor_orig_loc
@@ -165,6 +169,74 @@ def create_plain_wall(tile_name, tile_size, base, tile_material):
     slabs = create_wall_slabs(tile_name, core.dimensions, base_size, tile_size, tile_material)
     for slab in slabs:
         slab.parent = base
+
+
+def create_plain_wall_2(tile_name, tile_size, base, tile_material, textured_faces):
+    base_size = base.dimensions
+    core_size = Vector((tile_size))
+
+    preview_core = create_straight_wall_core_2(tile_name, core_size, base_size)
+    preview_core['geometry_type'] = 'PREVIEW'
+
+    displacement_core = create_straight_wall_core_2(tile_name, core_size, base_size)
+    displacement_core['geometry_type'] = 'DISPLACEMENT'
+
+    preview_core['displacement_obj'] = displacement_core
+    displacement_core['preview_obj'] = preview_core
+
+    preview_core.parent = base
+    displacement_core.parent = base
+
+    preferences = get_prefs()
+
+    primary_material = bpy.data.materials[tile_material]
+    secondary_material = bpy.data.materials[preferences.secondary_material]
+
+    image_size = bpy.context.scene.mt_tile_resolution
+
+    assign_displacement_materials_2(displacement_core, [image_size, image_size], primary_material, secondary_material, textured_faces)
+    assign_preview_materials_2(preview_core, primary_material, secondary_material, textured_faces)
+
+    displacement_core.hide_viewport = True
+
+
+def create_straight_wall_core_2(
+        tile_name,
+        tile_size,
+        base_size):
+    '''Returns the core (vertical inner) part of a wall tile
+
+    Keyword arguments:
+    tile_name   -- STR, name
+    tile_size   -- VECTOR, [x, y, z]
+    base_size   -- VECTOR, [x, y, z]
+    '''
+    cursor = bpy.context.scene.cursor
+    cursor_start_location = cursor.location.copy()
+
+    deselect_all()
+
+    # make our core
+    core = draw_cuboid([
+        tile_size[0],
+        tile_size[1],
+        tile_size[2] - base_size[2]])
+
+    core.name = tile_name + '.core'
+    add_object_to_collection(core, tile_name)
+    core_location = core.location.copy()
+    mode('OBJECT')
+
+    # move core so centred, move up so on top of base and set origin to world origin
+
+    core.location = (core_location[0] - tile_size[0] / 2, core_location[1] - tile_size[1] / 2, core_location[2] + base_size[2])
+    cursor.location = cursor_start_location
+    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+
+    bpy.ops.uv.smart_project()
+    cuboid_sides_to_vert_groups(core)
+
+    return core
 
 
 def create_straight_wall_core(

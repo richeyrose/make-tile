@@ -23,7 +23,7 @@ class TURTLE_OT_merge(bpy.types.Operator):
 class TURTLE_OT_bridge(bpy.types.Operator):
     bl_idname = "turtle.bridge"
     bl_label = "Bridge Edge Loops"
-    bl_description = "Bridges two edge loops"
+    bl_description = "Bridges two edge loops"   
 
     @classmethod
     def poll(cls, context):

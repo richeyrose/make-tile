@@ -20,7 +20,9 @@ from .. materials.materials import (
     assign_displacement_materials,
     assign_preview_materials,
     update_displacement_material,
-    update_preview_material)
+    update_displacement_material_2,
+    update_preview_material,
+    update_preview_material_2)
 
 
 class MT_OT_Make_Tile(bpy.types.Operator):
@@ -51,6 +53,15 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         base_system = context.scene.mt_base_system
         tile_material = context.scene.mt_tile_material
 
+        textured_faces = {
+            "x_neg": context.scene.mt_left_textured,
+            "x_pos": context.scene.mt_right_textured,
+            "y_pos": context.scene.mt_outer_textured,
+            "y_neg": context.scene.mt_inner_textured,
+            "z_pos": context.scene.mt_top_textured,
+            "z_neg": context.scene.mt_bottom_textured,
+        }
+
         if tile_blueprint == 'OPENLOCK':
             tile_main_system = 'OPENLOCK'
             base_system = 'OPENLOCK'
@@ -71,7 +82,8 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             segments,
             base_system,
             tile_material,
-            socket_side
+            socket_side,
+            textured_faces
         )
 
         return {'FINISHED'}
@@ -136,6 +148,38 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             Going above 8 is really not recommended and may cause Blender to freeze up for a loooooong time!",
             default=7,
             soft_max=8,
+        )
+
+        # Which sides of walls to texture
+
+        bpy.types.Scene.mt_inner_textured = bpy.props.BoolProperty(
+            name="Inner",
+            default=True
+        )
+
+        bpy.types.Scene.mt_outer_textured = bpy.props.BoolProperty(
+            name="Outer",
+            default=True
+        )
+
+        bpy.types.Scene.mt_top_textured = bpy.props.BoolProperty(
+            name="Top",
+            default=True
+        )
+
+        bpy.types.Scene.mt_bottom_textured = bpy.props.BoolProperty(
+            name="Bottom",
+            default=False
+        )
+
+        bpy.types.Scene.mt_left_textured = bpy.props.BoolProperty(
+            name="Left",
+            default=False
+        )
+
+        bpy.types.Scene.mt_right_textured = bpy.props.BoolProperty(
+            name="Right",
+            default=False
         )
 
         # Tile and base size. We use seperate floats so that we can only show
@@ -238,6 +282,12 @@ class MT_OT_Make_Tile(bpy.types.Operator):
     @classmethod
     def unregister(cls):
         print("Unregistered class: %s" % cls.bl_label)
+        del bpy.types.Scene.mt_inner_textured
+        del bpy.types.Scene.mt_outer_textured
+        del bpy.types.Scene.mt_top_textured
+        del bpy.types.Scene.mt_bottom_textured
+        del bpy.types.Scene.mt_left_textured
+        del bpy.types.Scene.mt_right_textured
         del bpy.types.Scene.mt_tile_name
         del bpy.types.Scene.mt_segments
         del bpy.types.Scene.mt_base_inner_radius
@@ -294,8 +344,11 @@ def update_material(self, context):
     if 'geometry_type' in preview_obj:
         if preview_obj['geometry_type'] == 'PREVIEW':
             disp_obj = preview_obj['displacement_obj']
-            update_displacement_material(disp_obj, bpy.context.scene.mt_tile_material)
-            update_preview_material(preview_obj, bpy.context.scene.mt_tile_material)
+            # update_displacement_material(disp_obj, bpy.context.scene.mt_tile_material)
+            # update_preview_material(preview_obj, bpy.context.scene.mt_tile_material)
+
+            update_displacement_material_2(disp_obj, bpy.context.scene.mt_tile_material)
+            update_preview_material_2(preview_obj, bpy.context.scene.mt_tile_material)
 
 
 enum_collections = {}

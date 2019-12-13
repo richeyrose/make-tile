@@ -87,7 +87,42 @@ def add_displacement_mesh_modifiers(obj, disp_axis, vert_group, disp_dir, image_
     obj['disp_mod_name'] = obj_disp_mod.name
 
 
+def add_displacement_mesh_modifiers_2(obj, image_size):
+    obj_subsurf = obj.modifiers.new('Subsurf', 'SUBSURF')
+    obj_subsurf.subdivision_type = 'SIMPLE'
+    obj_subsurf.levels = 0
+
+    obj_disp_mod = obj.modifiers.new('Displacement', 'DISPLACE')
+    obj_disp_mod.strength = 0
+    obj_disp_mod.texture_coords = 'UV'
+    obj_disp_mod.direction = 'NORMAL'
+    obj_disp_mod.mid_level = 0
+
+    obj_triangulate_mod = obj.modifiers.new('Triangulate', 'TRIANGULATE')
+
+    obj_disp_texture = bpy.data.textures.new(obj.name + '.texture', 'IMAGE')
+    obj['disp_texture'] = obj_disp_texture
+    obj['subsurf_mod_name'] = obj_subsurf.name
+    obj['disp_mod_name'] = obj_disp_mod.name
+
+
 def update_displacement_material(obj, primary_material_name):
+    deselect_all()
+    obj.hide_viewport = False
+    select(obj.name)
+    activate(obj.name)
+
+    for material_slot in obj.material_slots:
+        obj.active_material_index = 0
+        bpy.ops.object.material_slot_remove()
+
+    primary_material = bpy.data.materials[primary_material_name]
+    obj['primary_material'] = primary_material
+    obj.data.materials.append(primary_material)
+    obj.hide_viewport = True
+
+
+def update_displacement_material_2(obj, primary_material_name):
     deselect_all()
     obj.hide_viewport = False
     select(obj.name)
@@ -119,6 +154,58 @@ def update_preview_material(obj, primary_material_name):
     obj.data.materials.append(secondary_material)
     obj.data.materials.append(primary_material)
     assign_mat_to_vert_group(vert_group, obj, primary_material)
+
+
+def update_preview_material_2(obj, primary_material_name):
+    deselect_all()
+    select(obj.name)
+    activate(obj.name)
+
+    for material_slot in obj.material_slots:
+        obj.active_material_index = 0
+        bpy.ops.object.material_slot_remove()
+
+    textured_faces = obj['textured_faces']
+    print(textured_faces)
+    primary_material = bpy.data.materials[primary_material_name]
+    obj['primary_material'] = primary_material
+    secondary_material = obj['secondary_material']
+    obj.data.materials.append(secondary_material)
+    obj.data.materials.append(primary_material)
+
+    # for some reason blender has converted the bools stored in our dict to ints /\0/\
+    for key, value in textured_faces.items():
+        if value is 1:
+            assign_mat_to_vert_group(key, obj, primary_material)
+
+
+def assign_displacement_materials_2(obj, image_size, primary_material, secondary_material, textured_faces):
+    for material_slot in obj.material_slots:
+        obj.active_material_index = 0
+        bpy.ops.object.material_slot_remove()
+
+    obj['primary_material'] = primary_material
+    add_displacement_mesh_modifiers_2(obj, image_size)
+    obj.data.materials.append(primary_material)
+
+
+def assign_preview_materials_2(obj, primary_material, secondary_material, textured_faces):
+    for material_slot in obj.material_slots:
+        obj.active_material_index = 0
+        bpy.ops.object.material_slot_remove()
+
+    obj['primary_material'] = primary_material
+    obj['secondary_material'] = secondary_material
+    obj['textured_faces'] = textured_faces
+
+    add_preview_mesh_modifiers(obj)
+
+    obj.data.materials.append(secondary_material)
+    obj.data.materials.append(primary_material)
+
+    for key, value in textured_faces.items():
+        if value is True:
+            assign_mat_to_vert_group(key, obj, primary_material)
 
 
 def assign_displacement_materials(obj, disp_axis, vert_group, disp_dir, image_size, primary_material):

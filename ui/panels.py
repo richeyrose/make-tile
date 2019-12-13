@@ -82,7 +82,23 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
         scene = context.scene
         layout = self.layout
 
-        if scene.mt_tile_type == 'STRAIGHT_WALL' or scene.mt_tile_type == 'RECTANGULAR_FLOOR':
+        if scene.mt_tile_type == 'STRAIGHT_WALL':
+            layout.label(text="Tile Size")
+            row = layout.row()
+            row.prop(scene, 'mt_tile_x')
+            row.prop(scene, 'mt_tile_y')
+            row.prop(scene, 'mt_tile_z')
+
+            layout.label(text="Textured Sides")
+            row = layout.row()
+            row.prop(scene, 'mt_inner_textured')
+            row.prop(scene, 'mt_outer_textured')
+            row.prop(scene, 'mt_top_textured')
+            row.prop(scene, 'mt_bottom_textured')
+            row.prop(scene, 'mt_left_textured')
+            row.prop(scene, 'mt_right_textured')
+
+        elif scene.mt_tile_type == 'RECTANGULAR_FLOOR':
             layout.label(text="Tile Size")
             row = layout.row()
             row.prop(scene, 'mt_tile_x')

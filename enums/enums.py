@@ -38,6 +38,11 @@ geometry_types = [
     ("GREEBLE", "Greeble", "", 7)
 ]
 
+base_socket_side = [
+    ("INNER", "Inner", "", 1),
+    ("OUTER", "Outer", "", 2)
+]
+
 view_mode = [
     ("CYCLES", "Cycles", "", 1),
     ("EEVEE", "Eevee", "", 2),

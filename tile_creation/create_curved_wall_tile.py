@@ -39,7 +39,8 @@ def create_curved_wall(
         base_inner_radius,
         wall_inner_radius,
         degrees_of_arc,
-        segments):
+        segments,
+        socket_side):
 
     # correct for the Y thickness
     base_inner_radius = base_inner_radius + (base_size[1] / 2)
@@ -60,7 +61,8 @@ def create_curved_wall(
             base_inner_radius,
             degrees_of_arc,
             segments,
-            tile_name)
+            tile_name,
+            socket_side)
 
     if base_system == 'PLAIN':
         base, base_size = create_plain_curved_wall_base(
@@ -101,7 +103,8 @@ def create_openlock_curved_wall_base(
         base_inner_radius,
         degrees_of_arc,
         segments,
-        tile_name):
+        tile_name,
+        socket_side):
 
     base, base_size = create_plain_curved_wall_base(
         base_size,
@@ -111,8 +114,10 @@ def create_openlock_curved_wall_base(
         tile_name)
 
     # make base slot
-    slot_cutter = create_openlock_base_slot_cutter(base, base_size, tile_name, offset=0.017)
-
+    if socket_side == 'INNER':
+        slot_cutter = create_openlock_base_slot_cutter(base, base_size, tile_name, offset=0.017)
+    else:
+        slot_cutter = create_openlock_base_slot_cutter(base, base_size, tile_name)
     cutter_degrees_of_arc = degrees_of_arc * (slot_cutter.dimensions[0] / base_size[0])
 
     slot_boolean = base.modifiers.new(slot_cutter.name, 'BOOLEAN')
@@ -127,7 +132,7 @@ def create_openlock_curved_wall_base(
     preferences = get_prefs()
     booleans_path = os.path.join(preferences.assets_path, "meshes", "booleans", "openlock.blend")
 
-    # load side cutter
+    # load base cutter
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
         data_to.objects = ['openlock.wall.base.cutter.clip_single']
 
@@ -136,12 +141,14 @@ def create_openlock_curved_wall_base(
 
     select(base_cutter.name)
     activate(base_cutter.name)
-    bpy.ops.transform.rotate(value=radians(180), orient_axis='Z')
-    bpy.ops.object.transform_apply(location=False, scale=False, properties=False)
+
+    if socket_side == 'INNER':
+        bpy.ops.transform.rotate(value=radians(180), orient_axis='Z')
+        bpy.ops.object.transform_apply(location=False, scale=False, properties=False)
+
     loc = base_cutter.location
     circle_center = Vector((loc[0], loc[1] + base_inner_radius, loc[2]))
 
-    # TODO: Introduce check for 360 tile and also small curvature
     bpy.ops.transform.rotate(value=radians((degrees_of_arc / 2) - 22.5), orient_axis='Z', center_override=circle_center)
     bpy.ops.object.transform_apply(location=False, scale=False, properties=False)
     num_cutters = modf((degrees_of_arc - 22.5) / 22.5)

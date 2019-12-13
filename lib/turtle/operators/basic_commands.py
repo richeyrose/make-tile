@@ -66,6 +66,7 @@ class TURTLE_OT_add_turtle(Operator, AddObjectHelper):
         bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
 
         bpy.ops.object.mode_set(mode='EDIT')
+        context.tool_settings.mesh_select_mode = (True, False, False)
 
         # create two object properties
         # pen state

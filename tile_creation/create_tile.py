@@ -22,7 +22,8 @@ def create_tile(
         degrees_of_arc,
         segments,
         base_system,
-        tile_material):
+        tile_material,
+        socket_side):
     """Returns a tile as a collection
 
     """
@@ -71,7 +72,8 @@ def create_tile(
             base_inner_radius,
             wall_inner_radius,
             degrees_of_arc,
-            segments)
+            segments,
+            socket_side)
 
     if tile_type == 'RECTANGULAR_FLOOR':
 

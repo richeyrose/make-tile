@@ -265,7 +265,6 @@ def create_straight_wall_slab(
     return slab
 
 
-# TODO: make a "wall" class as sharing this function with curved wall now
 def create_straight_wall_base(
         tile_name,
         base_size):

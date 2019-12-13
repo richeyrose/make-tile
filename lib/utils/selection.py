@@ -19,7 +19,6 @@ def select_all():
     return {'FINISHED'}
 
 
-# TODO:make work with curves
 def deselect_all():
     """Deselects all objects if in OBJECT mode or verts / edges / faces if in EDIT mode"""
     if bpy.context.object is None:

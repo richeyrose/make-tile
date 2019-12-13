@@ -11,7 +11,8 @@ from .. enums.enums import (
     tile_types,
     units,
     base_systems,
-    tile_blueprints)
+    tile_blueprints,
+    base_socket_side)
 
 from .. materials.materials import (
     load_materials,
@@ -46,7 +47,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         wall_inner_radius = bpy.context.scene.mt_wall_inner_radius
         degrees_of_arc = bpy.context.scene.mt_degrees_of_arc
         segments = bpy.context.scene.mt_segments
-
+        socket_side = bpy.context.scene.mt_base_socket_side
         base_system = context.scene.mt_base_system
         tile_material = context.scene.mt_tile_material
 
@@ -69,7 +70,8 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             degrees_of_arc,
             segments,
             base_system,
-            tile_material
+            tile_material,
+            socket_side
         )
 
         return {'FINISHED'}
@@ -189,6 +191,13 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             min=0
         )
 
+        # Openlock curved wall specific
+        bpy.types.Scene.mt_base_socket_side = bpy.props.EnumProperty(
+            items=base_socket_side,
+            name="Socket Side",
+            default="INNER",
+        )
+
         # Used for curved wall tiles
         bpy.types.Scene.mt_base_inner_radius = bpy.props.FloatProperty(
             name="Base inner radius",
@@ -206,7 +215,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             min=0
         )
 
-        # TODO: Fix hack to make 360 curved wall work
+        # TODO: Fix hack to make 360 curved wall work. Ideally this should merge everything
         bpy.types.Scene.mt_degrees_of_arc = bpy.props.FloatProperty(
             name="Degrees of arc",
             default=90,
@@ -234,6 +243,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         del bpy.types.Scene.mt_base_inner_radius
         del bpy.types.Scene.mt_wall_inner_radius
         del bpy.types.Scene.mt_degrees_of_arc
+        del bpy.types.Scene.mt_base_socket_side
         del bpy.types.Scene.mt_base_x
         del bpy.types.Scene.mt_base_y
         del bpy.types.Scene.mt_base_z

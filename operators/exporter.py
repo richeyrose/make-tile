@@ -36,7 +36,7 @@ class MT_OT_Export_Tile(bpy.types.Operator):
 
         for obj in context.layer_collection.collection.all_objects:
             obj.select_set(True)
-    
+
         bpy.ops.object.make_single_user(type='SELECTED_OBJECTS', obdata=True)
 
         for copy in mesh_copies:

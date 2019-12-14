@@ -1,5 +1,6 @@
 """ Contains functions for creating wall tiles """
 import os
+from math import radians
 import bpy
 from mathutils import Vector
 from .. lib.utils.collections import add_object_to_collection
@@ -10,7 +11,7 @@ from .. lib.utils.selection import (
     select_all,
     select,
     activate)
-from .. lib.utils.utils import mode
+from .. lib.utils.utils import mode, apply_all_modifiers
 from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
 from .. materials.materials import (
     load_secondary_material,
@@ -61,7 +62,7 @@ def create_straight_wall(
 
     if tile_system == 'OPENLOCK':
         tile_size = Vector((tile_size[0], 0.3149, tile_size[2]))
-        create_openlock_wall(tile_name, tile_size, base, tile_material)
+        create_openlock_wall_2(tile_name, tile_size, base, tile_material, textured_faces)
 
     if tile_system == 'PLAIN':
         # create_plain_wall(tile_name, tile_size, base, tile_material)
@@ -161,6 +162,52 @@ def create_openlock_wall(tile_name, tile_size, base, tile_material):
         slab.parent = base
 
 
+def create_openlock_wall_2(tile_name, tile_size, base, tile_material, textured_faces):
+    # displacement_type = 'AXIS'
+    base_size = base.dimensions
+
+    preview_core, displacement_core = create_openlock_straight_wall_core_2(tile_name, tile_size, base_size)
+
+    preview_core['geometry_type'] = 'PREVIEW'
+    displacement_core['geometry_type'] = 'DISPLACEMENT'
+
+    preview_core['displacement_obj'] = displacement_core
+    displacement_core['preview_obj'] = preview_core
+
+    preview_core.parent = base
+    displacement_core.parent = base
+
+    preferences = get_prefs()
+
+    primary_material = bpy.data.materials[tile_material]
+    secondary_material = bpy.data.materials[preferences.secondary_material]
+
+    image_size = bpy.context.scene.mt_tile_resolution
+
+    assign_displacement_materials_2(displacement_core, [image_size, image_size], primary_material, secondary_material, textured_faces)
+    assign_preview_materials_2(preview_core, primary_material, secondary_material, textured_faces)
+
+    # create wall cutters
+
+    cores = [preview_core, displacement_core]
+
+    if tile_size[2] >= 0.99:
+        if textured_faces['x_neg'] is False or textured_faces['x_pos'] is False:
+            wall_cutters = create_openlock_wall_cutters_2(preview_core, tile_size, tile_name, textured_faces)
+
+            for wall_cutter in wall_cutters:
+                wall_cutter.parent = base
+                wall_cutter.display_type = 'BOUNDS'
+                wall_cutter.hide_viewport = True
+
+                for core in cores:
+                    wall_cutter_bool = core.modifiers.new('Wall Cutter', 'BOOLEAN')
+                    wall_cutter_bool.operation = 'DIFFERENCE'
+                    wall_cutter_bool.object = wall_cutter
+
+    displacement_core.hide_viewport = True
+
+
 def create_plain_wall(tile_name, tile_size, base, tile_material):
     base_size = base.dimensions
     core_size = Vector((tile_size[0], tile_size[1] - 0.1850, tile_size[2]))
@@ -173,12 +220,11 @@ def create_plain_wall(tile_name, tile_size, base, tile_material):
 
 def create_plain_wall_2(tile_name, tile_size, base, tile_material, textured_faces):
     base_size = base.dimensions
-    core_size = Vector((tile_size))
 
-    preview_core = create_straight_wall_core_2(tile_name, core_size, base_size)
+    preview_core = create_straight_wall_core_2(tile_name, tile_size, base_size)
     preview_core['geometry_type'] = 'PREVIEW'
 
-    displacement_core = create_straight_wall_core_2(tile_name, core_size, base_size)
+    displacement_core = create_straight_wall_core_2(tile_name, tile_size, base_size)
     displacement_core['geometry_type'] = 'DISPLACEMENT'
 
     preview_core['displacement_obj'] = displacement_core
@@ -393,6 +439,17 @@ def create_openlock_straight_wall_base(tile_name, base_size):
     return base
 
 
+def create_openlock_straight_wall_core_2(
+        tile_name,
+        tile_size,
+        base_size):
+
+    preview_core = create_straight_wall_core_2(tile_name, tile_size, base_size)
+    displacement_core = create_straight_wall_core_2(tile_name, tile_size, base_size)
+
+    return preview_core, displacement_core
+
+
 def create_openlock_straight_wall_core(
         tile_name,
         tile_size,
@@ -419,6 +476,96 @@ def create_openlock_straight_wall_core(
             wall_cutter_bool.object = wall_cutter
 
     return core, wall_cutters
+
+
+def create_openlock_wall_cutters_2(core, tile_size, tile_name, textured_faces):
+    """Creates the cutters for the wall and positions them correctly
+
+    Keyword arguments:
+    core -- OBJ, wall core object
+    tile_size -- VECTOR [x, y, z] Size of tile including any base
+    tile_name -- STR, tile name
+    """
+    deselect_all()
+    preferences = get_prefs()
+    booleans_path = os.path.join(preferences.assets_path, "meshes", "booleans", "openlock.blend")
+
+    # load side cutter
+    with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
+        data_to.objects = ['openlock.wall.cutter.side']
+
+    core_location = core.location
+
+    cutters = []
+    # left side cutters
+    if textured_faces['x_neg'] is False:
+        left_cutter_bottom = data_to.objects[0].copy()
+        add_object_to_collection(left_cutter_bottom, tile_name)
+        # get location of bottom front left corner of tile
+        front_left = [
+            core_location[0] - (tile_size[0] / 2),
+            core_location[1] - (tile_size[1] / 2),
+            core_location[2]]
+        # move cutter to bottom front left corner then up by 0.63 inches
+        left_cutter_bottom.location = [
+            front_left[0],
+            front_left[1] + (tile_size[1] / 2),
+            front_left[2] + 0.63]
+
+        array_mod = left_cutter_bottom.modifiers.new('Array', 'ARRAY')
+        array_mod.use_relative_offset = False
+        array_mod.use_constant_offset = True
+        array_mod.constant_offset_displace[2] = 2
+        array_mod.fit_type = 'FIT_LENGTH'
+        array_mod.fit_length = tile_size[2] - 1
+
+        # make a copy of side cutter 1
+        left_cutter_top = left_cutter_bottom.copy()
+
+        add_object_to_collection(left_cutter_top, tile_name)
+
+        # move cutter up by 0.75 inches
+        left_cutter_top.location[2] = left_cutter_top.location[2] + 0.75
+
+        array_mod = left_cutter_top.modifiers["Array"]
+        array_mod.fit_length = tile_size[2] - 1.8
+
+        cutters.extend([left_cutter_bottom, left_cutter_top])
+
+    # right side cutters
+    if textured_faces['x_pos'] is False:
+        right_cutter_bottom = data_to.objects[0].copy()
+        add_object_to_collection(right_cutter_bottom, tile_name)
+        # get location of bottom front right corner of tile
+        front_right = [
+            core_location[0] + (tile_size[0] / 2),
+            core_location[1] - (tile_size[1] / 2),
+            core_location[2]]
+        # move cutter to bottom front left corner then up by 0.63 inches
+        right_cutter_bottom.location = [
+            front_right[0],
+            front_right[1] + (tile_size[1] / 2),
+            front_right[2] + 0.63]
+        # rotate cutter 180 degrees around Z
+        right_cutter_bottom.rotation_euler[2] = radians(180)
+
+        array_mod = right_cutter_bottom.modifiers.new('Array', 'ARRAY')
+        array_mod.use_relative_offset = False
+        array_mod.use_constant_offset = True
+        array_mod.constant_offset_displace[2] = 2
+        array_mod.fit_type = 'FIT_LENGTH'
+        array_mod.fit_length = tile_size[2] - 1
+
+        right_cutter_top = right_cutter_bottom.copy()
+        add_object_to_collection(right_cutter_top, tile_name)
+        right_cutter_top.location[2] = right_cutter_top.location[2] + 0.75
+
+        array_mod = right_cutter_top.modifiers["Array"]
+        array_mod.fit_length = tile_size[2] - 1.8
+
+        cutters.extend([right_cutter_bottom, right_cutter_top])
+
+    return cutters
 
 
 def create_openlock_wall_cutters(core, tile_size, tile_name):

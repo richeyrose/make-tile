@@ -90,3 +90,15 @@ def add_circle_array(obj, circle_center, item_count, axis, degrees_of_arc):
     cursor.location = cursor_orig_location
 
     return array_mod.name, circle_origin_empty
+
+
+def apply_all_modifiers(obj):
+    """Applies all modifiers in obj"""
+    contxt = bpy.context.copy()
+    contxt['object'] = obj
+
+    for mod in obj.modifiers[:]:
+        contxt['modifier'] = mod
+        bpy.ops.object.modifier_apply(
+            contxt, apply_as='DATA',
+            modifier=contxt['modifier'].name)

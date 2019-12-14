@@ -41,6 +41,17 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
             row.prop(scene, 'mt_tile_x')
             row.prop(scene, 'mt_tile_z')
 
+            layout.label(text="Textured Sides")
+            row = layout.row()
+            row.prop(scene, 'mt_inner_textured')
+            row.prop(scene, 'mt_outer_textured')
+            row = layout.row()
+            row.prop(scene, 'mt_top_textured')
+            row.prop(scene, 'mt_bottom_textured')
+            row = layout.row()
+            row.prop(scene, 'mt_left_textured')
+            row.prop(scene, 'mt_right_textured')
+
         elif scene.mt_tile_type == 'RECTANGULAR_FLOOR':
             layout.label(text="Tile Size")
             row = layout.row()
@@ -56,6 +67,17 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
 
             layout.label(text="Wall Height")
             layout.prop(scene, 'mt_tile_z')
+
+            layout.label(text="Textured Sides")
+            row = layout.row()
+            row.prop(scene, 'mt_inner_textured')
+            row.prop(scene, 'mt_outer_textured')
+            row = layout.row()
+            row.prop(scene, 'mt_top_textured')
+            row.prop(scene, 'mt_bottom_textured')
+            row = layout.row()
+            row.prop(scene, 'mt_left_textured')
+            row.prop(scene, 'mt_right_textured')
 
             layout.label(text="Base Properties")
             layout.prop(scene, 'mt_base_socket_side')
@@ -93,8 +115,10 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
             row = layout.row()
             row.prop(scene, 'mt_inner_textured')
             row.prop(scene, 'mt_outer_textured')
+            row = layout.row()
             row.prop(scene, 'mt_top_textured')
             row.prop(scene, 'mt_bottom_textured')
+            row = layout.row()
             row.prop(scene, 'mt_left_textured')
             row.prop(scene, 'mt_right_textured')
 
@@ -115,6 +139,17 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
             row = layout.row()
             row.prop(scene, 'mt_tile_y')
             row.prop(scene, 'mt_tile_z')
+
+            layout.label(text="Textured Sides")
+            row = layout.row()
+            row.prop(scene, 'mt_inner_textured')
+            row.prop(scene, 'mt_outer_textured')
+            row = layout.row()
+            row.prop(scene, 'mt_top_textured')
+            row.prop(scene, 'mt_bottom_textured')
+            row = layout.row()
+            row.prop(scene, 'mt_left_textured')
+            row.prop(scene, 'mt_right_textured')
 
     def draw_custom_panel(self, context):
         scene = context.scene

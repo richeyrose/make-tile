@@ -18,14 +18,18 @@ from .. materials.materials import (
     add_displacement_mesh_modifiers,
     add_preview_mesh_modifiers,
     assign_displacement_materials,
-    assign_preview_materials)
+    assign_preview_materials,
+    assign_displacement_materials_2,
+    assign_preview_materials_2)
 from .. enums.enums import geometry_types
 from . create_straight_wall_tile import (
     create_straight_wall_base,
     create_straight_wall_core,
+    create_straight_wall_core_2,
     create_wall_slabs,
     create_openlock_base_slot_cutter,
-    create_openlock_straight_wall_core)
+    create_openlock_straight_wall_core,
+    create_openlock_straight_wall_core_2)
 
 
 def create_curved_wall(
@@ -40,7 +44,8 @@ def create_curved_wall(
         wall_inner_radius,
         degrees_of_arc,
         segments,
-        socket_side):
+        socket_side,
+        textured_faces):
 
     # correct for the Y thickness
     base_inner_radius = base_inner_radius + (base_size[1] / 2)
@@ -74,7 +79,7 @@ def create_curved_wall(
 
     if tile_system == 'OPENLOCK':
         tile_size = Vector((tile_size[0], 0.5, tile_size[2]))
-        wall = create_openlock_wall(
+        wall = create_openlock_wall_2(
             base,
             base_size,
             tile_size,
@@ -82,10 +87,11 @@ def create_curved_wall(
             degrees_of_arc,
             segments,
             tile_name,
-            tile_material)
+            tile_material,
+            textured_faces)
 
     if tile_system == 'PLAIN':
-        wall = create_plain_wall(
+        wall = create_plain_wall_2(
             base,
             base_size,
             tile_size,
@@ -93,7 +99,9 @@ def create_curved_wall(
             degrees_of_arc,
             segments,
             tile_name,
-            tile_material)
+            tile_material,
+            textured_faces)
+
     base.location = cursor_orig_loc
     cursor.location = cursor_orig_loc
 
@@ -227,6 +235,7 @@ def add_deform_modifiers(obj, segments, degrees_of_arc):
 
     return curve_mod.name
 
+
 def create_openlock_curved_wall_core(tile_name, tile_size, base_size, segments, degrees_of_arc, wall_inner_radius):
     core = create_straight_wall_core(tile_name, tile_size, base_size)
     core_size = core.dimensions.copy()
@@ -297,6 +306,46 @@ def create_curved_wall_core(tile_name, tile_size, base_size, segments, degrees_o
     return core, core_size
 
 
+def create_openlock_wall_2(
+        base,
+        base_size,
+        tile_size,
+        wall_inner_radius,
+        degrees_of_arc,
+        segments,
+        tile_name,
+        tile_material,
+        textured_faces):
+    # correct for the Y thickness
+    wall_inner_radius = wall_inner_radius + (tile_size[1] / 2)
+
+    circumference = 2 * pi * wall_inner_radius
+    wall_length = circumference / (360 / degrees_of_arc)
+    tile_size = Vector((wall_length, tile_size[1] - 0.1850, tile_size[2]))
+
+    core, core_size = create_openlock_curved_wall_core(
+        tile_name,
+        tile_size,
+        base_size,
+        segments,
+        degrees_of_arc,
+        wall_inner_radius)
+
+    core.parent = base
+
+    slabs = create_curved_wall_slabs(
+        tile_name,
+        core_size,
+        base_size,
+        tile_size,
+        segments,
+        degrees_of_arc,
+        tile_material)
+
+    for slab in slabs:
+        slab.parent = base
+
+
 def create_openlock_wall(
         base,
         base_size,
@@ -334,6 +383,52 @@ def create_openlock_wall(
 
     for slab in slabs:
         slab.parent = base
+
+
+def create_plain_wall_2(
+        base,
+        base_size,
+        tile_size,
+        wall_inner_radius,
+        degrees_of_arc,
+        segments,
+        tile_name,
+        tile_material,
+        textured_faces):
+
+    # correct for the Y thickness
+    wall_inner_radius = wall_inner_radius + (tile_size[1] / 2)
+
+    circumference = 2 * pi * wall_inner_radius
+    wall_length = circumference / (360 / degrees_of_arc)
+    tile_size = Vector((wall_length, tile_size[1], tile_size[2]))
+
+    preview_core = create_straight_wall_core_2(tile_name, tile_size, base_size)
+    preview_core['geometry_type'] = 'PREVIEW'
+
+    displacement_core = create_straight_wall_core_2(tile_name, tile_size, base_size)
+    displacement_core['geometry_type'] = 'DISPLACEMENT'
+
+    preview_core['displacement_obj'] = displacement_core
+    displacement_core['preview_obj'] = preview_core
+
+    cores = [preview_core, displacement_core]
+
+    preferences = get_prefs()
+
+    primary_material = bpy.data.materials[tile_material]
+    secondary_material = bpy.data.materials[preferences.secondary_material]
+
+    image_size = bpy.context.scene.mt_tile_resolution
+
+    assign_displacement_materials_2(displacement_core, [image_size, image_size], primary_material, secondary_material, textured_faces)
+    assign_preview_materials_2(preview_core, primary_material, secondary_material, textured_faces)
+
+    for core in cores:
+        core.parent = base
+        add_deform_modifiers(core, segments, degrees_of_arc)
+
+    displacement_core.hide_viewport = True
 
 
 def create_plain_wall(

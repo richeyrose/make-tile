@@ -107,8 +107,8 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
 
         bpy.types.Scene.mt_cycles_subdivision_quality = bpy.props.IntProperty(
             name="Subdivision",
-            description="Dicing rate for Cycles subdivision - lower = higher quality",
-            default=1,
+            description="Cycles subdivision - higher = higher quality.",
+            default=6,
         )
 
         bpy.types.Scene.mt_view_mode = bpy.props.EnumProperty(
@@ -138,9 +138,7 @@ def update_view_mode(self, context):
             for obj in bpy.context.scene.objects:
                 if 'geometry_type' in obj:
                     if obj['geometry_type'] == 'PREVIEW':
-                        obj.cycles.use_adaptive_subdivision = True
-                        obj.cycles.dicing_rate = 1
-        bpy.context.scene.cycles.preview_dicing_rate = bpy.context.scene.mt_cycles_subdivision_quality
+                        obj.cycles.use_adaptive_subdivision = False
 
         if bpy.context.scene.mt_use_gpu is True:
             bpy.context.scene.cycles.device = 'GPU'

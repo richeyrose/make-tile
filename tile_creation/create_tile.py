@@ -75,7 +75,8 @@ def create_tile(
             wall_inner_radius,
             degrees_of_arc,
             segments,
-            socket_side)
+            socket_side,
+            textured_faces)
 
     if tile_type == 'RECTANGULAR_FLOOR':
 

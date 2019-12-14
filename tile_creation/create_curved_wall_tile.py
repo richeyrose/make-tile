@@ -24,11 +24,9 @@ from .. materials.materials import (
 from .. enums.enums import geometry_types
 from . create_straight_wall_tile import (
     create_straight_wall_base,
-    create_straight_wall_core,
     create_straight_wall_core_2,
-    create_wall_slabs,
+    create_plain_wall_2,
     create_openlock_base_slot_cutter,
-    create_openlock_straight_wall_core,
     create_openlock_straight_wall_core_2)
 
 
@@ -102,6 +100,7 @@ def create_curved_wall(
             tile_material,
             textured_faces)
 
+    wall[1].hide_viewport = True
     base.location = cursor_orig_loc
     cursor.location = cursor_orig_loc
 
@@ -173,40 +172,6 @@ def create_openlock_curved_wall_base(
     return base, base_size
 
 
-def create_curved_wall_slabs(
-        tile_name,
-        core_size,
-        base_size,
-        tile_size,
-        segments,
-        degrees_of_arc,
-        tile_material):
-
-    displacement_type = 'AXIS'
-
-    slabs = create_wall_slabs(
-        displacement_type,
-        tile_name,
-        core_size,
-        base_size,
-        tile_size,
-        tile_material)
-
-    for slab in slabs:
-        slab.hide_viewport = False
-
-        curve_mod_name = add_deform_modifiers(slab, segments, degrees_of_arc)
-        select(slab.name)
-        if slab['geometry_type'] == 'DISPLACEMENT':
-            slab.hide_viewport = True
-        # for preview meshes we want the modifier at the top so adaptive subdivision works
-        # for displacement meshes we want it at the bottom so we can displace along axis
-        if slab['geometry_type'] == 'PREVIEW':
-            bpy.ops.object.modifier_move_up(modifier=curve_mod_name)
-            bpy.ops.object.modifier_move_up(modifier=curve_mod_name)
-    return slabs
-
-
 def add_deform_modifiers(obj, segments, degrees_of_arc):
     deselect_all()
     select(obj.name)
@@ -236,76 +201,6 @@ def add_deform_modifiers(obj, segments, degrees_of_arc):
     return curve_mod.name
 
 
-def create_openlock_curved_wall_core(tile_name, tile_size, base_size, segments, degrees_of_arc, wall_inner_radius):
-    core = create_straight_wall_core(tile_name, tile_size, base_size)
-    core_size = core.dimensions.copy()
-
-    add_deform_modifiers(core, segments, degrees_of_arc)
-
-    # add wall cutters
-    deselect_all()
-    preferences = get_prefs()
-    booleans_path = os.path.join(preferences.assets_path, "meshes", "booleans", "openlock.blend")
-
-    # load side cutter
-    with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
-        data_to.objects = ['openlock.wall.cutter.side']
-
-    side_cutter1 = data_to.objects[0]
-    add_object_to_collection(side_cutter1, tile_name)
-
-    core_location = core.location.copy()
-    # move cutter to origin and up by 0.63 inches
-    side_cutter1.location = Vector((core_location[0], core_location[1], core_location[2] + 0.63))
-    circle_center = Vector((side_cutter1.location[0], side_cutter1.location[1] + wall_inner_radius, side_cutter1.location[2]))
-
-    select(side_cutter1.name)
-    activate(side_cutter1.name)
-    bpy.ops.transform.rotate(value=radians(degrees_of_arc / 2), orient_axis='Z', orient_type='GLOBAL', center_override=circle_center)
-
-    array_mod = side_cutter1.modifiers.new('Array', 'ARRAY')
-    array_mod.use_relative_offset = False
-    array_mod.use_constant_offset = True
-    array_mod.constant_offset_displace[2] = 2
-    array_mod.fit_type = 'FIT_LENGTH'
-    array_mod.fit_length = tile_size[2] - 1
-
-    mirror_mod = side_cutter1.modifiers.new('Mirror', 'MIRROR')
-    mirror_mod.use_axis[0] = True
-    mirror_mod.mirror_object = core
-
-    # make a copy of side cutter 1
-    side_cutter2 = side_cutter1.copy()
-
-    add_object_to_collection(side_cutter2, tile_name)
-
-    # move cutter up by 0.75 inches
-    side_cutter2.location[2] = side_cutter2.location[2] + 0.75
-
-    array_mod = side_cutter2.modifiers["Array"]
-    array_mod.fit_length = tile_size[2] - 1.8
-
-    side_cutters = [side_cutter1, side_cutter2]
-    for cutter in side_cutters:
-        cutter.parent = core
-        cutter.display_type = 'BOUNDS'
-        cutter.hide_viewport = True
-        cutter_bool = core.modifiers.new('Wall Cutter', 'BOOLEAN')
-        cutter_bool.operation = 'DIFFERENCE'
-        cutter_bool.object = cutter
-
-    return core, core_size
-
-
-def create_curved_wall_core(tile_name, tile_size, base_size, segments, degrees_of_arc):
-    core = create_straight_wall_core(tile_name, tile_size, base_size)
-    core_size = core.dimensions.copy()
-
-    add_deform_modifiers(core, segments, degrees_of_arc)
-
-    return core, core_size
-
-
 def create_openlock_wall_2(
         base,
         base_size,
@@ -316,37 +211,8 @@ def create_openlock_wall_2(
         tile_name,
         tile_material,
         textured_faces):
-    # correct for the Y thickness
-    wall_inner_radius = wall_inner_radius + (tile_size[1] / 2)
 
-    circumference = 2 * pi * wall_inner_radius
-    wall_length = circumference / (360 / degrees_of_arc)
-    tile_size = Vector((wall_length, tile_size[1] - 0.1850, tile_size[2]))
-
-    core, core_size = create_openlock_curved_wall_core(
-        tile_name,
-        tile_size,
-        base_size,
-        segments,
-        degrees_of_arc,
-        wall_inner_radius)
-
-    core.parent = base
-
-    slabs = create_curved_wall_slabs(
-        tile_name,
-        core_size,
-        base_size,
-        tile_size,
-        segments,
-        degrees_of_arc,
-        tile_material)
-
-    for slab in slabs:
-        slab.parent = base
-
-
-def create_openlock_wall(
+    wall = create_plain_wall_2(
         base,
         base_size,
         tile_size,
@@ -354,35 +220,141 @@ def create_openlock_wall(
         degrees_of_arc,
         segments,
         tile_name,
-        tile_material):
-    # correct for the Y thickness
-    wall_inner_radius = wall_inner_radius + (tile_size[1] / 2)
+        tile_material,
+        textured_faces)
 
-    circumference = 2 * pi * wall_inner_radius
-    wall_length = circumference / (360 / degrees_of_arc)
-    tile_size = Vector((wall_length, tile_size[1] - 0.1850, tile_size[2]))
+    cutters = create_openlock_wall_cutters(wall[0], tile_name, tile_size, base_size, segments, degrees_of_arc, wall_inner_radius, textured_faces)
 
-    core, core_size = create_openlock_curved_wall_core(
-        tile_name,
-        tile_size,
-        base_size,
-        segments,
-        degrees_of_arc,
-        wall_inner_radius)
+    for cutter in cutters:
+        cutter.parent = base
+        cutter.display_type = 'BOUNDS'
+        cutter.hide_viewport = True
 
-    core.parent = base
+        for core in wall:
+            cutter_bool = core.modifiers.new('Wall Cutter', 'BOOLEAN')
+            cutter_bool.operation = 'DIFFERENCE'
+            cutter_bool.object = cutter
+    return wall
 
-    slabs = create_curved_wall_slabs(
-        tile_name,
-        core_size,
-        base_size,
-        tile_size,
-        segments,
-        degrees_of_arc,
-        tile_material)
 
-    for slab in slabs:
-        slab.parent = base
+def create_openlock_wall_cutters(core, tile_name, tile_size, base_size, segments, degrees_of_arc, wall_inner_radius, textured_faces):
+    deselect_all()
+    preferences = get_prefs()
+    booleans_path = os.path.join(preferences.assets_path, "meshes", "booleans", "openlock.blend")
+
+    # load side cutter
+    with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
+        data_to.objects = ['openlock.wall.cutter.side']
+
+    core_location = core.location.copy()
+
+    cutters = []
+
+    circle_center = Vector((
+        core_location[0],
+        core_location[1] + wall_inner_radius,
+        core_location[2]))
+
+    # left side cutters
+    if textured_faces['x_neg'] is False:
+        left_cutter_bottom = data_to.objects[0].copy()
+        add_object_to_collection(left_cutter_bottom, tile_name)
+
+        # move cutter to origin and up by 0.63 inches
+        left_cutter_bottom.location = Vector((
+            core_location[0],
+            core_location[1],
+            core_location[2] + 0.63))
+
+        circle_center = Vector((
+            left_cutter_bottom.location[0],
+            left_cutter_bottom.location[1] + wall_inner_radius + (tile_size[1] / 2),
+            left_cutter_bottom.location[2]))
+
+        # rotate cutter
+        select(left_cutter_bottom.name)
+        activate(left_cutter_bottom.name)
+        bpy.ops.transform.rotate(
+            value=radians(degrees_of_arc / 2),
+            orient_axis='Z',
+            orient_type='GLOBAL',
+            center_override=circle_center)
+
+        # add array
+        array_mod = left_cutter_bottom.modifiers.new('Array', 'ARRAY')
+        array_mod.use_relative_offset = False
+        array_mod.use_constant_offset = True
+        array_mod.constant_offset_displace[2] = 2
+        array_mod.fit_type = 'FIT_LENGTH'
+        array_mod.fit_length = tile_size[2] - 1
+
+        # make a copy of left cutter bottom
+        left_cutter_top = left_cutter_bottom.copy()
+
+        add_object_to_collection(left_cutter_top, tile_name)
+
+        # move cutter up by 0.75 inches
+        left_cutter_top.location[2] = left_cutter_top.location[2] + 0.75
+
+        # modify array
+        array_mod = left_cutter_top.modifiers[array_mod.name]
+        array_mod.fit_length = tile_size[2] - 1.8
+
+        cutters.extend([left_cutter_bottom, left_cutter_top])
+
+    # right side cutters
+    deselect_all()
+
+    if textured_faces['x_pos'] is False:
+        right_cutter_bottom = data_to.objects[0].copy()
+        add_object_to_collection(right_cutter_bottom, tile_name)
+
+        # move cutter to origin and up by 0.63 inches
+        right_cutter_bottom.location = Vector((
+            core_location[0],
+            core_location[1],
+            core_location[2] + 0.63))
+
+        # rotate cutter 180 degrees around Z
+        right_cutter_bottom.rotation_euler[2] = radians(180)
+
+        circle_center = Vector((
+            right_cutter_bottom.location[0],
+            right_cutter_bottom.location[1] + wall_inner_radius + (tile_size[1] / 2),
+            right_cutter_bottom.location[2]))
+
+        # rotate cutter around circle center
+        select(right_cutter_bottom.name)
+        activate(right_cutter_bottom.name)
+        bpy.ops.transform.rotate(
+            value=-radians(degrees_of_arc / 2),
+            orient_axis='Z',
+            orient_type='GLOBAL',
+            center_override=circle_center)
+
+        # add array
+        array_mod = right_cutter_bottom.modifiers.new('Array', 'ARRAY')
+        array_mod.use_relative_offset = False
+        array_mod.use_constant_offset = True
+        array_mod.constant_offset_displace[2] = 2
+        array_mod.fit_type = 'FIT_LENGTH'
+        array_mod.fit_length = tile_size[2] - 1
+
+        # make a copy of right_cutter_bottom
+        right_cutter_top = right_cutter_bottom.copy()
+
+        add_object_to_collection(right_cutter_top, tile_name)
+
+        # move cutter up by 0.75 inches
+        right_cutter_top.location[2] = right_cutter_top.location[2] + 0.75
+
+        # modify array
+        array_mod = right_cutter_top.modifiers[array_mod.name]
+        array_mod.fit_length = tile_size[2] - 1.8
+
+        cutters.extend([right_cutter_bottom, right_cutter_top])
+
+    return cutters
 
 
 def create_plain_wall_2(
@@ -428,32 +400,7 @@ def create_plain_wall_2(
         core.parent = base
         add_deform_modifiers(core, segments, degrees_of_arc)
 
-    displacement_core.hide_viewport = True
-
-
-def create_plain_wall(
-        base,
-        base_size,
-        tile_size,
-        wall_inner_radius,
-        degrees_of_arc,
-        segments,
-        tile_name,
-        tile_material):
-
-    # correct for the Y thickness
-    wall_inner_radius = wall_inner_radius + (tile_size[1] / 2)
-
-    circumference = 2 * pi * wall_inner_radius
-    wall_length = circumference / (360 / degrees_of_arc)
-    tile_size = Vector((wall_length, tile_size[1] - 0.1850, tile_size[2]))
-
-    core, core_size = create_curved_wall_core(tile_name, tile_size, base_size, segments, degrees_of_arc)
-    core.parent = base
-    slabs = create_curved_wall_slabs(tile_name, core_size, base_size, tile_size, segments, degrees_of_arc, tile_material)
-
-    for slab in slabs:
-        slab.parent = base
+    return cores
 
 
 def create_plain_curved_wall_base(

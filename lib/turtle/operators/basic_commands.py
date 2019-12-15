@@ -605,7 +605,7 @@ class TURTLE_OT_roll_right(bpy.types.Operator):
 class TURTLE_OT_set_pos(bpy.types.Operator):
     bl_idname = "turtle.set_position"
     bl_label = "Set turtle posiiton"
-    bl_description = "moves     the turtle to the specified location. v = location"
+    bl_description = "moves the turtle to the specified location. v = location"
 
     v: FloatVectorProperty()
 

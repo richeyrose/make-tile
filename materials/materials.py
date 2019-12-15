@@ -202,9 +202,10 @@ def assign_preview_materials_2(obj, primary_material, secondary_material, textur
 
     obj.data.materials.append(secondary_material)
     obj.data.materials.append(primary_material)
-
     for key, value in textured_faces.items():
-        if value is True:
+        print(key, value)
+    for key, value in textured_faces.items():
+        if value is 1:
             assign_mat_to_vert_group(key, obj, primary_material)
 
 

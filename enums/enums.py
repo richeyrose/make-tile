@@ -20,6 +20,7 @@ tile_main_systems = [
 base_systems = [
     ("OPENLOCK", "OpenLOCK", "", 1),
     ("PLAIN", "Plain", "", 2),
+    ("NONE", "None", "", 3)
 ]
 
 tile_types = [

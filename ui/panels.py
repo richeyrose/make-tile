@@ -43,14 +43,14 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
 
             layout.label(text="Textured Sides")
             row = layout.row()
-            row.prop(scene, 'mt_inner_textured')
-            row.prop(scene, 'mt_outer_textured')
+            row.prop(scene, 'mt_x_neg_textured')
+            row.prop(scene, 'mt_x_pos_textured')
             row = layout.row()
-            row.prop(scene, 'mt_top_textured')
-            row.prop(scene, 'mt_bottom_textured')
+            row.prop(scene, 'mt_y_neg_textured')
+            row.prop(scene, 'mt_y_pos_textured')
             row = layout.row()
-            row.prop(scene, 'mt_left_textured')
-            row.prop(scene, 'mt_right_textured')
+            row.prop(scene, 'mt_z_neg_textured')
+            row.prop(scene, 'mt_z_pos_textured')
 
         elif scene.mt_tile_type == 'RECTANGULAR_FLOOR':
             layout.label(text="Tile Size")
@@ -70,14 +70,14 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
 
             layout.label(text="Textured Sides")
             row = layout.row()
-            row.prop(scene, 'mt_inner_textured')
-            row.prop(scene, 'mt_outer_textured')
+            row.prop(scene, 'mt_x_neg_textured')
+            row.prop(scene, 'mt_x_pos_textured')
             row = layout.row()
-            row.prop(scene, 'mt_top_textured')
-            row.prop(scene, 'mt_bottom_textured')
+            row.prop(scene, 'mt_y_neg_textured')
+            row.prop(scene, 'mt_y_pos_textured')
             row = layout.row()
-            row.prop(scene, 'mt_left_textured')
-            row.prop(scene, 'mt_right_textured')
+            row.prop(scene, 'mt_z_neg_textured')
+            row.prop(scene, 'mt_z_pos_textured')
 
             layout.label(text="Base Properties")
             layout.prop(scene, 'mt_base_socket_side')
@@ -113,14 +113,14 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
 
             layout.label(text="Textured Sides")
             row = layout.row()
-            row.prop(scene, 'mt_inner_textured')
-            row.prop(scene, 'mt_outer_textured')
+            row.prop(scene, 'mt_x_neg_textured')
+            row.prop(scene, 'mt_x_pos_textured')
             row = layout.row()
-            row.prop(scene, 'mt_top_textured')
-            row.prop(scene, 'mt_bottom_textured')
+            row.prop(scene, 'mt_y_neg_textured')
+            row.prop(scene, 'mt_y_pos_textured')
             row = layout.row()
-            row.prop(scene, 'mt_left_textured')
-            row.prop(scene, 'mt_right_textured')
+            row.prop(scene, 'mt_z_neg_textured')
+            row.prop(scene, 'mt_z_pos_textured')
 
         elif scene.mt_tile_type == 'RECTANGULAR_FLOOR':
             layout.label(text="Tile Size")
@@ -142,14 +142,14 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
 
             layout.label(text="Textured Sides")
             row = layout.row()
-            row.prop(scene, 'mt_inner_textured')
-            row.prop(scene, 'mt_outer_textured')
+            row.prop(scene, 'mt_x_neg_textured')
+            row.prop(scene, 'mt_x_pos_textured')
             row = layout.row()
-            row.prop(scene, 'mt_top_textured')
-            row.prop(scene, 'mt_bottom_textured')
+            row.prop(scene, 'mt_y_neg_textured')
+            row.prop(scene, 'mt_y_pos_textured')
             row = layout.row()
-            row.prop(scene, 'mt_left_textured')
-            row.prop(scene, 'mt_right_textured')
+            row.prop(scene, 'mt_z_neg_textured')
+            row.prop(scene, 'mt_z_pos_textured')
 
     def draw_custom_panel(self, context):
         scene = context.scene
@@ -216,7 +216,7 @@ class MT_PT_Material_Panel(MT_PT_Panel, bpy.types.Panel):
                     layout.prop(scene, 'mt_subdivisions')
                 if bpy.context.object['geometry_type'] == 'DISPLACEMENT':
                     layout.operator('scene.return_to_preview', text='Return to Preview')
-        layout.prop(scene, 'mt_tile_material')
+        layout.prop(scene, 'mt_tile_material_1')
 
 
 class MT_PT_Material_Options_Panel(MT_PT_Panel, bpy.types.Panel):
@@ -230,8 +230,8 @@ class MT_PT_Material_Options_Panel(MT_PT_Panel, bpy.types.Panel):
 
         layout.prop(scene, 'mt_tile_resolution')
 
-        if context.scene.mt_tile_material in bpy.data.materials:
-            material = bpy.data.materials[context.scene.mt_tile_material]
+        if context.scene.mt_tile_material_1 in bpy.data.materials:
+            material = bpy.data.materials[context.scene.mt_tile_material_1]
             tree = material.node_tree
             nodes = tree.nodes
 
@@ -272,10 +272,21 @@ class MT_PT_Voxelise_Panel(MT_PT_Panel, bpy.types.Panel):
         layout = self.layout
 
         layout.operator('scene.voxelise_tile', text='Voxelise Tile')
-
         layout.prop(scene, 'mt_voxel_quality')
         layout.prop(scene, 'mt_voxel_adaptivity')
         layout.prop(scene, 'mt_merge_and_voxelise')
+
+        layout.label(text="Trim Tile")
+        layout.operator('scene.trim_tile', text='Trim Tile')
+        row = layout.row()
+        row.prop(scene, 'mt_trim_x_neg')
+        row.prop(scene, 'mt_trim_x_pos')
+        row = layout.row()
+        row.prop(scene, 'mt_trim_y_neg')
+        row.prop(scene, 'mt_trim_y_pos')
+        row = layout.row()
+        row.prop(scene, 'mt_trim_z_neg')
+        row.prop(scene, 'mt_trim_z_pos')
 
 
 class MT_PT_Export_Panel(MT_PT_Panel, bpy.types.Panel):

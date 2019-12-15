@@ -45,7 +45,6 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
             soft_min=0.005,
             default=0.005,
             precision=3,
-
         )
 
         bpy.types.Scene.mt_voxel_adaptivity = bpy.props.FloatProperty(
@@ -68,11 +67,18 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
         del bpy.types.Scene.mt_voxel_quality
 
 
-def voxelise_mesh(mesh):
-    activate(mesh.name)
-    mesh.data.remesh_voxel_size = bpy.context.scene.mt_voxel_quality
-    mesh.data.remesh_voxel_adaptivity = bpy.context.scene.mt_voxel_adaptivity
+def voxelise_mesh(obj):
+    """Voxelises the passed in object
+    Keyword Arguments:
+    obj -- MESH OBJECT
+    """
+
+    activate(obj.name)
+
+    obj.data.remesh_voxel_size = bpy.context.scene.mt_voxel_quality
+    obj.data.remesh_voxel_adaptivity = bpy.context.scene.mt_voxel_adaptivity
     bpy.ops.object.voxel_remesh()
+    obj.modifiers.new('Triangulate', 'TRIANGULATE')
 
 
 def apply_all_modifiers(mesh):

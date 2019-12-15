@@ -18,6 +18,7 @@ from .. materials.materials import (
     assign_preview_materials)
 
 
+# TODO: Refactor to use new material system
 def create_rectangular_floor(
         tile_blueprint,
         tile_system,

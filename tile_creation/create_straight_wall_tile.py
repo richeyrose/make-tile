@@ -4,7 +4,7 @@ from math import radians
 import bpy
 from mathutils import Vector
 from .. lib.utils.collections import add_object_to_collection
-from .. utils.registration import get_path, get_prefs
+from .. utils.registration import get_prefs
 from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. lib.utils.selection import (
     deselect_all,
@@ -14,69 +14,57 @@ from .. lib.utils.selection import (
 from .. lib.utils.utils import mode, apply_all_modifiers
 from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
 from .. materials.materials import (
-    load_secondary_material,
-    assign_mat_to_vert_group,
-    add_displacement_mesh_modifiers,
-    add_preview_mesh_modifiers,
-    assign_displacement_materials,
-    assign_preview_materials,
     assign_displacement_materials_2,
     assign_preview_materials_2)
 from .. enums.enums import geometry_types
 
 
 def create_straight_wall(
-        tile_blueprint,
-        tile_system,
-        tile_name,
-        tile_size,
-        base_size,
-        base_system,
-        tile_material,
-        textured_faces):
+        tile_empty):
 
     """Returns a straight wall
     Keyword arguments:
-    tile_blueprint -- STR, a blueprint consists of a tile type and base type
-    tile_system -- STR, tile system for slabs
-    tile_name   -- STR, name,
-    tile_size   -- VECTOR [x, y, z],
-    base_size   -- VECTOR [x, y, z],
-    base_system -- STR tile system for bases
-    tile_material -- STR material name
+    tile_empty -- EMPTY, empty which the tile is parented to. \
+        Stores properties that relate to the entire tile
     """
+
+    tile_properties = tile_empty['tile_properties']
     # hack to correct for parenting issues.
     # moves cursor to origin and creates objects
-    # their then moves base to cursor original location and resets cursor
+    # then moves base to cursor original location and resets cursor
     # TODO: get rid of hack and parent properly
     cursor = bpy.context.scene.cursor
     cursor_orig_loc = cursor.location.copy()
     cursor.location = (0, 0, 0)
 
-    if base_system == 'OPENLOCK':
-        base_size = Vector((tile_size[0], 0.5, 0.2755))
-        base = create_openlock_straight_wall_base(tile_name, base_size)
+    if tile_properties['base_blueprint'] == 'OPENLOCK':
+        tile_properties['base_size'] = Vector((tile_properties['tile_size'][0], 0.5, 0.2755))
+        base = create_openlock_straight_wall_base(tile_properties)
 
-    if base_system == 'PLAIN':
-        base = create_straight_wall_base(tile_name, base_size)
+    if tile_properties['base_blueprint'] == 'PLAIN':
+        base = create_straight_wall_base(tile_properties)
 
-    if tile_system == 'OPENLOCK':
-        tile_size = Vector((tile_size[0], 0.3149, tile_size[2]))
-        create_openlock_wall_2(tile_name, tile_size, base, tile_material, textured_faces)
+    if tile_properties['tile_blueprint'] == 'OPENLOCK':
+        tile_properties['tile_size'] = Vector((tile_properties['tile_size'][0], 0.3149, tile_properties['tile_size'][2]))
+        create_openlock_wall_2(tile_properties, base)
 
-    if tile_system == 'PLAIN':
-        # create_plain_wall(tile_name, tile_size, base, tile_material)
-        create_plain_wall_2(tile_name, tile_size, base, tile_material, textured_faces)
+    if tile_properties['tile_blueprint'] == 'PLAIN':
+        create_plain_wall_2(tile_properties, base)
+
+    # create tile trimmers. Used to ensure that displaced
+    # textures don't extend beyond the original bounds of the tile.
+    # Used by voxeliser and exporter
 
     base.location = cursor_orig_loc
     cursor.location = cursor_orig_loc
 
 
-def create_openlock_wall_2(tile_name, tile_size, base, tile_material, textured_faces):
+def create_openlock_wall_2(tile_properties, base):
     # displacement_type = 'AXIS'
-    base_size = base.dimensions
+    tile_properties['base_size'] = base.dimensions
+    textured_faces = tile_properties['textured_faces']
 
-    preview_core, displacement_core = create_openlock_straight_wall_core_2(tile_name, tile_size, base_size)
+    preview_core, displacement_core = create_openlock_straight_wall_core_2(tile_properties)
 
     preview_core['geometry_type'] = 'PREVIEW'
     displacement_core['geometry_type'] = 'DISPLACEMENT'
@@ -89,7 +77,8 @@ def create_openlock_wall_2(tile_name, tile_size, base, tile_material, textured_f
 
     preferences = get_prefs()
 
-    primary_material = bpy.data.materials[tile_material]
+    primary_material = bpy.data.materials[tile_properties['tile_materials']['tile_material_1']]
+
     secondary_material = bpy.data.materials[preferences.secondary_material]
 
     image_size = bpy.context.scene.mt_tile_resolution
@@ -101,9 +90,10 @@ def create_openlock_wall_2(tile_name, tile_size, base, tile_material, textured_f
 
     cores = [preview_core, displacement_core]
 
-    if tile_size[2] >= 0.99:
-        if textured_faces['x_neg'] is False or textured_faces['x_pos'] is False:
-            wall_cutters = create_openlock_wall_cutters_2(preview_core, tile_size, tile_name, textured_faces)
+    if tile_properties['tile_size'][2] >= 0.99:
+        textured_faces = tile_properties['textured_faces']
+        if textured_faces['x_neg'] is 0 or textured_faces['x_pos'] is 0:
+            wall_cutters = create_openlock_wall_cutters_2(preview_core, tile_properties)
 
             for wall_cutter in wall_cutters:
                 wall_cutter.parent = base
@@ -118,13 +108,14 @@ def create_openlock_wall_2(tile_name, tile_size, base, tile_material, textured_f
     displacement_core.hide_viewport = True
 
 
-def create_plain_wall_2(tile_name, tile_size, base, tile_material, textured_faces):
-    base_size = base.dimensions
+def create_plain_wall_2(tile_properties, base):
+    tile_properties['base_size'] = base.dimensions
+    textured_faces = tile_properties['textured_faces']
 
-    preview_core = create_straight_wall_core_2(tile_name, tile_size, base_size)
+    preview_core = create_straight_wall_core_2(tile_properties['tile_name'], tile_properties['tile_size'], tile_properties['base_size'])
     preview_core['geometry_type'] = 'PREVIEW'
 
-    displacement_core = create_straight_wall_core_2(tile_name, tile_size, base_size)
+    displacement_core = create_straight_wall_core_2(tile_properties['tile_name'], tile_properties['tile_size'], tile_properties['base_size'])
     displacement_core['geometry_type'] = 'DISPLACEMENT'
 
     preview_core['displacement_obj'] = displacement_core
@@ -135,7 +126,7 @@ def create_plain_wall_2(tile_name, tile_size, base, tile_material, textured_face
 
     preferences = get_prefs()
 
-    primary_material = bpy.data.materials[tile_material]
+    primary_material = bpy.data.materials[tile_properties['tile_materials']['tile_material_1']]
     secondary_material = bpy.data.materials[preferences.secondary_material]
 
     image_size = bpy.context.scene.mt_tile_resolution
@@ -147,15 +138,13 @@ def create_plain_wall_2(tile_name, tile_size, base, tile_material, textured_face
 
 
 def create_straight_wall_core_2(
-        tile_name,
-        tile_size,
-        base_size):
+        tile_properties):
     '''Returns the core (vertical inner) part of a wall tile
 
     Keyword arguments:
-    tile_name   -- STR, name
-    tile_size   -- VECTOR, [x, y, z]
-    base_size   -- VECTOR, [x, y, z]
+    tile_properties['tile_name']   -- STR, name
+    tile_properties['tile_size']   -- VECTOR, [x, y, z]
+    tile_properties['base_size']   -- VECTOR, [x, y, z]
     '''
     cursor = bpy.context.scene.cursor
     cursor_start_location = cursor.location.copy()
@@ -164,18 +153,18 @@ def create_straight_wall_core_2(
 
     # make our core
     core = draw_cuboid([
-        tile_size[0],
-        tile_size[1],
-        tile_size[2] - base_size[2]])
+        tile_properties['tile_size'][0],
+        tile_properties['tile_size'][1],
+        tile_properties['tile_size'][2] - tile_properties['base_size'][2]])
 
-    core.name = tile_name + '.core'
-    add_object_to_collection(core, tile_name)
+    core.name = tile_properties['tile_name'] + '.core'
+    add_object_to_collection(core, tile_properties['tile_name'])
     core_location = core.location.copy()
     mode('OBJECT')
 
     # move core so centred, move up so on top of base and set origin to world origin
 
-    core.location = (core_location[0] - tile_size[0] / 2, core_location[1] - tile_size[1] / 2, core_location[2] + base_size[2])
+    core.location = (core_location[0] - tile_properties['tile_size'][0] / 2, core_location[1] - tile_properties['tile_size'][1] / 2, core_location[2] + tile_properties['base_size'][2])
     cursor.location = cursor_start_location
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
 
@@ -186,28 +175,27 @@ def create_straight_wall_core_2(
 
 
 def create_straight_wall_base(
-        tile_name,
-        base_size):
+        tile_properties):
     """Returns a base for a wall tile
 
     Keyword arguments:
-    tile_name   -- STR, name,
-    base_size   -- VECTOR, [x, y, z]
+    tile_properties['tile_name']   -- STR, name,
+    tile_properties['base_size']   -- VECTOR, [x, y, z]
     """
     cursor = bpy.context.scene.cursor
     cursor_start_location = cursor.location.copy()
 
     # make base
-    base = draw_cuboid(base_size)
-    base.name = tile_name + '.base'
-    add_object_to_collection(base, tile_name)
+    base = draw_cuboid(tile_properties['base_size'])
+    base.name = tile_properties['tile_name'] + '.base'
+    add_object_to_collection(base, tile_properties['tile_name'])
     base_location = base.location.copy()
 
     mode('OBJECT')
     select(base.name)
     activate(base.name)
 
-    base.location = (base_location[0] - base_size[0] / 2, base_location[1] + base_size[1] / 2, base_location[2] + base_size[2])
+    base.location = (base_location[0] - tile_properties['base_size'][0] / 2, base_location[1] + tile_properties['base_size'][1] / 2, base_location[2] + tile_properties['base_size'][2])
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
     base.location = cursor_start_location
     bpy.context.scene.cursor.location = cursor_start_location
@@ -216,12 +204,12 @@ def create_straight_wall_base(
     return base
 
 
-def create_openlock_straight_wall_base(tile_name, base_size):
+def create_openlock_straight_wall_base(tile_properties):
     """takes a straight wall base and makes it into an openlock style base"""
     # make base
-    base = create_straight_wall_base(tile_name, base_size)
+    base = create_straight_wall_base(tile_properties)
 
-    slot_cutter = create_openlock_base_slot_cutter(base, base_size, tile_name)
+    slot_cutter = create_openlock_base_slot_cutter(base, tile_properties)
 
     slot_boolean = base.modifiers.new(slot_cutter.name, 'BOOLEAN')
     slot_boolean.operation = 'DIFFERENCE'
@@ -230,7 +218,7 @@ def create_openlock_straight_wall_base(tile_name, base_size):
     slot_cutter.display_type = 'BOUNDS'
     slot_cutter.hide_viewport = True
 
-    clip_cutter = create_openlock_base_clip_cutter(base, tile_name)
+    clip_cutter = create_openlock_base_clip_cutter(base, tile_properties)
     clip_boolean = base.modifiers.new(clip_cutter.name, 'BOOLEAN')
     clip_boolean.operation = 'DIFFERENCE'
     clip_boolean.object = clip_cutter
@@ -242,24 +230,23 @@ def create_openlock_straight_wall_base(tile_name, base_size):
 
 
 def create_openlock_straight_wall_core_2(
-        tile_name,
-        tile_size,
-        base_size):
+        tile_properties):
 
-    preview_core = create_straight_wall_core_2(tile_name, tile_size, base_size)
-    displacement_core = create_straight_wall_core_2(tile_name, tile_size, base_size)
+    preview_core = create_straight_wall_core_2(tile_properties)
+    displacement_core = create_straight_wall_core_2(tile_properties)
 
     return preview_core, displacement_core
 
 
-def create_openlock_wall_cutters_2(core, tile_size, tile_name, textured_faces):
+def create_openlock_wall_cutters_2(core, tile_properties):
     """Creates the cutters for the wall and positions them correctly
 
     Keyword arguments:
     core -- OBJ, wall core object
-    tile_size -- VECTOR [x, y, z] Size of tile including any base
-    tile_name -- STR, tile name
+    tile_properties['tile_size'] -- VECTOR [x, y, z] Size of tile including any base
+    tile_properties['tile_name'] -- STR, tile name
     """
+    textured_faces = tile_properties['textured_faces']
     deselect_all()
     preferences = get_prefs()
     booleans_path = os.path.join(preferences.assets_path, "meshes", "booleans", "openlock.blend")
@@ -272,18 +259,18 @@ def create_openlock_wall_cutters_2(core, tile_size, tile_name, textured_faces):
 
     cutters = []
     # left side cutters
-    if textured_faces['x_neg'] is False:
+    if textured_faces['x_neg'] is 0:
         left_cutter_bottom = data_to.objects[0].copy()
-        add_object_to_collection(left_cutter_bottom, tile_name)
+        add_object_to_collection(left_cutter_bottom, tile_properties['tile_name'])
         # get location of bottom front left corner of tile
         front_left = [
-            core_location[0] - (tile_size[0] / 2),
-            core_location[1] - (tile_size[1] / 2),
+            core_location[0] - (tile_properties['tile_size'][0] / 2),
+            core_location[1] - (tile_properties['tile_size'][1] / 2),
             core_location[2]]
         # move cutter to bottom front left corner then up by 0.63 inches
         left_cutter_bottom.location = [
             front_left[0],
-            front_left[1] + (tile_size[1] / 2),
+            front_left[1] + (tile_properties['tile_size'][1] / 2),
             front_left[2] + 0.63]
 
         array_mod = left_cutter_bottom.modifiers.new('Array', 'ARRAY')
@@ -291,34 +278,34 @@ def create_openlock_wall_cutters_2(core, tile_size, tile_name, textured_faces):
         array_mod.use_constant_offset = True
         array_mod.constant_offset_displace[2] = 2
         array_mod.fit_type = 'FIT_LENGTH'
-        array_mod.fit_length = tile_size[2] - 1
+        array_mod.fit_length = tile_properties['tile_size'][2] - 1
 
         # make a copy of left cutter bottom
         left_cutter_top = left_cutter_bottom.copy()
 
-        add_object_to_collection(left_cutter_top, tile_name)
+        add_object_to_collection(left_cutter_top, tile_properties['tile_name'])
 
         # move cutter up by 0.75 inches
         left_cutter_top.location[2] = left_cutter_top.location[2] + 0.75
 
         array_mod = left_cutter_top.modifiers[array_mod.name]
-        array_mod.fit_length = tile_size[2] - 1.8
+        array_mod.fit_length = tile_properties['tile_size'][2] - 1.8
 
         cutters.extend([left_cutter_bottom, left_cutter_top])
 
     # right side cutters
-    if textured_faces['x_pos'] is False:
+    if textured_faces['x_pos'] is 0:
         right_cutter_bottom = data_to.objects[0].copy()
-        add_object_to_collection(right_cutter_bottom, tile_name)
+        add_object_to_collection(right_cutter_bottom, tile_properties['tile_name'])
         # get location of bottom front right corner of tile
         front_right = [
-            core_location[0] + (tile_size[0] / 2),
-            core_location[1] - (tile_size[1] / 2),
+            core_location[0] + (tile_properties['tile_size'][0] / 2),
+            core_location[1] - (tile_properties['tile_size'][1] / 2),
             core_location[2]]
         # move cutter to bottom front left corner then up by 0.63 inches
         right_cutter_bottom.location = [
             front_right[0],
-            front_right[1] + (tile_size[1] / 2),
+            front_right[1] + (tile_properties['tile_size'][1] / 2),
             front_right[2] + 0.63]
         # rotate cutter 180 degrees around Z
         right_cutter_bottom.rotation_euler[2] = radians(180)
@@ -328,31 +315,31 @@ def create_openlock_wall_cutters_2(core, tile_size, tile_name, textured_faces):
         array_mod.use_constant_offset = True
         array_mod.constant_offset_displace[2] = 2
         array_mod.fit_type = 'FIT_LENGTH'
-        array_mod.fit_length = tile_size[2] - 1
+        array_mod.fit_length = tile_properties['tile_size'][2] - 1
 
         right_cutter_top = right_cutter_bottom.copy()
-        add_object_to_collection(right_cutter_top, tile_name)
+        add_object_to_collection(right_cutter_top, tile_properties['tile_name'])
         right_cutter_top.location[2] = right_cutter_top.location[2] + 0.75
 
         array_mod = right_cutter_top.modifiers["Array"]
-        array_mod.fit_length = tile_size[2] - 1.8
+        array_mod.fit_length = tile_properties['tile_size'][2] - 1.8
 
         cutters.extend([right_cutter_bottom, right_cutter_top])
 
     return cutters
 
 
-def create_openlock_base_clip_cutter(base, tile_name):
+def create_openlock_base_clip_cutter(base, tile_properties):
     """Makes a cutter for the openlock base clip based
     on the width of the base and positions it correctly
 
     Keyword arguments:
     base -- OBJ, base the cutter will be used on
-    tile_name -- STR, tilename
+    tile_properties['tile_name'] -- STR, tilename
     """
 
     mode('OBJECT')
-    base_size = base.dimensions
+    tile_properties['base_size'] = base.dimensions
 
     # get original location of cursor
     cursor_original_location = bpy.context.scene.cursor.location.copy()
@@ -367,7 +354,7 @@ def create_openlock_base_clip_cutter(base, tile_name):
         data_to.objects = ['openlock.wall.base.cutter.clip', 'openlock.wall.base.cutter.clip.cap.start', 'openlock.wall.base.cutter.clip.cap.end']
 
     for obj in data_to.objects:
-        add_object_to_collection(obj, tile_name)
+        add_object_to_collection(obj, tile_properties['tile_name'])
 
     clip_cutter = data_to.objects[0]
     cutter_start_cap = data_to.objects[1]
@@ -377,8 +364,8 @@ def create_openlock_base_clip_cutter(base, tile_name):
     cutter_end_cap.hide_viewport = True
 
     clip_cutter.location = Vector((
-        base_location[0] - (base_size[0] / 2) + 0.5,
-        base_location[1] - (base_size[1] / 2) + 0.25,
+        base_location[0] - (tile_properties['base_size'][0] / 2) + 0.5,
+        base_location[1] - (tile_properties['base_size'][1] / 2) + 0.25,
         base_location[2]))
 
     array_mod = clip_cutter.modifiers.new('Array', 'ARRAY')
@@ -387,18 +374,18 @@ def create_openlock_base_clip_cutter(base, tile_name):
     array_mod.use_merge_vertices = True
 
     array_mod.fit_type = 'FIT_LENGTH'
-    array_mod.fit_length = base_size[0] - 1
+    array_mod.fit_length = tile_properties['base_size'][0] - 1
 
     return (clip_cutter)
 
 
-def create_openlock_base_slot_cutter(base, base_size, tile_name, offset=0.18):
+def create_openlock_base_slot_cutter(base, tile_properties, offset=0.18):
     """Makes a cutter for the openlock base slot
     based on the width of the base
 
     Keyword arguments:
     base -- OBJ, base the cutter will be used on
-    tile_name -- STR
+    tile_properties['tile_name'] -- STR
     """
     cursor = bpy.context.scene.cursor
     mode('OBJECT')
@@ -410,13 +397,13 @@ def create_openlock_base_slot_cutter(base, base_size, tile_name, offset=0.18):
 
     # work out bool size X from base size, y and z are constants
     bool_size = [
-        base_size[0] - (0.236 * 2),
+        tile_properties['base_size'][0] - (0.236 * 2),
         0.197,
         0.25]
 
     cutter_mesh = bpy.data.meshes.new("cutter_mesh")
-    cutter = bpy.data.objects.new(tile_name + ".cutter.slot", cutter_mesh)
-    add_object_to_collection(cutter, tile_name)
+    cutter = bpy.data.objects.new(tile_properties['tile_name'] + ".cutter.slot", cutter_mesh)
+    add_object_to_collection(cutter, tile_properties['tile_name'])
     cutter = draw_cuboid(bool_size)
 
     mode('OBJECT')

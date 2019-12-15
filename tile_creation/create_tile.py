@@ -5,7 +5,9 @@ import bpy
 from mathutils import Vector
 from .. lib.utils.selection import deselect_all
 from .. lib.utils.utils import mode
-from .. lib.utils.collections import create_collection, add_object_to_collection, get_collection, activate_collection
+from .. lib.utils.collections import (
+    create_collection,
+    activate_collection)
 from . create_straight_wall_tile import create_straight_wall
 from . create_floor_tile import create_rectangular_floor
 from . create_curved_wall_tile import create_curved_wall
@@ -21,13 +23,18 @@ def create_tile(
         wall_inner_radius,
         degrees_of_arc,
         segments,
-        base_system,
-        tile_material,
-        socket_side,
+        base_blueprint,
+        tile_materials,
+        base_socket_sides,
         textured_faces):
     """Returns a tile as a collection
-
+    'Tiles' are collections of meshes parented to an empty.
+    Properties that apply to the entire tile are stored on the empty
     """
+    #######################################
+    # Create our collection and tile name #
+    #######################################
+
     scene_collection = bpy.context.scene.collection
 
     # Check to see if tile collection exist and create if not
@@ -49,18 +56,35 @@ def create_tile(
         # make final tile name
         tile_name = tile_collection.name
 
-        bpy.context.scene.mt_tile_name = tile_name
+        # TODO: delete
+        # bpy.context.scene.mt_tile_name = tile_name
+
+    ##########################
+    # Create Tile Empty      #
+    ##########################
+
+    tile_empty = bpy.data.objects.new(tile_name + ".empty", None)
+    bpy.context.layer_collection.collection.objects.link(tile_empty)
+
+    # create properties
+    tile_empty['tile_properties'] = {
+        'tile_name': tile_name,
+        'tile_blueprint': tile_blueprint,
+        'base_blueprint': base_blueprint,
+        'tile_type': tile_type,
+        'tile_size': tile_size,
+        'base_size': base_size,
+        'tile_materials': tile_materials,
+        'textured_faces': textured_faces,
+        'base_inner_radius': base_inner_radius,  # used for curved tiles only
+        'wall_inner_radius': wall_inner_radius,  # used for curved walls only
+        'degrees_of_arc': degrees_of_arc,  # used for curved tiles only
+        'segments': segments,  # used for curved tiles only
+        'base_socket_sides': base_socket_sides,  # used for bases that can or should have sockets only on certain sides
+    }
 
     if tile_type == 'STRAIGHT_WALL':
-        create_straight_wall(
-            tile_blueprint,
-            tile_system,
-            tile_name,
-            tile_size,
-            base_size,
-            base_system,
-            tile_material,
-            textured_faces)
+        create_straight_wall(tile_empty)
 
     if tile_type == 'CURVED_WALL':
         create_curved_wall(
@@ -69,13 +93,13 @@ def create_tile(
             tile_name,
             tile_size,
             base_size,
-            base_system,
-            tile_material,
+            base_blueprint,
+            tile_materials['tile_material_1'],
             base_inner_radius,
             wall_inner_radius,
             degrees_of_arc,
             segments,
-            socket_side,
+            base_socket_sides,
             textured_faces)
 
     if tile_type == 'RECTANGULAR_FLOOR':
@@ -96,7 +120,7 @@ def create_tile(
             tile_name,
             tile_size,
             base_size,
-            base_system,
-            tile_material)
+            base_blueprint,
+            tile_materials['tile_material_1'])
 
     return tile_collection

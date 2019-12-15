@@ -17,11 +17,7 @@ from .. enums.enums import (
 from .. materials.materials import (
     load_materials,
     get_blend_filenames,
-    assign_displacement_materials,
-    assign_preview_materials,
-    update_displacement_material,
     update_displacement_material_2,
-    update_preview_material,
     update_preview_material_2)
 
 
@@ -39,7 +35,6 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             return True
 
     def execute(self, context):
-
         tile_blueprint = context.scene.mt_tile_blueprint
         tile_main_system = context.scene.mt_tile_main_system
         tile_type = context.scene.mt_tile_type
@@ -60,15 +55,19 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         segments = bpy.context.scene.mt_segments
         socket_side = bpy.context.scene.mt_base_socket_side
         base_system = context.scene.mt_base_system
-        tile_material = context.scene.mt_tile_material
+
+        tile_materials = {
+            'tile_material_1': context.scene.mt_tile_material_1,
+            'tile_material_2': context.scene.mt_tile_material_2
+        }
 
         textured_faces = {
-            "x_neg": context.scene.mt_left_textured,
-            "x_pos": context.scene.mt_right_textured,
-            "y_pos": context.scene.mt_outer_textured,
-            "y_neg": context.scene.mt_inner_textured,
-            "z_pos": context.scene.mt_top_textured,
-            "z_neg": context.scene.mt_bottom_textured,
+            "x_neg": context.scene.mt_x_neg_textured,
+            "x_pos": context.scene.mt_x_pos_textured,
+            "y_pos": context.scene.mt_y_pos_textured,
+            "y_neg": context.scene.mt_y_neg_textured,
+            "z_pos": context.scene.mt_z_pos_textured,
+            "z_neg": context.scene.mt_z_neg_textured,
         }
 
         if tile_blueprint == 'OPENLOCK':
@@ -90,7 +89,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             degrees_of_arc,
             segments,
             base_system,
-            tile_material,
+            tile_materials,
             socket_side,
             textured_faces
         )
@@ -136,10 +135,16 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             default=preferences.default_base_system,
         )
 
-        bpy.types.Scene.mt_tile_material = bpy.props.EnumProperty(
+        bpy.types.Scene.mt_tile_material_1 = bpy.props.EnumProperty(
             items=load_material_enums,
-            name="Material",
-            update=update_material,
+            name="Material 1",
+            update=update_material_1,
+        )
+
+        bpy.types.Scene.mt_tile_material_2 = bpy.props.EnumProperty(
+            items=load_material_enums,
+            name="Material 2",
+            update=update_material_2,
         )
 
         bpy.types.Scene.mt_tile_resolution = bpy.props.IntProperty(
@@ -161,32 +166,32 @@ class MT_OT_Make_Tile(bpy.types.Operator):
 
         # Which sides of walls to texture
 
-        bpy.types.Scene.mt_inner_textured = bpy.props.BoolProperty(
+        bpy.types.Scene.mt_y_neg_textured = bpy.props.BoolProperty(
             name="Inner",
             default=True
         )
 
-        bpy.types.Scene.mt_outer_textured = bpy.props.BoolProperty(
+        bpy.types.Scene.mt_y_pos_textured = bpy.props.BoolProperty(
             name="Outer",
             default=True
         )
 
-        bpy.types.Scene.mt_top_textured = bpy.props.BoolProperty(
+        bpy.types.Scene.mt_z_pos_textured = bpy.props.BoolProperty(
             name="Top",
             default=True
         )
 
-        bpy.types.Scene.mt_bottom_textured = bpy.props.BoolProperty(
+        bpy.types.Scene.mt_z_neg_textured = bpy.props.BoolProperty(
             name="Bottom",
             default=False
         )
 
-        bpy.types.Scene.mt_left_textured = bpy.props.BoolProperty(
+        bpy.types.Scene.mt_x_neg_textured = bpy.props.BoolProperty(
             name="Left",
             default=False
         )
 
-        bpy.types.Scene.mt_right_textured = bpy.props.BoolProperty(
+        bpy.types.Scene.mt_x_pos_textured = bpy.props.BoolProperty(
             name="Right",
             default=False
         )
@@ -291,12 +296,12 @@ class MT_OT_Make_Tile(bpy.types.Operator):
     @classmethod
     def unregister(cls):
         print("Unregistered class: %s" % cls.bl_label)
-        del bpy.types.Scene.mt_inner_textured
-        del bpy.types.Scene.mt_outer_textured
-        del bpy.types.Scene.mt_top_textured
-        del bpy.types.Scene.mt_bottom_textured
-        del bpy.types.Scene.mt_left_textured
-        del bpy.types.Scene.mt_right_textured
+        del bpy.types.Scene.mt_y_neg_textured
+        del bpy.types.Scene.mt_y_pos_textured
+        del bpy.types.Scene.mt_z_pos_textured
+        del bpy.types.Scene.mt_z_neg_textured
+        del bpy.types.Scene.mt_x_neg_textured
+        del bpy.types.Scene.mt_x_pos_textured
         del bpy.types.Scene.mt_tile_name
         del bpy.types.Scene.mt_segments
         del bpy.types.Scene.mt_base_inner_radius
@@ -311,7 +316,8 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         del bpy.types.Scene.mt_tile_z
         del bpy.types.Scene.mt_base_system
         del bpy.types.Scene.mt_tile_resolution
-        del bpy.types.Scene.mt_tile_material
+        del bpy.types.Scene.mt_tile_material_1
+        del bpy.types.Scene.mt_tile_material_2
         del bpy.types.Scene.mt_tile_type
         del bpy.types.Scene.mt_tile_blueprint
         del bpy.types.Scene.mt_tile_main_system
@@ -347,17 +353,27 @@ def load_material_enums(self, context):
     return enum_collection.enums
 
 
-def update_material(self, context):
+# TODO: Rewrite for two materials
+def update_material_1(self, context):
     preview_obj = bpy.context.object
 
     if 'geometry_type' in preview_obj:
         if preview_obj['geometry_type'] == 'PREVIEW':
             disp_obj = preview_obj['displacement_obj']
-            # update_displacement_material(disp_obj, bpy.context.scene.mt_tile_material)
-            # update_preview_material(preview_obj, bpy.context.scene.mt_tile_material)
 
-            update_displacement_material_2(disp_obj, bpy.context.scene.mt_tile_material)
-            update_preview_material_2(preview_obj, bpy.context.scene.mt_tile_material)
+            update_displacement_material_2(disp_obj, bpy.context.scene.mt_tile_material_1)
+            update_preview_material_2(preview_obj, bpy.context.scene.mt_tile_material_1)
+
+
+def update_material_2(self, context):
+    preview_obj = bpy.context.object
+
+    if 'geometry_type' in preview_obj:
+        if preview_obj['geometry_type'] == 'PREVIEW':
+            disp_obj = preview_obj['displacement_obj']
+
+            update_displacement_material_2(disp_obj, bpy.context.scene.mt_tile_material_1)
+            update_preview_material_2(preview_obj, bpy.context.scene.mt_tile_material_1)
 
 
 enum_collections = {}

@@ -60,7 +60,6 @@ def create_straight_wall(
 
 
 def create_openlock_wall_2(tile_properties, base):
-    # displacement_type = 'AXIS'
     tile_properties['base_size'] = base.dimensions
     textured_faces = tile_properties['textured_faces']
 

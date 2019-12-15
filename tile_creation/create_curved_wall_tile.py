@@ -15,10 +15,6 @@ from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
 from .. materials.materials import (
     load_secondary_material,
     assign_mat_to_vert_group,
-    add_displacement_mesh_modifiers,
-    add_preview_mesh_modifiers,
-    assign_displacement_materials,
-    assign_preview_materials,
     assign_displacement_materials_2,
     assign_preview_materials_2)
 from .. enums.enums import geometry_types
@@ -30,7 +26,10 @@ from . create_straight_wall_tile import (
 
 
 def create_curved_wall(tile_empty):
+    """Returns a curved wall"""
+
     tile_properties = tile_empty['tile_properties']
+
     # correct for the Y thickness
     tile_properties['base_inner_radius'] = tile_properties['base_inner_radius'] + (tile_properties['base_size'][1] / 2)
 
@@ -38,6 +37,7 @@ def create_curved_wall(tile_empty):
     # moves cursor to origin and creates objects
     # their then moves base to cursor original location and resets cursor
     # TODO: get rid of hack and parent properly
+
     cursor = bpy.context.scene.cursor
     cursor_orig_loc = cursor.location.copy()
     cursor.location = (0, 0, 0)

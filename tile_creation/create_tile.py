@@ -51,17 +51,22 @@ def create_tile(
         # create new collection that operates as our "tile" and activate it
         tile_collection = bpy.data.collections.new(tile_name)
         bpy.data.collections['Walls'].children.link(tile_collection)
-        activate_collection(tile_collection.name)
 
-        # make final tile name
-        tile_name = tile_collection.name
+    if tile_type == 'RECTANGULAR_FLOOR':
+        # create floor collection if one doesn't already exist
+        floors_collection = create_collection('Floors', tiles_collection)
+        # create new collection that operates as our "tile" and activate it
+        tile_collection = bpy.data.collections.new(tile_name)
+        bpy.data.collections['Floors'].children.link(tile_collection)
 
-        # TODO: delete
-        # bpy.context.scene.mt_tile_name = tile_name
+    # make final tile name
+    activate_collection(tile_collection.name)
 
-    ##########################
-    # Create Tile Empty      #
-    ##########################
+    tile_name = tile_collection.name
+
+    #####################
+    # Create Tile Empty #
+    #####################
 
     tile_empty = bpy.data.objects.new(tile_name + ".empty", None)
     bpy.context.layer_collection.collection.objects.link(tile_empty)
@@ -83,6 +88,10 @@ def create_tile(
         'base_socket_sides': base_socket_sides,  # used for bases that can or should have sockets only on certain sides
     }
 
+    ###############
+    # Create Tile #
+    ###############
+
     if tile_type == 'STRAIGHT_WALL':
         create_straight_wall(tile_empty)
 
@@ -90,24 +99,6 @@ def create_tile(
         create_curved_wall(tile_empty)
 
     if tile_type == 'RECTANGULAR_FLOOR':
-
-        # create floor collection if one doesn't already exist
-        floors_collection = create_collection('Floors', tiles_collection)
-        # create new collection that operates as our "tile" and activate it
-        tile_collection = bpy.data.collections.new(tile_name)
-        bpy.data.collections['Floors'].children.link(tile_collection)
-
-        activate_collection(tile_collection.name)
-        # make final tile name
-        tile_name = tile_collection.name
-
-        create_rectangular_floor(
-            tile_blueprint,
-            tile_system,
-            tile_name,
-            tile_size,
-            base_size,
-            base_blueprint,
-            tile_materials['tile_material_1'])
+        create_rectangular_floor(tile_empty)
 
     return tile_collection

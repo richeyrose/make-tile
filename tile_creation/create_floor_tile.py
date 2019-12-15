@@ -13,66 +13,56 @@ from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
 from .. materials.materials import (
     load_secondary_material,
     assign_mat_to_vert_group,
-    add_displacement_mesh_modifiers,
-    assign_displacement_materials,
-    assign_preview_materials)
+    assign_displacement_materials_2,
+    assign_preview_materials_2)
 
 
 # TODO: Refactor to use new material system
-def create_rectangular_floor(
-        tile_blueprint,
-        tile_system,
-        tile_name,
-        tile_size,
-        base_size,
-        base_system,
-        tile_material):
+def create_rectangular_floor(tile_empty):
+    """"Returns a floor"""
 
-    """"Returns a floor
-    Keyword arguments:
-    tile_blueprint -- a blueprint consists of a tile type and base type
-    tile_system -- tile system for slabs
-    tile_name   -- name,
-    tile_size   -- [x, y, z],
-    base_size   -- [x, y, z],
-    base_system -- tile system for bases
-    tile_material -- material name
-    """
+    tile_properties = tile_empty['tile_properties']
+
     # hack to correct for parenting issues.
     # moves cursor to origin and creates objects
     # their then moves base to cursor original location and resets cursor
     # TODO: get rid of hack and parent properly
+
     cursor = bpy.context.scene.cursor
     cursor_orig_loc = cursor.location.copy()
     cursor.location = (0, 0, 0)
 
-    if base_system == 'OPENLOCK':
-        base_size = Vector((tile_size[0], tile_size[1], .2756))
-        tile_size[2] = 0.374
-        base = create_openlock_straight_wall_base(tile_name, base_size)
+    if tile_properties['base_blueprint'] == 'OPENLOCK':
+        tile_properties['base_size'] = Vector((tile_properties['tile_size'][0], tile_properties['tile_size'][1], .2756))
+        tile_properties['tile_size'][2] = 0.374
+        base = create_openlock_straight_wall_base(tile_properties)
 
-    if base_system == 'PLAIN':
-        base = create_plain_base(tile_name, base_size)
+    if tile_properties['base_blueprint'] == 'PLAIN':
+        base = create_plain_base(tile_properties)
 
-    if base_system == 'NONE':
-        base_size = (0, 0, 0)
+    if tile_properties['base_blueprint'] == 'NONE':
+        tile_properties['base_size'] = (0, 0, 0)
+        base = bpy.data.objects.new(tile_properties['tile_name'] + '.base', None)
+        add_object_to_collection(base, tile_properties['tile_name'])
 
     if base:
-        floor = create_floor(tile_name, tile_size, base_size, tile_material, base)
+        floor = create_floor(tile_properties, base)
+
+    tile_empty['tile_properties'] = tile_properties
 
     base.location = cursor_orig_loc
     cursor.location = cursor_orig_loc
 
 
-def create_plain_base(tile_name, base_size):
+def create_plain_base(tile_properties):
     '''Creates a plain cuboid base'''
     cursor_start_location = bpy.context.scene.cursor.location.copy()
-    base = draw_cuboid(base_size)
-    base.name = tile_name + '.base'
-    add_object_to_collection(base, tile_name)
+    base = draw_cuboid(tile_properties['base_size'])
+    base.name = tile_properties['tile_name'] + '.base'
+    add_object_to_collection(base, tile_properties['tile_name'])
 
     base['geometry_type'] = 'BASE'
-    base.location = (-base_size[0] / 2, -base_size[1] / 2, 0)
+    base.location = (-tile_properties['base_size'][0] / 2, -tile_properties['base_size'][1] / 2, 0)
     bpy.context.scene.cursor.location = [0, 0, 0]
     mode('OBJECT')
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
@@ -82,19 +72,15 @@ def create_plain_base(tile_name, base_size):
     return base
 
 
-def create_floor(tile_name, tile_size, base_size, tile_material, base):
+def create_floor(tile_properties, base):
     ''''creates the preview and displacement slabs for the floor tile'''
     preview_slab = create_floor_slab(
-        tile_name,
-        tile_size,
-        base_size,
+        tile_properties,
         'PREVIEW')
     preview_slab['geometry_type'] = 'PREVIEW'
 
     displacement_slab = create_floor_slab(
-        tile_name,
-        tile_size,
-        base_size,
+        tile_properties,
         'DISPLACEMENT')
     displacement_slab['geometry_type'] = 'DISPLACEMENT'
 
@@ -103,13 +89,13 @@ def create_floor(tile_name, tile_size, base_size, tile_material, base):
 
     preferences = get_prefs()
 
-    primary_material = bpy.data.materials[tile_material]
+    primary_material = bpy.data.materials[tile_properties['tile_materials']['tile_material_1']]
     secondary_material = bpy.data.materials[preferences.secondary_material]
 
     image_size = bpy.context.scene.mt_tile_resolution
 
-    assign_displacement_materials(displacement_slab, 'Z', 'z_pos', 'pos', [image_size, image_size], primary_material)
-    assign_preview_materials(preview_slab, 'z_pos', primary_material, secondary_material)
+    assign_displacement_materials_2(displacement_slab, [image_size, image_size], primary_material, secondary_material, tile_properties['textured_faces'])
+    assign_preview_materials_2(preview_slab, primary_material, secondary_material, tile_properties['textured_faces'])
 
     slabs = [preview_slab, displacement_slab]
 
@@ -119,17 +105,17 @@ def create_floor(tile_name, tile_size, base_size, tile_material, base):
     displacement_slab.hide_viewport = True
 
 
-def create_floor_slab(tile_name, tile_size, base_size, geometry_type):
+def create_floor_slab(tile_properties, geometry_type):
     """Returns a displacement or preview floor slab depending on the geometry type"""
     cursor_start_location = bpy.context.scene.cursor.location.copy()
 
     if geometry_type == 'PREVIEW':
-        slab = create_preview_slab(tile_name, tile_size, base_size)
+        slab = create_preview_slab(tile_properties)
     else:
-        slab = create_displacement_slab(tile_name, tile_size, base_size)
+        slab = create_displacement_slab(tile_properties)
     slab['geometry_type'] = geometry_type
 
-    slab.location = (-tile_size[0] / 2, -tile_size[1] / 2, base_size[2])
+    slab.location = (-tile_properties['tile_size'][0] / 2, -tile_properties['tile_size'][1] / 2, tile_properties['base_size'][2])
 
     bpy.context.scene.cursor.location = [0, 0, 0]
     mode('OBJECT')
@@ -146,42 +132,40 @@ def create_floor_slab(tile_name, tile_size, base_size, geometry_type):
     return slab
 
 
-def create_preview_slab(tile_name, tile_size, base_size):
+def create_preview_slab(tile_properties):
     '''Returns the preview floor slab'''
-    slab_size = Vector((tile_size[0], tile_size[1], 0.01))
+    slab_size = Vector((tile_properties['tile_size'][0], tile_properties['tile_size'][1], 0.01))
     slab = draw_cuboid(slab_size)
-    slab.name = tile_name + '.slab.preview'
-    add_object_to_collection(slab, tile_name)
+    slab.name = tile_properties['tile_name'] + '.slab.preview'
+    add_object_to_collection(slab, tile_properties['tile_name'])
     return slab
 
 
-def create_displacement_slab(tile_name, tile_size, base_size):
+def create_displacement_slab(tile_properties):
     '''Returns the displacement floor slab'''
-    slab_size = Vector((tile_size[0], tile_size[1], 0.01))
+    slab_size = Vector((tile_properties['tile_size'][0], tile_properties['tile_size'][1], 0.01))
     slab = draw_cuboid(slab_size)
-    slab.name = tile_name + '.slab.displacement'
-    add_object_to_collection(slab, tile_name)
+    slab.name = tile_properties['tile_name'] + '.slab.displacement'
+    add_object_to_collection(slab, tile_properties['tile_name'])
     return slab
 
 
-def create_openlock_straight_wall_base(
-        tile_name,
-        base_size):
+def create_openlock_straight_wall_base(tile_properties):
     '''Creates an openlock style base'''
-    if base_size[0] >= 1 and base_size[1] < 1 and base_size[1] > 0.496:
+    if tile_properties['base_size'][0] >= 1 and tile_properties['base_size'][1] < 1 and tile_properties['base_size'][1] > 0.496:
         # if base is less than an inch wide use a wall type base
-        base = create_openlock_straight_wall_base(tile_name, base_size)
-    elif base_size[0] < 1 or base_size[1] <= 0.496:
+        base = create_openlock_straight_wall_base(tile_properties['tile_name'], tile_properties['base_size'])
+    elif tile_properties['base_size'][0] < 1 or tile_properties['base_size'][1] <= 0.496:
         # TODO: Display message in viewport
         print('Tile too small')
-        col = bpy.data.collections[tile_name]
+        col = bpy.data.collections[tile_properties['tile_name']]
         bpy.data.collections.remove(col)
         return False
     else:
-        base = draw_openlock_rect_floor_base(base_size)
-        base.name = tile_name + '.base'
-        add_object_to_collection(base, tile_name)
-        clip_cutters = create_openlock_base_clip_cutter(base, tile_name)
+        base = draw_openlock_rect_floor_base(tile_properties['base_size'])
+        base.name = tile_properties['tile_name'] + '.base'
+        add_object_to_collection(base, tile_properties['tile_name'])
+        clip_cutters = create_openlock_base_clip_cutter(base, tile_properties)
 
         for clip_cutter in clip_cutters:
             matrixcopy = clip_cutter.matrix_world.copy()
@@ -198,7 +182,7 @@ def create_openlock_straight_wall_base(
     return base
 
 
-def create_openlock_base_clip_cutter(base, tile_name):
+def create_openlock_base_clip_cutter(base, tile_properties):
     """Makes a cutter for the openlock base clip based
     on the width of the base and positions it correctly
 
@@ -208,7 +192,6 @@ def create_openlock_base_clip_cutter(base, tile_name):
     """
     mode('OBJECT')
 
-    base_size = base.dimensions.copy()
     base_location = base.location.copy()
     preferences = get_prefs()
     booleans_path = os.path.join(preferences.assets_path, "meshes", "booleans", "openlock.blend")
@@ -217,7 +200,7 @@ def create_openlock_base_clip_cutter(base, tile_name):
         data_to.objects = ['openlock.wall.base.cutter.clip', 'openlock.wall.base.cutter.clip.cap.start', 'openlock.wall.base.cutter.clip.cap.end']
 
     for obj in data_to.objects:
-        add_object_to_collection(obj, tile_name)
+        add_object_to_collection(obj, tile_properties['tile_name'])
 
     clip_cutter = data_to.objects[0]
     cutter_start_cap = data_to.objects[1]
@@ -228,8 +211,8 @@ def create_openlock_base_clip_cutter(base, tile_name):
 
     # get location of bottom front left corner of tile
     front_left = Vector((
-        base_location[0] - (base_size[0] / 2),
-        base_location[1] - (base_size[1] / 2),
+        base_location[0] - (tile_properties['base_size'][0] / 2),
+        base_location[1] - (tile_properties['base_size'][1] / 2),
         base_location[2]))
 
     clip_cutter.location = (
@@ -243,7 +226,7 @@ def create_openlock_base_clip_cutter(base, tile_name):
     array_mod.use_merge_vertices = True
 
     array_mod.fit_type = 'FIT_LENGTH'
-    array_mod.fit_length = base_size[0] - 1
+    array_mod.fit_length = tile_properties['base_size'][0] - 1
 
     select(clip_cutter.name)
     activate(clip_cutter.name)
@@ -253,12 +236,12 @@ def create_openlock_base_clip_cutter(base, tile_name):
     mirror_mod.mirror_object = base
 
     clip_cutter2 = clip_cutter.copy()
-    add_object_to_collection(clip_cutter2, tile_name)
+    add_object_to_collection(clip_cutter2, tile_properties['tile_name'])
     clip_cutter2.rotation_euler = (0, 0, math.radians(90))
 
     front_right = Vector((
-        base_location[0] + (base_size[0] / 2),
-        base_location[1] - (base_size[1] / 2),
+        base_location[0] + (tile_properties['base_size'][0] / 2),
+        base_location[1] - (tile_properties['base_size'][1] / 2),
         base_location[2]))
 
     clip_cutter2.location = (
@@ -268,7 +251,7 @@ def create_openlock_base_clip_cutter(base, tile_name):
 
     array_mod2 = clip_cutter2.modifiers['Array']
     array_mod2.fit_type = 'FIT_LENGTH'
-    array_mod2.fit_length = base_size[1] - 1
+    array_mod2.fit_length = tile_properties['base_size'][1] - 1
     mirror_mod2 = clip_cutter2.modifiers['Mirror']
     mirror_mod2.use_axis[0] = True
     mirror_mod2.use_axis[1] = False

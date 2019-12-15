@@ -86,6 +86,7 @@ def create_tile(
         'degrees_of_arc': degrees_of_arc,  # used for curved tiles only
         'segments': segments,  # used for curved tiles only
         'base_socket_sides': base_socket_sides,  # used for bases that can or should have sockets only on certain sides
+        'trimmers': {}  # used to trim sides of tile on voxelisation and export
     }
 
     ###############

@@ -114,13 +114,11 @@ def trim_bottom(obj, buffer):
     trimmer.hide_viewport = True
 
 
-def create_left_trimmer(obj, buffer):
+def create_left_trimmer(bound_box, dimensions, buffer):
     deselect_all()
-    if obj['original_bound_box'] is not None:
-        front_bottom_left = obj['original_bound_box'][0]
-    else:
-        front_bottom_left = obj.bound_box[0]
-    dimensions = obj.dimensions
+
+    front_bottom_left = bound_box[0]
+
     t = bpy.ops.turtle
 
     t.add_turtle()
@@ -139,13 +137,11 @@ def create_left_trimmer(obj, buffer):
     return bpy.context.object
 
 
-def create_right_trimmer(obj, buffer):
+def create_right_trimmer(bound_box, dimensions, buffer):
     deselect_all()
-    if obj['original_bound_box'] is not None:
-        front_bottom_right = obj['original_bound_box'][4]
-    else:
-        front_bottom_right = obj.bound_box[4]
-    dimensions = obj.dimensions
+
+    front_bottom_right = bound_box[4]
+
     t = bpy.ops.turtle
 
     t.add_turtle()
@@ -164,13 +160,10 @@ def create_right_trimmer(obj, buffer):
     return bpy.context.object
 
 
-def create_top_trimmer(obj, buffer):
+def create_top_trimmer(bound_box, dimensions, buffer):
     deselect_all()
-    if obj['original_bound_box'] is not None:
-        front_top_left = obj['original_bound_box'][2]
-    else:
-        front_top_left = obj.bound_box[2]
-    dimensions = obj.dimensions
+
+    front_top_left = bound_box[2]
     t = bpy.ops.turtle
 
     t.add_turtle()
@@ -189,13 +182,10 @@ def create_top_trimmer(obj, buffer):
     return bpy.context.object
 
 
-def create_bottom_trimmer(obj, buffer):
+def create_bottom_trimmer(bound_box, dimensions, buffer):
     deselect_all()
-    if obj['original_bound_box'] is not None:
-        front_bottom_left = obj['original_bound_box'][0]
-    else:
-        front_bottom_left = obj.bound_box[0]
-    dimensions = obj.dimensions
+    
+    front_bottom_left = bound_box[0]
     t = bpy.ops.turtle
 
     t.add_turtle()

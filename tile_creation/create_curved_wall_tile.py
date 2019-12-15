@@ -25,28 +25,14 @@ from .. enums.enums import geometry_types
 from . create_straight_wall_tile import (
     create_straight_wall_base,
     create_straight_wall_core_2,
-    create_plain_wall_2,
     create_openlock_base_slot_cutter,
     create_openlock_straight_wall_core_2)
 
 
-def create_curved_wall(
-        tile_blueprint,
-        tile_system,
-        tile_name,
-        tile_size,
-        base_size,
-        base_system,
-        tile_material,
-        base_inner_radius,
-        wall_inner_radius,
-        degrees_of_arc,
-        segments,
-        socket_side,
-        textured_faces):
-
+def create_curved_wall(tile_empty):
+    tile_properties = tile_empty['tile_properties']
     # correct for the Y thickness
-    base_inner_radius = base_inner_radius + (base_size[1] / 2)
+    tile_properties['base_inner_radius'] = tile_properties['base_inner_radius'] + (tile_properties['base_size'][1] / 2)
 
     # hack to correct for parenting issues.
     # moves cursor to origin and creates objects
@@ -56,83 +42,45 @@ def create_curved_wall(
     cursor_orig_loc = cursor.location.copy()
     cursor.location = (0, 0, 0)
 
-    if base_system == 'OPENLOCK':
-        base_inner_radius = wall_inner_radius + (base_size[1] / 2)
-        base_size = Vector((tile_size[0], 0.5, 0.2755))
-        base, base_size = create_openlock_curved_wall_base(
-            base_size,
-            base_inner_radius,
-            degrees_of_arc,
-            segments,
-            tile_name,
-            socket_side)
+    if tile_properties['base_blueprint'] == 'OPENLOCK':
+        tile_properties['base_inner_radius'] = tile_properties['wall_inner_radius'] + (tile_properties['base_size'][1] / 2)
+        tile_properties['base_size'] = Vector((tile_properties['tile_size'][0], 0.5, 0.2755))
+        base, tile_properties['base_size'] = create_openlock_curved_wall_base(tile_properties)
 
-    if base_system == 'PLAIN':
-        base, base_size = create_plain_curved_wall_base(
-            base_size,
-            base_inner_radius,
-            degrees_of_arc,
-            segments,
-            tile_name)
+    if tile_properties['base_blueprint'] == 'PLAIN':
+        base, tile_properties['base_size'] = create_plain_curved_wall_base(tile_properties)
 
-    if tile_system == 'OPENLOCK':
-        tile_size = Vector((tile_size[0], 0.5, tile_size[2]))
-        wall = create_openlock_wall_2(
-            base,
-            base_size,
-            tile_size,
-            wall_inner_radius,
-            degrees_of_arc,
-            segments,
-            tile_name,
-            tile_material,
-            textured_faces)
+    if tile_properties['tile_blueprint'] == 'OPENLOCK':
+        tile_properties['tile_size'] = Vector((tile_properties['tile_size'][0], 0.5, tile_properties['tile_size'][2]))
+        wall = create_openlock_wall_2(base, tile_properties, tile_empty)
 
-    if tile_system == 'PLAIN':
-        wall = create_plain_wall_2(
-            base,
-            base_size,
-            tile_size,
-            wall_inner_radius,
-            degrees_of_arc,
-            segments,
-            tile_name,
-            tile_material,
-            textured_faces)
+    if tile_properties['tile_blueprint'] == 'PLAIN':
+        wall = create_plain_wall_2(base, tile_properties, tile_empty)
+
+    tile_empty['tile_properties'] = tile_properties
 
     wall[1].hide_viewport = True
     base.location = cursor_orig_loc
     cursor.location = cursor_orig_loc
 
 
-def create_openlock_curved_wall_base(
-        base_size,
-        base_inner_radius,
-        degrees_of_arc,
-        segments,
-        tile_name,
-        socket_side):
+def create_openlock_curved_wall_base(tile_properties):
 
-    base, base_size = create_plain_curved_wall_base(
-        base_size,
-        base_inner_radius,
-        degrees_of_arc,
-        segments,
-        tile_name)
+    base, tile_properties['base_size'] = create_plain_curved_wall_base(tile_properties)
 
     # make base slot
-    if socket_side == 'INNER':
-        slot_cutter = create_openlock_base_slot_cutter(base, base_size, tile_name, offset=0.017)
+    if tile_properties['base_socket_sides'] == 'INNER':
+        slot_cutter = create_openlock_base_slot_cutter(base, tile_properties, offset=0.017)
     else:
-        slot_cutter = create_openlock_base_slot_cutter(base, base_size, tile_name)
-    cutter_degrees_of_arc = degrees_of_arc * (slot_cutter.dimensions[0] / base_size[0])
+        slot_cutter = create_openlock_base_slot_cutter(base, tile_properties['base_size'], tile_properties['tile_name'])
+    cutter_degrees_of_arc = tile_properties['degrees_of_arc'] * (slot_cutter.dimensions[0] / tile_properties['base_size'][0])
 
     slot_boolean = base.modifiers.new(slot_cutter.name, 'BOOLEAN')
     slot_boolean.operation = 'DIFFERENCE'
     slot_boolean.object = slot_cutter
     slot_cutter.parent = base
     slot_cutter.display_type = 'BOUNDS'
-    add_deform_modifiers(slot_cutter, segments, cutter_degrees_of_arc)
+    add_deform_modifiers(slot_cutter, tile_properties['segments'], tile_properties)
     slot_cutter.hide_viewport = True
 
     deselect_all()
@@ -144,22 +92,22 @@ def create_openlock_curved_wall_base(
         data_to.objects = ['openlock.wall.base.cutter.clip_single']
 
     base_cutter = data_to.objects[0]
-    add_object_to_collection(base_cutter, tile_name)
+    add_object_to_collection(base_cutter, tile_properties['tile_name'])
 
     select(base_cutter.name)
     activate(base_cutter.name)
 
-    if socket_side == 'INNER':
+    if tile_properties['base_socket_sides'] == 'INNER':
         bpy.ops.transform.rotate(value=radians(180), orient_axis='Z')
         bpy.ops.object.transform_apply(location=False, scale=False, properties=False)
 
     loc = base_cutter.location
-    circle_center = Vector((loc[0], loc[1] + base_inner_radius, loc[2]))
+    circle_center = Vector((loc[0], loc[1] + tile_properties['base_inner_radius'], loc[2]))
 
-    bpy.ops.transform.rotate(value=radians((degrees_of_arc / 2) - 22.5), orient_axis='Z', center_override=circle_center)
+    bpy.ops.transform.rotate(value=radians((tile_properties['degrees_of_arc'] / 2) - 22.5), orient_axis='Z', center_override=circle_center)
     bpy.ops.object.transform_apply(location=False, scale=False, properties=False)
-    num_cutters = modf((degrees_of_arc - 22.5) / 22.5)
-    array_name, empty = add_circle_array(base_cutter, circle_center, num_cutters[1], 'Z', degrees_of_arc - 22.5)
+    num_cutters = modf((tile_properties['degrees_of_arc'] - 22.5) / 22.5)
+    array_name, empty = add_circle_array(base_cutter, circle_center, num_cutters[1], 'Z', tile_properties['degrees_of_arc'] - 22.5)
     empty.parent = base
     empty.hide_viewport = True
     base_cutter.parent = base
@@ -169,10 +117,10 @@ def create_openlock_curved_wall_base(
     base_cutter_bool.operation = 'DIFFERENCE'
     base_cutter_bool.object = base_cutter
 
-    return base, base_size
+    return base, tile_properties['base_size']
 
 
-def add_deform_modifiers(obj, segments, degrees_of_arc):
+def add_deform_modifiers(obj, segments, tile_properties):
     deselect_all()
     select(obj.name)
     activate(obj.name)
@@ -196,34 +144,16 @@ def add_deform_modifiers(obj, segments, degrees_of_arc):
     curve_mod.deform_method = 'BEND'
     curve_mod.deform_axis = 'Z'
     curve_mod.show_render = False
-    curve_mod.angle = radians(degrees_of_arc)
+    curve_mod.angle = radians(tile_properties['degrees_of_arc'])
 
     return curve_mod.name
 
 
-def create_openlock_wall_2(
-        base,
-        base_size,
-        tile_size,
-        wall_inner_radius,
-        degrees_of_arc,
-        segments,
-        tile_name,
-        tile_material,
-        textured_faces):
+def create_openlock_wall_2(base, tile_properties, tile_empty):
 
-    wall = create_plain_wall_2(
-        base,
-        base_size,
-        tile_size,
-        wall_inner_radius,
-        degrees_of_arc,
-        segments,
-        tile_name,
-        tile_material,
-        textured_faces)
+    wall = create_plain_wall_2(base, tile_properties, tile_empty)
 
-    cutters = create_openlock_wall_cutters(wall[0], tile_name, tile_size, base_size, segments, degrees_of_arc, wall_inner_radius, textured_faces)
+    cutters = create_openlock_wall_cutters(wall[0], tile_properties)
 
     for cutter in cutters:
         cutter.parent = base
@@ -237,7 +167,7 @@ def create_openlock_wall_2(
     return wall
 
 
-def create_openlock_wall_cutters(core, tile_name, tile_size, base_size, segments, degrees_of_arc, wall_inner_radius, textured_faces):
+def create_openlock_wall_cutters(core, tile_properties):
     deselect_all()
     preferences = get_prefs()
     booleans_path = os.path.join(preferences.assets_path, "meshes", "booleans", "openlock.blend")
@@ -250,15 +180,10 @@ def create_openlock_wall_cutters(core, tile_name, tile_size, base_size, segments
 
     cutters = []
 
-    circle_center = Vector((
-        core_location[0],
-        core_location[1] + wall_inner_radius,
-        core_location[2]))
-
     # left side cutters
-    if textured_faces['x_neg'] is False:
+    if tile_properties['textured_faces']['x_neg'] is 0:
         left_cutter_bottom = data_to.objects[0].copy()
-        add_object_to_collection(left_cutter_bottom, tile_name)
+        add_object_to_collection(left_cutter_bottom, tile_properties['tile_name'])
 
         # move cutter to origin and up by 0.63 inches
         left_cutter_bottom.location = Vector((
@@ -268,14 +193,14 @@ def create_openlock_wall_cutters(core, tile_name, tile_size, base_size, segments
 
         circle_center = Vector((
             left_cutter_bottom.location[0],
-            left_cutter_bottom.location[1] + wall_inner_radius + (tile_size[1] / 2),
+            left_cutter_bottom.location[1] + tile_properties['wall_inner_radius'],
             left_cutter_bottom.location[2]))
 
         # rotate cutter
         select(left_cutter_bottom.name)
         activate(left_cutter_bottom.name)
         bpy.ops.transform.rotate(
-            value=radians(degrees_of_arc / 2),
+            value=radians(tile_properties['degrees_of_arc'] / 2),
             orient_axis='Z',
             orient_type='GLOBAL',
             center_override=circle_center)
@@ -286,28 +211,28 @@ def create_openlock_wall_cutters(core, tile_name, tile_size, base_size, segments
         array_mod.use_constant_offset = True
         array_mod.constant_offset_displace[2] = 2
         array_mod.fit_type = 'FIT_LENGTH'
-        array_mod.fit_length = tile_size[2] - 1
+        array_mod.fit_length = tile_properties['tile_size'][2] - 1
 
         # make a copy of left cutter bottom
         left_cutter_top = left_cutter_bottom.copy()
 
-        add_object_to_collection(left_cutter_top, tile_name)
+        add_object_to_collection(left_cutter_top, tile_properties['tile_name'])
 
         # move cutter up by 0.75 inches
         left_cutter_top.location[2] = left_cutter_top.location[2] + 0.75
 
         # modify array
         array_mod = left_cutter_top.modifiers[array_mod.name]
-        array_mod.fit_length = tile_size[2] - 1.8
+        array_mod.fit_length = tile_properties['tile_size'][2] - 1.8
 
         cutters.extend([left_cutter_bottom, left_cutter_top])
 
     # right side cutters
     deselect_all()
 
-    if textured_faces['x_pos'] is False:
+    if tile_properties['textured_faces']['x_pos'] is 0:
         right_cutter_bottom = data_to.objects[0].copy()
-        add_object_to_collection(right_cutter_bottom, tile_name)
+        add_object_to_collection(right_cutter_bottom, tile_properties['tile_name'])
 
         # move cutter to origin and up by 0.63 inches
         right_cutter_bottom.location = Vector((
@@ -320,14 +245,14 @@ def create_openlock_wall_cutters(core, tile_name, tile_size, base_size, segments
 
         circle_center = Vector((
             right_cutter_bottom.location[0],
-            right_cutter_bottom.location[1] + wall_inner_radius + (tile_size[1] / 2),
+            right_cutter_bottom.location[1] + tile_properties['wall_inner_radius'],
             right_cutter_bottom.location[2]))
 
         # rotate cutter around circle center
         select(right_cutter_bottom.name)
         activate(right_cutter_bottom.name)
         bpy.ops.transform.rotate(
-            value=-radians(degrees_of_arc / 2),
+            value=-radians(tile_properties['degrees_of_arc'] / 2),
             orient_axis='Z',
             orient_type='GLOBAL',
             center_override=circle_center)
@@ -338,47 +263,38 @@ def create_openlock_wall_cutters(core, tile_name, tile_size, base_size, segments
         array_mod.use_constant_offset = True
         array_mod.constant_offset_displace[2] = 2
         array_mod.fit_type = 'FIT_LENGTH'
-        array_mod.fit_length = tile_size[2] - 1
+        array_mod.fit_length = tile_properties['tile_size'][2] - 1
 
         # make a copy of right_cutter_bottom
         right_cutter_top = right_cutter_bottom.copy()
 
-        add_object_to_collection(right_cutter_top, tile_name)
+        add_object_to_collection(right_cutter_top, tile_properties['tile_name'])
 
         # move cutter up by 0.75 inches
         right_cutter_top.location[2] = right_cutter_top.location[2] + 0.75
 
         # modify array
         array_mod = right_cutter_top.modifiers[array_mod.name]
-        array_mod.fit_length = tile_size[2] - 1.8
+        array_mod.fit_length = tile_properties['tile_size'][2] - 1.8
 
         cutters.extend([right_cutter_bottom, right_cutter_top])
 
     return cutters
 
 
-def create_plain_wall_2(
-        base,
-        base_size,
-        tile_size,
-        wall_inner_radius,
-        degrees_of_arc,
-        segments,
-        tile_name,
-        tile_material,
-        textured_faces):
+def create_plain_wall_2(base, tile_properties, tile_empty):
 
     # correct for the Y thickness
-    wall_inner_radius = wall_inner_radius + (tile_size[1] / 2)
+    tile_properties['wall_inner_radius'] = tile_properties['wall_inner_radius'] + (tile_properties['tile_size'][1] / 2)
 
-    circumference = 2 * pi * wall_inner_radius
-    wall_length = circumference / (360 / degrees_of_arc)
-    tile_size = Vector((wall_length, tile_size[1], tile_size[2]))
+    circumference = 2 * pi * tile_properties['wall_inner_radius']
+    wall_length = circumference / (360 / tile_properties['degrees_of_arc'])
+    tile_properties['tile_size'] = Vector((wall_length, 0.3149, tile_properties['tile_size'][2]))
 
-    preview_core = create_straight_wall_core_2(tile_name, tile_size, base_size)
+    preview_core = create_straight_wall_core_2(tile_properties)
     preview_core['geometry_type'] = 'PREVIEW'
 
-    displacement_core = create_straight_wall_core_2(tile_name, tile_size, base_size)
+    displacement_core = create_straight_wall_core_2(tile_properties)
     displacement_core['geometry_type'] = 'DISPLACEMENT'
 
     preview_core['displacement_obj'] = displacement_core
@@ -388,34 +304,30 @@ def create_plain_wall_2(
 
     preferences = get_prefs()
 
-    primary_material = bpy.data.materials[tile_material]
+    primary_material = bpy.data.materials[tile_properties['tile_materials']['tile_material_1']]
     secondary_material = bpy.data.materials[preferences.secondary_material]
 
     image_size = bpy.context.scene.mt_tile_resolution
 
-    assign_displacement_materials_2(displacement_core, [image_size, image_size], primary_material, secondary_material, textured_faces)
-    assign_preview_materials_2(preview_core, primary_material, secondary_material, textured_faces)
+    assign_displacement_materials_2(displacement_core, [image_size, image_size], primary_material, secondary_material, tile_properties['textured_faces'])
+    assign_preview_materials_2(preview_core, primary_material, secondary_material, tile_properties['textured_faces'])
 
     for core in cores:
         core.parent = base
-        add_deform_modifiers(core, segments, degrees_of_arc)
+        add_deform_modifiers(core, tile_properties['segments'], tile_properties)
+    tile_empty['tile_properties'] = tile_properties
 
     return cores
 
 
-def create_plain_curved_wall_base(
-        base_size,
-        base_inner_radius,
-        degrees_of_arc,
-        segments,
-        tile_name):
+def create_plain_curved_wall_base(tile_properties):
 
-    circumference = 2 * pi * base_inner_radius
+    circumference = 2 * pi * tile_properties['base_inner_radius']
 
-    base_length = circumference / (360 / degrees_of_arc)
-    base_size = Vector((base_length, base_size[1], base_size[2]))
+    base_length = circumference / (360 / tile_properties['degrees_of_arc'])
+    tile_properties['base_size'] = Vector((base_length, tile_properties['base_size'][1], tile_properties['base_size'][2]))
 
-    base = create_straight_wall_base(tile_name, base_size)
-    add_deform_modifiers(base, segments, degrees_of_arc)
+    base = create_straight_wall_base(tile_properties)
+    add_deform_modifiers(base, tile_properties['segments'], tile_properties)
 
-    return base, base_size
+    return base, tile_properties['base_size']

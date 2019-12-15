@@ -160,7 +160,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             name="Subdivisions",
             description="How many times to subdivide the displacement mesh. Higher = better but slower. \
             Going above 8 is really not recommended and may cause Blender to freeze up for a loooooong time!",
-            default=7,
+            default=6,
             soft_max=8,
         )
 
@@ -285,7 +285,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
 
         bpy.types.Scene.mt_segments = bpy.props.IntProperty(
             name="Number of segments",
-            default=32,
+            default=8,
         )
 
         bpy.types.Scene.mt_tile_name = bpy.props.StringProperty(

@@ -87,20 +87,7 @@ def create_tile(
         create_straight_wall(tile_empty)
 
     if tile_type == 'CURVED_WALL':
-        create_curved_wall(
-            tile_blueprint,
-            tile_system,
-            tile_name,
-            tile_size,
-            base_size,
-            base_blueprint,
-            tile_materials['tile_material_1'],
-            base_inner_radius,
-            wall_inner_radius,
-            degrees_of_arc,
-            segments,
-            base_socket_sides,
-            textured_faces)
+        create_curved_wall(tile_empty)
 
     if tile_type == 'RECTANGULAR_FLOOR':
 

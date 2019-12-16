@@ -3,6 +3,7 @@ import bpy
 from .. lib.utils.selection import select, activate, deselect_all, select_all
 from .. utils.registration import get_prefs
 from .. enums.enums import units
+from .voxeliser import voxelise_mesh, apply_all_modifiers
 
 
 class MT_OT_Export_Tile(bpy.types.Operator):
@@ -20,10 +21,14 @@ class MT_OT_Export_Tile(bpy.types.Operator):
 
     def execute(self, context):
         deselect_all()
-        for obj in context.layer_collection.collection.all_objects:
-            obj.select_set(True)
 
+        tile_name = context.object.users_collection[0].name
+
+        for obj in context.layer_collection.collection.all_objects:
+            if obj.type == 'MESH':
+                obj.select_set(True)
         meshes = bpy.context.selected_objects.copy()
+
         mesh_copies = []
 
         for mesh in meshes:
@@ -35,6 +40,8 @@ class MT_OT_Export_Tile(bpy.types.Operator):
             context.layer_collection.collection.objects.link(copy)
 
         for obj in context.layer_collection.collection.all_objects:
+            if obj.type == 'MESH':
+                obj.select_set(True)
             obj.select_set(True)
 
         bpy.ops.object.make_single_user(type='SELECTED_OBJECTS', obdata=True)
@@ -58,7 +65,7 @@ class MT_OT_Export_Tile(bpy.types.Operator):
 
         if not os.path.exists(export_path):
             os.mkdir(export_path)
-        file_path = os.path.join(context.scene.mt_export_path, context.scene.mt_tile_name + '.stl')
+        file_path = os.path.join(context.scene.mt_export_path, tile_name + '.stl')
         bpy.ops.export_mesh.stl('INVOKE_DEFAULT', filepath=file_path, check_existing=True, filter_glob="*.stl", use_selection=True, global_scale=unit_multiplier, use_mesh_modifiers=True)
 
         for mesh in meshes:
@@ -98,22 +105,3 @@ class MT_OT_Export_Tile(bpy.types.Operator):
         del bpy.types.Scene.mt_voxelise_on_export
         del bpy.types.Scene.mt_units
         del bpy.types.Scene.mt_export_path
-
-
-def voxelise_mesh(mesh):
-    activate(mesh.name)
-    mesh.data.remesh_voxel_size = bpy.context.scene.mt_voxel_quality
-    mesh.data.remesh_voxel_adaptivity = bpy.context.scene.mt_voxel_adaptivity
-    bpy.ops.object.voxel_remesh()
-
-
-def apply_all_modifiers(mesh):
-    contxt = bpy.context.copy()
-    contxt['object'] = mesh
-
-    for mod in mesh.modifiers[:]:
-        contxt['modifier'] = mod
-        bpy.ops.object.modifier_apply(
-            contxt, apply_as='DATA',
-            modifier=contxt['modifier'].name
-        )

@@ -59,12 +59,14 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
             row.prop(scene, 'mt_tile_y')
 
         elif scene.mt_tile_type == 'CURVED_WALL':
-
             layout.label(text="Tile Properties")
             layout.prop(scene, 'mt_wall_inner_radius')
             layout.prop(scene, 'mt_degrees_of_arc')
             layout.prop(scene, 'mt_segments')
-
+            '''
+            layout.label(text="Base Properties")
+            layout.prop(scene, 'mt_base_socket_side')
+            '''
             layout.label(text="Wall Height")
             layout.prop(scene, 'mt_tile_z')
 
@@ -78,9 +80,6 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
             row = layout.row()
             row.prop(scene, 'mt_z_neg_textured')
             row.prop(scene, 'mt_z_pos_textured')
-
-            layout.label(text="Base Properties")
-            layout.prop(scene, 'mt_base_socket_side')
 
     def draw_plain_base_panel(self, context):
         scene = context.scene
@@ -296,7 +295,7 @@ class MT_PT_Trim_Panel(MT_PT_Panel, bpy.types.Panel):
         row = layout.row()
         row.prop(scene, 'mt_trim_z_neg')
         row.prop(scene, 'mt_trim_z_pos')
-        layout.prop(scene, 'mt_trim_buffer')
+        # layout.prop(scene, 'mt_trim_buffer')
 
 
 class MT_PT_Export_Panel(MT_PT_Panel, bpy.types.Panel):
@@ -310,7 +309,11 @@ class MT_PT_Export_Panel(MT_PT_Panel, bpy.types.Panel):
 
         layout.operator('scene.export_tile', text='Export Tile')
         layout.prop(scene, 'mt_export_path')
-        layout.prop(scene, 'mt_tile_name')
+        # get collection name / name of tile
+        obj = bpy.context.active_object
+        if obj is not None:
+            tile_collection = obj.users_collection[0]
+            layout.prop(tile_collection, "name", text="")
 
         row = layout.row()
         layout.prop(scene, 'mt_units')

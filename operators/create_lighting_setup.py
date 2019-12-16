@@ -92,6 +92,8 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
 
         # switch to rendered mode
         v3d.shading.type = 'RENDERED'
+        bpy.context.space_data.shading.use_scene_world_render = False
+        bpy.context.space_data.shading.studio_light = 'night.exr'
 
         # hide "extras" i.e lights and camera lines
         v3d.overlay.show_extras = False
@@ -138,6 +140,8 @@ def update_view_mode(self, context):
     if bpy.context.scene.mt_view_mode == 'CYCLES':
         v3d.shading.type = 'RENDERED'
         bpy.context.scene.render.engine = 'CYCLES'
+        bpy.context.space_data.shading.use_scene_world_render = False
+        bpy.context.space_data.shading.studio_light = 'night.exr'
         bpy.context.scene.cycles.feature_set = 'EXPERIMENTAL'
 
         if bpy.context.scene.objects is not None:
@@ -152,5 +156,8 @@ def update_view_mode(self, context):
     if bpy.context.scene.mt_view_mode == 'EEVEE':
         v3d.shading.type = 'RENDERED'
         bpy.context.scene.render.engine = 'BLENDER_EEVEE'
+        bpy.context.space_data.shading.use_scene_world_render = False
+        bpy.context.space_data.shading.studio_light = 'night.exr'
+
     if bpy.context.scene.mt_view_mode == 'PREVIEW':
         v3d.shading.type = 'MATERIAL'

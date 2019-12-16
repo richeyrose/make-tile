@@ -35,8 +35,9 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             return True
 
     def execute(self, context):
+
         tile_blueprint = context.scene.mt_tile_blueprint
-        tile_main_system = context.scene.mt_tile_main_system
+        main_part_blueprint = context.scene.mt_main_part_blueprint
         tile_type = context.scene.mt_tile_type
 
         tile_size = Vector((
@@ -54,7 +55,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         degrees_of_arc = bpy.context.scene.mt_degrees_of_arc
         segments = bpy.context.scene.mt_segments
         socket_side = bpy.context.scene.mt_base_socket_side
-        base_system = context.scene.mt_base_system
+        base_blueprint = context.scene.mt_base_blueprint
 
         tile_materials = {
             'tile_material_1': context.scene.mt_tile_material_1,
@@ -71,16 +72,16 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         }
 
         if tile_blueprint == 'OPENLOCK':
-            tile_main_system = 'OPENLOCK'
-            base_system = 'OPENLOCK'
+            main_part_blueprint = 'OPENLOCK'
+            base_blueprint = 'OPENLOCK'
 
         if tile_blueprint == 'PLAIN':
-            tile_main_system = 'PLAIN'
-            base_system = 'PLAIN'
+            main_part_blueprint = 'PLAIN'
+            base_blueprint = 'PLAIN'
 
         create_tile(
             tile_blueprint,
-            tile_main_system,
+            main_part_blueprint,
             tile_type,
             tile_size,
             base_size,
@@ -88,7 +89,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             wall_inner_radius,
             degrees_of_arc,
             segments,
-            base_system,
+            base_blueprint,
             tile_materials,
             socket_side,
             textured_faces
@@ -118,7 +119,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             default=preferences.default_tile_blueprint,
         )
 
-        bpy.types.Scene.mt_tile_main_system = bpy.props.EnumProperty(
+        bpy.types.Scene.mt_main_part_blueprint = bpy.props.EnumProperty(
             items=tile_main_systems,
             name="Main System",
             default=preferences.default_tile_main_system,
@@ -129,7 +130,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             default="STRAIGHT_WALL",
         )
 
-        bpy.types.Scene.mt_base_system = bpy.props.EnumProperty(
+        bpy.types.Scene.mt_base_blueprint = bpy.props.EnumProperty(
             items=base_systems,
             name="Base Type",
             default=preferences.default_base_system,
@@ -314,13 +315,13 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         del bpy.types.Scene.mt_tile_x
         del bpy.types.Scene.mt_tile_y
         del bpy.types.Scene.mt_tile_z
-        del bpy.types.Scene.mt_base_system
+        del bpy.types.Scene.mt_base_blueprint
         del bpy.types.Scene.mt_tile_resolution
         del bpy.types.Scene.mt_tile_material_1
         del bpy.types.Scene.mt_tile_material_2
         del bpy.types.Scene.mt_tile_type
         del bpy.types.Scene.mt_tile_blueprint
-        del bpy.types.Scene.mt_tile_main_system
+        del bpy.types.Scene.mt_main_part_blueprint
         del bpy.types.Scene.mt_tile_units
 
         for pcoll in enum_collections.values():

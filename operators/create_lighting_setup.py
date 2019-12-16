@@ -25,6 +25,9 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
     def execute(self, context):
         deselect_all()
 
+        # current_collection
+        original_collection = bpy.context.scene.collection.copy()
+        
         # check to see if lighting collection exists and create if not
         scene_collection = bpy.context.scene.collection
         lights_collection = create_collection('Lighting_setup', scene_collection)
@@ -92,6 +95,9 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
 
         # hide "extras" i.e lights and camera lines
         v3d.overlay.show_extras = False
+
+        # switch back to original collection
+        activate_collection(original_collection.name)
 
         return {'FINISHED'}
 

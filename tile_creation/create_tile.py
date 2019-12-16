@@ -15,7 +15,7 @@ from . create_curved_wall_tile import create_curved_wall
 
 def create_tile(
         tile_blueprint,
-        tile_system,
+        main_part_blueprint,
         tile_type,
         tile_size,
         base_size,
@@ -41,7 +41,7 @@ def create_tile(
     tiles_collection = create_collection('Tiles', scene_collection)
 
     # construct first part of tile name based on system and type
-    tile_name = tile_system.lower() + "." + tile_type.lower()
+    tile_name = tile_blueprint.lower() + "." + tile_type.lower()
     deselect_all()
     if tile_type == 'STRAIGHT_WALL' or 'CURVED_WALL':
 
@@ -74,8 +74,10 @@ def create_tile(
     # create properties
     tile_empty['tile_properties'] = {
         'tile_name': tile_name,
+        'empty_name': tile_empty.name,
         'tile_blueprint': tile_blueprint,
         'base_blueprint': base_blueprint,
+        'main_part_blueprint': main_part_blueprint,
         'tile_type': tile_type,
         'tile_size': tile_size,
         'base_size': base_size,

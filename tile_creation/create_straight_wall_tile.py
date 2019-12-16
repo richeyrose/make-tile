@@ -17,7 +17,13 @@ from .. materials.materials import (
     assign_displacement_materials_2,
     assign_preview_materials_2)
 from .. enums.enums import geometry_types
-from .. operators.trim_tile import create_bottom_trimmer, create_left_trimmer, create_right_trimmer, create_top_trimmer
+from .. operators.trim_tile import (
+    create_x_neg_trimmer,
+    create_x_pos_trimmer,
+    create_y_neg_trimmer,
+    create_y_pos_trimmer,
+    create_z_pos_trimmer,
+    create_z_neg_trimmer)
 
 
 def create_straight_wall(
@@ -36,6 +42,7 @@ def create_straight_wall(
     cursor = bpy.context.scene.cursor
     cursor_orig_loc = cursor.location.copy()
     cursor.location = (0, 0, 0)
+    tile_empty.location = (0, 0, 0)
 
     if tile_properties['base_blueprint'] == 'OPENLOCK':
         tile_properties['base_size'] = Vector((tile_properties['tile_size'][0], 0.5, 0.2755))
@@ -44,20 +51,26 @@ def create_straight_wall(
     if tile_properties['base_blueprint'] == 'PLAIN':
         base = create_straight_wall_base(tile_properties)
 
-    if tile_properties['tile_blueprint'] == 'OPENLOCK':
+    if tile_properties['base_blueprint'] == 'NONE':
+        base = bpy.data.objects.new(tile_properties['tile_name'] + '.base', None)
+        tile_properties['base_size'] = (0, 0, 0)
+
+    if tile_properties['main_part_blueprint'] == 'OPENLOCK':
         tile_properties['tile_size'] = Vector((tile_properties['tile_size'][0], 0.3149, tile_properties['tile_size'][2]))
         create_openlock_wall_2(tile_properties, base)
 
-    if tile_properties['tile_blueprint'] == 'PLAIN':
+    if tile_properties['main_part_blueprint'] == 'PLAIN':
         create_plain_wall_2(tile_properties, base)
-
-    base.location = cursor_orig_loc
-    cursor.location = cursor_orig_loc
 
     # create tile trimmers. Used to ensure that displaced
     # textures don't extend beyond the original bounds of the tile.
     # Used by voxeliser and exporter
-    tile_empty['tile_properties']['trimmers'] = create_tile_trimmers(tile_properties)
+    tile_properties['trimmers'] = create_tile_trimmers(tile_properties)
+
+    base.parent = tile_empty
+    tile_empty.location = cursor_orig_loc
+    cursor.location = cursor_orig_loc
+    tile_empty['tile_properties'] = tile_properties
 
 
 def create_tile_trimmers(tile_properties):
@@ -66,54 +79,58 @@ def create_tile_trimmers(tile_properties):
     cursor = bpy.context.scene.cursor
     cursor_orig_location = cursor.location.copy()
 
-    # create a cuboid the size of our tile and center it
+    # create a cuboid the size of our tile and center it to use
+    # as our bounding box for entire tile
     if tile_properties['base_blueprint'] is not 'NONE':
-        cuboid = draw_cuboid(Vector((
+        bbox_proxy = draw_cuboid(Vector((
             tile_properties['tile_size'][0],
             tile_properties['base_size'][1],
             tile_properties['tile_size'][2])))
     else:
-        cuboid = draw_cuboid(tile_properties['tile_size'])
+        bbox_proxy = draw_cuboid(tile_properties['tile_size'])
     mode('OBJECT')
 
-    cuboid.location = (
-        cuboid.location[0] - cuboid.dimensions[0] / 2,
-        cuboid.location[1] - cuboid.dimensions[1] / 2,
-        cuboid.location[2])
+    bbox_proxy.location = (
+        bbox_proxy.location[0] - bbox_proxy.dimensions[0] / 2,
+        bbox_proxy.location[1] - bbox_proxy.dimensions[1] / 2,
+        bbox_proxy.location[2])
 
     cursor.location = cursor_orig_location
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
 
     # get bounding box and dimensions of cuboid
-    bound_box = cuboid.bound_box
-    dimensions = cuboid.dimensions.copy()
+    bound_box = bbox_proxy.bound_box
+    dimensions = bbox_proxy.dimensions.copy()
 
     # create trimmers
-    left_trimmer = create_left_trimmer(bound_box, dimensions, 0.0001)
-    left_trimmer.name = tile_properties['tile_name'] + '.left_trimmer'
-    right_trimmer = create_right_trimmer(bound_box, dimensions, 0.0001)
-    right_trimmer.name = tile_properties['tile_name'] + '.right_trimmer'
-    top_trimmer = create_top_trimmer(bound_box, dimensions, 0.0001)
-    top_trimmer.name = tile_properties['tile_name'] + '.top_trimmer'
-    bottom_trimmer = create_bottom_trimmer(bound_box, dimensions, 0.0001)
-    bottom_trimmer.name = tile_properties['tile_name'] + '.bottom_trimmer'
+    x_neg_trimmer = create_x_neg_trimmer(bound_box, dimensions, 0.0001)
+    x_neg_trimmer.name = tile_properties['tile_name'] + '.x_neg_trimmer'
+    x_pos_trimmer = create_x_pos_trimmer(bound_box, dimensions, 0.0001)
+    x_pos_trimmer.name = tile_properties['tile_name'] + '.x_pos_trimmer'
+    y_neg_trimmer = create_y_neg_trimmer(bound_box, dimensions, 0.0001)
+    y_neg_trimmer.name = tile_properties['tile_name'] + '.y_neg_trimmer'
+    y_pos_trimmer = create_y_pos_trimmer(bound_box, dimensions, 0.0001)
+    y_pos_trimmer.name = tile_properties['tile_name'] + '.y_pos_trimmer'
+    z_pos_trimmer = create_z_pos_trimmer(bound_box, dimensions, 0.0001)
+    z_pos_trimmer.name = tile_properties['tile_name'] + '.z_pos_trimmer'
+    z_neg_trimmer = create_z_neg_trimmer(bound_box, dimensions, 0.0001)
+    z_neg_trimmer.name = tile_properties['tile_name'] + '.z_neg_trimmer'
 
     trimmers = {
-        'left': left_trimmer,
-        'right': right_trimmer,
-        'top': top_trimmer,
-        'bottom': bottom_trimmer
+        'x_neg': x_neg_trimmer,
+        'x_pos': x_pos_trimmer,
+        'y_neg': y_neg_trimmer,
+        'y_pos': y_pos_trimmer,
+        'z_pos': z_pos_trimmer,
+        'z_neg': z_neg_trimmer
     }
 
     for trimmer in trimmers.values():
         trimmer.display_type = 'BOUNDS'
         trimmer.hide_viewport = True
+        trimmer.parent = bpy.context.scene.objects[tile_properties['empty_name']]
 
-    # delete cuboid
-    deselect_all()
-    select(cuboid.name)
-    bpy.ops.object.delete()
-    
+    bpy.ops.object.delete({"selected_objects": [bbox_proxy]})
     return trimmers
 
 
@@ -169,10 +186,10 @@ def create_plain_wall_2(tile_properties, base):
     tile_properties['base_size'] = base.dimensions
     textured_faces = tile_properties['textured_faces']
 
-    preview_core = create_straight_wall_core_2(tile_properties['tile_name'], tile_properties['tile_size'], tile_properties['base_size'])
+    preview_core = create_straight_wall_core_2(tile_properties)
     preview_core['geometry_type'] = 'PREVIEW'
 
-    displacement_core = create_straight_wall_core_2(tile_properties['tile_name'], tile_properties['tile_size'], tile_properties['base_size'])
+    displacement_core = create_straight_wall_core_2(tile_properties)
     displacement_core['geometry_type'] = 'DISPLACEMENT'
 
     preview_core['displacement_obj'] = displacement_core

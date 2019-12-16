@@ -17,8 +17,10 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
 
     def execute(self, context):
         deselect_all()
+
         for obj in context.layer_collection.collection.all_objects:
-            obj.select_set(True)
+            if obj.type == 'MESH':
+                obj.select_set(True)
         meshes = bpy.context.selected_objects.copy()
 
         if context.scene.mt_merge_and_voxelise is True:
@@ -73,12 +75,12 @@ def voxelise_mesh(obj):
     obj -- MESH OBJECT
     """
 
-    activate(obj.name)
-
     obj.data.remesh_voxel_size = bpy.context.scene.mt_voxel_quality
     obj.data.remesh_voxel_adaptivity = bpy.context.scene.mt_voxel_adaptivity
     bpy.ops.object.voxel_remesh()
     obj.modifiers.new('Triangulate', 'TRIANGULATE')
+
+    return obj
 
 
 def apply_all_modifiers(mesh):

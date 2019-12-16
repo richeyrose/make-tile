@@ -143,7 +143,7 @@ class TURTLE_OT_clean(bpy.types.Operator):
         context.object['beginpath_active_vert'] = 0
 
         if bpy.context.object['pendownp']:
-            bpy.ops.mesh.primitive_vert_add()
+            bpy.ops.turtle.add_vert()
 
         bpy.ops.object.editmode_toggle()
         bpy.ops.object.editmode_toggle()
@@ -215,7 +215,7 @@ class TURTLE_OT_forward(bpy.types.Operator):
         # check if pen is down
         if context.object['pendownp']:
             if len(bpy.context.object.data.vertices) == 0:
-                bpy.ops.mesh.primitive_vert_add()
+                bpy.ops.turtle.add_vert()
 
             # extrude vert along cursor Y
             if not self.m:
@@ -259,7 +259,7 @@ class TURTLE_OT_backward(bpy.types.Operator):
 
         if context.object['pendownp']:
             if len(bpy.context.object.data.vertices) == 0:
-                bpy.ops.mesh.primitive_vert_add()
+                bpy.ops.turtle.add_vert()
             if not self.m:
                 bpy.ops.mesh.extrude_region_move(
                     TRANSFORM_OT_translate={
@@ -299,7 +299,7 @@ class TURTLE_OT_up(bpy.types.Operator):
 
         if context.object['pendownp']:
             if len(bpy.context.object.data.vertices) == 0:
-                bpy.ops.mesh.primitive_vert_add()
+                bpy.ops.turtle.add_vert()
             if not self.m:
                 bpy.ops.mesh.extrude_region_move(
                     TRANSFORM_OT_translate={
@@ -340,7 +340,7 @@ class TURTLE_OT_down(bpy.types.Operator):
         if context.object['pendownp']:
 
             if len(bpy.context.object.data.vertices) == 0:
-                bpy.ops.mesh.primitive_vert_add()
+                bpy.ops.turtle.add_vert()
             if not self.m:
                 bpy.ops.mesh.extrude_region_move(
                     TRANSFORM_OT_translate={
@@ -380,7 +380,7 @@ class TURTLE_OT_left(bpy.types.Operator):
 
         if context.object['pendownp']:
             if len(bpy.context.object.data.vertices) == 0:
-                bpy.ops.mesh.primitive_vert_add()
+                bpy.ops.turtle.add_vert()
             if not self.m:
                 bpy.ops.mesh.extrude_region_move(
                     TRANSFORM_OT_translate={
@@ -419,7 +419,7 @@ class TURTLE_OT_right(bpy.types.Operator):
 
         if context.object['pendownp']:
             if len(bpy.context.object.data.vertices) == 0:
-                bpy.ops.mesh.primitive_vert_add()
+                bpy.ops.turtle.add_vert()
             if not self.m:
                 bpy.ops.mesh.extrude_region_move(
                     TRANSFORM_OT_translate={

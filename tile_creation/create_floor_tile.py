@@ -4,20 +4,19 @@ import bpy
 from mathutils import Vector
 from .. lib.utils.collections import add_object_to_collection
 from .. lib.utils.utils import mode
-from .. lib.utils.selection import select, select_all, deselect_all, activate
-from .. utils.registration import get_path, get_prefs
+from .. lib.utils.selection import select, activate
+from .. utils.registration import get_prefs
 from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. lib.turtle.scripts.openlock_floor_base import draw_openlock_rect_floor_base
 from . create_straight_wall_tile import create_openlock_straight_wall_base
 from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
 from .. materials.materials import (
-    load_secondary_material,
-    assign_mat_to_vert_group,
     assign_displacement_materials_2,
     assign_preview_materials_2)
+from .. operators.trim_tile import (
+    create_tile_trimmers)
 
 
-# TODO: Refactor to use new material system
 def create_rectangular_floor(tile_empty):
     """"Returns a floor"""
 
@@ -45,13 +44,17 @@ def create_rectangular_floor(tile_empty):
         base = bpy.data.objects.new(tile_properties['tile_name'] + '.base', None)
         add_object_to_collection(base, tile_properties['tile_name'])
 
-    if base:
-        floor = create_floor(tile_properties, base)
+    floor = create_floor(tile_properties, base)
 
-    tile_empty['tile_properties'] = tile_properties
+    # create tile trimmers. Used to ensure that displaced
+    # textures don't extend beyond the original bounds of the tile.
+    # Used by voxeliser and exporter
+    tile_properties['trimmers'] = create_tile_trimmers(tile_properties)
 
-    base.location = cursor_orig_loc
+    base.parent = tile_empty
+    tile_empty.location = cursor_orig_loc
     cursor.location = cursor_orig_loc
+    tile_empty['tile_properties'] = tile_properties
 
 
 def create_plain_base(tile_properties):

@@ -16,14 +16,8 @@ from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
 from .. materials.materials import (
     assign_displacement_materials_2,
     assign_preview_materials_2)
-from .. enums.enums import geometry_types
 from .. operators.trim_tile import (
-    create_x_neg_trimmer,
-    create_x_pos_trimmer,
-    create_y_neg_trimmer,
-    create_y_pos_trimmer,
-    create_z_pos_trimmer,
-    create_z_neg_trimmer)
+    create_tile_trimmers)
 
 
 def create_straight_wall(
@@ -54,6 +48,7 @@ def create_straight_wall(
     if tile_properties['base_blueprint'] == 'NONE':
         base = bpy.data.objects.new(tile_properties['tile_name'] + '.base', None)
         tile_properties['base_size'] = (0, 0, 0)
+        add_object_to_collection(base, tile_properties['tile_name'])
 
     if tile_properties['main_part_blueprint'] == 'OPENLOCK':
         tile_properties['tile_size'] = Vector((tile_properties['tile_size'][0], 0.3149, tile_properties['tile_size'][2]))
@@ -71,67 +66,6 @@ def create_straight_wall(
     tile_empty.location = cursor_orig_loc
     cursor.location = cursor_orig_loc
     tile_empty['tile_properties'] = tile_properties
-
-
-def create_tile_trimmers(tile_properties):
-    deselect_all()
-
-    cursor = bpy.context.scene.cursor
-    cursor_orig_location = cursor.location.copy()
-
-    # create a cuboid the size of our tile and center it to use
-    # as our bounding box for entire tile
-    if tile_properties['base_blueprint'] is not 'NONE':
-        bbox_proxy = draw_cuboid(Vector((
-            tile_properties['tile_size'][0],
-            tile_properties['base_size'][1],
-            tile_properties['tile_size'][2])))
-    else:
-        bbox_proxy = draw_cuboid(tile_properties['tile_size'])
-    mode('OBJECT')
-
-    bbox_proxy.location = (
-        bbox_proxy.location[0] - bbox_proxy.dimensions[0] / 2,
-        bbox_proxy.location[1] - bbox_proxy.dimensions[1] / 2,
-        bbox_proxy.location[2])
-
-    cursor.location = cursor_orig_location
-    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
-
-    # get bounding box and dimensions of cuboid
-    bound_box = bbox_proxy.bound_box
-    dimensions = bbox_proxy.dimensions.copy()
-
-    # create trimmers
-    x_neg_trimmer = create_x_neg_trimmer(bound_box, dimensions, 0.0001)
-    x_neg_trimmer.name = tile_properties['tile_name'] + '.x_neg_trimmer'
-    x_pos_trimmer = create_x_pos_trimmer(bound_box, dimensions, 0.0001)
-    x_pos_trimmer.name = tile_properties['tile_name'] + '.x_pos_trimmer'
-    y_neg_trimmer = create_y_neg_trimmer(bound_box, dimensions, 0.0001)
-    y_neg_trimmer.name = tile_properties['tile_name'] + '.y_neg_trimmer'
-    y_pos_trimmer = create_y_pos_trimmer(bound_box, dimensions, 0.0001)
-    y_pos_trimmer.name = tile_properties['tile_name'] + '.y_pos_trimmer'
-    z_pos_trimmer = create_z_pos_trimmer(bound_box, dimensions, 0.0001)
-    z_pos_trimmer.name = tile_properties['tile_name'] + '.z_pos_trimmer'
-    z_neg_trimmer = create_z_neg_trimmer(bound_box, dimensions, 0.0001)
-    z_neg_trimmer.name = tile_properties['tile_name'] + '.z_neg_trimmer'
-
-    trimmers = {
-        'x_neg': x_neg_trimmer,
-        'x_pos': x_pos_trimmer,
-        'y_neg': y_neg_trimmer,
-        'y_pos': y_pos_trimmer,
-        'z_pos': z_pos_trimmer,
-        'z_neg': z_neg_trimmer
-    }
-
-    for trimmer in trimmers.values():
-        trimmer.display_type = 'BOUNDS'
-        trimmer.hide_viewport = True
-        trimmer.parent = bpy.context.scene.objects[tile_properties['empty_name']]
-
-    bpy.ops.object.delete({"selected_objects": [bbox_proxy]})
-    return trimmers
 
 
 def create_openlock_wall_2(tile_properties, base):

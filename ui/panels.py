@@ -276,7 +276,16 @@ class MT_PT_Voxelise_Panel(MT_PT_Panel, bpy.types.Panel):
         layout.prop(scene, 'mt_voxel_adaptivity')
         layout.prop(scene, 'mt_merge_and_voxelise')
 
-        layout.label(text="Trim Tile")
+
+class MT_PT_Trim_Panel(MT_PT_Panel, bpy.types.Panel):
+    bl_idname = "MT_PT_Trim_Panel"
+    bl_label = "Trim Settings"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        scene = context.scene
+        layout = self.layout
+
         layout.operator('scene.trim_tile', text='Trim Tile')
         row = layout.row()
         row.prop(scene, 'mt_trim_x_neg')
@@ -287,6 +296,7 @@ class MT_PT_Voxelise_Panel(MT_PT_Panel, bpy.types.Panel):
         row = layout.row()
         row.prop(scene, 'mt_trim_z_neg')
         row.prop(scene, 'mt_trim_z_pos')
+        layout.prop(scene, 'mt_trim_buffer')
 
 
 class MT_PT_Export_Panel(MT_PT_Panel, bpy.types.Panel):

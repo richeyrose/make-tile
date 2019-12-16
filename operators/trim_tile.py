@@ -2,6 +2,7 @@ import bpy
 from .. lib.utils.selection import select, deselect_all, select_all, activate
 from .. lib.utils.utils import mode
 from mathutils import Vector
+from .. lib.turtle.scripts.primitives import draw_cuboid
 
 
 class MT_OT_Tile_Trimmer(bpy.types.Operator):
@@ -54,7 +55,7 @@ class MT_OT_Tile_Trimmer(bpy.types.Operator):
         bpy.types.Scene.mt_trim_buffer = bpy.props.FloatProperty(
             name="Buffer",
             description="Buffer to use for trimming. Helps Booleans work",
-            default=0.0001,
+            default=-0.001,
             precision=4
         )
 
@@ -96,12 +97,74 @@ class MT_OT_Tile_Trimmer(bpy.types.Operator):
 
     @classmethod
     def unregister(cls):
+        del bpy.types.Scene.mt_trim_buffer
         del bpy.types.Scene.mt_trim_x_neg
         del bpy.types.Scene.mt_trim_x_pos
         del bpy.types.Scene.mt_trim_y_neg
         del bpy.types.Scene.mt_trim_y_pos
         del bpy.types.Scene.mt_trim_z_neg
         del bpy.types.Scene.mt_trim_z_pos
+
+
+def create_tile_trimmers(tile_properties):
+    deselect_all()
+
+    cursor = bpy.context.scene.cursor
+    cursor_orig_location = cursor.location.copy()
+
+    # create a cuboid the size of our tile and center it to use
+    # as our bounding box for entire tile
+    if tile_properties['base_blueprint'] is not 'NONE':
+        bbox_proxy = draw_cuboid(Vector((
+            tile_properties['tile_size'][0],
+            tile_properties['base_size'][1],
+            tile_properties['tile_size'][2])))
+    else:
+        bbox_proxy = draw_cuboid(tile_properties['tile_size'])
+    mode('OBJECT')
+
+    bbox_proxy.location = (
+        bbox_proxy.location[0] - bbox_proxy.dimensions[0] / 2,
+        bbox_proxy.location[1] - bbox_proxy.dimensions[1] / 2,
+        bbox_proxy.location[2])
+
+    cursor.location = cursor_orig_location
+    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+
+    # get bounding box and dimensions of cuboid
+    bound_box = bbox_proxy.bound_box
+    dimensions = bbox_proxy.dimensions.copy()
+
+    # create trimmers
+    x_neg_trimmer = create_x_neg_trimmer(bound_box, dimensions, bpy.context.scene.mt_trim_buffer)
+    x_neg_trimmer.name = tile_properties['tile_name'] + '.x_neg_trimmer'
+    x_pos_trimmer = create_x_pos_trimmer(bound_box, dimensions, bpy.context.scene.mt_trim_buffer)
+    x_pos_trimmer.name = tile_properties['tile_name'] + '.x_pos_trimmer'
+    y_neg_trimmer = create_y_neg_trimmer(bound_box, dimensions, bpy.context.scene.mt_trim_buffer)
+    y_neg_trimmer.name = tile_properties['tile_name'] + '.y_neg_trimmer'
+    y_pos_trimmer = create_y_pos_trimmer(bound_box, dimensions, bpy.context.scene.mt_trim_buffer)
+    y_pos_trimmer.name = tile_properties['tile_name'] + '.y_pos_trimmer'
+    z_pos_trimmer = create_z_pos_trimmer(bound_box, dimensions, bpy.context.scene.mt_trim_buffer)
+    z_pos_trimmer.name = tile_properties['tile_name'] + '.z_pos_trimmer'
+    z_neg_trimmer = create_z_neg_trimmer(bound_box, dimensions, bpy.context.scene.mt_trim_buffer)
+    z_neg_trimmer.name = tile_properties['tile_name'] + '.z_neg_trimmer'
+
+    trimmers = {
+        'x_neg': x_neg_trimmer,
+        'x_pos': x_pos_trimmer,
+        'y_neg': y_neg_trimmer,
+        'y_pos': y_pos_trimmer,
+        'z_pos': z_pos_trimmer,
+        'z_neg': z_neg_trimmer
+    }
+
+    for trimmer in trimmers.values():
+        trimmer.display_type = 'BOUNDS'
+        trimmer.hide_viewport = True
+        trimmer.parent = bpy.context.scene.objects[tile_properties['empty_name']]
+
+    bpy.ops.object.delete({"selected_objects": [bbox_proxy]})
+    return trimmers
 
 
 def trim_side(obj, trimmer, buffer):

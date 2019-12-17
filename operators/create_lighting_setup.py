@@ -27,7 +27,7 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
 
         # current_collection
         original_collection = bpy.context.scene.collection.copy()
-        
+
         # check to see if lighting collection exists and create if not
         scene_collection = bpy.context.scene.collection
         lights_collection = create_collection('Lighting_setup', scene_collection)
@@ -90,10 +90,20 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
         light_4_obj.location = (5, 5, -5)
         light_4_obj.rotation_euler = (2.5, 0.8, 3)
 
-        # switch to rendered mode
-        v3d.shading.type = 'RENDERED'
-        bpy.context.space_data.shading.use_scene_world_render = False
-        bpy.context.space_data.shading.studio_light = 'night.exr'
+        if bpy.context.scene.mt_view_mode == 'CYCLES':
+            v3d.shading.type = 'RENDERED'
+            bpy.context.scene.render.engine = 'CYCLES'
+            bpy.context.space_data.shading.use_scene_world_render = True
+            bpy.context.scene.cycles.feature_set = 'EXPERIMENTAL'
+
+        if bpy.context.scene.mt_view_mode == 'EEVEE':
+            v3d.shading.type = 'RENDERED'
+            bpy.context.scene.render.engine = 'BLENDER_EEVEE'
+            bpy.context.space_data.shading.use_scene_world_render = False
+            bpy.context.space_data.shading.studio_light = 'night.exr'
+
+        if bpy.context.scene.mt_view_mode == 'PREVIEW':
+            v3d.shading.type = 'MATERIAL'
 
         # hide "extras" i.e lights and camera lines
         v3d.overlay.show_extras = False
@@ -140,15 +150,8 @@ def update_view_mode(self, context):
     if bpy.context.scene.mt_view_mode == 'CYCLES':
         v3d.shading.type = 'RENDERED'
         bpy.context.scene.render.engine = 'CYCLES'
-        bpy.context.space_data.shading.use_scene_world_render = False
-        bpy.context.space_data.shading.studio_light = 'night.exr'
+        bpy.context.space_data.shading.use_scene_world_render = True
         bpy.context.scene.cycles.feature_set = 'EXPERIMENTAL'
-
-        if bpy.context.scene.objects is not None:
-            for obj in bpy.context.scene.objects:
-                if 'geometry_type' in obj:
-                    if obj['geometry_type'] == 'PREVIEW':
-                        obj.cycles.use_adaptive_subdivision = False
 
         if bpy.context.scene.mt_use_gpu is True:
             bpy.context.scene.cycles.device = 'GPU'

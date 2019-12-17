@@ -40,13 +40,15 @@ def load_secondary_material():
 
 
 def assign_mat_to_vert_group(vert_group, obj, material):
+    #TODO: Replace with low level version as sloooooooow
+    # https://blender.stackexchange.com/questions/69166/set-material-of-a-vertex-group-of-a-certain-face?rq=1
     '''
     Assigns the passed in material to the object's Vertex group
     Keyword arguments   -- vert_group (str) Vertex group
                         -- obj (bpy.types.Object)
                         -- material (bpy.types.Material)
     '''
-    select(obj.name)
+    deselect_all()
     activate(obj.name)
     mode('EDIT')
     deselect_all()
@@ -62,9 +64,6 @@ def add_preview_mesh_modifiers(obj):
     obj_subsurf = obj.modifiers.new('Subsurf', 'SUBSURF')
     obj_subsurf.subdivision_type = 'SIMPLE'
     obj_subsurf.levels = bpy.context.scene.mt_cycles_subdivision_quality
-    select(obj.name)
-    activate(obj.name)
-    bpy.context.object.cycles.use_adaptive_subdivision = False
 
 
 def add_displacement_mesh_modifiers_2(obj, image_size):
@@ -87,48 +86,35 @@ def add_displacement_mesh_modifiers_2(obj, image_size):
 
 
 def update_displacement_material_2(obj, primary_material_name):
-    deselect_all()
-    obj.hide_viewport = False
-    select(obj.name)
-    activate(obj.name)
-
-    for material_slot in obj.material_slots:
-        obj.active_material_index = 0
-        bpy.ops.object.material_slot_remove()
+    for material in obj.data.materials:
+        obj.data.materials.pop(index=0)
 
     primary_material = bpy.data.materials[primary_material_name]
     obj['primary_material'] = primary_material
     obj.data.materials.append(primary_material)
-    obj.hide_viewport = True
 
 
 def update_preview_material_2(obj, primary_material_name):
-    deselect_all()
-    select(obj.name)
-    activate(obj.name)
-
-    for material_slot in obj.material_slots:
-        obj.active_material_index = 0
-        bpy.ops.object.material_slot_remove()
+    for material in obj.data.materials:
+        obj.data.materials.pop(index=0)
 
     textured_faces = obj['textured_faces']
-    print(textured_faces)
+
     primary_material = bpy.data.materials[primary_material_name]
     obj['primary_material'] = primary_material
     secondary_material = obj['secondary_material']
     obj.data.materials.append(secondary_material)
     obj.data.materials.append(primary_material)
 
-    # for some reason blender has converted the bools stored in our dict to ints /\0/\
+    # for some reasonthe bools stored in our dict haver been converted to ints /\0/\
     for key, value in textured_faces.items():
         if value is 1:
             assign_mat_to_vert_group(key, obj, primary_material)
 
 
 def assign_displacement_materials_2(obj, image_size, primary_material, secondary_material, textured_faces):
-    for material_slot in obj.material_slots:
-        obj.active_material_index = 0
-        bpy.ops.object.material_slot_remove()
+    for material in obj.data.materials:
+        obj.data.materials.pop(index=0)
 
     obj['primary_material'] = primary_material
     add_displacement_mesh_modifiers_2(obj, image_size)
@@ -136,9 +122,8 @@ def assign_displacement_materials_2(obj, image_size, primary_material, secondary
 
 
 def assign_preview_materials_2(obj, primary_material, secondary_material, textured_faces):
-    for material_slot in obj.material_slots:
-        obj.active_material_index = 0
-        bpy.ops.object.material_slot_remove()
+    for material in obj.data.materials:
+        obj.data.materials.pop(index=0)
 
     obj['primary_material'] = primary_material
     obj['secondary_material'] = secondary_material

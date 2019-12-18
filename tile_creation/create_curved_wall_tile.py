@@ -24,7 +24,7 @@ from . create_straight_wall_tile import (
     create_openlock_base_slot_cutter,
     create_openlock_straight_wall_core_2)
 from .. operators.trim_tile import (
-    create_tile_trimmers)
+    create_curved_wall_tile_trimmers)
 
 
 def create_curved_wall(tile_empty):
@@ -71,14 +71,11 @@ def create_curved_wall(tile_empty):
     # create slabs that fit against inner and outer base radius for y neg and y pos trimmers
     # subdivide by num segments
 
-    # get straight wall trimmers Z pos and Z neg
-    # Subdivide by num segments
-    # add simple deform modifiers
+    tile_properties['trimmers'] = create_curved_wall_tile_trimmers(tile_properties)
 
     base.parent = tile_empty
     tile_empty.location = cursor_orig_loc
     cursor.location = cursor_orig_loc
-    # tile_properties['trimmers'] = trimmers
     tile_empty['tile_properties'] = tile_properties
     # TODO: why is this here?
     wall[1].hide_viewport = True
@@ -138,37 +135,6 @@ def create_openlock_curved_wall_base(tile_properties):
     base_cutter_bool.object = base_cutter
 
     return base, tile_properties['base_size']
-
-
-'''
-def add_deform_modifiers(obj, segments, tile_properties):
-    deselect_all()
-    select(obj.name)
-    activate(obj.name)
-
-    # loopcut
-    mode('EDIT')
-    region, rv3d, v3d, area = view3d_find(True)
-
-    override = {
-        'scene': bpy.context.scene,
-        'region': region,
-        'area': area,
-        'space': v3d
-    }
-
-    bpy.ops.mesh.loopcut(override, number_cuts=segments - 2, smoothness=0, falloff='INVERSE_SQUARE', object_index=0, edge_index=2)
-
-    mode('OBJECT')
-
-    curve_mod = obj.modifiers.new("curve", "SIMPLE_DEFORM")
-    curve_mod.deform_method = 'BEND'
-    curve_mod.deform_axis = 'Z'
-    curve_mod.show_render = False
-    curve_mod.angle = radians(tile_properties['degrees_of_arc'])
-
-    return curve_mod.name
-'''
 
 
 def create_openlock_wall_2(base, tile_properties, tile_empty):

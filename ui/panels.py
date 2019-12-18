@@ -286,16 +286,27 @@ class MT_PT_Trim_Panel(MT_PT_Panel, bpy.types.Panel):
         layout = self.layout
 
         layout.operator('scene.trim_tile', text='Trim Tile')
-        row = layout.row()
-        row.prop(scene, 'mt_trim_x_neg')
-        row.prop(scene, 'mt_trim_x_pos')
-        row = layout.row()
-        row.prop(scene, 'mt_trim_y_neg')
-        row.prop(scene, 'mt_trim_y_pos')
-        row = layout.row()
-        row.prop(scene, 'mt_trim_z_neg')
-        row.prop(scene, 'mt_trim_z_pos')
-        # layout.prop(scene, 'mt_trim_buffer')
+
+        if context.scene.mt_tile_type == 'RECTANGULAR_FLOOR':
+            row = layout.row()
+            row.prop(scene, 'mt_trim_x_neg')
+            row.prop(scene, 'mt_trim_x_pos')
+            row = layout.row()
+            row.prop(scene, 'mt_trim_y_neg')
+            row.prop(scene, 'mt_trim_y_pos')
+            row = layout.row()
+            row.prop(scene, 'mt_trim_z_neg')
+            row.prop(scene, 'mt_trim_z_pos')
+
+        elif context.scene.mt_tile_type == 'STRAIGHT_WALL' or context.scene.mt_tile_type == 'CURVED_WALL':
+            row = layout.row()
+            row.prop(scene, 'mt_trim_x_neg')
+            row.prop(scene, 'mt_trim_x_pos')
+            row = layout.row()
+            row.prop(scene, 'mt_trim_z_neg')
+            row.prop(scene, 'mt_trim_z_pos')
+
+        layout.prop(scene, 'mt_trim_buffer')
 
 
 class MT_PT_Export_Panel(MT_PT_Panel, bpy.types.Panel):

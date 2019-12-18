@@ -16,4 +16,6 @@ def draw_cuboid(size):
     t.fill_path()
     t.select_all()
     t.up(d=size[2])
+    t.select_all()
+    bpy.ops.mesh.normals_make_consistent()
     return bpy.context.object

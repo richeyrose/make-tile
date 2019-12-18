@@ -10,7 +10,7 @@ from .. lib.utils.selection import (
     select_all,
     select,
     activate)
-from .. lib.utils.utils import mode, view3d_find, add_circle_array
+from .. lib.utils.utils import mode, view3d_find, add_circle_array, add_deform_modifiers
 from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
 from .. materials.materials import (
     load_secondary_material,
@@ -23,15 +23,14 @@ from . create_straight_wall_tile import (
     create_straight_wall_core_2,
     create_openlock_base_slot_cutter,
     create_openlock_straight_wall_core_2)
+from .. operators.trim_tile import (
+    create_tile_trimmers)
 
 
 def create_curved_wall(tile_empty):
     """Returns a curved wall"""
 
     tile_properties = tile_empty['tile_properties']
-
-    # correct for the Y thickness
-    tile_properties['base_inner_radius'] = tile_properties['base_inner_radius'] + (tile_properties['base_size'][1] / 2)
 
     # hack to correct for parenting issues.
     # moves cursor to origin and creates objects
@@ -48,20 +47,41 @@ def create_curved_wall(tile_empty):
         base, tile_properties['base_size'] = create_openlock_curved_wall_base(tile_properties)
 
     if tile_properties['base_blueprint'] == 'PLAIN':
+        tile_properties['base_inner_radius'] = tile_properties['base_inner_radius'] + (tile_properties['base_size'][1] / 2)
         base, tile_properties['base_size'] = create_plain_curved_wall_base(tile_properties)
 
-    if tile_properties['tile_blueprint'] == 'OPENLOCK':
+    if tile_properties['main_part_blueprint'] == 'OPENLOCK':
         tile_properties['tile_size'] = Vector((tile_properties['tile_size'][0], 0.5, tile_properties['tile_size'][2]))
         wall = create_openlock_wall_2(base, tile_properties, tile_empty)
 
-    if tile_properties['tile_blueprint'] == 'PLAIN':
+    if tile_properties['main_part_blueprint'] == 'PLAIN':
         wall = create_plain_wall_2(base, tile_properties, tile_empty)
 
-    tile_empty['tile_properties'] = tile_properties
+    # create tile trimmers. Used to ensure that displaced
+    # textures don't extend beyond the original bounds of the tile.
+    # Used by voxeliser and exporter
 
-    wall[1].hide_viewport = True
-    base.location = cursor_orig_loc
+    # TODO: tile trimmers
+    # trimmers = create_curved_tile_trimmers(tile_properties)
+
+    # create X neg and x pos trimmers.
+    # move to end
+    # rotate (see openlock side cutters)
+
+    # create slabs that fit against inner and outer base radius for y neg and y pos trimmers
+    # subdivide by num segments
+
+    # get straight wall trimmers Z pos and Z neg
+    # Subdivide by num segments
+    # add simple deform modifiers
+
+    base.parent = tile_empty
+    tile_empty.location = cursor_orig_loc
     cursor.location = cursor_orig_loc
+    # tile_properties['trimmers'] = trimmers
+    tile_empty['tile_properties'] = tile_properties
+    # TODO: why is this here?
+    wall[1].hide_viewport = True
 
 
 def create_openlock_curved_wall_base(tile_properties):
@@ -80,7 +100,7 @@ def create_openlock_curved_wall_base(tile_properties):
     slot_boolean.object = slot_cutter
     slot_cutter.parent = base
     slot_cutter.display_type = 'BOUNDS'
-    add_deform_modifiers(slot_cutter, tile_properties['segments'], tile_properties)
+    add_deform_modifiers(slot_cutter, tile_properties['segments'], tile_properties['degrees_of_arc'])
     slot_cutter.hide_viewport = True
 
     deselect_all()
@@ -120,6 +140,7 @@ def create_openlock_curved_wall_base(tile_properties):
     return base, tile_properties['base_size']
 
 
+'''
 def add_deform_modifiers(obj, segments, tile_properties):
     deselect_all()
     select(obj.name)
@@ -147,10 +168,10 @@ def add_deform_modifiers(obj, segments, tile_properties):
     curve_mod.angle = radians(tile_properties['degrees_of_arc'])
 
     return curve_mod.name
+'''
 
 
 def create_openlock_wall_2(base, tile_properties, tile_empty):
-
     wall = create_plain_wall_2(base, tile_properties, tile_empty)
 
     cutters = create_openlock_wall_cutters(wall[0], tile_properties)
@@ -289,7 +310,12 @@ def create_plain_wall_2(base, tile_properties, tile_empty):
 
     circumference = 2 * pi * tile_properties['wall_inner_radius']
     wall_length = circumference / (360 / tile_properties['degrees_of_arc'])
-    tile_properties['tile_size'] = Vector((wall_length, 0.3149, tile_properties['tile_size'][2]))
+
+    # TODO: Get rid of hack used to correct for openlock width here
+    if tile_properties['main_part_blueprint'] == 'OPENLOCK':
+        tile_properties['tile_size'][1] = 0.3149
+
+    tile_properties['tile_size'] = Vector((wall_length, tile_properties['tile_size'][1], tile_properties['tile_size'][2]))
 
     preview_core = create_straight_wall_core_2(tile_properties)
     preview_core['geometry_type'] = 'PREVIEW'
@@ -314,7 +340,7 @@ def create_plain_wall_2(base, tile_properties, tile_empty):
 
     for core in cores:
         core.parent = base
-        add_deform_modifiers(core, tile_properties['segments'], tile_properties)
+        add_deform_modifiers(core, tile_properties['segments'], tile_properties['degrees_of_arc'])
     tile_empty['tile_properties'] = tile_properties
 
     return cores
@@ -328,6 +354,6 @@ def create_plain_curved_wall_base(tile_properties):
     tile_properties['base_size'] = Vector((base_length, tile_properties['base_size'][1], tile_properties['base_size'][2]))
 
     base = create_straight_wall_base(tile_properties)
-    add_deform_modifiers(base, tile_properties['segments'], tile_properties)
+    add_deform_modifiers(base, tile_properties['segments'], tile_properties['degrees_of_arc'])
 
     return base, tile_properties['base_size']

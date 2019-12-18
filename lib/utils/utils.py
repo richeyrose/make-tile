@@ -102,3 +102,33 @@ def apply_all_modifiers(obj):
         bpy.ops.object.modifier_apply(
             contxt, apply_as='DATA',
             modifier=contxt['modifier'].name)
+
+
+# uses loopcut to subdivide a mesh and adds a deform modifier
+def add_deform_modifiers(obj, segments=8, degrees_of_arc=90, axis='Z', show_render=False):
+    deselect_all()
+    select(obj.name)
+    activate(obj.name)
+
+    # loopcut
+    mode('EDIT')
+    region, rv3d, v3d, area = view3d_find(True)
+
+    override = {
+        'scene': bpy.context.scene,
+        'region': region,
+        'area': area,
+        'space': v3d
+    }
+
+    bpy.ops.mesh.loopcut(override, number_cuts=segments - 2, smoothness=0, falloff='INVERSE_SQUARE', object_index=0, edge_index=2)
+
+    mode('OBJECT')
+
+    curve_mod = obj.modifiers.new("curve", "SIMPLE_DEFORM")
+    curve_mod.deform_method = 'BEND'
+    curve_mod.deform_axis = axis
+    curve_mod.show_render = show_render
+    curve_mod.angle = radians(degrees_of_arc)
+
+    return curve_mod.name

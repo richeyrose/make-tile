@@ -106,6 +106,50 @@ class MT_OT_Tile_Trimmer(bpy.types.Operator):
         del bpy.types.Scene.mt_trim_z_pos
 
 
+def create_curved_wall_tile_trimmers(tile_properties):
+    deselect_all()
+
+    cursor = bpy.context.scene.cursor
+    cursor_orig_location = cursor.location.copy()
+
+    # create a cuboid the size of our tile and center it to use
+    # as our bounding box for entire tile for Z trimmers
+    if tile_properties['base_blueprint'] is not 'NONE':
+        bbox_proxy = draw_cuboid(Vector((
+            tile_properties['tile_size'][0],
+            tile_properties['base_size'][1],
+            tile_properties['tile_size'][2])))
+    else:
+        bbox_proxy = draw_cuboid(tile_properties['tile_size'])
+    mode('OBJECT')
+
+    bbox_proxy.location = (
+        bbox_proxy.location[0] - bbox_proxy.dimensions[0] / 2,
+        bbox_proxy.location[1] - bbox_proxy.dimensions[1] / 2,
+        bbox_proxy.location[2])
+
+    cursor.location = cursor_orig_location
+    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+
+    # get bounding box and dimensions of cuboid
+    bound_box = bbox_proxy.bound_box
+    dimensions = bbox_proxy.dimensions.copy()
+
+    # create Z trimmers
+    z_pos_trimmer = create_z_pos_trimmer(bound_box, dimensions, bpy.context.scene.mt_trim_buffer)
+    z_pos_trimmer.name = tile_properties['tile_name'] + '.z_pos_trimmer'
+
+    z_neg_trimmer = create_z_neg_trimmer(bound_box, dimensions, bpy.context.scene.mt_trim_buffer)
+    z_neg_trimmer.name = tile_properties['tile_name'] + '.z_neg_trimmer'
+
+    cursor.location = cursor_orig_location
+    z_trimmers = [z_pos_trimmer, z_neg_trimmer]
+
+    for trimmer in z_trimmers:
+        bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+
+
+# works for rectangular floors and straight walls
 def create_tile_trimmers(tile_properties):
     deselect_all()
 
@@ -158,8 +202,12 @@ def create_tile_trimmers(tile_properties):
         'z_neg': z_neg_trimmer
     }
 
+    cursor.location = cursor_orig_location
+
     for trimmer in trimmers.values():
         trimmer.display_type = 'BOUNDS'
+        select(trimmer.name)
+        bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
         trimmer.hide_viewport = True
         trimmer.parent = bpy.context.scene.objects[tile_properties['empty_name']]
 

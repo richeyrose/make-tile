@@ -153,7 +153,7 @@ def create_curved_wall_tile_trimmers(tile_properties):
         x_pos_trimmer.location[0],
         x_pos_trimmer.location[1] + tile_properties['wall_inner_radius'],
         x_pos_trimmer.location[2]))
-    
+
     bpy.ops.transform.rotate(
         value=-radians((tile_properties['degrees_of_arc'] / 2)),
         orient_axis='Z',
@@ -171,7 +171,7 @@ def create_curved_wall_tile_trimmers(tile_properties):
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
 
     bpy.ops.transform.rotate(
-        value=radians((tile_properties['degrees_of_arc'] / 2) ),
+        value=radians(tile_properties['degrees_of_arc'] / 2),
         orient_axis='Z',
         orient_type='GLOBAL',
         center_override=circle_center)

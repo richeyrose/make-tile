@@ -21,6 +21,8 @@ def create_corner_wall(tile_empty):
 
     base = create_plain_base(2, 3, 0.5, 60, 0.5)
     core = create_plain_wall_core(0.5, 0.25, 0.5, 2, 2, 3, 60)
+    core.parent = base
+    base.parent = tile_empty
 
 
 def create_plain_corner_wall(
@@ -73,6 +75,9 @@ def create_plain_base(
     t.deselect_all()
     t.home()
     bpy.ops.object.editmode_toggle()
+    base = bpy.context.object
+
+    return base
 
 
 def calculate_corner_wall_triangles(
@@ -196,3 +201,6 @@ def create_plain_wall_core(
     t.deselect_all()
     t.home()
     bpy.ops.object.editmode_toggle()
+
+    core = bpy.context.object
+    return core

@@ -3,8 +3,11 @@ import os
 import bpy
 import bpy.utils.previews
 from mathutils import Vector
+from .. lib.utils.selection import deselect_all
 from .. utils.registration import get_path, get_prefs
-from .. tile_creation.create_tile import create_tile
+from .. lib.utils.collections import (
+    create_collection,
+    activate_collection)
 
 from .. enums.enums import (
     tile_main_systems,
@@ -19,6 +22,10 @@ from .. materials.materials import (
     get_blend_filenames,
     update_displacement_material_2,
     update_preview_material_2)
+
+from .. tile_creation.create_straight_wall_tile import create_straight_wall
+from .. tile_creation.create_floor_tile import create_rectangular_floor
+from .. tile_creation.create_curved_wall_tile import create_curved_wall
 
 
 class MT_OT_Make_Tile(bpy.types.Operator):
@@ -35,10 +42,67 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             return True
 
     def execute(self, context):
+        ############################################
+        # Set defaults for different tile systems #
+        ############################################
 
         tile_blueprint = context.scene.mt_tile_blueprint
-        main_part_blueprint = context.scene.mt_main_part_blueprint
         tile_type = context.scene.mt_tile_type
+
+        if tile_blueprint == 'OPENLOCK':
+            context.scene.mt_main_part_blueprint = 'OPENLOCK'
+            context.scene.mt_base_blueprint = 'OPENLOCK'
+
+        if tile_blueprint == 'PLAIN':
+            context.scene.mt_main_part_blueprint = 'PLAIN'
+            context.scene.mt_base_blueprint = 'PLAIN'
+
+        #######################################
+        # Create our collection and tile name #
+        # 'Tiles' are collections of meshes   #
+        # parented to an empty                #
+        #######################################
+
+        scene_collection = bpy.context.scene.collection
+
+        # Check to see if tile collection exist and create if not
+        tiles_collection = create_collection('Tiles', scene_collection)
+
+        # construct first part of tile name based on system and type
+        tile_name = tile_blueprint.lower() + "." + tile_type.lower()
+        deselect_all()
+
+        if tile_type == 'STRAIGHT_WALL' or 'CURVED_WALL':
+            # create walls collection if it doesn't already exist
+            walls_collection = create_collection('Walls', tiles_collection)
+
+            # create new collection that operates as our "tile" and activate it
+            tile_collection = bpy.data.collections.new(tile_name)
+            bpy.data.collections['Walls'].children.link(tile_collection)
+
+        if tile_type == 'RECTANGULAR_FLOOR':
+            # create floor collection if one doesn't already exist
+            floors_collection = create_collection('Floors', tiles_collection)
+            # create new collection that operates as our "tile" and activate it
+            tile_collection = bpy.data.collections.new(tile_name)
+            bpy.data.collections['Floors'].children.link(tile_collection)
+
+        # make final tile name
+        activate_collection(tile_collection.name)
+
+        tile_name = tile_collection.name
+
+        #####################
+        # Create Tile Empty #
+        #####################
+
+        tile_empty = bpy.data.objects.new(tile_name + ".empty", None)
+        bpy.context.layer_collection.collection.objects.link(tile_empty)
+
+        ###################################
+        #  Package up our tile properties #
+        # and store them on our empty     #
+        ###################################
 
         tile_size = Vector((
             context.scene.mt_tile_x,
@@ -49,13 +113,6 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             context.scene.mt_base_x,
             context.scene.mt_base_y,
             context.scene.mt_base_z))
-
-        base_inner_radius = bpy.context.scene.mt_base_inner_radius
-        wall_inner_radius = bpy.context.scene.mt_wall_inner_radius
-        degrees_of_arc = bpy.context.scene.mt_degrees_of_arc
-        segments = bpy.context.scene.mt_segments
-        socket_side = bpy.context.scene.mt_base_socket_side
-        base_blueprint = context.scene.mt_base_blueprint
 
         tile_materials = {
             'tile_material_1': context.scene.mt_tile_material_1,
@@ -70,30 +127,37 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             "z_pos": context.scene.mt_z_pos_textured,
             "z_neg": context.scene.mt_z_neg_textured,
         }
+        tile_empty['tile_properties'] = {
+            'tile_name': tile_name,
+            'empty_name': tile_empty.name,
+            'tile_blueprint': context.scene.mt_tile_blueprint,
+            'base_blueprint': context.scene.mt_base_blueprint,
+            'main_part_blueprint': context.scene.mt_main_part_blueprint,
+            'tile_type': context.scene.mt_tile_type,
+            'tile_size': tile_size,
+            'base_size': base_size,
+            'tile_materials': tile_materials,
+            'textured_faces': textured_faces,
+            'base_inner_radius': context.scene.mt_base_inner_radius,  # used for curved tiles only
+            'wall_inner_radius': context.scene.mt_wall_inner_radius,  # used for curved walls only
+            'degrees_of_arc': context.scene.mt_degrees_of_arc,  # used for curved tiles only
+            'segments': context.scene.mt_segments,  # used for curved tiles only
+            'base_socket_sides': context.scene.mt_base_socket_side,  # used for bases that can or should have sockets only on certain sides
+            'trimmers': {}  # used to trim sides of tile on voxelisation and export
+        }
 
-        if tile_blueprint == 'OPENLOCK':
-            main_part_blueprint = 'OPENLOCK'
-            base_blueprint = 'OPENLOCK'
+        ###############
+        # Create Tile #
+        ###############
 
-        if tile_blueprint == 'PLAIN':
-            main_part_blueprint = 'PLAIN'
-            base_blueprint = 'PLAIN'
+        if tile_type == 'STRAIGHT_WALL':
+            create_straight_wall(tile_empty)
 
-        create_tile(
-            tile_blueprint,
-            main_part_blueprint,
-            tile_type,
-            tile_size,
-            base_size,
-            base_inner_radius,
-            wall_inner_radius,
-            degrees_of_arc,
-            segments,
-            base_blueprint,
-            tile_materials,
-            socket_side,
-            textured_faces
-        )
+        if tile_type == 'CURVED_WALL':
+            create_curved_wall(tile_empty)
+
+        if tile_type == 'RECTANGULAR_FLOOR':
+            create_rectangular_floor(tile_empty)
 
         return {'FINISHED'}
 

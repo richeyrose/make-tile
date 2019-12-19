@@ -20,8 +20,7 @@ from .. operators.trim_tile import (
     create_tile_trimmers)
 
 
-def create_straight_wall(
-        tile_empty):
+def create_straight_wall(tile_empty):
     """Returns a straight wall
     Keyword arguments:
     tile_empty -- EMPTY, empty which the tile is parented to. \

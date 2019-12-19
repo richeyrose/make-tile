@@ -26,7 +26,8 @@ base_systems = [
 tile_types = [
     ("STRAIGHT_WALL", "Straight Wall", "", 1),
     ("CURVED_WALL", "Curved Wall", "", 2),
-    ("RECTANGULAR_FLOOR", "Rectangular Floor", "", 3),
+    ("CORNER_WALL", "Corner Wall", "", 3),
+    ("RECTANGULAR_FLOOR", "Rectangular Floor", "", 4),
 ]
 
 geometry_types = [

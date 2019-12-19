@@ -26,7 +26,7 @@ from .. materials.materials import (
 from .. tile_creation.create_straight_wall_tile import create_straight_wall
 from .. tile_creation.create_floor_tile import create_rectangular_floor
 from .. tile_creation.create_curved_wall_tile import create_curved_wall
-
+from .. tile_creation.create_corner_wall import create_corner_wall
 
 class MT_OT_Make_Tile(bpy.types.Operator):
     """Operator class used to create tiles"""
@@ -42,6 +42,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             return True
 
     def execute(self, context):
+
         ############################################
         # Set defaults for different tile systems #
         ############################################
@@ -127,6 +128,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             "z_pos": context.scene.mt_z_pos_textured,
             "z_neg": context.scene.mt_z_neg_textured,
         }
+
         tile_empty['tile_properties'] = {
             'tile_name': tile_name,
             'empty_name': tile_empty.name,
@@ -155,6 +157,9 @@ class MT_OT_Make_Tile(bpy.types.Operator):
 
         if tile_type == 'CURVED_WALL':
             create_curved_wall(tile_empty)
+
+        if tile_type == 'CORNER_WALL':
+            create_corner_wall(tile_empty)
 
         if tile_type == 'RECTANGULAR_FLOOR':
             create_rectangular_floor(tile_empty)

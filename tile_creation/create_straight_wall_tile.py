@@ -146,12 +146,7 @@ def create_plain_wall_2(tile_properties, base):
 
 def create_straight_wall_core_2(
         tile_properties):
-    '''Returns the core (vertical inner) part of a wall tile
-
-    Keyword arguments:
-    tile_properties['tile_name']   -- STR, name
-    tile_properties['tile_size']   -- VECTOR, [x, y, z]
-    tile_properties['base_size']   -- VECTOR, [x, y, z]
+    '''Returns the core (vertical) part of a wall tile
     '''
     cursor = bpy.context.scene.cursor
     cursor_start_location = cursor.location.copy()

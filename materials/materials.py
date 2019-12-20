@@ -40,7 +40,7 @@ def load_secondary_material():
 
 
 def assign_mat_to_vert_group(vert_group, obj, material):
-    #TODO: Replace with low level version as sloooooooow
+    # TODO: Replace with low level version as sloooooooow
     # https://blender.stackexchange.com/questions/69166/set-material-of-a-vertex-group-of-a-certain-face?rq=1
     '''
     Assigns the passed in material to the object's Vertex group

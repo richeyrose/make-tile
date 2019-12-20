@@ -28,6 +28,7 @@ from .. tile_creation.create_floor_tile import create_rectangular_floor
 from .. tile_creation.create_curved_wall_tile import create_curved_wall
 from .. tile_creation.create_corner_wall import create_corner_wall
 
+
 class MT_OT_Make_Tile(bpy.types.Operator):
     """Operator class used to create tiles"""
     bl_idname = "scene.make_tile"
@@ -145,7 +146,10 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             'degrees_of_arc': context.scene.mt_degrees_of_arc,  # used for curved tiles only
             'segments': context.scene.mt_segments,  # used for curved tiles only
             'base_socket_sides': context.scene.mt_base_socket_side,  # used for bases that can or should have sockets only on certain sides
-            'trimmers': {}  # used to trim sides of tile on voxelisation and export
+            'trimmers': {},  # used to trim sides of tile on voxelisation and export
+            'angle_1': context.scene.mt_angle_1,  # used for corner walls & triangular floors
+            'x_leg': context.scene.mt_x_leg_len,  # used for corner walls & triangular floors
+            'y_leg': context.scene.mt_y_leg_len,  # used for corner walls & triangular floors
         }
 
         ###############
@@ -175,6 +179,11 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         material_enum_collection.directory = ''
         material_enum_collection.enums = ()
         enum_collections["materials"] = material_enum_collection
+
+        bpy.types.Scene.mt_tile_name = bpy.props.StringProperty(
+            name="Tile Name",
+            default="Tile"
+        )
 
         bpy.types.Scene.mt_tile_units = bpy.props.EnumProperty(
             items=units,
@@ -311,12 +320,37 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             precision=3,
             min=0
         )
+
         bpy.types.Scene.mt_base_z = bpy.props.FloatProperty(
             name="Z",
             default=0.3,
             step=0.1,
             precision=3,
             min=0
+        )
+
+        # Corner walll and triangular base specific
+        bpy.types.Scene.mt_angle_1 = bpy.props.FloatProperty(
+            name="Base Angle",
+            default=90,
+            step=5,
+            precision=1
+        )
+
+        bpy.types.Scene.mt_x_leg_len = bpy.props.FloatProperty(
+            name="Leg 1 Length",
+            description="Length of leg",
+            default=2,
+            step=0.5,
+            precision=2
+        )
+
+        bpy.types.Scene.mt_y_leg_len = bpy.props.FloatProperty(
+            name="Leg 2 Length",
+            description="Length of leg",
+            default=2,
+            step=0.5,
+            precision=2
         )
 
         # Openlock curved wall specific
@@ -356,11 +390,6 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         bpy.types.Scene.mt_segments = bpy.props.IntProperty(
             name="Number of segments",
             default=8,
-        )
-
-        bpy.types.Scene.mt_tile_name = bpy.props.StringProperty(
-            name="Tile Name",
-            default="Tile"
         )
 
     @classmethod

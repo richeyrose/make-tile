@@ -26,14 +26,34 @@ def create_corner_wall(tile_empty):
     cursor.location = (0, 0, 0)
     tile_empty.location = (0, 0, 0)
 
-    base = create_plain_base(tile_properties)
+    if tile_properties['base_blueprint'] == 'OPENLOCK':
+        tile_properties['base_size'] = Vector((1, 0.5, 0.2755))
+        base = create_openlock_base(tile_properties)
+
+    if tile_properties['base_blueprint'] == 'PLAIN':
+        base = create_plain_base(tile_properties)
+
     wall = create_plain_wall(tile_properties, base)
     base.parent = tile_empty
 
 
+def create_openlock_base(tile_properties):
+    base = create_plain_base(tile_properties)
+    slot_cutter = create_openlock_base_slot_cutter(tile_properties)
+
+    slot_boolean = base.modifiers.new(slot_cutter.name, 'BOOLEAN')
+    slot_boolean.operation = 'DIFFERENCE'
+    slot_boolean.object = slot_cutter
+    slot_cutter.parent = base
+    slot_cutter.display_type = 'BOUNDS'
+    slot_cutter.hide_viewport = True
+
+    return base
+
+
 def create_plain_wall(tile_properties, base):
     textured_faces = tile_properties['textured_faces']
-    
+
     preview_core = create_plain_wall_core(tile_properties)
     preview_core.name = tile_properties['tile_name'] + '.core.preview'
     preview_core['geometry_type'] = 'PREVIEW'
@@ -41,7 +61,7 @@ def create_plain_wall(tile_properties, base):
 
     displacement_core = create_plain_wall_core(tile_properties)
     displacement_core.name = tile_properties['tile_name'] + '.core.displacement'
-    add_object_to_collection(displacement_core, tile_properties['tile_name']) 
+    add_object_to_collection(displacement_core, tile_properties['tile_name'])
     displacement_core['geometry_type'] = 'DISPLACEMENT'
 
     preview_core['displacement_obj'] = displacement_core
@@ -64,7 +84,6 @@ def create_plain_wall(tile_properties, base):
 
 
 def create_plain_base(tile_properties):
-
     x_leg_len = tile_properties['x_leg']
     y_leg_len = tile_properties['y_leg']
     base_height = tile_properties['base_size'][2]
@@ -92,6 +111,73 @@ def create_plain_base(tile_properties):
     base = bpy.context.object
 
     return base
+
+
+def create_openlock_base_slot_cutter(tile_properties):
+    base_thickness = tile_properties['base_size'][1]
+    wall_thickness = tile_properties['tile_size'][1]
+    base_height = tile_properties['base_size'][2]
+    wall_height = tile_properties['tile_size'][2]
+    x_leg_len = tile_properties['x_leg']
+    y_leg_len = tile_properties['y_leg']
+    angle = tile_properties['angle_1']
+
+    if bpy.context.scene.mt_base_socket_side == 'INNER':
+        face_dist = 0.07
+    else:
+        face_dist = 0.233  # distance from outer face our slot should start
+    slot_width = 0.197
+    slot_height = 0.25
+    end_dist = 0.236  # distance of slot from base end
+
+    cutter_triangles_1 = calculate_corner_wall_triangles(
+        x_leg_len,
+        y_leg_len,
+        face_dist,
+        angle)
+
+    # reuse method we use to work out where to start our wall
+    move_cursor_to_wall_start(
+        cutter_triangles_1,
+        angle,
+        face_dist,
+        -0.01)
+
+    cutter_x_leg = cutter_triangles_1['b_adj'] - end_dist
+    cutter_y_leg = cutter_triangles_1['d_adj'] - end_dist
+
+    # work out dimensions of cutter
+    cutter_triangles_2 = calculate_corner_wall_triangles(
+        cutter_x_leg,
+        cutter_y_leg,
+        slot_width,
+        angle
+    )
+
+    draw_corner_outline(
+        cutter_triangles_2,
+        angle,
+        slot_width
+    )
+
+    # fille face and extrude cutter
+    turtle = bpy.context.scene.cursor
+    t = bpy.ops.turtle
+    bpy.ops.mesh.edge_face_add()
+    t.pd()
+    t.up(d=slot_height)
+    t.select_all()
+    bpy.ops.mesh.normals_make_consistent()
+    bpy.ops.mesh.quads_convert_to_tris(quad_method='BEAUTY', ngon_method='BEAUTY')
+    t.pu()
+    t.deselect_all()
+    t.home()
+
+    mode('OBJECT')
+    cutter = bpy.context.object
+    cutter.name = tile_properties['tile_name'] + '.base.cutter'
+
+    return cutter
 
 
 def calculate_corner_wall_triangles(
@@ -205,9 +291,6 @@ def create_plain_wall_core(tile_properties):
     y_leg_len = tile_properties['y_leg']
     angle = tile_properties['angle_1']
 
-    turtle = bpy.context.scene.cursor
-    t = bpy.ops.turtle
-
     thickness_diff = base_thickness - wall_thickness
 
     # first work out where we're going to start drawing our wall
@@ -243,6 +326,8 @@ def create_plain_wall_core(tile_properties):
         wall_thickness)
 
     # fill face and extrude wall
+    turtle = bpy.context.scene.cursor
+    t = bpy.ops.turtle
     bpy.ops.mesh.edge_face_add()
     t.pd()
     t.up(d=wall_height - base_height)

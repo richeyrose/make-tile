@@ -81,6 +81,28 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
             row.prop(scene, 'mt_z_neg_textured')
             row.prop(scene, 'mt_z_pos_textured')
 
+        elif scene.mt_tile_type == 'CORNER_WALL':
+            layout.label(text="Wall Thickness and Height")
+            row = layout.row()
+            row.prop(scene, 'mt_tile_x')
+            row.prop(scene, 'mt_tile_z')
+
+            layout.label(text="Corner Properties")
+            layout.prop(scene, 'mt_x_leg_len')
+            layout.prop(scene, 'mt_y_leg_len')
+            layout.prop(scene, 'mt_angle_1')
+
+            layout.label(text="Textured Sides")
+            row = layout.row()
+            row.prop(scene, 'mt_x_neg_textured')
+            row.prop(scene, 'mt_x_pos_textured')
+            row = layout.row()
+            row.prop(scene, 'mt_y_neg_textured')
+            row.prop(scene, 'mt_y_pos_textured')
+            row = layout.row()
+            row.prop(scene, 'mt_z_neg_textured')
+            row.prop(scene, 'mt_z_pos_textured')
+
     def draw_plain_base_panel(self, context):
         scene = context.scene
         layout = self.layout

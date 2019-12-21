@@ -34,7 +34,7 @@ def create_rectangular_floor(tile_empty):
     if tile_properties['base_blueprint'] == 'OPENLOCK':
         tile_properties['base_size'] = Vector((tile_properties['tile_size'][0], tile_properties['tile_size'][1], .2756))
         tile_properties['tile_size'][2] = 0.374
-        base = create_openlock_straight_wall_base(tile_properties)
+        base = create_openlock_floor_base(tile_properties)
 
     if tile_properties['base_blueprint'] == 'PLAIN':
         base = create_plain_base(tile_properties)
@@ -153,7 +153,7 @@ def create_displacement_slab(tile_properties):
     return slab
 
 
-def create_openlock_straight_wall_base(tile_properties):
+def create_openlock_floor_base(tile_properties):
     '''Creates an openlock style base'''
     if tile_properties['base_size'][0] >= 1 and tile_properties['base_size'][1] < 1 and tile_properties['base_size'][1] > 0.496:
         # if base is less than an inch wide use a wall type base

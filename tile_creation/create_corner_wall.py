@@ -1,3 +1,4 @@
+import os
 import bpy
 from math import tan, radians
 from mathutils import Vector
@@ -8,6 +9,11 @@ from .. utils.registration import get_prefs
 from .. materials.materials import (
     assign_displacement_materials_2,
     assign_preview_materials_2)
+from .. lib.utils.selection import (
+    deselect_all,
+    select_all,
+    select,
+    activate)
 
 
 def create_corner_wall(tile_empty):
@@ -33,12 +39,20 @@ def create_corner_wall(tile_empty):
     if tile_properties['base_blueprint'] == 'PLAIN':
         base = create_plain_base(tile_properties)
 
+    if tile_properties['main_part_blueprint'] == 'OPENLOCK':
+        tile_properties['tile_size'] = Vector((
+            tile_properties['tile_size'][0],
+            0.3149,
+            tile_properties['tile_size'][2]
+        ))
+
     wall = create_plain_wall(tile_properties, base)
     base.parent = tile_empty
+    tile_empty.location = cursor_orig_loc
 
 
 def create_openlock_base(tile_properties):
-    base = create_plain_base(tile_properties)
+    base, base_triangles, vert_locs = create_plain_base(tile_properties)
     slot_cutter = create_openlock_base_slot_cutter(tile_properties)
 
     slot_boolean = base.modifiers.new(slot_cutter.name, 'BOOLEAN')
@@ -48,7 +62,81 @@ def create_openlock_base(tile_properties):
     slot_cutter.display_type = 'BOUNDS'
     slot_cutter.hide_viewport = True
 
+    # inner slot cutters - leg 1
+    leg_len = base_triangles['b_adj']
+    corner_loc = vert_locs['d']
+    clip_cutter_1 = create_openlock_base_clip_cutter(tile_properties, leg_len, corner_loc, -0.25)
+    select(clip_cutter_1.name)
+    bpy.ops.transform.mirror(constraint_axis=(False, True, False))
+    bpy.ops.transform.rotate(
+        value=radians(tile_properties['angle_1'] - 90),
+        orient_axis='Z',
+        orient_type='GLOBAL',
+        center_override=corner_loc)
+
+    # inner slot cutters - leg 2
+    leg_len = base_triangles['d_adj']
+    corner_loc = vert_locs['d']
+    clip_cutter_2 = create_openlock_base_clip_cutter(tile_properties, leg_len, corner_loc, 0.25)
+    select(clip_cutter_2.name)
+    bpy.ops.transform.rotate(
+        value=radians(-90),
+        orient_axis='Z',
+        orient_type='GLOBAL',
+        center_override=corner_loc)
+
+    cutters = [clip_cutter_1, clip_cutter_2]
+    for cutter in cutters:
+        cutter_boolean = base.modifiers.new(cutter.name, 'BOOLEAN')
+        cutter_boolean.operation = 'DIFFERENCE'
+        cutter_boolean.object = cutter
+        cutter.parent = base
+        cutter.display_type = 'BOUNDS'
+        cutter.hide_viewport = True
+
+    deselect_all()
+
     return base
+
+
+def create_openlock_base_clip_cutter(tile_properties, leg_len, corner_loc, offset):
+
+    mode('OBJECT')
+    # load cutter
+    # Get cutter
+    deselect_all()
+    preferences = get_prefs()
+    booleans_path = os.path.join(preferences.assets_path, "meshes", "booleans", "openlock.blend")
+
+    # load base cutters
+    with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
+        data_to.objects = ['openlock.wall.base.cutter.clip', 'openlock.wall.base.cutter.clip.cap.start', 'openlock.wall.base.cutter.clip.cap.end']
+
+    for obj in data_to.objects:
+        add_object_to_collection(obj, tile_properties['tile_name'])
+
+    clip_cutter = data_to.objects[0]
+    cutter_start_cap = data_to.objects[1]
+    cutter_end_cap = data_to.objects[2]
+
+    cutter_start_cap.hide_viewport = True
+    cutter_end_cap.hide_viewport = True
+
+    clip_cutter.location = Vector((
+        corner_loc[0] + 0.5,
+        corner_loc[1] + offset,
+        corner_loc[2]
+    ))
+
+    array_mod = clip_cutter.modifiers.new('Array', 'ARRAY')
+    array_mod.start_cap = cutter_start_cap
+    array_mod.end_cap = cutter_end_cap
+    array_mod.use_merge_vertices = True
+
+    array_mod.fit_type = 'FIT_LENGTH'
+    array_mod.fit_length = leg_len - 1
+
+    return clip_cutter
 
 
 def create_plain_wall(tile_properties, base):
@@ -96,7 +184,7 @@ def create_plain_base(tile_properties):
 
     base_triangles = calculate_corner_wall_triangles(x_leg_len, y_leg_len, base_thickness, angle)
 
-    base_outline = draw_corner_outline(base_triangles, angle, base_thickness)
+    vert_locs = draw_corner_outline(base_triangles, angle, base_thickness)
     t.select_all()
     bpy.ops.mesh.edge_face_add()
     t.pd()
@@ -110,7 +198,7 @@ def create_plain_base(tile_properties):
     bpy.ops.object.editmode_toggle()
     base = bpy.context.object
 
-    return base
+    return base, base_triangles, vert_locs
 
 
 def create_openlock_base_slot_cutter(tile_properties):
@@ -160,7 +248,7 @@ def create_openlock_base_slot_cutter(tile_properties):
         slot_width
     )
 
-    # fille face and extrude cutter
+    # fill face and extrude cutter
     turtle = bpy.context.scene.cursor
     t = bpy.ops.turtle
     bpy.ops.mesh.edge_face_add()
@@ -207,10 +295,10 @@ def calculate_corner_wall_triangles(
     tri_d_adj = tri_d_opp * tan(radians(tri_d_angle))
 
     triangles = {
-        'a_adj': tri_a_adj,
-        'b_adj': tri_b_adj,
-        'c_adj': tri_c_adj,
-        'd_adj': tri_d_adj}
+        'a_adj': tri_a_adj,  # leg 1 outer leg length
+        'b_adj': tri_b_adj,  # leg 1 inner leg length
+        'c_adj': tri_c_adj,  # leg 2 outer leg length
+        'd_adj': tri_d_adj}  # leg 2 inner leg length
 
     return triangles
 
@@ -238,7 +326,8 @@ def draw_corner_outline(triangles, angle, thickness):
     orig_loc = turtle.location.copy()
     orig_rot = turtle.rotation_euler.copy()
 
-    # We save the location of each vertex as it is drawn to use for making vert groups later
+    # We save the location of each vertex as it is drawn
+    # to use for making vert groups & positioning cutters
     vert_loc = {
         'a': orig_loc
     }

@@ -378,7 +378,7 @@ def create_openlock_base_clip_cutter(base, tile_properties):
     array_mod.fit_type = 'FIT_LENGTH'
     array_mod.fit_length = tile_properties['base_size'][0] - 1
 
-    return (clip_cutter)
+    return clip_cutter
 
 
 def create_openlock_base_slot_cutter(base, tile_properties, offset=0.18):

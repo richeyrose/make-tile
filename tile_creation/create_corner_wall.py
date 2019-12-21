@@ -50,11 +50,11 @@ def create_corner_wall(tile_empty):
         cores = create_openlock_cores(tile_properties, base)
 
     if tile_properties['main_part_blueprint'] == 'PLAIN':
-        cores = create_plain_cores(tile_properties, base)
+        cores = create_plain_cores(tile_properties, base[0])
 
     tile_properties['trimmers'] = create_corner_wall_tile_trimmers(tile_properties)
-    base.parent = tile_empty
-    
+    base[0].parent = tile_empty
+
     tile_empty.location = cursor_orig_loc
     cursor.location = cursor_orig_loc
     tile_empty['tile_properties'] = tile_properties

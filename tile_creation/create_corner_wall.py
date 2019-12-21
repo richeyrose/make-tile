@@ -9,6 +9,7 @@ from .. utils.registration import get_prefs
 from .. materials.materials import (
     assign_displacement_materials_2,
     assign_preview_materials_2)
+from . create_straight_wall_tile import create_openlock_wall_cutters
 from .. lib.utils.selection import (
     deselect_all,
     select_all,
@@ -45,10 +46,14 @@ def create_corner_wall(tile_empty):
             0.3149,
             tile_properties['tile_size'][2]
         ))
+        cores = create_openlock_cores(tile_properties, base)
 
-    wall = create_plain_wall(tile_properties, base)
+    if tile_properties['main_part_blueprint'] == 'PLAIN':
+        cores = create_plain_cores(tile_properties, base)
+
     base.parent = tile_empty
     tile_empty.location = cursor_orig_loc
+    cursor.location = cursor_orig_loc
 
 
 def create_openlock_base(tile_properties):
@@ -139,7 +144,53 @@ def create_openlock_base_clip_cutter(tile_properties, leg_len, corner_loc, offse
     return clip_cutter
 
 
-def create_plain_wall(tile_properties, base):
+def create_openlock_cores(tile_properties, base):
+    cursor = bpy.context.scene.cursor
+    cores = create_plain_cores(tile_properties, base)
+    cutters = create_openlock_wall_cutters(cores[0], tile_properties)
+    left_cutters = [cutters[0], cutters[1]]
+    right_cutters = [cutters[2], cutters[3]]
+
+    deselect_all()
+
+    for cutter in right_cutters:
+        cutter.location = (
+            cutter.location[0] + tile_properties['x_leg'] - 1,
+            cutter.location[1] + (tile_properties['base_size'][1] / 2),
+            cutter.location[2])
+        select(cutter.name)
+    bpy.ops.transform.rotate(
+        value=radians(tile_properties['angle_1'] - 90),
+        orient_axis='Z',
+        center_override=cursor.location)
+
+    deselect_all()
+
+    for cutter in left_cutters:
+        cutter.location = (
+            cutter.location[0] - tile_properties['y_leg'] + 1,
+            cutter.location[1] + (tile_properties['base_size'][1] / 2),
+            cutter.location[2])
+        select(cutter.name)
+    bpy.ops.transform.rotate(
+        value=-radians(-90),
+        orient_axis='Z',
+        center_override=cursor.location)
+
+    deselect_all()
+
+    for cutter in cutters:
+        cutter.parent = base
+        cutter.display_type = 'BOUNDS'
+        cutter.hide_viewport = True
+
+        for core in cores:
+            cutter_bool = core.modifiers.new('Wall Cutter', 'BOOLEAN')
+            cutter_bool.operation = 'DIFFERENCE'
+            cutter_bool.object = cutter
+
+
+def create_plain_cores(tile_properties, base):
     textured_faces = tile_properties['textured_faces']
 
     preview_core = create_plain_wall_core(tile_properties)
@@ -169,6 +220,9 @@ def create_plain_wall(tile_properties, base):
     assign_preview_materials_2(preview_core, primary_material, secondary_material, textured_faces)
 
     displacement_core.hide_viewport = True
+
+    cores = [preview_core, displacement_core]
+    return cores
 
 
 def create_plain_base(tile_properties):

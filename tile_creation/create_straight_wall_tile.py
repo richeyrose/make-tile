@@ -100,7 +100,7 @@ def create_openlock_wall_2(tile_properties, base):
     if tile_properties['tile_size'][2] >= 0.99:
         textured_faces = tile_properties['textured_faces']
         if textured_faces['x_neg'] is 0 or textured_faces['x_pos'] is 0:
-            wall_cutters = create_openlock_wall_cutters_2(preview_core, tile_properties)
+            wall_cutters = create_openlock_wall_cutters(preview_core, tile_properties)
 
             for wall_cutter in wall_cutters:
                 wall_cutter.parent = base
@@ -240,7 +240,7 @@ def create_openlock_straight_wall_core_2(
     return preview_core, displacement_core
 
 
-def create_openlock_wall_cutters_2(core, tile_properties):
+def create_openlock_wall_cutters(core, tile_properties):
     """Creates the cutters for the wall and positions them correctly
 
     Keyword arguments:
@@ -257,7 +257,7 @@ def create_openlock_wall_cutters_2(core, tile_properties):
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
         data_to.objects = ['openlock.wall.cutter.side']
 
-    core_location = core.location
+    core_location = core.location.copy()
 
     cutters = []
     # left side cutters

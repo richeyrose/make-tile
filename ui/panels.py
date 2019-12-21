@@ -357,7 +357,14 @@ class MT_PT_Trim_Panel(MT_PT_Panel, bpy.types.Panel):
             row.prop(scene, 'mt_trim_z_neg')
             row.prop(scene, 'mt_trim_z_pos')
 
-        layout.prop(scene, 'mt_trim_buffer')
+        elif context.scene.mt_tile_type == 'CORNER_WALL':
+            layout.prop(scene, 'mt_trim_buffer')
+            row = layout.row()
+            row.prop(scene, 'mt_trim_x_pos')
+            row.prop(scene, 'mt_trim_y_pos')
+            row = layout.row()
+            row.prop(scene, 'mt_trim_z_neg')
+            row.prop(scene, 'mt_trim_z_pos')
 
 
 class MT_PT_Export_Panel(MT_PT_Panel, bpy.types.Panel):

@@ -10,6 +10,7 @@ from .. materials.materials import (
     assign_displacement_materials_2,
     assign_preview_materials_2)
 from . create_straight_wall_tile import create_openlock_wall_cutters
+from .. operators.trim_tile import create_corner_wall_tile_trimmers
 from .. lib.utils.selection import (
     deselect_all,
     select_all,
@@ -51,9 +52,12 @@ def create_corner_wall(tile_empty):
     if tile_properties['main_part_blueprint'] == 'PLAIN':
         cores = create_plain_cores(tile_properties, base)
 
+    tile_properties['trimmers'] = create_corner_wall_tile_trimmers(tile_properties)
     base.parent = tile_empty
+    
     tile_empty.location = cursor_orig_loc
     cursor.location = cursor_orig_loc
+    tile_empty['tile_properties'] = tile_properties
 
 
 def create_openlock_base(tile_properties):

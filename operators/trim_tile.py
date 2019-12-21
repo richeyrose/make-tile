@@ -107,6 +107,60 @@ class MT_OT_Tile_Trimmer(bpy.types.Operator):
         del bpy.types.Scene.mt_trim_z_pos
 
 
+def create_corner_wall_tile_trimmers(tile_properties):
+    deselect_all()
+
+    cursor = bpy.context.scene.cursor
+    cursor_orig_location = cursor.location.copy()
+
+    bbox_proxy = draw_cuboid([
+        tile_properties['x_leg'],
+        tile_properties['y_leg'],
+        tile_properties['tile_size'][2]])
+
+    mode('OBJECT')
+
+    # get bounding box and dimensions of cuboid
+    bound_box = bbox_proxy.bound_box
+    dimensions = bbox_proxy.dimensions.copy()
+
+    # create trimmers
+    buffer = bpy.context.scene.mt_trim_buffer
+    x_neg_trimmer = create_x_neg_trimmer(bound_box, dimensions, buffer)
+    x_neg_trimmer.name = tile_properties['tile_name'] + '.x_neg_trimmer'
+    x_pos_trimmer = create_x_pos_trimmer(bound_box, dimensions, buffer)
+    x_pos_trimmer.name = tile_properties['tile_name'] + '.x_pos_trimmer'
+    y_neg_trimmer = create_y_neg_trimmer(bound_box, dimensions, buffer)
+    y_neg_trimmer.name = tile_properties['tile_name'] + '.y_neg_trimmer'
+    y_pos_trimmer = create_y_pos_trimmer(bound_box, dimensions, buffer)
+    y_pos_trimmer.name = tile_properties['tile_name'] + '.y_pos_trimmer'
+    z_pos_trimmer = create_z_pos_trimmer(bound_box, dimensions, buffer)
+    z_pos_trimmer.name = tile_properties['tile_name'] + '.z_pos_trimmer'
+    z_neg_trimmer = create_z_neg_trimmer(bound_box, dimensions, buffer)
+    z_neg_trimmer.name = tile_properties['tile_name'] + '.z_neg_trimmer'
+
+    trimmers = {
+        'x_neg': x_neg_trimmer,
+        'x_pos': x_pos_trimmer,
+        'y_neg': y_neg_trimmer,
+        'y_pos': y_pos_trimmer,
+        'z_pos': z_pos_trimmer,
+        'z_neg': z_neg_trimmer
+    }
+
+    cursor.location = cursor_orig_location
+
+    for trimmer in trimmers.values():
+        trimmer.display_type = 'BOUNDS'
+        select(trimmer.name)
+        bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+        trimmer.hide_viewport = True
+        trimmer.parent = bpy.context.scene.objects[tile_properties['empty_name']]
+
+    bpy.ops.object.delete({"selected_objects": [bbox_proxy]})
+    return trimmers
+
+
 def create_curved_wall_tile_trimmers(tile_properties):
     deselect_all()
 

@@ -39,3 +39,20 @@ def draw_triangle(b, c, A):
     t.select_path()
     t.merge()
     t.pu()
+    return bpy.context.object
+
+
+def draw_tri_prism(b, c, A, height):
+    '''draws a triangular prism given the length of two sides of triangle (a, b),
+    the angle between them (A) and the height'''
+
+    triangle = draw_triangle(b, c, A)
+
+    t = bpy.ops.turtle
+    t.select_all()
+    bpy.ops.mesh.edge_face_add()
+    t.pd()
+    t.up(d=height)
+    t.select_all()
+    bpy.ops.mesh.normals_make_consistent()
+    return bpy.context.object

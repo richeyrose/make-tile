@@ -18,7 +18,7 @@ from .. operators.trim_tile import (
 
 
 def create_rectangular_floor(tile_empty):
-    """"Returns a floor"""
+    """"Returns a rectangular floor"""
 
     tile_properties = tile_empty['tile_properties']
 
@@ -32,7 +32,7 @@ def create_rectangular_floor(tile_empty):
     cursor.location = (0, 0, 0)
 
     if tile_properties['base_blueprint'] == 'OPENLOCK':
-        tile_properties['base_size'] = Vector((tile_properties['tile_size'][0], tile_properties['tile_size'][1], .2756))
+        tile_properties['base_size'][2] = .2756
         tile_properties['tile_size'][2] = 0.374
         base = create_openlock_floor_base(tile_properties)
 

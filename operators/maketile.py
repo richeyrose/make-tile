@@ -27,6 +27,7 @@ from .. tile_creation.create_straight_wall_tile import create_straight_wall
 from .. tile_creation.create_floor_tile import create_rectangular_floor
 from .. tile_creation.create_curved_wall_tile import create_curved_wall
 from .. tile_creation.create_corner_wall import create_corner_wall
+from .. tile_creation.create_triangular_floor import create_triangular_floor
 
 
 class MT_OT_Make_Tile(bpy.types.Operator):
@@ -74,7 +75,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         tile_name = tile_blueprint.lower() + "." + tile_type.lower()
         deselect_all()
 
-        if tile_type == 'STRAIGHT_WALL' or 'CURVED_WALL':
+        if tile_type == 'STRAIGHT_WALL' or 'CURVED_WALL' or 'CORNER_WALL':
             # create walls collection if it doesn't already exist
             walls_collection = create_collection('Walls', tiles_collection)
 
@@ -82,7 +83,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             tile_collection = bpy.data.collections.new(tile_name)
             bpy.data.collections['Walls'].children.link(tile_collection)
 
-        if tile_type == 'RECTANGULAR_FLOOR':
+        if tile_type == 'RECTANGULAR_FLOOR' or 'TRIANGULAR_FLOOR':
             # create floor collection if one doesn't already exist
             floors_collection = create_collection('Floors', tiles_collection)
             # create new collection that operates as our "tile" and activate it
@@ -167,6 +168,9 @@ class MT_OT_Make_Tile(bpy.types.Operator):
 
         if tile_type == 'RECTANGULAR_FLOOR':
             create_rectangular_floor(tile_empty)
+
+        if tile_type == 'TRIANGULAR_FLOOR':
+            create_triangular_floor(tile_empty)
 
         return {'FINISHED'}
 

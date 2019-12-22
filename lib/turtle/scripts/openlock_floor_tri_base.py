@@ -1,7 +1,6 @@
-from math import floor, sqrt, cos, radians, degrees, acos, tan
 import bpy
 from . primitives import draw_triangle
-from mathutils import *
+
 outer_w = 0.2362                 # outer ring width
 slot_w = 0.1811                # slot width
 slot_h = 0.2402                # slot height

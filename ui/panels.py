@@ -58,6 +58,23 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
             row.prop(scene, 'mt_tile_x')
             row.prop(scene, 'mt_tile_y')
 
+        elif scene.mt_tile_type == 'TRIANGULAR_FLOOR':
+            layout.label(text="Tile Properties")
+            layout.prop(scene, 'mt_x_leg_len')
+            layout.prop(scene, 'mt_y_leg_len')
+            layout.prop(scene, 'mt_angle_1')
+
+            layout.label(text="Textured Sides")
+            row = layout.row()
+            row.prop(scene, 'mt_x_neg_textured')
+            row.prop(scene, 'mt_x_pos_textured')
+            row = layout.row()
+            row.prop(scene, 'mt_y_neg_textured')
+            row.prop(scene, 'mt_y_pos_textured')
+            row = layout.row()
+            row.prop(scene, 'mt_z_neg_textured')
+            row.prop(scene, 'mt_z_pos_textured')
+
         elif scene.mt_tile_type == 'CURVED_WALL':
             layout.label(text="Tile Properties")
             layout.prop(scene, 'mt_wall_inner_radius')
@@ -112,6 +129,18 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
             row.prop(scene, 'mt_base_x')
             row.prop(scene, 'mt_base_y')
             row.prop(scene, 'mt_base_z')
+
+        if scene.mt_tile_type == 'TRIANGULAR_FLOOR':
+            layout.label(text="Base Height")
+            row = layout.row()
+            row.prop(scene, 'mt_base_z')
+            layout.label(text="TIle Height")
+            row = layout.row()
+            row.prop(scene, 'mt_tile_z')
+            layout.label(text="Tile_Properties")
+            layout.prop(scene, 'mt_x_leg_len')
+            layout.prop(scene, 'mt_y_leg_len')
+            layout.prop(scene, 'mt_angle_1')
 
         elif scene.mt_tile_type == 'CURVED_WALL':
             layout.label(text="Base Properties")

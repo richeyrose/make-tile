@@ -19,13 +19,12 @@ def draw_openlock_tri_floor_base(x_leg, y_leg, height, angle_1):
     t.pd()
     t.add_vert()
     start_loc = turtle.location.copy()
-    draw_floor(x_leg, y_leg, height, start_loc, angle_1)
-    base = bpy.context.object
+    base, dimensions = draw_base(x_leg, y_leg, height, start_loc, angle_1)
 
-    return base
+    return base, dimensions
 
 
-def draw_floor(b, c, height, start_loc, A):
+def draw_base(b, c, height, start_loc, A):
     floor = bpy.context.object
     turtle = bpy.context.scene.cursor
     turtle_orig_rot = turtle.rotation_euler.copy()
@@ -34,8 +33,8 @@ def draw_floor(b, c, height, start_loc, A):
     t = bpy.ops.turtle
     # loops are numbered from outer to inner
 
-    # draw loop 1 (outer)
-    draw_triangle(b, c, A)
+    # draw loop 1 (outer) and save dimensions
+    triangle, dimensions = draw_triangle(b, c, A)
 
     # fill face
     bpy.ops.mesh.edge_face_add()
@@ -172,4 +171,4 @@ def draw_floor(b, c, height, start_loc, A):
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
-    return bpy.context.object
+    return bpy.context.object, dimensions

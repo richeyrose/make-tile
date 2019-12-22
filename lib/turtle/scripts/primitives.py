@@ -28,18 +28,32 @@ def draw_triangle(b, c, A):
     a = sqrt((b**2 + c**2) - ((2 * b * c) * cos(radians(A))))
     B = degrees(acos((c**2 + a**2 - (b**2)) / (2 * c * a)))
     C = 180 - A - B
-
+    turtle = bpy.context.scene.cursor
     t = bpy.ops.turtle
+    loc_A = turtle.location.copy()
     t.begin_path()
     t.fd(d=b)
+    loc_B = turtle.location.copy()
     t.rt(d=180 - C)
     t.fd(d=a)
+    loc_C = turtle.location.copy()
     t.rt(d=180 - B)
     t.fd(d=c)
     t.select_path()
     t.merge()
     t.pu()
-    return bpy.context.object
+    dimensions = {
+        'a': a,  # sides
+        'b': b,
+        'c': c,
+        'A': A,  # angles
+        'B': B,
+        'C': C,
+        'loc_A': loc_A,  # corner coords
+        'loc_B': loc_B,
+        'loc_C': loc_C}
+
+    return bpy.context.object, dimensions
 
 
 def draw_tri_prism(b, c, A, height):

@@ -112,7 +112,7 @@ def update_preview_material_2(obj, primary_material_name):
             assign_mat_to_vert_group(key, obj, primary_material)
 
 
-def assign_displacement_materials_2(obj, image_size, primary_material, secondary_material, textured_faces):
+def assign_displacement_materials_2(obj, image_size, primary_material, secondary_material):
     for material in obj.data.materials:
         obj.data.materials.pop(index=0)
 
@@ -138,3 +138,16 @@ def assign_preview_materials_2(obj, primary_material, secondary_material, textur
     for key, value in textured_faces.items():
         if value is 1:
             assign_mat_to_vert_group(key, obj, primary_material)
+
+
+def assign_preview_materials_3(obj, primary_material, secondary_material):
+    for material in obj.data.materials:
+        obj.data.materials.pop(index=0)
+
+    obj['primary_material'] = primary_material
+    obj['secondary_material'] = secondary_material
+
+    add_preview_mesh_modifiers(obj)
+
+    # obj.data.materials.append(secondary_material)
+    obj.data.materials.append(primary_material)

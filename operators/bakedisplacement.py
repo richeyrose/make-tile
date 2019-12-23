@@ -19,7 +19,7 @@ class MT_OT_Bake_Displacement(bpy.types.Operator):
 
     def execute(self, context):
         preview_obj = bpy.context.object
-        displacement_obj = preview_obj['displacement_obj']
+        displacement_obj = preview_obj['linked_obj']
         preview_material = preview_obj['primary_material']
         resolution = context.scene.mt_tile_resolution
         displacement_obj.hide_viewport = False
@@ -104,7 +104,7 @@ def bake_displacement_map(material, obj, resolution):
     texture_node.image = image
 
     # project from preview to displacement mesh when baking
-    preview_mesh = bpy.data.objects[obj['preview_obj'].name]
+    preview_mesh = bpy.data.objects[obj['linked_obj'].name]
     deselect_all()
     select(preview_mesh.name)
     select(obj.name)

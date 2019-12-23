@@ -19,7 +19,7 @@ class MT_OT_Return_To_Preview(bpy.types.Operator):
     def execute(self, context):
         deselect_all()
         disp_obj = bpy.context.object
-        preview_obj = disp_obj['preview_obj']
+        preview_obj = disp_obj['linked_obj']
         preview_obj.hide_viewport = False
         select(preview_obj.name)
         activate(preview_obj.name)

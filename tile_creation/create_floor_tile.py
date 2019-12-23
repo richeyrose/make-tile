@@ -90,8 +90,8 @@ def create_floor(tile_properties, base):
         'DISPLACEMENT')
     displacement_slab['geometry_type'] = 'DISPLACEMENT'
 
-    preview_slab['displacement_obj'] = displacement_slab
-    displacement_slab['preview_obj'] = preview_slab
+    preview_slab['linked_obj'] = displacement_slab
+    displacement_slab['linked_obj'] = preview_slab
 
     preferences = get_prefs()
 
@@ -100,7 +100,7 @@ def create_floor(tile_properties, base):
 
     image_size = bpy.context.scene.mt_tile_resolution
 
-    assign_displacement_materials_2(displacement_slab, [image_size, image_size], primary_material, secondary_material, tile_properties['textured_faces'])
+    assign_displacement_materials_2(displacement_slab, [image_size, image_size], primary_material, secondary_material)
     assign_preview_materials_2(preview_slab, primary_material, secondary_material, tile_properties['textured_faces'])
 
     slabs = [preview_slab, displacement_slab]

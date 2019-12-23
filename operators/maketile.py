@@ -229,6 +229,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             name="Material 2",
             update=update_material_2,
         )
+        
 
         bpy.types.Scene.mt_tile_resolution = bpy.props.IntProperty(
             name="Resolution",
@@ -462,7 +463,7 @@ def update_material_1(self, context):
 
     if 'geometry_type' in preview_obj:
         if preview_obj['geometry_type'] == 'PREVIEW':
-            disp_obj = preview_obj['displacement_obj']
+            disp_obj = preview_obj['linked_obj']
 
             update_displacement_material_2(disp_obj, bpy.context.scene.mt_tile_material_1)
             update_preview_material_2(preview_obj, bpy.context.scene.mt_tile_material_1)
@@ -473,7 +474,7 @@ def update_material_2(self, context):
 
     if 'geometry_type' in preview_obj:
         if preview_obj['geometry_type'] == 'PREVIEW':
-            disp_obj = preview_obj['displacement_obj']
+            disp_obj = preview_obj['linked_obj']
 
             update_displacement_material_2(disp_obj, bpy.context.scene.mt_tile_material_1)
             update_preview_material_2(preview_obj, bpy.context.scene.mt_tile_material_1)

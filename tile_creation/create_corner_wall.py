@@ -207,8 +207,8 @@ def create_plain_cores(tile_properties, base):
     add_object_to_collection(displacement_core, tile_properties['tile_name'])
     displacement_core['geometry_type'] = 'DISPLACEMENT'
 
-    preview_core['displacement_obj'] = displacement_core
-    displacement_core['preview_obj'] = preview_core
+    preview_core['linked_obj'] = displacement_core
+    displacement_core['linked_obj'] = preview_core
 
     preview_core.parent = base
     displacement_core.parent = base
@@ -220,7 +220,7 @@ def create_plain_cores(tile_properties, base):
 
     image_size = bpy.context.scene.mt_tile_resolution
 
-    assign_displacement_materials_2(displacement_core, [image_size, image_size], primary_material, secondary_material, textured_faces)
+    assign_displacement_materials_2(displacement_core, [image_size, image_size], primary_material, secondary_material)
     assign_preview_materials_2(preview_core, primary_material, secondary_material, textured_faces)
 
     displacement_core.hide_viewport = True

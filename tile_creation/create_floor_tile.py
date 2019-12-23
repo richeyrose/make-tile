@@ -32,7 +32,10 @@ def create_rectangular_floor(tile_empty):
     cursor.location = (0, 0, 0)
 
     if tile_properties['base_blueprint'] == 'OPENLOCK':
-        tile_properties['base_size'][2] = .2756
+        tile_properties['base_size'] = (
+            tile_properties['tile_size'][0],
+            tile_properties['tile_size'][1],
+            .2756)
         tile_properties['tile_size'][2] = 0.374
         base = create_openlock_floor_base(tile_properties)
 
@@ -157,7 +160,7 @@ def create_openlock_floor_base(tile_properties):
     '''Creates an openlock style base'''
     if tile_properties['base_size'][0] >= 1 and tile_properties['base_size'][1] < 1 and tile_properties['base_size'][1] > 0.496:
         # if base is less than an inch wide use a wall type base
-        base = create_openlock_straight_wall_base(tile_properties['tile_name'], tile_properties['base_size'])
+        base = create_openlock_straight_wall_base(tile_properties)
     elif tile_properties['base_size'][0] < 1 or tile_properties['base_size'][1] <= 0.496:
         # TODO: Display message in viewport
         print('Tile too small')

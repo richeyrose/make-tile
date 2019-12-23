@@ -46,8 +46,17 @@ def create_openlock_base(tile_properties):
     add_object_to_collection(base, tile_properties['tile_name'])
     base['geometry_type'] = 'BASE'
 
-    create_openlock_base_clip_cutter(base, dimensions, tile_properties)
+    clip_cutters = create_openlock_base_clip_cutter(base, dimensions, tile_properties)
 
+    for clip_cutter in clip_cutters:
+        matrixcopy = clip_cutter.matrix_world.copy()
+        clip_cutter.parent = base
+        clip_cutter.matrix_world = matrixcopy
+        clip_cutter.display_type = 'BOUNDS'
+        clip_cutter.hide_viewport = True
+        clip_cutter_bool = base.modifiers.new('Clip Cutter', 'BOOLEAN')
+        clip_cutter_bool.operation = 'DIFFERENCE'
+        clip_cutter_bool.object = clip_cutter
     return base
 
 
@@ -77,20 +86,39 @@ def create_openlock_base_clip_cutter(base, dimensions, tile_properties):
     array_mod.use_merge_vertices = True
 
     array_mod.fit_type = 'FIT_LENGTH'
-    array_mod.fit_length = dimensions['c'] - 1
 
     clip_cutter_2 = clip_cutter_1.copy()
     add_object_to_collection(clip_cutter_2, tile_properties['tile_name'])
     clip_cutter_3 = clip_cutter_1.copy()
     add_object_to_collection(clip_cutter_3, tile_properties['tile_name'])
 
-    clip_cutter_1.location = (
-        dimensions['loc_A'][0] + 0.5,
-        dimensions['loc_A'][1] + 0.25,
-        dimensions['loc_A'][2])
-    deselect_all()
+    # for cutters the number of cutters and start and end location has to take into account
+    # the angles of the triangle in order to prevent overlaps between cutters
+    # and issues with booleans
 
-    select(clip_cutter_1.name)  
+    # cutter 1
+    if dimensions['A'] >= 90:
+        clip_cutter_1.location = (
+            dimensions['loc_A'][0] + 0.5,
+            dimensions['loc_A'][1] + 0.25,
+            dimensions['loc_A'][2])
+        if dimensions['C'] >= 90:
+            array_mod.fit_length = dimensions['c'] - 1
+        else:
+            array_mod.fit_length = dimensions['c'] - 1.5
+
+    elif dimensions['A'] < 90:
+        clip_cutter_1.location = (
+            dimensions['loc_A'][0] + 1,
+            dimensions['loc_A'][1] + 0.25,
+            dimensions['loc_A'][2])
+        if dimensions['C'] >= 90:
+            array_mod.fit_length = dimensions['c'] - 1.5
+        else:
+            array_mod.fit_length = dimensions['c'] - 2
+
+    deselect_all()
+    select(clip_cutter_1.name)
     bpy.ops.transform.rotate(
         value=(radians(dimensions['A'] - 90)),
         orient_axis='Z',
@@ -98,32 +126,68 @@ def create_openlock_base_clip_cutter(base, dimensions, tile_properties):
         center_override=dimensions['loc_A'])
 
     deselect_all()
-    clip_cutter_2.location = (
-        dimensions['loc_B'][0] + 0.25,
-        dimensions['loc_B'][1] - 0.5,
-        dimensions['loc_B'][2])
+
+    # cutter 2
+    array_mod = clip_cutter_2.modifiers['Array']
+
+    if dimensions['B'] >= 90:
+        clip_cutter_2.location = (
+            dimensions['loc_B'][0] + 0.25,
+            dimensions['loc_B'][1] - 0.5,
+            dimensions['loc_B'][2])
+        if dimensions['A'] >= 90:
+            array_mod.fit_length = dimensions['b'] - 1
+        else:
+            array_mod.fit_length = dimensions['b'] - 1.5
+
+    elif dimensions['B'] < 90:
+        clip_cutter_2.location = (
+            dimensions['loc_B'][0] + 0.25,
+            dimensions['loc_B'][1] - 1,
+            dimensions['loc_B'][2])
+        if dimensions['A'] >= 90:
+            array_mod.fit_length = dimensions['b'] - 1.5
+        else:
+            array_mod.fit_length = dimensions['b'] - 2
 
     clip_cutter_2.rotation_euler = (0, 0, radians(-90))
+
+    # cutter 3
     array_mod = clip_cutter_2.modifiers['Array']
-    array_mod.fit_length = dimensions['b'] - 1
 
-    clip_cutter_3.location = (
-        dimensions['loc_C'][0] + 0.5,
-        dimensions['loc_C'][1] + 0.25,
-        dimensions['loc_C'][2])
+    if dimensions['C'] >= 90:
+        clip_cutter_3.location = (
+            dimensions['loc_C'][0] + 0.5,
+            dimensions['loc_C'][1] + 0.25,
+            dimensions['loc_C'][2])
+        if dimensions['B'] >= 90:
+            array_mod.fit_length = dimensions['a'] - 1
+        else:
+            array_mod.fit_length = dimensions['a'] - 1.5
 
+    elif dimensions['C'] < 90:
+        clip_cutter_3.location = (
+            dimensions['loc_C'][0] + 1,
+            dimensions['loc_C'][1] + 0.25,
+            dimensions['loc_C'][2])
+        if dimensions['B'] >= 90:
+            array_mod.fit_length = dimensions['a'] - 1.5
+        else:
+            array_mod.fit_length = dimensions['a'] - 2
     deselect_all()
     select(clip_cutter_3.name)
 
     bpy.ops.transform.rotate(
-        value=(-radians(180 - dimensions['C'])),
+        value=(-radians(90 + dimensions['C'])),
         orient_axis='Z',
         orient_type='GLOBAL',
         center_override=dimensions['loc_C'])
-    array_mod = clip_cutter_3.modifiers['Array']
-    array_mod.fit_length = dimensions['a'] - 1
 
     deselect_all()
+    cutters = [clip_cutter_1, clip_cutter_2, clip_cutter_3]
+    bpy.ops.object.make_single_user(type='ALL', object=True, obdata=True)
+    
+    return cutters
 
 
 def create_plain_base(tile_properties):

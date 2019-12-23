@@ -423,4 +423,4 @@ def create_openlock_base_slot_cutter(base, tile_properties, offset=0.18):
     # set cutter location to base origin
     cutter.location = base_location
 
-    return (cutter)
+    return cutter

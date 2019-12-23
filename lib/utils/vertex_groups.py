@@ -1,6 +1,45 @@
 import bpy
-from . selection import select_by_loc, deselect_all
+import bmesh
+from . selection import select_by_loc, deselect_all, select
 from . utils import mode
+
+
+def get_selected_face_indices(obj):
+    mesh = obj.data
+    bm = bmesh.from_mesh(mesh)
+
+    face_list = []
+    for f in bm.faces:
+        if f.select:
+            face_list.append(f.index)
+
+    return face_list
+
+
+def find_vertex_group_of_polygon(polygon):
+    # Get all the vertex groups of all the vertices of this polygon
+    all_vertex_groups = [g.group for v in polygon.vertices
+                         for g in obj.data.vertices[v].groups]
+
+    # Find the most frequent (mode) of all vertex groups
+    counts = [all_vertex_groups.count(index) for index in all_vertex_groups]
+    mode_index = counts.index(max(counts))
+    av_mode = all_vertex_groups[mode_index]
+
+    return av_mode
+
+
+def assign_material_to_faces(obj, face_list, material_index):
+    # find the current polygon's vertex group index
+    for face in face_list:
+        vertex_group_index = find_vertex_group_of_polygon(obj.data.polygons[face])
+
+    # iterate over all polys and change their material
+    for poly in obj.data.polygons:
+        poly_vertex_group_index = find_vertex_group_of_polygon(poly)
+
+        if poly_vertex_group_index == vertex_group_index:
+            poly.material_index = material_index
 
 
 def corner_wall_to_vert_groups(obj, vert_locs):

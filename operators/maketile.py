@@ -229,7 +229,6 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             name="Material 2",
             update=update_material_2,
         )
-        
 
         bpy.types.Scene.mt_tile_resolution = bpy.props.IntProperty(
             name="Resolution",
@@ -249,7 +248,6 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         )
 
         # Which sides of walls to texture
-
         bpy.types.Scene.mt_y_neg_textured = bpy.props.BoolProperty(
             name="Inner",
             default=True

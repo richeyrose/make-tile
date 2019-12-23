@@ -1,6 +1,6 @@
 import os
 import bpy
-
+from bpy.types import Menu, Panel, UIList
 
 class MT_PT_Panel:
     bl_space_type = "VIEW_3D"
@@ -263,6 +263,63 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
                 self.draw_plain_main_part_panel(context)
             if scene.mt_main_part_blueprint == 'OPENLOCK':
                 self.draw_openlock_panel(context)
+
+
+class MT_PT_vertex_groups(MT_PT_Panel, bpy.types.Panel):
+    bl_label = "Vertex Groups"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+
+    @classmethod
+    def poll(cls, context):
+        engine = context.engine
+        obj = context.object
+        return (obj and obj.type in {'MESH'} and (engine in cls.COMPAT_ENGINES))
+
+    def draw(self, context):
+        layout = self.layout
+
+        ob = context.object
+        group = ob.vertex_groups.active
+
+        # number of rows to show
+        rows = 3
+        if group:
+            rows = 5
+
+        row = layout.row()
+        row.template_list("MESH_UL_vgroups", "", ob, "vertex_groups", ob.vertex_groups, "active_index", rows=rows)
+        col = row.column(align=True)
+
+        col.operator("object.vertex_group_add", icon='ADD', text="")
+        props = col.operator("object.vertex_group_remove", icon='REMOVE', text="")
+        props.all_unlocked = props.all = False
+
+        col.separator()
+
+        col.menu("MESH_MT_vertex_group_context_menu", icon='DOWNARROW_HLT', text="")
+
+        if group:
+            col.separator()
+            col.operator("object.vertex_group_move", icon='TRIA_UP', text="").direction = 'UP'
+            col.operator("object.vertex_group_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
+
+        if (
+                ob.vertex_groups and
+                (ob.mode == 'EDIT' or
+                 (ob.mode == 'WEIGHT_PAINT' and ob.type == 'MESH' and ob.data.use_paint_mask_vertex))
+        ):
+            row = layout.row()
+
+            sub = row.row(align=True)
+            sub.operator("object.vertex_group_assign", text="Assign")
+            sub.operator("object.vertex_group_remove_from", text="Remove")
+
+            sub = row.row(align=True)
+            sub.operator("object.vertex_group_select", text="Select")
+            sub.operator("object.vertex_group_deselect", text="Deselect")
+
+            layout.prop(context.tool_settings, "vertex_group_weight", text="Weight")
 
 
 class MT_PT_Display_Panel(MT_PT_Panel, bpy.types.Panel):

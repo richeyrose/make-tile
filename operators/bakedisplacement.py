@@ -1,11 +1,47 @@
 '''contains operator class for baking displacement maps to tiles'''
 import bpy
-from .. materials.materials import load_secondary_material
+from .. materials.materials import load_secondary_material, assign_mat_to_vert_group
 from .. lib.utils.selection import deselect_all, select_all, select, activate
+from .. lib.utils.utils import mode
+from .. lib.utils.vertex_groups import get_selected_face_indices, assign_material_to_faces
+from .. utils.registration import get_prefs
+
+
+class MT_OT_Assign_Material_To_Vert_Group(bpy.types.Operator):
+    """Assigns the selected material to the selected vertex group"""
+    bl_idname = "object.assign_mat_to_active_vert_group"
+    bl_label = "Assign Material"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        return (obj and obj.type in {'MESH'})
+
+    def execute(self, context):
+        # TODO: go back to having a single primary material
+        prefs = get_prefs()
+        obj = context.object
+        mat_name = context.scene.mt_tile_material_1
+        material = bpy.data.materials[mat_name]
+        vertex_group = obj.vertex_groups.active.name
+
+        # check that material is on our object and add it if not
+        if mat_name in obj.material_slots.keys():
+            assign_mat_to_vert_group(vertex_group, obj, material)
+        else:
+            if len(obj.material_slots) == 0:  # check to make sure we have a material applied already otherwise material will be applied to whole object
+                secondary_material = bpy.data.materials[prefs.secondary_material]
+                obj.data.materials.append(secondary_material)
+            
+            primary_material = bpy.data.materials[mat_name]
+            obj.data.materials.append(primary_material)
+            assign_mat_to_vert_group(vertex_group, obj, material)
+        return {'FINISHED'}
 
 
 class MT_OT_Bake_Displacement(bpy.types.Operator):
-    """Operator class to bake displacement maps"""
+    """Bakes the preview material to a displacement map so it becomes 3D"""
     bl_idname = "scene.bake_displacement"
     bl_label = "Bake a displacement map"
     bl_options = {'REGISTER', 'UNDO'}

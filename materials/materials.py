@@ -95,6 +95,7 @@ def update_displacement_material_2(obj, primary_material_name):
 
 
 def update_preview_material_2(obj, primary_material_name):
+    # get rid of existing materials
     for material in obj.data.materials:
         obj.data.materials.pop(index=0)
 
@@ -106,9 +107,9 @@ def update_preview_material_2(obj, primary_material_name):
     obj.data.materials.append(secondary_material)
     obj.data.materials.append(primary_material)
 
-    # for some reasonthe bools stored in our dict haver been converted to ints /\0/\
+    # for some reason the bools stored in our dict haver been converted to ints /\0/\
     for key, value in textured_groups.items():
-        if value is 1:
+        if value is 1 or value is True:
             assign_mat_to_vert_group(key, obj, primary_material)
 
 

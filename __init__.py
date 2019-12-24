@@ -23,11 +23,12 @@ from . ui.panels import (
     MT_PT_Voxelise_Panel,
     MT_PT_Material_Options_Panel,
     MT_PT_Trim_Panel,
-    MT_PT_vertex_groups)
+    MT_PT_vertex_groups,
+    MT_PT_Converter_Panel)
 from . operators.maketile import MT_OT_Make_Tile
 from . operators.makevertgroups import MT_OT_makeVertGroupsFromFaces
 from . operators.object_converter import MT_OT_Convert_To_MT_Obj
-from . operators.bakedisplacement import MT_OT_Bake_Displacement, MT_OT_Assign_Material_To_Vert_Group
+from . operators.bakedisplacement import MT_OT_Bake_Displacement, MT_OT_Assign_Material_To_Vert_Group, MT_OT_Remove_Material_From_Vert_Group
 from . operators.return_to_preview import MT_OT_Return_To_Preview
 from . operators.create_lighting_setup import MT_OT_Create_Lighting_Setup
 from . operators.exporter import MT_OT_Export_Tile
@@ -66,14 +67,16 @@ classes = (
     MT_OT_Tile_Trimmer,
     MT_OT_Export_Tile,
     MT_OT_Assign_Material_To_Vert_Group,
+    MT_OT_Remove_Material_From_Vert_Group,
     MT_PT_Main_Panel,
     MT_PT_Display_Panel,
     MT_PT_Material_Panel,
     MT_PT_Material_Options_Panel,
+    MT_PT_vertex_groups,
     MT_PT_Voxelise_Panel,
     MT_PT_Trim_Panel,
+    MT_PT_Converter_Panel,
     MT_PT_Export_Panel,
-    MT_PT_vertex_groups,
     TURTLE_OT_add_turtle,
     TURTLE_OT_clear_screen,
     TURTLE_OT_clean,

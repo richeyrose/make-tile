@@ -26,6 +26,12 @@ class MT_OT_Assign_Material_To_Vert_Group(bpy.types.Operator):
         material = bpy.data.materials[mat_name]
         vertex_group = obj.vertex_groups.active.name
 
+        if not obj['textured_groups']:
+            obj['textured_groups'] = {
+                vertex_group: True}
+        else:
+            obj['textured_groups'][vertex_group] = True
+
         # check that material is on our object and add it if not
         if mat_name in obj.material_slots.keys():
             assign_mat_to_vert_group(vertex_group, obj, material)
@@ -37,6 +43,38 @@ class MT_OT_Assign_Material_To_Vert_Group(bpy.types.Operator):
             primary_material = bpy.data.materials[mat_name]
             obj.data.materials.append(primary_material)
             assign_mat_to_vert_group(vertex_group, obj, material)
+        return {'FINISHED'}
+
+
+class MT_OT_Remove_Material_From_Vert_Group(bpy.types.Operator):
+    """Removes primary material from the selected vertex group
+    and assigns secondary material to it"""
+    bl_idname = "object.remove_mat_from_active_vert_group"
+    bl_label = "Remove Material"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        return (obj and obj.type in {'MESH'})
+
+    def execute(self, context):
+        # TODO: go back to having a single primary material
+        prefs = get_prefs()
+        obj = context.object
+        vertex_group = obj.vertex_groups.active.name
+        secondary_material = bpy.data.materials[prefs.secondary_material]
+
+        if obj['textured_groups']:
+            if vertex_group in obj['textured_groups']:
+                obj['textured_groups'][vertex_group] = False
+
+        if prefs.secondary_material in obj.material_slots.keys():
+            assign_mat_to_vert_group(vertex_group, obj, secondary_material)
+        else:
+            obj.data.materials.append(secondary_material)
+            assign_mat_to_vert_group(vertex_group, obj, secondary_material)
+
         return {'FINISHED'}
 
 

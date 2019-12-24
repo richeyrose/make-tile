@@ -304,11 +304,7 @@ class MT_PT_vertex_groups(MT_PT_Panel, bpy.types.Panel):
             col.operator("object.vertex_group_move", icon='TRIA_UP', text="").direction = 'UP'
             col.operator("object.vertex_group_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
-        if (
-                ob.vertex_groups and
-                (ob.mode == 'EDIT' or
-                 (ob.mode == 'WEIGHT_PAINT' and ob.type == 'MESH' and ob.data.use_paint_mask_vertex))
-        ):
+        if ob.vertex_groups and ob.mode == 'EDIT':
             row = layout.row()
 
             sub = row.row(align=True)
@@ -320,6 +316,11 @@ class MT_PT_vertex_groups(MT_PT_Panel, bpy.types.Panel):
             sub.operator("object.vertex_group_deselect", text="Deselect")
 
             layout.prop(context.tool_settings, "vertex_group_weight", text="Weight")
+
+        if ob.vertex_groups and ob.mode == 'OBJECT' and ob.type == 'MESH':
+            row = layout.row()
+            row.operator("object.assign_mat_to_active_vert_group", text= "Assign Material")
+            row.operator("object.remove_mat_from_active_vert_group", text="Remove Material")
 
 
 class MT_PT_Display_Panel(MT_PT_Panel, bpy.types.Panel):
@@ -472,3 +473,16 @@ class MT_PT_Export_Panel(MT_PT_Panel, bpy.types.Panel):
         row = layout.row()
         layout.prop(scene, 'mt_units')
         layout.prop(scene, 'mt_voxelise_on_export')
+
+
+class MT_PT_Converter_Panel(MT_PT_Panel, bpy.types.Panel):
+    '''Allows you to convert any mesh object into a MakeTile object'''
+    bl_idname = "MT_PT_Panel"
+    bl_label = "Object Converter"
+    bl_options = {"DEFAULT_CLOSED"}
+
+    def draw(self, context):
+        scene = context.scene
+        layout = self.layout
+
+        layout.operator('object.convert_to_make_tile', text='Convert object')

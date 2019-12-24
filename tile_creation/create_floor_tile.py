@@ -101,7 +101,7 @@ def create_floor(tile_properties, base):
     image_size = bpy.context.scene.mt_tile_resolution
 
     assign_displacement_materials_2(displacement_slab, [image_size, image_size], primary_material, secondary_material)
-    assign_preview_materials_2(preview_slab, primary_material, secondary_material, tile_properties['textured_faces'])
+    assign_preview_materials_2(preview_slab, primary_material, secondary_material, tile_properties['textured_groups'])
 
     slabs = [preview_slab, displacement_slab]
 

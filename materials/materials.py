@@ -98,7 +98,7 @@ def update_preview_material_2(obj, primary_material_name):
     for material in obj.data.materials:
         obj.data.materials.pop(index=0)
 
-    textured_faces = obj['textured_faces']
+    textured_groups = obj['textured_groups']
 
     primary_material = bpy.data.materials[primary_material_name]
     obj['primary_material'] = primary_material
@@ -107,7 +107,7 @@ def update_preview_material_2(obj, primary_material_name):
     obj.data.materials.append(primary_material)
 
     # for some reasonthe bools stored in our dict haver been converted to ints /\0/\
-    for key, value in textured_faces.items():
+    for key, value in textured_groups.items():
         if value is 1:
             assign_mat_to_vert_group(key, obj, primary_material)
 
@@ -121,22 +121,20 @@ def assign_displacement_materials_2(obj, image_size, primary_material, secondary
     obj.data.materials.append(primary_material)
 
 
-def assign_preview_materials_2(obj, primary_material, secondary_material, textured_faces):
+def assign_preview_materials_2(obj, primary_material, secondary_material, textured_groups):
     for material in obj.data.materials:
         obj.data.materials.pop(index=0)
 
     obj['primary_material'] = primary_material
     obj['secondary_material'] = secondary_material
-    obj['textured_faces'] = textured_faces
+    obj['textured_groups'] = textured_groups
 
     add_preview_mesh_modifiers(obj)
 
     obj.data.materials.append(secondary_material)
     obj.data.materials.append(primary_material)
-    for key, value in textured_faces.items():
-        print(key, value)
-    for key, value in textured_faces.items():
-        if value is 1:
+    for key, value in textured_groups.items():
+        if value is 1 or value is True:
             assign_mat_to_vert_group(key, obj, primary_material)
 
 

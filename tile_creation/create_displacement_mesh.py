@@ -15,7 +15,7 @@ from .. lib.utils.utils import mode, apply_all_modifiers
 from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
 from .. materials.materials import (
     assign_displacement_materials_2,
-    assign_preview_materials_3)
+    assign_preview_materials_2)
 from .. operators.trim_tile import (
     create_tile_trimmers)
 
@@ -43,25 +43,54 @@ def create_displacement_object(obj):
 
 def convert_to_make_tile_obj(obj):
     mode('OBJECT')
-
+    # duplicate object and create a second mesh that will be used for adding textures to
     preview_obj, displacement_obj = create_displacement_object(obj)
 
-    prefs = get_prefs()
+    # create an empty that we will store properties of our MT object on and
+    # which we will parent our objects to
+    object_empty = bpy.data.objects.new(obj.name + ".empty", None)
+    bpy.context.layer_collection.collection.objects.link(object_empty)
+    preview_obj.parent = object_empty
+    displacement_obj.parent = object_empty
+    object_empty['MT_Properties'] = {
+        'textured_groups': {}
+    }
 
+    # Get prefs from scene
+    prefs = get_prefs()
     material_1 = bpy.data.materials[bpy.context.scene.mt_tile_material_1]
     material_2 = bpy.data.materials[bpy.context.scene.mt_tile_material_2]
     secondary_material = bpy.data.materials[prefs.secondary_material]
     image_size = bpy.context.scene.mt_tile_resolution
-    vertex_groups = obj.vertex_groups
 
+    # Check to see if we have any vertex groups already. If not assume we want to
+    # add texture to entire object and so create an "All" vertex group and set it
+    # to true in object empty properties
+    vertex_groups = obj.vertex_groups
     if len(preview_obj.vertex_groups) == 0:
         objs = [preview_obj, displacement_obj]
         for obj in objs:
             group = obj.vertex_groups.new(name="ALL")
-            for index, vert in obj.data.vertices.items():
-                group.add(index, 1.0, 'ADD')
+            # not sure why we have to do it this way but can't get a list of 
+            # keys out in ther normal way
+            keys = []
+            for key, value in obj.data.vertices.items():
+                keys.append(key)
+            group.add(keys, 1.0, 'ADD')
+            object_empty['MT_Properties']['textured_groups']['ALL'] = True
 
-    assign_displacement_materials_2(displacement_obj, [image_size, image_size], material_1, secondary_material)
-    assign_preview_materials_3(preview_obj, material_1, secondary_material)
+    assign_displacement_materials_2(
+        displacement_obj,
+        [image_size, image_size],
+        material_1,
+        secondary_material)
+
+    assign_preview_materials_2(
+        preview_obj,
+        material_1,
+        secondary_material,
+        object_empty['MT_Properties']['textured_groups'])
+
+    displacement_obj.hide_viewport = True
 
     return preview_obj, displacement_obj

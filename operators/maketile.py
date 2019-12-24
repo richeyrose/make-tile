@@ -31,7 +31,7 @@ from .. tile_creation.create_triangular_floor import create_triangular_floor
 
 
 class MT_OT_Make_Tile(bpy.types.Operator):
-    """Operator class used to create tiles"""
+    """Create a Tile"""
     bl_idname = "scene.make_tile"
     bl_label = "Create a tile"
     bl_options = {'REGISTER', 'UNDO'}
@@ -122,7 +122,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             'tile_material_2': context.scene.mt_tile_material_2
         }
 
-        textured_faces = {
+        textured_groups = {
             "x_neg": context.scene.mt_x_neg_textured,
             "x_pos": context.scene.mt_x_pos_textured,
             "y_pos": context.scene.mt_y_pos_textured,
@@ -141,7 +141,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             'tile_size': tile_size,
             'base_size': base_size,
             'tile_materials': tile_materials,
-            'textured_faces': textured_faces,
+            'textured_groups': textured_groups,
             'base_inner_radius': context.scene.mt_base_inner_radius,  # used for curved tiles only
             'wall_inner_radius': context.scene.mt_wall_inner_radius,  # used for curved walls only
             'degrees_of_arc': context.scene.mt_degrees_of_arc,  # used for curved tiles only

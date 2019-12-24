@@ -21,8 +21,7 @@ from .. enums.enums import geometry_types
 from . create_straight_wall_tile import (
     create_straight_wall_base,
     create_straight_wall_core_2,
-    create_openlock_base_slot_cutter,
-    create_openlock_straight_wall_core_2)
+    create_openlock_base_slot_cutter)
 from .. operators.trim_tile import (
     create_curved_wall_tile_trimmers)
 
@@ -168,7 +167,7 @@ def create_openlock_wall_cutters(core, tile_properties):
     cutters = []
 
     # left side cutters
-    if tile_properties['textured_faces']['x_neg'] is 0:
+    if tile_properties['textured_groups']['x_neg'] is 0:
         left_cutter_bottom = data_to.objects[0].copy()
         add_object_to_collection(left_cutter_bottom, tile_properties['tile_name'])
 
@@ -217,7 +216,7 @@ def create_openlock_wall_cutters(core, tile_properties):
     # right side cutters
     deselect_all()
 
-    if tile_properties['textured_faces']['x_pos'] is 0:
+    if tile_properties['textured_groups']['x_pos'] is 0:
         right_cutter_bottom = data_to.objects[0].copy()
         add_object_to_collection(right_cutter_bottom, tile_properties['tile_name'])
 
@@ -302,7 +301,7 @@ def create_plain_wall_2(base, tile_properties, tile_empty):
     image_size = bpy.context.scene.mt_tile_resolution
 
     assign_displacement_materials_2(displacement_core, [image_size, image_size], primary_material, secondary_material)
-    assign_preview_materials_2(preview_core, primary_material, secondary_material, tile_properties['textured_faces'])
+    assign_preview_materials_2(preview_core, primary_material, secondary_material, tile_properties['textured_groups'])
 
     for core in cores:
         core.parent = base

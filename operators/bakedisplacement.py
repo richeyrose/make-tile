@@ -33,7 +33,7 @@ class MT_OT_Assign_Material_To_Vert_Group(bpy.types.Operator):
             if len(obj.material_slots) == 0:  # check to make sure we have a material applied already otherwise material will be applied to whole object
                 secondary_material = bpy.data.materials[prefs.secondary_material]
                 obj.data.materials.append(secondary_material)
-            
+
             primary_material = bpy.data.materials[mat_name]
             obj.data.materials.append(primary_material)
             assign_mat_to_vert_group(vertex_group, obj, material)

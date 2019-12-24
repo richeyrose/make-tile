@@ -69,10 +69,14 @@ def create_straight_wall(tile_empty):
 
 
 def create_openlock_wall_2(tile_properties, base):
-    tile_properties['base_size'] = base.dimensions
-    textured_faces = tile_properties['textured_faces']
+    '''Creates the preview and displacement cores and adds side cutters for
+    openLOCK clips'''
 
-    preview_core, displacement_core = create_openlock_straight_wall_core_2(tile_properties)
+    tile_properties['base_size'] = base.dimensions
+    textured_groups = tile_properties['textured_groups']
+
+    preview_core = create_straight_wall_core_2(tile_properties)
+    displacement_core = create_straight_wall_core_2(tile_properties)
 
     preview_core['geometry_type'] = 'PREVIEW'
     displacement_core['geometry_type'] = 'DISPLACEMENT'
@@ -92,15 +96,15 @@ def create_openlock_wall_2(tile_properties, base):
     image_size = bpy.context.scene.mt_tile_resolution
 
     assign_displacement_materials_2(displacement_core, [image_size, image_size], primary_material, secondary_material)
-    assign_preview_materials_2(preview_core, primary_material, secondary_material, textured_faces)
+    assign_preview_materials_2(preview_core, primary_material, secondary_material, textured_groups)
 
     # create wall cutters
 
     cores = [preview_core, displacement_core]
 
     if tile_properties['tile_size'][2] >= 0.99:
-        textured_faces = tile_properties['textured_faces']
-        if textured_faces['x_neg'] is 0 or textured_faces['x_pos'] is 0:
+        textured_groups = tile_properties['textured_groups']
+        if textured_groups['x_neg'] is 0 or textured_groups['x_pos'] is 0:
             wall_cutters = create_openlock_wall_cutters(preview_core, tile_properties)
 
             for wall_cutter in wall_cutters:
@@ -117,13 +121,12 @@ def create_openlock_wall_2(tile_properties, base):
 
 
 def create_plain_wall_2(tile_properties, base):
+    '''Creates the preview and displacement cores'''
     tile_properties['base_size'] = base.dimensions
-    textured_faces = tile_properties['textured_faces']
-    
+    textured_groups = tile_properties['textured_groups']
+
     preview_core = create_straight_wall_core_2(tile_properties)
-    preview_core, displacement_core = convert_to_make_tile_obj(preview_core)
-    '''
-    preview_core, displacement_core = create_displacement_object(preview_core)
+    preview_core, displacement_core = create_displacement_object(preview_core)    
 
     preview_core.parent = base
     displacement_core.parent = base
@@ -136,8 +139,8 @@ def create_plain_wall_2(tile_properties, base):
     image_size = bpy.context.scene.mt_tile_resolution
 
     assign_displacement_materials_2(displacement_core, [image_size, image_size], primary_material, secondary_material)
-    assign_preview_materials_2(preview_core, primary_material, secondary_material, textured_faces)
-    '''
+    assign_preview_materials_2(preview_core, primary_material, secondary_material, textured_groups)
+
     preview_core.parent = base
     displacement_core.parent = base
 
@@ -179,10 +182,6 @@ def create_straight_wall_core_2(
 def create_straight_wall_base(
         tile_properties):
     """Returns a base for a wall tile
-
-    Keyword arguments:
-    tile_properties['tile_name']   -- STR, name,
-    tile_properties['base_size']   -- VECTOR, [x, y, z]
     """
     cursor = bpy.context.scene.cursor
     cursor_start_location = cursor.location.copy()
@@ -231,14 +230,6 @@ def create_openlock_straight_wall_base(tile_properties):
     return base
 
 
-def create_openlock_straight_wall_core_2(
-        tile_properties):
-
-    preview_core = create_straight_wall_core_2(tile_properties)
-    displacement_core = create_straight_wall_core_2(tile_properties)
-    return preview_core, displacement_core
-
-
 def create_openlock_wall_cutters(core, tile_properties):
     """Creates the cutters for the wall and positions them correctly
 
@@ -247,7 +238,7 @@ def create_openlock_wall_cutters(core, tile_properties):
     tile_properties['tile_size'] -- VECTOR [x, y, z] Size of tile including any base
     tile_properties['tile_name'] -- STR, tile name
     """
-    textured_faces = tile_properties['textured_faces']
+    textured_groups = tile_properties['textured_groups']
     deselect_all()
     preferences = get_prefs()
     booleans_path = os.path.join(preferences.assets_path, "meshes", "booleans", "openlock.blend")
@@ -260,7 +251,7 @@ def create_openlock_wall_cutters(core, tile_properties):
 
     cutters = []
     # left side cutters
-    if textured_faces['x_neg'] is 0:
+    if textured_groups['x_neg'] is 0:
         left_cutter_bottom = data_to.objects[0].copy()
         add_object_to_collection(left_cutter_bottom, tile_properties['tile_name'])
         # get location of bottom front left corner of tile
@@ -295,7 +286,7 @@ def create_openlock_wall_cutters(core, tile_properties):
         cutters.extend([left_cutter_bottom, left_cutter_top])
 
     # right side cutters
-    if textured_faces['x_pos'] is 0:
+    if textured_groups['x_pos'] is 0:
         right_cutter_bottom = data_to.objects[0].copy()
         add_object_to_collection(right_cutter_bottom, tile_properties['tile_name'])
         # get location of bottom front right corner of tile

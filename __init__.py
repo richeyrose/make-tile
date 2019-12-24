@@ -26,6 +26,7 @@ from . ui.panels import (
     MT_PT_vertex_groups)
 from . operators.maketile import MT_OT_Make_Tile
 from . operators.makevertgroups import MT_OT_makeVertGroupsFromFaces
+from . operators.object_converter import MT_OT_Convert_To_MT_Obj
 from . operators.bakedisplacement import MT_OT_Bake_Displacement, MT_OT_Assign_Material_To_Vert_Group
 from . operators.return_to_preview import MT_OT_Return_To_Preview
 from . operators.create_lighting_setup import MT_OT_Create_Lighting_Setup
@@ -57,6 +58,7 @@ classes = (
     MT_MakeTilePreferences,
     MT_OT_Make_Tile,
     MT_OT_makeVertGroupsFromFaces,
+    MT_OT_Convert_To_MT_Obj,
     MT_OT_Bake_Displacement,
     MT_OT_Return_To_Preview,
     MT_OT_Create_Lighting_Setup,

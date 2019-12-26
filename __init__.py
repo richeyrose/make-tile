@@ -24,7 +24,8 @@ from . ui.panels import (
     MT_PT_Material_Options_Panel,
     MT_PT_Trim_Panel,
     MT_PT_vertex_groups,
-    MT_PT_Converter_Panel)
+    MT_PT_Converter_Panel,
+    MT_PT_Textured_sides_Panel)
 from . operators.maketile import MT_OT_Make_Tile
 from . operators.makevertgroups import MT_OT_makeVertGroupsFromFaces
 from . operators.object_converter import MT_OT_Convert_To_MT_Obj
@@ -69,6 +70,7 @@ classes = (
     MT_OT_Assign_Material_To_Vert_Group,
     MT_OT_Remove_Material_From_Vert_Group,
     MT_PT_Main_Panel,
+    MT_PT_Textured_sides_Panel,
     MT_PT_Display_Panel,
     MT_PT_Material_Panel,
     MT_PT_Material_Options_Panel,

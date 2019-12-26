@@ -1,3 +1,4 @@
+from math import sqrt, radians, degrees, cos, acos
 import bpy
 import bmesh
 from . selection import select_by_loc, deselect_all, select
@@ -174,6 +175,101 @@ def corner_wall_to_vert_groups(obj, vert_locs):
         deselect_all()
 
 
+def tri_prism_to_vert_groups(obj, dim, height): 
+    # make vertex groups
+    obj.vertex_groups.new(name='x_neg')
+    obj.vertex_groups.new(name='x_pos')
+    obj.vertex_groups.new(name='y_neg')
+    obj.vertex_groups.new(name='y_pos')
+    obj.vertex_groups.new(name='z_neg')
+    obj.vertex_groups.new(name='z_pos')
+
+    mode('EDIT')
+
+    deselect_all()
+
+
+
+    # x pos = side a
+    deselect_all()
+    select_by_loc(
+        lbound=dim['loc_C'],
+        ubound=(
+            dim['loc_C'][0],
+            dim['loc_C'][1],
+            dim['loc_C'][2] + height),
+        additive=True
+    )
+    select_by_loc(
+        lbound=dim['loc_B'],
+        ubound=(
+            dim['loc_B'][0],
+            dim['loc_B'][1],
+            dim['loc_B'][2] + height),
+        additive=True
+    )
+    bpy.ops.object.vertex_group_set_active(group='x_pos')
+    bpy.ops.object.vertex_group_assign()
+
+    # x neg = side b
+    deselect_all()
+    select_by_loc(
+        lbound=dim['loc_A'],
+        ubound=(
+            dim['loc_B'][0],
+            dim['loc_B'][1],
+            dim['loc_B'][2] + height),
+        additive=True
+    )
+    bpy.ops.object.vertex_group_set_active(group='x_neg')
+    bpy.ops.object.vertex_group_assign()
+
+    # y neg = side c
+    select_by_loc(
+        lbound=dim['loc_A'],
+        ubound=(
+            dim['loc_C'][0],
+            dim['loc_C'][1],
+            dim['loc_C'][2] + height)
+    )
+    bpy.ops.object.vertex_group_set_active(group='y_neg')
+    bpy.ops.object.vertex_group_assign()
+
+    # no y pos
+
+    # z pos
+    deselect_all()
+    select_by_loc(
+        lbound=(
+            dim['loc_A'][0],
+            dim['loc_A'][1],
+            dim['loc_A'][2] + height),
+        ubound=(
+            dim['loc_B'][0] + dim['a'],
+            dim['loc_B'][1],
+            dim['loc_B'][2] + height),
+        additive=True
+    )
+    bpy.ops.object.vertex_group_set_active(group='z_pos')
+    bpy.ops.object.vertex_group_assign()
+
+    # z neg
+    deselect_all()
+    select_by_loc(
+        lbound=(
+            dim['loc_A'][0],
+            dim['loc_A'][1],
+            dim['loc_A'][2]),
+        ubound=(
+            dim['loc_B'][0] + dim['a'],
+            dim['loc_B'][1],
+            dim['loc_B'][2]),
+        additive=True
+    )
+    bpy.ops.object.vertex_group_set_active(group='z_neg')
+    bpy.ops.object.vertex_group_assign()
+
+
 def cuboid_sides_to_vert_groups(obj):
     """makes a vertex group for each side of cuboid
     and assigns vertices to it"""
@@ -208,7 +304,7 @@ def cuboid_sides_to_vert_groups(obj):
 
     bpy.ops.object.vertex_group_set_active(group='x_neg')
     bpy.ops.object.vertex_group_assign()
-
+    
     deselect_all()
 
     # select x_pos and assign to x_pos

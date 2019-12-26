@@ -6,7 +6,12 @@ from .. lib.turtle.scripts.openlock_floor_tri_base import draw_openlock_tri_floo
 from .. lib.turtle.scripts.primitives import draw_tri_prism
 from .. lib.utils.collections import add_object_to_collection
 from .. lib.utils.utils import mode
-from .. lib.utils.selection import select, activate, deselect_all, select_all
+from .. lib.utils.selection import select, activate, deselect_all, select_all, select_by_loc
+from . create_displacement_mesh import create_displacement_object
+from .. materials.materials import (
+    assign_displacement_materials_2,
+    assign_preview_materials_2)
+from .. lib.utils.vertex_groups import tri_prism_to_vert_groups
 
 
 def create_triangular_floor(tile_empty):
@@ -30,10 +35,53 @@ def create_triangular_floor(tile_empty):
         base = bpy.data.objects.new(tile_properties['tile_name'] + '.base', None)
         add_object_to_collection(base, tile_properties['tile_name'])
 
+    floor = create_floor(tile_properties, base)
+
     base.parent = tile_empty
     tile_empty.location = cursor_orig_loc
     cursor.location = cursor_orig_loc
     tile_empty['tile_properties'] = tile_properties
+
+
+def create_floor(tile_properties, base):
+    turtle = bpy.context.scene.cursor
+    t = bpy.ops.turtle
+
+    t.add_turtle()
+    t.add_vert()
+    t.pd()
+    floor, dimensions = draw_tri_prism(
+        tile_properties['x_leg'],
+        tile_properties['y_leg'],
+        tile_properties['angle_1'],
+        tile_properties['tile_size'][2] - tile_properties['base_size'][2])
+    tri_prism_to_vert_groups(bpy.context.object, dimensions, tile_properties['tile_size'][2] - tile_properties['base_size'][2])
+    t.select_all()
+    t.up(d=tile_properties['base_size'][2], m=True)
+
+    mode('OBJECT')
+    obj = bpy.context.object
+
+    preview_slab, displacement_slab = create_displacement_object(obj)
+
+    preferences = get_prefs()
+
+    primary_material = bpy.data.materials[tile_properties['tile_materials']['tile_material_1']]
+    secondary_material = bpy.data.materials[preferences.secondary_material]
+
+    image_size = bpy.context.scene.mt_tile_resolution
+
+    assign_displacement_materials_2(displacement_slab, [image_size, image_size], primary_material, secondary_material)
+    assign_preview_materials_2(preview_slab, primary_material, secondary_material, tile_properties['textured_groups'])
+
+    slabs = [preview_slab, displacement_slab]
+
+    for slab in slabs:
+        deselect_all()
+        select(slab.name)
+        bpy.ops.uv.smart_project()
+        slab.parent = base
+    displacement_slab.hide_viewport = True
 
 
 def create_openlock_base(tile_properties):
@@ -46,7 +94,7 @@ def create_openlock_base(tile_properties):
     add_object_to_collection(base, tile_properties['tile_name'])
     base['geometry_type'] = 'BASE'
 
-    clip_cutters = create_openlock_base_clip_cutter(base, dimensions, tile_properties)
+    clip_cutters = create_openlock_base_clip_cutters(base, dimensions, tile_properties)
 
     for clip_cutter in clip_cutters:
         matrixcopy = clip_cutter.matrix_world.copy()
@@ -60,134 +108,155 @@ def create_openlock_base(tile_properties):
     return base
 
 
-def create_openlock_base_clip_cutter(base, dimensions, tile_properties):
-    mode('OBJECT')
-    deselect_all()
-    base_location = base.location.copy()
-    preferences = get_prefs()
-    booleans_path = os.path.join(preferences.assets_path, "meshes", "booleans", "openlock.blend")
+def create_openlock_base_clip_cutters(base, dimensions, tile_properties):
 
-    with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
-        data_to.objects = ['openlock.wall.base.cutter.clip', 'openlock.wall.base.cutter.clip.cap.start', 'openlock.wall.base.cutter.clip.cap.end']
+    if dimensions['a'] or dimensions['b'] or dimensions['c'] >= 2:
+        mode('OBJECT')
+        deselect_all()
+        base_location = base.location.copy()
+        preferences = get_prefs()
+        booleans_path = os.path.join(preferences.assets_path, "meshes", "booleans", "openlock.blend")
 
-    for obj in data_to.objects:
-        add_object_to_collection(obj, tile_properties['tile_name'])
+        cutters = []
+        with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
+            data_to.objects = ['openlock.wall.base.cutter.clip', 'openlock.wall.base.cutter.clip.cap.start', 'openlock.wall.base.cutter.clip.cap.end']
 
-    clip_cutter_1 = data_to.objects[0]
-    cutter_start_cap = data_to.objects[1]
-    cutter_end_cap = data_to.objects[2]
+        for obj in data_to.objects:
+            add_object_to_collection(obj, tile_properties['tile_name'])
 
-    cutter_start_cap.hide_viewport = True
-    cutter_end_cap.hide_viewport = True
+        clip_cutter_1 = data_to.objects[0]
+        cutter_start_cap = data_to.objects[1]
+        cutter_end_cap = data_to.objects[2]
 
-    array_mod = clip_cutter_1.modifiers.new('Array', 'ARRAY')
-    array_mod.start_cap = cutter_start_cap
-    array_mod.end_cap = cutter_end_cap
-    array_mod.use_merge_vertices = True
+        cutter_start_cap.hide_viewport = True
+        cutter_end_cap.hide_viewport = True
 
-    array_mod.fit_type = 'FIT_LENGTH'
+        array_mod = clip_cutter_1.modifiers.new('Array', 'ARRAY')
+        array_mod.start_cap = cutter_start_cap
+        array_mod.end_cap = cutter_end_cap
+        array_mod.use_merge_vertices = True
 
-    clip_cutter_2 = clip_cutter_1.copy()
-    add_object_to_collection(clip_cutter_2, tile_properties['tile_name'])
-    clip_cutter_3 = clip_cutter_1.copy()
-    add_object_to_collection(clip_cutter_3, tile_properties['tile_name'])
+        array_mod.fit_type = 'FIT_LENGTH'
 
-    # for cutters the number of cutters and start and end location has to take into account
-    # the angles of the triangle in order to prevent overlaps between cutters
-    # and issues with booleans
+        # for cutters the number of cutters and start and end location has to take into account
+        # the angles of the triangle in order to prevent overlaps between cutters
+        # and issues with booleans
 
-    # cutter 1
-    if dimensions['A'] >= 90:
-        clip_cutter_1.location = (
-            dimensions['loc_A'][0] + 0.5,
-            dimensions['loc_A'][1] + 0.25,
-            dimensions['loc_A'][2])
-        if dimensions['C'] >= 90:
-            array_mod.fit_length = dimensions['c'] - 1
+        # cutter 1
+        if dimensions['c'] >= 2:
+            if dimensions['A'] >= 90:
+                clip_cutter_1.location = (
+                    dimensions['loc_A'][0] + 0.5,
+                    dimensions['loc_A'][1] + 0.25,
+                    dimensions['loc_A'][2])
+                if dimensions['C'] >= 90:
+                    array_mod.fit_length = dimensions['c'] - 1
+                else:
+                    array_mod.fit_length = dimensions['c'] - 1.5
+
+            elif dimensions['A'] < 90:
+                clip_cutter_1.location = (
+                    dimensions['loc_A'][0] + 1,
+                    dimensions['loc_A'][1] + 0.25,
+                    dimensions['loc_A'][2])
+                if dimensions['C'] >= 90:
+                    array_mod.fit_length = dimensions['c'] - 1.5
+                else:
+                    array_mod.fit_length = dimensions['c'] - 2
+
+            deselect_all()
+            select(clip_cutter_1.name)
+            bpy.ops.transform.rotate(
+                value=(radians(dimensions['A'] - 90)),
+                orient_axis='Z',
+                orient_type='GLOBAL',
+                center_override=dimensions['loc_A'])
+
+            deselect_all()
+
+            # cutter 2
+            clip_cutter_2 = clip_cutter_1.copy()
+            add_object_to_collection(clip_cutter_2, tile_properties['tile_name'])
+            cutters.append(clip_cutter_1)
         else:
-            array_mod.fit_length = dimensions['c'] - 1.5
+            clip_cutter_2 = clip_cutter_1
 
-    elif dimensions['A'] < 90:
-        clip_cutter_1.location = (
-            dimensions['loc_A'][0] + 1,
-            dimensions['loc_A'][1] + 0.25,
-            dimensions['loc_A'][2])
-        if dimensions['C'] >= 90:
-            array_mod.fit_length = dimensions['c'] - 1.5
+        if dimensions['b'] >= 2:
+            array_mod = clip_cutter_2.modifiers['Array']
+
+            if dimensions['B'] >= 90:
+                clip_cutter_2.location = (
+                    dimensions['loc_B'][0] + 0.25,
+                    dimensions['loc_B'][1] - 0.5,
+                    dimensions['loc_B'][2])
+                if dimensions['A'] >= 90:
+                    array_mod.fit_length = dimensions['b'] - 1
+                else:
+                    array_mod.fit_length = dimensions['b'] - 1.5
+
+            elif dimensions['B'] < 90:
+                clip_cutter_2.location = (
+                    dimensions['loc_B'][0] + 0.25,
+                    dimensions['loc_B'][1] - 1,
+                    dimensions['loc_B'][2])
+                if dimensions['A'] >= 90:
+                    array_mod.fit_length = dimensions['b'] - 1.5
+                else:
+                    array_mod.fit_length = dimensions['b'] - 2
+
+            clip_cutter_2.rotation_euler = (0, 0, radians(-90))
+            cutters.append(clip_cutter_2)
+            if dimensions['a'] >= 2:
+                clip_cutter_3 = clip_cutter_2.copy()
+                add_object_to_collection(clip_cutter_3, tile_properties['tile_name'])
+            else:
+                bpy.ops.object.make_single_user(type='ALL', object=True, obdata=True)
+                return cutters
         else:
-            array_mod.fit_length = dimensions['c'] - 2
+            clip_cutter_3 = clip_cutter_2
 
-    deselect_all()
-    select(clip_cutter_1.name)
-    bpy.ops.transform.rotate(
-        value=(radians(dimensions['A'] - 90)),
-        orient_axis='Z',
-        orient_type='GLOBAL',
-        center_override=dimensions['loc_A'])
+        # clip cutter 3
+        if dimensions['a'] >= 2:
+            clip_cutter_3.rotation_euler = (0, 0, 0)
+            array_mod = clip_cutter_3.modifiers['Array']
 
-    deselect_all()
+            if dimensions['C'] >= 90:
+                clip_cutter_3.location = (
+                    dimensions['loc_C'][0] + 0.5,
+                    dimensions['loc_C'][1] + 0.25,
+                    dimensions['loc_C'][2])
+                if dimensions['B'] >= 90:
+                    array_mod.fit_length = dimensions['a'] - 1
+                else:
+                    array_mod.fit_length = dimensions['a'] - 1.5
 
-    # cutter 2
-    array_mod = clip_cutter_2.modifiers['Array']
+            elif dimensions['C'] < 90:
+                clip_cutter_3.location = (
+                    dimensions['loc_C'][0] + 1,
+                    dimensions['loc_C'][1] + 0.25,
+                    dimensions['loc_C'][2])
+                if dimensions['B'] >= 90:
+                    array_mod.fit_length = dimensions['a'] - 1.5
+                else:
+                    array_mod.fit_length = dimensions['a'] - 2
+            deselect_all()
+            select(clip_cutter_3.name)
 
-    if dimensions['B'] >= 90:
-        clip_cutter_2.location = (
-            dimensions['loc_B'][0] + 0.25,
-            dimensions['loc_B'][1] - 0.5,
-            dimensions['loc_B'][2])
-        if dimensions['A'] >= 90:
-            array_mod.fit_length = dimensions['b'] - 1
-        else:
-            array_mod.fit_length = dimensions['b'] - 1.5
+            bpy.ops.transform.rotate(
+                value=(-radians(90 + dimensions['C'])),
+                orient_axis='Z',
+                orient_type='GLOBAL',
+                center_override=dimensions['loc_C'])
 
-    elif dimensions['B'] < 90:
-        clip_cutter_2.location = (
-            dimensions['loc_B'][0] + 0.25,
-            dimensions['loc_B'][1] - 1,
-            dimensions['loc_B'][2])
-        if dimensions['A'] >= 90:
-            array_mod.fit_length = dimensions['b'] - 1.5
-        else:
-            array_mod.fit_length = dimensions['b'] - 2
+            deselect_all()
+            cutters.append(clip_cutter_3)
+            bpy.ops.object.make_single_user(type='ALL', object=True, obdata=True)
 
-    clip_cutter_2.rotation_euler = (0, 0, radians(-90))
+        return cutters
 
-    # cutter 3
-    array_mod = clip_cutter_2.modifiers['Array']
+    else:
 
-    if dimensions['C'] >= 90:
-        clip_cutter_3.location = (
-            dimensions['loc_C'][0] + 0.5,
-            dimensions['loc_C'][1] + 0.25,
-            dimensions['loc_C'][2])
-        if dimensions['B'] >= 90:
-            array_mod.fit_length = dimensions['a'] - 1
-        else:
-            array_mod.fit_length = dimensions['a'] - 1.5
-
-    elif dimensions['C'] < 90:
-        clip_cutter_3.location = (
-            dimensions['loc_C'][0] + 1,
-            dimensions['loc_C'][1] + 0.25,
-            dimensions['loc_C'][2])
-        if dimensions['B'] >= 90:
-            array_mod.fit_length = dimensions['a'] - 1.5
-        else:
-            array_mod.fit_length = dimensions['a'] - 2
-    deselect_all()
-    select(clip_cutter_3.name)
-
-    bpy.ops.transform.rotate(
-        value=(-radians(90 + dimensions['C'])),
-        orient_axis='Z',
-        orient_type='GLOBAL',
-        center_override=dimensions['loc_C'])
-
-    deselect_all()
-    cutters = [clip_cutter_1, clip_cutter_2, clip_cutter_3]
-    bpy.ops.object.make_single_user(type='ALL', object=True, obdata=True)
-    
-    return cutters
+        return None
 
 
 def create_plain_base(tile_properties):

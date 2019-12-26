@@ -2,6 +2,7 @@ import os
 import bpy
 from bpy.types import Menu, Panel, UIList
 
+
 class MT_PT_Panel:
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
@@ -41,17 +42,6 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
             row.prop(scene, 'mt_tile_x')
             row.prop(scene, 'mt_tile_z')
 
-            layout.label(text="Textured Sides")
-            row = layout.row()
-            row.prop(scene, 'mt_x_neg_textured')
-            row.prop(scene, 'mt_x_pos_textured')
-            row = layout.row()
-            row.prop(scene, 'mt_y_neg_textured')
-            row.prop(scene, 'mt_y_pos_textured')
-            row = layout.row()
-            row.prop(scene, 'mt_z_neg_textured')
-            row.prop(scene, 'mt_z_pos_textured')
-
         elif scene.mt_tile_type == 'RECTANGULAR_FLOOR':
             layout.label(text="Tile Size")
             row = layout.row()
@@ -63,17 +53,6 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
             layout.prop(scene, 'mt_x_leg_len')
             layout.prop(scene, 'mt_y_leg_len')
             layout.prop(scene, 'mt_angle_1')
-
-            layout.label(text="Textured Sides")
-            row = layout.row()
-            row.prop(scene, 'mt_x_neg_textured')
-            row.prop(scene, 'mt_x_pos_textured')
-            row = layout.row()
-            row.prop(scene, 'mt_y_neg_textured')
-            row.prop(scene, 'mt_y_pos_textured')
-            row = layout.row()
-            row.prop(scene, 'mt_z_neg_textured')
-            row.prop(scene, 'mt_z_pos_textured')
 
         elif scene.mt_tile_type == 'CURVED_WALL':
             layout.label(text="Tile Properties")
@@ -87,17 +66,6 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
             layout.label(text="Wall Height")
             layout.prop(scene, 'mt_tile_z')
 
-            layout.label(text="Textured Sides")
-            row = layout.row()
-            row.prop(scene, 'mt_x_neg_textured')
-            row.prop(scene, 'mt_x_pos_textured')
-            row = layout.row()
-            row.prop(scene, 'mt_y_neg_textured')
-            row.prop(scene, 'mt_y_pos_textured')
-            row = layout.row()
-            row.prop(scene, 'mt_z_neg_textured')
-            row.prop(scene, 'mt_z_pos_textured')
-
         elif scene.mt_tile_type == 'CORNER_WALL':
             layout.label(text="Wall Height")
             row = layout.row()
@@ -107,17 +75,6 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
             layout.prop(scene, 'mt_x_leg_len')
             layout.prop(scene, 'mt_y_leg_len')
             layout.prop(scene, 'mt_angle_1')
-
-            layout.label(text="Textured Sides")
-            row = layout.row()
-            row.prop(scene, 'mt_x_neg_textured')
-            row.prop(scene, 'mt_x_pos_textured')
-            row = layout.row()
-            row.prop(scene, 'mt_y_neg_textured')
-            row.prop(scene, 'mt_y_pos_textured')
-            row = layout.row()
-            row.prop(scene, 'mt_z_neg_textured')
-            row.prop(scene, 'mt_z_pos_textured')
 
     def draw_plain_base_panel(self, context):
         scene = context.scene
@@ -166,17 +123,6 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
             row.prop(scene, 'mt_tile_y')
             row.prop(scene, 'mt_tile_z')
 
-            layout.label(text="Textured Sides")
-            row = layout.row()
-            row.prop(scene, 'mt_x_neg_textured')
-            row.prop(scene, 'mt_x_pos_textured')
-            row = layout.row()
-            row.prop(scene, 'mt_y_neg_textured')
-            row.prop(scene, 'mt_y_pos_textured')
-            row = layout.row()
-            row.prop(scene, 'mt_z_neg_textured')
-            row.prop(scene, 'mt_z_pos_textured')
-
         elif scene.mt_tile_type == 'RECTANGULAR_FLOOR':
             layout.label(text="Tile Size")
             row = layout.row()
@@ -195,17 +141,6 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
             row.prop(scene, 'mt_tile_y')
             row.prop(scene, 'mt_tile_z')
 
-            layout.label(text="Textured Sides")
-            row = layout.row()
-            row.prop(scene, 'mt_x_neg_textured')
-            row.prop(scene, 'mt_x_pos_textured')
-            row = layout.row()
-            row.prop(scene, 'mt_y_neg_textured')
-            row.prop(scene, 'mt_y_pos_textured')
-            row = layout.row()
-            row.prop(scene, 'mt_z_neg_textured')
-            row.prop(scene, 'mt_z_pos_textured')
-
         elif scene.mt_tile_type == 'CORNER_WALL':
 
             layout.label(text="Wall thickness and height")
@@ -217,17 +152,6 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
             layout.prop(scene, 'mt_x_leg_len')
             layout.prop(scene, 'mt_y_leg_len')
             layout.prop(scene, 'mt_angle_1')
-
-            layout.label(text="Textured Sides")
-            row = layout.row()
-            row.prop(scene, 'mt_x_neg_textured')
-            row.prop(scene, 'mt_x_pos_textured')
-            row = layout.row()
-            row.prop(scene, 'mt_y_neg_textured')
-            row.prop(scene, 'mt_y_pos_textured')
-            row = layout.row()
-            row.prop(scene, 'mt_z_neg_textured')
-            row.prop(scene, 'mt_z_pos_textured')
 
     def draw_custom_panel(self, context):
         scene = context.scene
@@ -263,6 +187,24 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
                 self.draw_plain_main_part_panel(context)
             if scene.mt_main_part_blueprint == 'OPENLOCK':
                 self.draw_openlock_panel(context)
+
+
+class MT_PT_Textured_sides_Panel(MT_PT_Panel, bpy.types.Panel):
+    bl_label = "Textured Sides"
+
+    def draw(self, context):
+        scene = context.scene
+        layout = self.layout
+
+        row = layout.row()
+        row.prop(scene, 'mt_x_neg_textured')
+        row.prop(scene, 'mt_x_pos_textured')
+        row = layout.row()
+        row.prop(scene, 'mt_y_neg_textured')
+        row.prop(scene, 'mt_y_pos_textured')
+        row = layout.row()
+        row.prop(scene, 'mt_z_pos_textured')
+        row.prop(scene, 'mt_z_neg_textured')
 
 
 class MT_PT_vertex_groups(MT_PT_Panel, bpy.types.Panel):
@@ -319,7 +261,7 @@ class MT_PT_vertex_groups(MT_PT_Panel, bpy.types.Panel):
 
         if ob.vertex_groups and ob.mode == 'OBJECT' and ob.type == 'MESH':
             row = layout.row()
-            row.operator("object.assign_mat_to_active_vert_group", text= "Assign Material")
+            row.operator("object.assign_mat_to_active_vert_group", text="Assign Material")
             row.operator("object.remove_mat_from_active_vert_group", text="Remove Material")
 
 

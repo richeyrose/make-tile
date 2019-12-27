@@ -47,7 +47,7 @@ def create_rectangular_floor(tile_empty):
         base = bpy.data.objects.new(tile_properties['tile_name'] + '.base', None)
         add_object_to_collection(base, tile_properties['tile_name'])
 
-    floor = create_floor(tile_properties, base)
+    slabs = create_slabs(tile_properties, base)
 
     # create tile trimmers. Used to ensure that displaced
     # textures don't extend beyond the original bounds of the tile.
@@ -78,7 +78,7 @@ def create_plain_base(tile_properties):
     return base
 
 
-def create_floor(tile_properties, base):
+def create_slabs(tile_properties, base):
     ''''creates the preview and displacement slabs for the floor tile'''
     preview_slab = create_floor_slab(
         tile_properties,

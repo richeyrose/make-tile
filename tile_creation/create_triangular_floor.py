@@ -12,6 +12,8 @@ from .. materials.materials import (
     assign_displacement_materials_2,
     assign_preview_materials_2)
 from .. lib.utils.vertex_groups import tri_prism_to_vert_groups
+from .. operators.trim_tile import (
+    create_tri_floor_tile_trimmers)
 
 
 def create_triangular_floor(tile_empty):
@@ -35,7 +37,13 @@ def create_triangular_floor(tile_empty):
         base = bpy.data.objects.new(tile_properties['tile_name'] + '.base', None)
         add_object_to_collection(base, tile_properties['tile_name'])
 
-    floor = create_floor(tile_properties, base)
+    # slabs are the textured part of the tile
+    slabs, dimensions = create_slabs(tile_properties, base)
+
+    # create tile trimmers. Used to ensure that displaced
+    # textures don't extend beyond the original bounds of the tile.
+    # Used by voxeliser and exporter
+    tile_properties['trimmers'] = create_tri_floor_tile_trimmers(tile_properties, dimensions)
 
     base.parent = tile_empty
     tile_empty.location = cursor_orig_loc
@@ -43,7 +51,7 @@ def create_triangular_floor(tile_empty):
     tile_empty['tile_properties'] = tile_properties
 
 
-def create_floor(tile_properties, base):
+def create_slabs(tile_properties, base):
     turtle = bpy.context.scene.cursor
     t = bpy.ops.turtle
 
@@ -82,6 +90,8 @@ def create_floor(tile_properties, base):
         bpy.ops.uv.smart_project()
         slab.parent = base
     displacement_slab.hide_viewport = True
+
+    return slabs, dimensions
 
 
 def create_openlock_base(tile_properties):
@@ -266,10 +276,12 @@ def create_plain_base(tile_properties):
     t.add_turtle()
     t.add_vert()
     t.pd()
-    base = draw_tri_prism(
+    base, dimensions = draw_tri_prism(
         tile_properties['x_leg'],
         tile_properties['y_leg'],
         tile_properties['angle_1'],
         tile_properties['base_size'][2])
+    t.pu()
+    t.home()
     mode('OBJECT')
     return base

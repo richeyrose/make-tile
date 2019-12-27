@@ -2,7 +2,7 @@ import bpy
 from .. lib.utils.selection import select, deselect_all, select_all, activate
 from .. lib.utils.utils import mode, add_deform_modifiers
 from mathutils import Vector
-from .. lib.turtle.scripts.primitives import draw_cuboid
+from .. lib.turtle.scripts.primitives import draw_cuboid, draw_tri_prism
 from math import radians
 
 
@@ -265,6 +265,177 @@ def create_curved_wall_tile_trimmers(tile_properties):
 
     bpy.ops.object.delete({"selected_objects": [bbox_proxy]})
     return trimmers
+
+
+def create_tri_floor_tile_trimmers(tile_properties, dim):
+    mode('OBJECT')
+    deselect_all()
+
+    cursor = bpy.context.scene.cursor
+    cursor_orig_location = cursor.location.copy()
+
+    b_trimmer = create_b_trimmer(dim)
+    b_trimmer.name = tile_properties['tile_name'] + '.b_trimmer'
+    c_trimmer = create_c_trimmer(dim)
+    c_trimmer.name = tile_properties['tile_name'] + '.c_trimmer'
+    a_trimmer = create_a_trimmer(dim)
+    a_trimmer.name = tile_properties['tile_name'] + '.a_trimmer'
+    z_pos_trimmer = create_z_pos_tri_trimmer(dim, tile_properties)
+    z_pos_trimmer.name = tile_properties['tile_name'] + '.z_pos_trimmer'
+    z_neg_trimmer = create_z_neg_tri_trimmer(dim, tile_properties)
+    z_neg_trimmer.name = tile_properties['tile_name'] + '.z_neg_trimmer'
+
+    trimmers = {
+        'x_neg': b_trimmer,
+        'y_neg': c_trimmer,
+        'x_pos': a_trimmer,
+        'z_pos': z_pos_trimmer,
+        'z_neg': z_neg_trimmer
+    }
+
+    for trimmer in trimmers.values():
+        trimmer.display_type = 'BOUNDS'
+        select(trimmer.name)
+        bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+        trimmer.hide_viewport = True
+        trimmer.parent = bpy.context.scene.objects[tile_properties['empty_name']]
+
+    return trimmers
+
+
+def create_z_neg_tri_trimmer(dim, tile_properties):
+    turtle = bpy.context.scene.cursor
+    t = bpy.ops.turtle
+    buffer = bpy.context.scene.mt_trim_buffer
+    turtle.location = (
+        dim['loc_A'][0] - 0.25,
+        dim['loc_A'][1] - 0.25,
+        dim['loc_A'][2] + buffer
+    )
+    t.add_turtle()
+    t.pu()
+
+    trimmer = bpy.context.object
+    t.add_vert()
+    t.pd()
+    trimmer, dimensions = draw_tri_prism(dim['b'] + 1, dim['c'] + 1, dim['A'], -1)
+    t.select_all()
+    t.pu()
+    t.home()
+    mode('OBJECT')
+
+    return trimmer
+
+
+def create_z_pos_tri_trimmer(dim, tile_properties):
+    turtle = bpy.context.scene.cursor
+    t = bpy.ops.turtle
+    buffer = bpy.context.scene.mt_trim_buffer
+    turtle.location = (
+        dim['loc_A'][0] - 0.25,
+        dim['loc_A'][1] - 0.25,
+        dim['loc_A'][2] + tile_properties['tile_size'][2]
+    )
+    t.add_turtle()
+    t.pu()
+
+    trimmer = bpy.context.object
+    t.add_vert()
+    t.pd()
+    trimmer, dimensions = draw_tri_prism(dim['b'] + 1, dim['c'] + 1, dim['A'], 1)
+    t.select_all()
+    t.pu()
+    t.home()
+    mode('OBJECT')
+
+    return trimmer
+
+
+def create_a_trimmer(dim):
+    turtle = bpy.context.scene.cursor
+    t = bpy.ops.turtle
+    buffer = bpy.context.scene.mt_trim_buffer
+
+    t.add_turtle()
+    t.pu()
+
+    trimmer = bpy.context.object
+
+    # TODO: fix difference between loc_B and angle B
+    t.setp(v=dim['loc_B'])
+    t.rt(d=180 - dim['C'])
+    t.ri(d=buffer)
+    t.bk(d=0.5)
+    t.dn(d=0.5)
+    t.pd()
+    t.add_vert()
+    t.up(d=dim['height'] + 1)
+    t.select_all()
+    t.lf(d=1)
+    t.select_all()
+    t.fd(d=1 + dim['a'])
+    t.pu()
+    t.home()
+    mode('OBJECT')
+
+    return trimmer
+
+
+def create_c_trimmer(dim):
+    turtle = bpy.context.scene.cursor
+    t = bpy.ops.turtle
+    buffer = bpy.context.scene.mt_trim_buffer
+
+    t.add_turtle()
+    t.pu()
+
+    trimmer = bpy.context.object
+
+    t.setp(v=dim['loc_A'])
+    t.rt(d=dim['A'])
+    t.bk(d=0.5)
+    t.lf(d=buffer)
+    t.dn(d=0.5)
+    t.pd()
+    t.add_vert()
+    t.up(d=dim['height'] + 1)
+    t.select_all()
+    t.fd(d=dim['c'] + 1)
+    t.select_all()
+    t.ri(d=1)
+    t.pu()
+    t.home()
+    mode('OBJECT')
+
+    return trimmer
+
+
+def create_b_trimmer(dim):
+    turtle = bpy.context.scene.cursor
+    t = bpy.ops.turtle
+    buffer = bpy.context.scene.mt_trim_buffer
+
+    t.add_turtle()
+    t.pu()
+
+    trimmer = bpy.context.object
+
+    t.setp(v=dim['loc_A'])
+    t.bk(d=0.5)
+    t.lf(d=buffer)
+    t.dn(d=0.5)
+    t.pd()
+    t.add_vert()
+    t.up(d=dim['height'] + 1)
+    t.select_all()
+    t.fd(d=dim['b'] + 1)
+    t.select_all()
+    t.lf(d=1)
+    t.pu()
+    t.home()
+    mode('OBJECT')
+
+    return trimmer
 
 
 # works for rectangular floors and straight walls

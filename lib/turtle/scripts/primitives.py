@@ -69,4 +69,5 @@ def draw_tri_prism(b, c, A, height):
     t.up(d=height)
     t.select_all()
     bpy.ops.mesh.normals_make_consistent()
+    dimensions['height'] = height
     return bpy.context.object, dimensions

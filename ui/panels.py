@@ -17,7 +17,7 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
     def draw(self, context):
         scene = context.scene
         layout = self.layout
-
+        obj = bpy.context.object
         layout.operator('scene.make_tile', text="Make Tile")
         layout.prop(scene, 'mt_tile_blueprint')
         layout.prop(scene, 'mt_tile_type')

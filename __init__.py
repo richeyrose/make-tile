@@ -26,7 +26,7 @@ from . ui.panels import (
     MT_PT_vertex_groups,
     MT_PT_Converter_Panel,
     MT_PT_Textured_sides_Panel)
-from . operators.maketile import MT_OT_Make_Tile
+from . operators.maketile import MT_Textured_Area_Custom_Bool, MT_OT_Make_Tile
 from . operators.makevertgroups import MT_OT_makeVertGroupsFromFaces
 from . operators.object_converter import MT_OT_Convert_To_MT_Obj
 from . operators.bakedisplacement import MT_OT_Bake_Displacement, MT_OT_Assign_Material_To_Vert_Group, MT_OT_Remove_Material_From_Vert_Group
@@ -58,6 +58,7 @@ bl_info = {
 
 classes = (
     MT_MakeTilePreferences,
+    MT_Textured_Area_Custom_Bool,
     MT_OT_Make_Tile,
     MT_OT_makeVertGroupsFromFaces,
     MT_OT_Convert_To_MT_Obj,

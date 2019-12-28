@@ -84,6 +84,13 @@ def create_openlock_wall_2(tile_properties, base):
     preview_core['linked_obj'] = displacement_core
     displacement_core['linked_obj'] = preview_core
 
+    vert_groups = preview_core.vertex_groups
+
+    for group in vert_groups:
+        collectionItem = preview_core.mt_textured_areas_coll.add()
+        collectionItem.value = True
+        collectionItem.name = group.name
+
     preview_core.parent = base
     displacement_core.parent = base
 

@@ -72,7 +72,7 @@ def convert_to_make_tile_obj(obj):
         for obj in objs:
             group = obj.vertex_groups.new(name="ALL")
             # not sure why we have to do it this way but can't get a list of 
-            # keys out in ther normal way
+            # keys out in the normal way
             keys = []
             for key, value in obj.data.vertices.items():
                 keys.append(key)

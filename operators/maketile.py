@@ -22,7 +22,8 @@ from .. materials.materials import (
     get_blend_filenames,
     update_displacement_material_2,
     update_preview_material_2,
-    assign_mat_to_vert_group)
+    assign_mat_to_vert_group,
+    assign_texture_to_areas)
 
 from .. tile_creation.create_straight_wall_tile import create_straight_wall
 from .. tile_creation.create_floor_tile import create_rectangular_floor
@@ -33,9 +34,6 @@ from .. tile_creation.create_triangular_floor import create_triangular_floor
 
 class MT_Textured_Area_Custom_Bool(bpy.types.PropertyGroup):
 
-    def update_test(self, context):
-        print(self.value)
-
     def update_textured_area(self, context):
         prefs = get_prefs()
         obj = bpy.context.object
@@ -43,17 +41,20 @@ class MT_Textured_Area_Custom_Bool(bpy.types.PropertyGroup):
         vert_group = self.name
         primary_material = bpy.data.materials[bpy.context.scene.mt_tile_material_1]
 
-        # TODO: CHange this so we store material as property on object
+        # TODO: Change this so we store material as property on object
         secondary_material = bpy.data.materials[prefs.secondary_material]  
 
+        if secondary_material.name not in material_slots:
+            obj.data.materials.append(secondary_material)
+
         if self.value is False:
-            if secondary_material.name not in material_slots:
-                obj.data.materials.append(secondary_material)        
-            assign_mat_to_vert_group(vert_group, obj, secondary_material)
+            if vert_group is not "":
+                assign_mat_to_vert_group(vert_group, obj, secondary_material)
         else:
             if primary_material.name not in material_slots:
                 obj.data.materials.append(primary_material)
-            assign_mat_to_vert_group(vert_group, obj, primary_material)
+            if vert_group is not "":
+                assign_mat_to_vert_group(vert_group, obj, primary_material)
 
     """A bpy.types.PropertyGroup descendant for bpy.props.CollectionProperty"""
     value: bpy.props.BoolProperty(
@@ -496,6 +497,7 @@ def load_material_enums(self, context):
 
 # TODO: Rewrite for two materials
 def update_material_1(self, context):
+    prefs = get_prefs()
     preview_obj = bpy.context.object
 
     if 'geometry_type' in preview_obj:
@@ -503,8 +505,8 @@ def update_material_1(self, context):
             disp_obj = preview_obj['linked_obj']
 
             update_displacement_material_2(disp_obj, bpy.context.scene.mt_tile_material_1)
-            update_preview_material_2(preview_obj, bpy.context.scene.mt_tile_material_1)
-
+            #update_preview_material_2(preview_obj, bpy.context.scene.mt_tile_material_1)
+            assign_texture_to_areas(preview_obj, context.scene.mt_tile_material_1, prefs.secondary_material)
 
 def update_material_2(self, context):
     preview_obj = bpy.context.object

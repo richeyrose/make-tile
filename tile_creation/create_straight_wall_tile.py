@@ -14,8 +14,7 @@ from .. lib.utils.selection import (
 from .. lib.utils.utils import mode, apply_all_modifiers
 from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
 from .. materials.materials import (
-    assign_displacement_materials_2,
-    assign_preview_materials_2)
+    assign_displacement_materials_2)
 from .. operators.trim_tile import (
     create_tile_trimmers)
 from . create_displacement_mesh import create_displacement_object, convert_to_make_tile_obj
@@ -73,7 +72,7 @@ def create_openlock_wall_2(tile_properties, base):
     openLOCK clips'''
 
     tile_properties['base_size'] = base.dimensions
-    textured_groups = tile_properties['textured_groups']
+    # textured_groups = tile_properties['textured_groups']
 
     preview_core = create_straight_wall_core_2(tile_properties)
     displacement_core = create_straight_wall_core_2(tile_properties)
@@ -103,8 +102,8 @@ def create_openlock_wall_2(tile_properties, base):
     image_size = bpy.context.scene.mt_tile_resolution
 
     assign_displacement_materials_2(displacement_core, [image_size, image_size], primary_material, secondary_material)
-    assign_preview_materials_2(preview_core, primary_material, secondary_material, textured_groups)
-
+    #assign_preview_materials_2(preview_core, primary_material, secondary_material, textured_groups)
+    
     # create wall cutters
 
     cores = [preview_core, displacement_core]
@@ -146,7 +145,7 @@ def create_plain_wall_2(tile_properties, base):
     image_size = bpy.context.scene.mt_tile_resolution
 
     assign_displacement_materials_2(displacement_core, [image_size, image_size], primary_material, secondary_material)
-    assign_preview_materials_2(preview_core, primary_material, secondary_material, textured_groups)
+    #assign_preview_materials_2(preview_core, primary_material, secondary_material, textured_groups)
 
     preview_core.parent = base
     displacement_core.parent = base

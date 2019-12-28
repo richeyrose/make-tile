@@ -139,14 +139,18 @@ def assign_preview_materials_2(obj, primary_material, secondary_material, textur
             assign_mat_to_vert_group(key, obj, primary_material)
 
 
-def assign_preview_materials_3(obj, primary_material, secondary_material):
-    for material in obj.data.materials:
-        obj.data.materials.pop(index=0)
+def assign_texture_to_areas(obj, primary_material, secondary_material):
+    material_slots = obj.material_slots
+    all_vert_groups = obj.vertex_groups
+    textured_vert_groups = obj.mt_textured_areas_coll
 
-    obj['primary_material'] = primary_material
-    obj['secondary_material'] = secondary_material
+    if secondary_material not in material_slots:
+        obj.data.materials.append(bpy.data.materials[secondary_material])
+    if primary_material not in material_slots:
+        obj.data.materials.append(bpy.data.materials[primary_material])
 
-    add_preview_mesh_modifiers(obj)
-
-    # obj.data.materials.append(secondary_material)
-    obj.data.materials.append(primary_material)
+    for group in textured_vert_groups:
+        if group.value is False:
+            assign_mat_to_vert_group(group.name, obj, bpy.data.materials[secondary_material])
+        else:
+            assign_mat_to_vert_group(group.name, obj, bpy.data.materials[primary_material])

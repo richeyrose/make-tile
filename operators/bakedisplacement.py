@@ -94,7 +94,7 @@ class MT_OT_Bake_Displacement(bpy.types.Operator):
     def execute(self, context):
         preview_obj = bpy.context.object
         displacement_obj = preview_obj['linked_obj']
-        preview_material = preview_obj['primary_material']
+        preview_material = bpy.data.materials[context.scene.mt_tile_material_1]
         resolution = context.scene.mt_tile_resolution
         displacement_obj.hide_viewport = False
 

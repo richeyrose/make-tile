@@ -440,6 +440,7 @@ def create_b_trimmer(dim):
 
 # works for rectangular floors and straight walls
 def create_tile_trimmers(tile_properties):
+    mode('OBJECT')
     deselect_all()
 
     cursor = bpy.context.scene.cursor

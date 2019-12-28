@@ -1,6 +1,7 @@
 import os
 import bpy
 from ..lib.utils.vertex_groups import cuboid_sides_to_vert_groups
+from .. lib.utils.utils import mode
 
 
 class MT_OT_makeVertGroupsFromFaces(bpy.types.Operator):
@@ -10,6 +11,7 @@ class MT_OT_makeVertGroupsFromFaces(bpy.types.Operator):
 
     def execute(self, context):
         cuboid_sides_to_vert_groups()
+        mode('OBJECT')
         return {'FINISHED'}
 
     @classmethod

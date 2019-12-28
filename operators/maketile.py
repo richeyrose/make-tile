@@ -287,17 +287,17 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         # Which sides of walls to texture
         bpy.types.Scene.mt_y_neg_textured = bpy.props.BoolProperty(
             name="Inner",
-            default=True
+            default=False
         )
 
         bpy.types.Scene.mt_y_pos_textured = bpy.props.BoolProperty(
             name="Outer",
-            default=True
+            default=False
         )
 
         bpy.types.Scene.mt_z_pos_textured = bpy.props.BoolProperty(
             name="Top",
-            default=True
+            default=False
         )
 
         bpy.types.Scene.mt_z_neg_textured = bpy.props.BoolProperty(

@@ -88,7 +88,7 @@ def create_openlock_wall_2(tile_properties, base):
 
     for group in vert_groups:
         collectionItem = preview_core.mt_textured_areas_coll.add()
-        collectionItem.value = True
+        collectionItem.value = False
         collectionItem.name = group.name
 
     preview_core.parent = base

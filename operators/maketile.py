@@ -155,15 +155,6 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             'tile_material_2': context.scene.mt_tile_material_2
         }
 
-        textured_groups = {
-            "x_neg": context.scene.mt_x_neg_textured,
-            "x_pos": context.scene.mt_x_pos_textured,
-            "y_pos": context.scene.mt_y_pos_textured,
-            "y_neg": context.scene.mt_y_neg_textured,
-            "z_pos": context.scene.mt_z_pos_textured,
-            "z_neg": context.scene.mt_z_neg_textured,
-        }
-
         tile_empty['tile_properties'] = {
             'tile_name': tile_name,
             'empty_name': tile_empty.name,
@@ -174,7 +165,6 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             'tile_size': tile_size,
             'base_size': base_size,
             'tile_materials': tile_materials,
-            'textured_groups': textured_groups,
             'base_inner_radius': context.scene.mt_base_inner_radius,  # used for curved tiles only
             'wall_inner_radius': context.scene.mt_wall_inner_radius,  # used for curved walls only
             'degrees_of_arc': context.scene.mt_degrees_of_arc,  # used for curved tiles only
@@ -285,37 +275,6 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             soft_max=8,
         )
 
-        # Which sides of walls to texture
-        bpy.types.Scene.mt_y_neg_textured = bpy.props.BoolProperty(
-            name="Inner",
-            default=False
-        )
-
-        bpy.types.Scene.mt_y_pos_textured = bpy.props.BoolProperty(
-            name="Outer",
-            default=False
-        )
-
-        bpy.types.Scene.mt_z_pos_textured = bpy.props.BoolProperty(
-            name="Top",
-            default=False
-        )
-
-        bpy.types.Scene.mt_z_neg_textured = bpy.props.BoolProperty(
-            name="Bottom",
-            default=False
-        )
-
-        bpy.types.Scene.mt_x_neg_textured = bpy.props.BoolProperty(
-            name="Left",
-            default=False
-        )
-
-        bpy.types.Scene.mt_x_pos_textured = bpy.props.BoolProperty(
-            name="Right",
-            default=False
-        )
-
         # Tile and base size. We use seperate floats so that we can only show
         # customisable ones where appropriate. These are wrapped up
         # in a vector and passed on as tile_size and base_size
@@ -370,7 +329,6 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             min=0
         )
 
-       
         # Corner walll and triangular base specific
         bpy.types.Scene.mt_angle_1 = bpy.props.FloatProperty(
             name="Base Angle",
@@ -437,12 +395,6 @@ class MT_OT_Make_Tile(bpy.types.Operator):
     @classmethod
     def unregister(cls):
         print("Unregistered class: %s" % cls.bl_label)
-        del bpy.types.Scene.mt_y_neg_textured
-        del bpy.types.Scene.mt_y_pos_textured
-        del bpy.types.Scene.mt_z_pos_textured
-        del bpy.types.Scene.mt_z_neg_textured
-        del bpy.types.Scene.mt_x_neg_textured
-        del bpy.types.Scene.mt_x_pos_textured
         del bpy.types.Scene.mt_tile_name
         del bpy.types.Scene.mt_segments
         del bpy.types.Scene.mt_base_inner_radius
@@ -505,8 +457,8 @@ def update_material_1(self, context):
             disp_obj = preview_obj['linked_obj']
 
             update_displacement_material_2(disp_obj, bpy.context.scene.mt_tile_material_1)
-            #update_preview_material_2(preview_obj, bpy.context.scene.mt_tile_material_1)
             assign_texture_to_areas(preview_obj, context.scene.mt_tile_material_1, prefs.secondary_material)
+
 
 def update_material_2(self, context):
     preview_obj = bpy.context.object

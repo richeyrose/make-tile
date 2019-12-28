@@ -17,7 +17,7 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
     def draw(self, context):
         scene = context.scene
         layout = self.layout
-        
+
         layout.operator('scene.make_tile', text="Make Tile")
         layout.prop(scene, 'mt_tile_blueprint')
         layout.prop(scene, 'mt_tile_type')
@@ -203,18 +203,6 @@ class MT_PT_Textured_sides_Panel(MT_PT_Panel, bpy.types.Panel):
                 row = layout.row()
                 row.label(text=area.name)
                 row.prop(area, "value")
-
-        scene = context.scene
-
-        row = layout.row()
-        row.prop(scene, 'mt_x_neg_textured')
-        row.prop(scene, 'mt_x_pos_textured')
-        row = layout.row()
-        row.prop(scene, 'mt_y_neg_textured')
-        row.prop(scene, 'mt_y_pos_textured')
-        row = layout.row()
-        row.prop(scene, 'mt_z_pos_textured')
-        row.prop(scene, 'mt_z_neg_textured')
 
 
 class MT_PT_vertex_groups(MT_PT_Panel, bpy.types.Panel):

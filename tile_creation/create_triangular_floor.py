@@ -72,6 +72,13 @@ def create_slabs(tile_properties, base):
 
     preview_slab, displacement_slab = create_displacement_object(obj)
 
+    vert_groups = preview_slab.vertex_groups
+
+    for group in vert_groups:
+        collectionItem = preview_slab.mt_textured_areas_coll.add()
+        collectionItem.value = False
+        collectionItem.name = group.name
+
     preferences = get_prefs()
 
     primary_material = bpy.data.materials[tile_properties['tile_materials']['tile_material_1']]
@@ -80,7 +87,6 @@ def create_slabs(tile_properties, base):
     image_size = bpy.context.scene.mt_tile_resolution
 
     assign_displacement_materials_2(displacement_slab, [image_size, image_size], primary_material, secondary_material)
-    assign_preview_materials_2(preview_slab, primary_material, secondary_material, tile_properties['textured_groups'])
 
     slabs = [preview_slab, displacement_slab]
 

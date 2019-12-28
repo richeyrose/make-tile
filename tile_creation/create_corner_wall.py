@@ -195,8 +195,6 @@ def create_openlock_cores(tile_properties, base):
 
 
 def create_plain_cores(tile_properties, base):
-    textured_groups = tile_properties['textured_groups']
-
     preview_core = create_plain_wall_core(tile_properties)
     preview_core.name = tile_properties['tile_name'] + '.core.preview'
     preview_core['geometry_type'] = 'PREVIEW'
@@ -210,6 +208,13 @@ def create_plain_cores(tile_properties, base):
     preview_core['linked_obj'] = displacement_core
     displacement_core['linked_obj'] = preview_core
 
+    vert_groups = preview_core.vertex_groups
+
+    for group in vert_groups:
+        collectionItem = preview_core.mt_textured_areas_coll.add()
+        collectionItem.value = False
+        collectionItem.name = group.name
+        
     preview_core.parent = base
     displacement_core.parent = base
 
@@ -221,7 +226,7 @@ def create_plain_cores(tile_properties, base):
     image_size = bpy.context.scene.mt_tile_resolution
 
     assign_displacement_materials_2(displacement_core, [image_size, image_size], primary_material, secondary_material)
-    assign_preview_materials_2(preview_core, primary_material, secondary_material, textured_groups)
+
 
     displacement_core.hide_viewport = True
 

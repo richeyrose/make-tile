@@ -51,12 +51,12 @@ def corner_wall_to_vert_groups(obj, vert_locs):
     cursor_orig_loc = bpy.context.scene.cursor.location.copy()
 
     # make vertex groups
-    obj.vertex_groups.new(name='x_neg')  # leg 2 end
-    obj.vertex_groups.new(name='x_pos')  # leg 1 end
-    obj.vertex_groups.new(name='y_neg')  # outer
-    obj.vertex_groups.new(name='y_pos')  # inner
-    obj.vertex_groups.new(name='z_neg')  # top
-    obj.vertex_groups.new(name='z_pos')  # bottom
+    obj.vertex_groups.new(name='End 1')  # leg 2 end
+    obj.vertex_groups.new(name='End 2')  # leg 1 end
+    obj.vertex_groups.new(name='Outer')  # outer
+    obj.vertex_groups.new(name='Inner')  # inner
+    obj.vertex_groups.new(name='Top')  # top
+    obj.vertex_groups.new(name='Bottom')  # bottom
 
     mode('EDIT')
     deselect_all()
@@ -84,7 +84,7 @@ def corner_wall_to_vert_groups(obj, vert_locs):
                 coords='GLOBAL',
                 additive=True
             )
-        bpy.ops.object.vertex_group_set_active(group='x_pos')
+        bpy.ops.object.vertex_group_set_active(group='End 1')
         bpy.ops.object.vertex_group_assign()
         deselect_all()
 
@@ -104,7 +104,7 @@ def corner_wall_to_vert_groups(obj, vert_locs):
                 coords='GLOBAL',
                 additive=True
             )
-        bpy.ops.object.vertex_group_set_active(group='x_neg')
+        bpy.ops.object.vertex_group_set_active(group='End 2')
         bpy.ops.object.vertex_group_assign()
         deselect_all()
 
@@ -117,7 +117,7 @@ def corner_wall_to_vert_groups(obj, vert_locs):
                 coords='GLOBAL',
                 additive=True
             )
-        bpy.ops.object.vertex_group_set_active(group='z_neg')
+        bpy.ops.object.vertex_group_set_active(group='Bottom')
         bpy.ops.object.vertex_group_assign()
         deselect_all()
 
@@ -130,7 +130,7 @@ def corner_wall_to_vert_groups(obj, vert_locs):
                 coords='GLOBAL',
                 additive=True
             )
-        bpy.ops.object.vertex_group_set_active(group='z_pos')
+        bpy.ops.object.vertex_group_set_active(group='Top')
         bpy.ops.object.vertex_group_assign()
         deselect_all()
 
@@ -150,7 +150,7 @@ def corner_wall_to_vert_groups(obj, vert_locs):
                 coords='GLOBAL',
                 additive=True
             )
-        bpy.ops.object.vertex_group_set_active(group='y_neg')
+        bpy.ops.object.vertex_group_set_active(group='Outer')
         bpy.ops.object.vertex_group_assign()
         deselect_all()
 
@@ -170,25 +170,22 @@ def corner_wall_to_vert_groups(obj, vert_locs):
                 coords='GLOBAL',
                 additive=True
             )
-        bpy.ops.object.vertex_group_set_active(group='y_pos')
+        bpy.ops.object.vertex_group_set_active(group='Inner')
         bpy.ops.object.vertex_group_assign()
         deselect_all()
 
 
-def tri_prism_to_vert_groups(obj, dim, height): 
+def tri_prism_to_vert_groups(obj, dim, height):
     # make vertex groups
-    obj.vertex_groups.new(name='x_neg')
-    obj.vertex_groups.new(name='x_pos')
-    obj.vertex_groups.new(name='y_neg')
-    obj.vertex_groups.new(name='y_pos')
-    obj.vertex_groups.new(name='z_neg')
-    obj.vertex_groups.new(name='z_pos')
+    obj.vertex_groups.new(name='Side b')
+    obj.vertex_groups.new(name='Side a')
+    obj.vertex_groups.new(name='Side c')
+    obj.vertex_groups.new(name='Bottom')
+    obj.vertex_groups.new(name='Top')
 
     mode('EDIT')
 
     deselect_all()
-
-
 
     # x pos = side a
     deselect_all()
@@ -208,7 +205,7 @@ def tri_prism_to_vert_groups(obj, dim, height):
             dim['loc_B'][2] + height),
         additive=True
     )
-    bpy.ops.object.vertex_group_set_active(group='x_pos')
+    bpy.ops.object.vertex_group_set_active(group='Side a')
     bpy.ops.object.vertex_group_assign()
 
     # x neg = side b
@@ -221,7 +218,7 @@ def tri_prism_to_vert_groups(obj, dim, height):
             dim['loc_B'][2] + height),
         additive=True
     )
-    bpy.ops.object.vertex_group_set_active(group='x_neg')
+    bpy.ops.object.vertex_group_set_active(group='Side b')
     bpy.ops.object.vertex_group_assign()
 
     # y neg = side c
@@ -232,7 +229,7 @@ def tri_prism_to_vert_groups(obj, dim, height):
             dim['loc_C'][1],
             dim['loc_C'][2] + height)
     )
-    bpy.ops.object.vertex_group_set_active(group='y_neg')
+    bpy.ops.object.vertex_group_set_active(group='Side c')
     bpy.ops.object.vertex_group_assign()
 
     # no y pos
@@ -250,7 +247,7 @@ def tri_prism_to_vert_groups(obj, dim, height):
             dim['loc_B'][2] + height),
         additive=True
     )
-    bpy.ops.object.vertex_group_set_active(group='z_pos')
+    bpy.ops.object.vertex_group_set_active(group='Top')
     bpy.ops.object.vertex_group_assign()
 
     # z neg
@@ -266,7 +263,7 @@ def tri_prism_to_vert_groups(obj, dim, height):
             dim['loc_B'][2]),
         additive=True
     )
-    bpy.ops.object.vertex_group_set_active(group='z_neg')
+    bpy.ops.object.vertex_group_set_active(group='Bottom')
     bpy.ops.object.vertex_group_assign()
 
 
@@ -285,16 +282,16 @@ def cuboid_sides_to_vert_groups(obj):
     bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='BOUNDS')
 
     # make vertex groups
-    obj.vertex_groups.new(name='x_neg')
-    obj.vertex_groups.new(name='x_pos')
-    obj.vertex_groups.new(name='y_neg')
-    obj.vertex_groups.new(name='y_pos')
-    obj.vertex_groups.new(name='z_neg')
-    obj.vertex_groups.new(name='z_pos')
+    obj.vertex_groups.new(name='Left')
+    obj.vertex_groups.new(name='Right')
+    obj.vertex_groups.new(name='Front')
+    obj.vertex_groups.new(name='Back')
+    obj.vertex_groups.new(name='Top')
+    obj.vertex_groups.new(name='Bottom')
 
     mode('EDIT')
 
-    # select x_neg and assign to x_neg
+    # select X- and assign to X-
     select_by_loc(
         lbound=-dim,
         ubound=[-dim[0], dim[1], dim[2]],
@@ -302,67 +299,67 @@ def cuboid_sides_to_vert_groups(obj):
         coords='LOCAL',
         additive=True)
 
-    bpy.ops.object.vertex_group_set_active(group='x_neg')
+    bpy.ops.object.vertex_group_set_active(group='Left')
     bpy.ops.object.vertex_group_assign()
-    
+
     deselect_all()
 
-    # select x_pos and assign to x_pos
+    # select X+ and assign to X+
     select_by_loc(
         lbound=[dim[0], -dim[1], -dim[2]],
         ubound=[dim[0], dim[1], dim[2]],
         select_mode='VERT',
         coords='LOCAL',
         additive=True)
-    bpy.ops.object.vertex_group_set_active(group='x_pos')
+    bpy.ops.object.vertex_group_set_active(group='Right')
     bpy.ops.object.vertex_group_assign()
 
     deselect_all()
 
-    # select y_neg and assign to y_neg
+    # select Y- and assign to Y-
     select_by_loc(
         lbound=-dim,
         ubound=[dim[0], -dim[1], dim[2]],
         select_mode='VERT',
         coords='LOCAL',
         additive=True)
-    bpy.ops.object.vertex_group_set_active(group='y_neg')
+    bpy.ops.object.vertex_group_set_active(group='Front')
     bpy.ops.object.vertex_group_assign()
 
     deselect_all()
 
-    # select y_pos and assign to y_pos
+    # select Y+ and assign to Y+
     select_by_loc(
         lbound=[-dim[0], dim[1], -dim[2]],
         ubound=[dim[0], dim[1], dim[2]],
         select_mode='VERT',
         coords='LOCAL',
         additive=True)
-    bpy.ops.object.vertex_group_set_active(group='y_pos')
+    bpy.ops.object.vertex_group_set_active(group='Back')
     bpy.ops.object.vertex_group_assign()
 
     deselect_all()
 
-    # select z_neg and assign to z_neg
+    # select Z- and assign to Z-
     select_by_loc(
         lbound=-dim,
         ubound=[dim[0], dim[1], -dim[2]],
         select_mode='VERT',
         coords='LOCAL',
         additive=True)
-    bpy.ops.object.vertex_group_set_active(group='z_neg')
+    bpy.ops.object.vertex_group_set_active(group='Bottom')
     bpy.ops.object.vertex_group_assign()
 
     deselect_all()
 
-    # select z_pos and assign to z_pos
+    # select Z+ and assign to Z+
     select_by_loc(
         lbound=[-dim[0], -dim[1], dim[2]],
         ubound=[dim[0], dim[1], dim[2]],
         select_mode='VERT',
         coords='LOCAL',
         additive=True)
-    bpy.ops.object.vertex_group_set_active(group='z_pos')
+    bpy.ops.object.vertex_group_set_active(group='Top')
     bpy.ops.object.vertex_group_assign()
 
     deselect_all()

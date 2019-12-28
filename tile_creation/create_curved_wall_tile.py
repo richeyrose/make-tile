@@ -167,103 +167,101 @@ def create_openlock_wall_cutters(core, tile_properties):
     cutters = []
 
     # left side cutters
-    if tile_properties['textured_groups']['x_neg'] is 0:
-        left_cutter_bottom = data_to.objects[0].copy()
-        add_object_to_collection(left_cutter_bottom, tile_properties['tile_name'])
+    left_cutter_bottom = data_to.objects[0].copy()
+    add_object_to_collection(left_cutter_bottom, tile_properties['tile_name'])
 
-        # move cutter to origin and up by 0.63 inches
-        left_cutter_bottom.location = Vector((
-            core_location[0],
-            core_location[1],
-            core_location[2] + 0.63))
+    # move cutter to origin and up by 0.63 inches
+    left_cutter_bottom.location = Vector((
+        core_location[0],
+        core_location[1],
+        core_location[2] + 0.63))
 
-        circle_center = Vector((
-            left_cutter_bottom.location[0],
-            left_cutter_bottom.location[1] + tile_properties['wall_inner_radius'],
-            left_cutter_bottom.location[2]))
+    circle_center = Vector((
+        left_cutter_bottom.location[0],
+        left_cutter_bottom.location[1] + tile_properties['wall_inner_radius'],
+        left_cutter_bottom.location[2]))
 
-        # rotate cutter
-        select(left_cutter_bottom.name)
-        activate(left_cutter_bottom.name)
-        bpy.ops.transform.rotate(
-            value=radians(tile_properties['degrees_of_arc'] / 2),
-            orient_axis='Z',
-            orient_type='GLOBAL',
-            center_override=circle_center)
+    # rotate cutter
+    select(left_cutter_bottom.name)
+    activate(left_cutter_bottom.name)
+    bpy.ops.transform.rotate(
+        value=radians(tile_properties['degrees_of_arc'] / 2),
+        orient_axis='Z',
+        orient_type='GLOBAL',
+        center_override=circle_center)
 
-        # add array
-        array_mod = left_cutter_bottom.modifiers.new('Array', 'ARRAY')
-        array_mod.use_relative_offset = False
-        array_mod.use_constant_offset = True
-        array_mod.constant_offset_displace[2] = 2
-        array_mod.fit_type = 'FIT_LENGTH'
-        array_mod.fit_length = tile_properties['tile_size'][2] - 1
+    # add array
+    array_mod = left_cutter_bottom.modifiers.new('Array', 'ARRAY')
+    array_mod.use_relative_offset = False
+    array_mod.use_constant_offset = True
+    array_mod.constant_offset_displace[2] = 2
+    array_mod.fit_type = 'FIT_LENGTH'
+    array_mod.fit_length = tile_properties['tile_size'][2] - 1
 
-        # make a copy of left cutter bottom
-        left_cutter_top = left_cutter_bottom.copy()
+    # make a copy of left cutter bottom
+    left_cutter_top = left_cutter_bottom.copy()
 
-        add_object_to_collection(left_cutter_top, tile_properties['tile_name'])
+    add_object_to_collection(left_cutter_top, tile_properties['tile_name'])
 
-        # move cutter up by 0.75 inches
-        left_cutter_top.location[2] = left_cutter_top.location[2] + 0.75
+    # move cutter up by 0.75 inches
+    left_cutter_top.location[2] = left_cutter_top.location[2] + 0.75
 
-        # modify array
-        array_mod = left_cutter_top.modifiers[array_mod.name]
-        array_mod.fit_length = tile_properties['tile_size'][2] - 1.8
+    # modify array
+    array_mod = left_cutter_top.modifiers[array_mod.name]
+    array_mod.fit_length = tile_properties['tile_size'][2] - 1.8
 
-        cutters.extend([left_cutter_bottom, left_cutter_top])
+    cutters.extend([left_cutter_bottom, left_cutter_top])
 
     # right side cutters
     deselect_all()
 
-    if tile_properties['textured_groups']['x_pos'] is 0:
-        right_cutter_bottom = data_to.objects[0].copy()
-        add_object_to_collection(right_cutter_bottom, tile_properties['tile_name'])
+    right_cutter_bottom = data_to.objects[0].copy()
+    add_object_to_collection(right_cutter_bottom, tile_properties['tile_name'])
 
-        # move cutter to origin and up by 0.63 inches
-        right_cutter_bottom.location = Vector((
-            core_location[0],
-            core_location[1],
-            core_location[2] + 0.63))
+    # move cutter to origin and up by 0.63 inches
+    right_cutter_bottom.location = Vector((
+        core_location[0],
+        core_location[1],
+        core_location[2] + 0.63))
 
-        # rotate cutter 180 degrees around Z
-        right_cutter_bottom.rotation_euler[2] = radians(180)
+    # rotate cutter 180 degrees around Z
+    right_cutter_bottom.rotation_euler[2] = radians(180)
 
-        circle_center = Vector((
-            right_cutter_bottom.location[0],
-            right_cutter_bottom.location[1] + tile_properties['wall_inner_radius'],
-            right_cutter_bottom.location[2]))
+    circle_center = Vector((
+        right_cutter_bottom.location[0],
+        right_cutter_bottom.location[1] + tile_properties['wall_inner_radius'],
+        right_cutter_bottom.location[2]))
 
-        # rotate cutter around circle center
-        select(right_cutter_bottom.name)
-        activate(right_cutter_bottom.name)
-        bpy.ops.transform.rotate(
-            value=-radians(tile_properties['degrees_of_arc'] / 2),
-            orient_axis='Z',
-            orient_type='GLOBAL',
-            center_override=circle_center)
+    # rotate cutter around circle center
+    select(right_cutter_bottom.name)
+    activate(right_cutter_bottom.name)
+    bpy.ops.transform.rotate(
+        value=-radians(tile_properties['degrees_of_arc'] / 2),
+        orient_axis='Z',
+        orient_type='GLOBAL',
+        center_override=circle_center)
 
-        # add array
-        array_mod = right_cutter_bottom.modifiers.new('Array', 'ARRAY')
-        array_mod.use_relative_offset = False
-        array_mod.use_constant_offset = True
-        array_mod.constant_offset_displace[2] = 2
-        array_mod.fit_type = 'FIT_LENGTH'
-        array_mod.fit_length = tile_properties['tile_size'][2] - 1
+    # add array
+    array_mod = right_cutter_bottom.modifiers.new('Array', 'ARRAY')
+    array_mod.use_relative_offset = False
+    array_mod.use_constant_offset = True
+    array_mod.constant_offset_displace[2] = 2
+    array_mod.fit_type = 'FIT_LENGTH'
+    array_mod.fit_length = tile_properties['tile_size'][2] - 1
 
-        # make a copy of right_cutter_bottom
-        right_cutter_top = right_cutter_bottom.copy()
+    # make a copy of right_cutter_bottom
+    right_cutter_top = right_cutter_bottom.copy()
 
-        add_object_to_collection(right_cutter_top, tile_properties['tile_name'])
+    add_object_to_collection(right_cutter_top, tile_properties['tile_name'])
 
-        # move cutter up by 0.75 inches
-        right_cutter_top.location[2] = right_cutter_top.location[2] + 0.75
+    # move cutter up by 0.75 inches
+    right_cutter_top.location[2] = right_cutter_top.location[2] + 0.75
 
-        # modify array
-        array_mod = right_cutter_top.modifiers[array_mod.name]
-        array_mod.fit_length = tile_properties['tile_size'][2] - 1.8
+    # modify array
+    array_mod = right_cutter_top.modifiers[array_mod.name]
+    array_mod.fit_length = tile_properties['tile_size'][2] - 1.8
 
-        cutters.extend([right_cutter_bottom, right_cutter_top])
+    cutters.extend([right_cutter_bottom, right_cutter_top])
 
     return cutters
 
@@ -291,6 +289,13 @@ def create_plain_wall_2(base, tile_properties, tile_empty):
     preview_core['linked_obj'] = displacement_core
     displacement_core['linked_obj'] = preview_core
 
+    vert_groups = preview_core.vertex_groups
+
+    for group in vert_groups:
+        collectionItem = preview_core.mt_textured_areas_coll.add()
+        collectionItem.value = False
+        collectionItem.name = group.name
+
     cores = [preview_core, displacement_core]
 
     preferences = get_prefs()
@@ -301,7 +306,6 @@ def create_plain_wall_2(base, tile_properties, tile_empty):
     image_size = bpy.context.scene.mt_tile_resolution
 
     assign_displacement_materials_2(displacement_core, [image_size, image_size], primary_material, secondary_material)
-    assign_preview_materials_2(preview_core, primary_material, secondary_material, tile_properties['textured_groups'])
 
     for core in cores:
         core.parent = base

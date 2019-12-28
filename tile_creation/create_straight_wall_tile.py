@@ -72,16 +72,9 @@ def create_openlock_wall_2(tile_properties, base):
     openLOCK clips'''
 
     tile_properties['base_size'] = base.dimensions
-    # textured_groups = tile_properties['textured_groups']
 
     preview_core = create_straight_wall_core_2(tile_properties)
-    displacement_core = create_straight_wall_core_2(tile_properties)
-
-    preview_core['geometry_type'] = 'PREVIEW'
-    displacement_core['geometry_type'] = 'DISPLACEMENT'
-
-    preview_core['linked_obj'] = displacement_core
-    displacement_core['linked_obj'] = preview_core
+    preview_core, displacement_core = create_displacement_object(preview_core)
 
     vert_groups = preview_core.vertex_groups
 
@@ -102,26 +95,21 @@ def create_openlock_wall_2(tile_properties, base):
     image_size = bpy.context.scene.mt_tile_resolution
 
     assign_displacement_materials_2(displacement_core, [image_size, image_size], primary_material, secondary_material)
-    #assign_preview_materials_2(preview_core, primary_material, secondary_material, textured_groups)
-    
-    # create wall cutters
 
+    # create wall cutters
     cores = [preview_core, displacement_core]
 
-    if tile_properties['tile_size'][2] >= 0.99:
-        textured_groups = tile_properties['textured_groups']
-        if textured_groups['x_neg'] is 0 or textured_groups['x_pos'] is 0:
-            wall_cutters = create_openlock_wall_cutters(preview_core, tile_properties)
+    wall_cutters = create_openlock_wall_cutters(preview_core, tile_properties)
 
-            for wall_cutter in wall_cutters:
-                wall_cutter.parent = base
-                wall_cutter.display_type = 'BOUNDS'
-                wall_cutter.hide_viewport = True
+    for wall_cutter in wall_cutters:
+        wall_cutter.parent = base
+        wall_cutter.display_type = 'BOUNDS'
+        wall_cutter.hide_viewport = True
 
-                for core in cores:
-                    wall_cutter_bool = core.modifiers.new('Wall Cutter', 'BOOLEAN')
-                    wall_cutter_bool.operation = 'DIFFERENCE'
-                    wall_cutter_bool.object = wall_cutter
+        for core in cores:
+            wall_cutter_bool = core.modifiers.new('Wall Cutter', 'BOOLEAN')
+            wall_cutter_bool.operation = 'DIFFERENCE'
+            wall_cutter_bool.object = wall_cutter
 
     displacement_core.hide_viewport = True
 
@@ -129,10 +117,16 @@ def create_openlock_wall_2(tile_properties, base):
 def create_plain_wall_2(tile_properties, base):
     '''Creates the preview and displacement cores'''
     tile_properties['base_size'] = base.dimensions
-    textured_groups = tile_properties['textured_groups']
 
     preview_core = create_straight_wall_core_2(tile_properties)
-    preview_core, displacement_core = create_displacement_object(preview_core)    
+    preview_core, displacement_core = create_displacement_object(preview_core)
+
+    vert_groups = preview_core.vertex_groups
+
+    for group in vert_groups:
+        collectionItem = preview_core.mt_textured_areas_coll.add()
+        collectionItem.value = False
+        collectionItem.name = group.name
 
     preview_core.parent = base
     displacement_core.parent = base
@@ -145,7 +139,6 @@ def create_plain_wall_2(tile_properties, base):
     image_size = bpy.context.scene.mt_tile_resolution
 
     assign_displacement_materials_2(displacement_core, [image_size, image_size], primary_material, secondary_material)
-    #assign_preview_materials_2(preview_core, primary_material, secondary_material, textured_groups)
 
     preview_core.parent = base
     displacement_core.parent = base
@@ -244,7 +237,6 @@ def create_openlock_wall_cutters(core, tile_properties):
     tile_properties['tile_size'] -- VECTOR [x, y, z] Size of tile including any base
     tile_properties['tile_name'] -- STR, tile name
     """
-    textured_groups = tile_properties['textured_groups']
     deselect_all()
     preferences = get_prefs()
     booleans_path = os.path.join(preferences.assets_path, "meshes", "booleans", "openlock.blend")
@@ -257,72 +249,71 @@ def create_openlock_wall_cutters(core, tile_properties):
 
     cutters = []
     # left side cutters
-    if textured_groups['x_neg'] is 0:
-        left_cutter_bottom = data_to.objects[0].copy()
-        add_object_to_collection(left_cutter_bottom, tile_properties['tile_name'])
-        # get location of bottom front left corner of tile
-        front_left = [
-            core_location[0] - (tile_properties['tile_size'][0] / 2),
-            core_location[1] - (tile_properties['tile_size'][1] / 2),
-            core_location[2]]
-        # move cutter to bottom front left corner then up by 0.63 inches
-        left_cutter_bottom.location = [
-            front_left[0],
-            front_left[1] + (tile_properties['tile_size'][1] / 2),
-            front_left[2] + 0.63]
+    left_cutter_bottom = data_to.objects[0].copy()
+    add_object_to_collection(left_cutter_bottom, tile_properties['tile_name'])
+    # get location of bottom front left corner of tile
+    front_left = [
+        core_location[0] - (tile_properties['tile_size'][0] / 2),
+        core_location[1] - (tile_properties['tile_size'][1] / 2),
+        core_location[2]]
+    # move cutter to bottom front left corner then up by 0.63 inches
+    left_cutter_bottom.location = [
+        front_left[0],
+        front_left[1] + (tile_properties['tile_size'][1] / 2),
+        front_left[2] + 0.63]
 
-        array_mod = left_cutter_bottom.modifiers.new('Array', 'ARRAY')
-        array_mod.use_relative_offset = False
-        array_mod.use_constant_offset = True
-        array_mod.constant_offset_displace[2] = 2
-        array_mod.fit_type = 'FIT_LENGTH'
-        array_mod.fit_length = tile_properties['tile_size'][2] - 1
+    array_mod = left_cutter_bottom.modifiers.new('Array', 'ARRAY')
+    array_mod.use_relative_offset = False
+    array_mod.use_constant_offset = True
+    array_mod.constant_offset_displace[2] = 2
+    array_mod.fit_type = 'FIT_LENGTH'
+    array_mod.fit_length = tile_properties['tile_size'][2] - 1
 
-        # make a copy of left cutter bottom
-        left_cutter_top = left_cutter_bottom.copy()
+    # make a copy of left cutter bottom
+    left_cutter_top = left_cutter_bottom.copy()
 
-        add_object_to_collection(left_cutter_top, tile_properties['tile_name'])
+    add_object_to_collection(left_cutter_top, tile_properties['tile_name'])
 
-        # move cutter up by 0.75 inches
-        left_cutter_top.location[2] = left_cutter_top.location[2] + 0.75
+    # move cutter up by 0.75 inches
+    left_cutter_top.location[2] = left_cutter_top.location[2] + 0.75
 
-        array_mod = left_cutter_top.modifiers[array_mod.name]
-        array_mod.fit_length = tile_properties['tile_size'][2] - 1.8
+    array_mod = left_cutter_top.modifiers[array_mod.name]
+    array_mod.fit_length = tile_properties['tile_size'][2] - 1.8
 
-        cutters.extend([left_cutter_bottom, left_cutter_top])
+    cutters.extend([left_cutter_bottom, left_cutter_top])
 
     # right side cutters
-    if textured_groups['x_pos'] is 0:
-        right_cutter_bottom = data_to.objects[0].copy()
-        add_object_to_collection(right_cutter_bottom, tile_properties['tile_name'])
-        # get location of bottom front right corner of tile
-        front_right = [
-            core_location[0] + (tile_properties['tile_size'][0] / 2),
-            core_location[1] - (tile_properties['tile_size'][1] / 2),
-            core_location[2]]
-        # move cutter to bottom front left corner then up by 0.63 inches
-        right_cutter_bottom.location = [
-            front_right[0],
-            front_right[1] + (tile_properties['tile_size'][1] / 2),
-            front_right[2] + 0.63]
-        # rotate cutter 180 degrees around Z
-        right_cutter_bottom.rotation_euler[2] = radians(180)
 
-        array_mod = right_cutter_bottom.modifiers.new('Array', 'ARRAY')
-        array_mod.use_relative_offset = False
-        array_mod.use_constant_offset = True
-        array_mod.constant_offset_displace[2] = 2
-        array_mod.fit_type = 'FIT_LENGTH'
-        array_mod.fit_length = tile_properties['tile_size'][2] - 1
+    right_cutter_bottom = data_to.objects[0].copy()
+    add_object_to_collection(right_cutter_bottom, tile_properties['tile_name'])
+    # get location of bottom front right corner of tile
+    front_right = [
+        core_location[0] + (tile_properties['tile_size'][0] / 2),
+        core_location[1] - (tile_properties['tile_size'][1] / 2),
+        core_location[2]]
+    # move cutter to bottom front left corner then up by 0.63 inches
+    right_cutter_bottom.location = [
+        front_right[0],
+        front_right[1] + (tile_properties['tile_size'][1] / 2),
+        front_right[2] + 0.63]
+    # rotate cutter 180 degrees around Z
+    right_cutter_bottom.rotation_euler[2] = radians(180)
 
-        right_cutter_top = right_cutter_bottom.copy()
-        add_object_to_collection(right_cutter_top, tile_properties['tile_name'])
-        right_cutter_top.location[2] = right_cutter_top.location[2] + 0.75
+    array_mod = right_cutter_bottom.modifiers.new('Array', 'ARRAY')
+    array_mod.use_relative_offset = False
+    array_mod.use_constant_offset = True
+    array_mod.constant_offset_displace[2] = 2
+    array_mod.fit_type = 'FIT_LENGTH'
+    array_mod.fit_length = tile_properties['tile_size'][2] - 1
 
-        array_mod = right_cutter_top.modifiers["Array"]
-        array_mod.fit_length = tile_properties['tile_size'][2] - 1.8
+    right_cutter_top = right_cutter_bottom.copy()
+    add_object_to_collection(right_cutter_top, tile_properties['tile_name'])
+    right_cutter_top.location[2] = right_cutter_top.location[2] + 0.75
 
-        cutters.extend([right_cutter_bottom, right_cutter_top])
+    array_mod = right_cutter_top.modifiers["Array"]
+    array_mod.fit_length = tile_properties['tile_size'][2] - 1.8
+
+    cutters.extend([right_cutter_bottom, right_cutter_top])
 
     return cutters
 

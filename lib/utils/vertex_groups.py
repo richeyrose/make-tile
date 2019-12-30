@@ -17,7 +17,7 @@ def get_selected_face_indices(obj):
     return face_list
 
 
-def find_vertex_group_of_polygon(polygon):
+def find_vertex_group_of_polygon(polygon, obj):
     # Get all the vertex groups of all the vertices of this polygon
     all_vertex_groups = [g.group for v in polygon.vertices
                          for g in obj.data.vertices[v].groups]
@@ -33,7 +33,7 @@ def find_vertex_group_of_polygon(polygon):
 def assign_material_to_faces(obj, face_list, material_index):
     # find the current polygon's vertex group index
     for face in face_list:
-        vertex_group_index = find_vertex_group_of_polygon(obj.data.polygons[face])
+        vertex_group_index = find_vertex_group_of_polygon(obj.data.polygons[face], obj)
 
     # iterate over all polys and change their material
     for poly in obj.data.polygons:

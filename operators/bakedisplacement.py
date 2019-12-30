@@ -26,12 +26,6 @@ class MT_OT_Assign_Material_To_Vert_Group(bpy.types.Operator):
         material = bpy.data.materials[mat_name]
         vertex_group = obj.vertex_groups.active.name
 
-        if not obj['textured_groups']:
-            obj['textured_groups'] = {
-                vertex_group: True}
-        else:
-            obj['textured_groups'][vertex_group] = True
-
         # check that material is on our object and add it if not
         if mat_name in obj.material_slots.keys():
             assign_mat_to_vert_group(vertex_group, obj, material)
@@ -64,10 +58,6 @@ class MT_OT_Remove_Material_From_Vert_Group(bpy.types.Operator):
         obj = context.object
         vertex_group = obj.vertex_groups.active.name
         secondary_material = bpy.data.materials[prefs.secondary_material]
-
-        if obj['textured_groups']:
-            if vertex_group in obj['textured_groups']:
-                obj['textured_groups'][vertex_group] = False
 
         if prefs.secondary_material in obj.material_slots.keys():
             assign_mat_to_vert_group(vertex_group, obj, secondary_material)

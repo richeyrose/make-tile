@@ -48,6 +48,7 @@ def assign_mat_to_vert_group(vert_group, obj, material):
                         -- obj (bpy.types.Object)
                         -- material (bpy.types.Material)
     '''
+    mode('OBJECT')
     deselect_all()
     activate(obj.name)
     mode('EDIT')

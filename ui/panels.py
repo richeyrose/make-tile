@@ -189,23 +189,7 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
                 self.draw_openlock_panel(context)
 
 
-class MT_PT_Textured_sides_Panel(MT_PT_Panel, bpy.types.Panel):
-    bl_label = "Textured Sides"
-
-    def draw(self, context):
-        scene = context.scene
-        layout = self.layout
-
-        obj = bpy.context.object
-
-        if obj is not None and obj.type == 'MESH':
-            for area in obj.mt_textured_areas_coll:
-                row = layout.row()
-                row.label(text=area.name)
-                row.prop(area, "value")
-
-
-class MT_PT_vertex_groups(MT_PT_Panel, bpy.types.Panel):
+class MT_PT_Vertex_Groups_Panel(MT_PT_Panel, bpy.types.Panel):
     bl_label = "Vertex Groups"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}

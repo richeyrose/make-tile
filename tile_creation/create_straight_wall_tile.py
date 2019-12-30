@@ -17,7 +17,7 @@ from .. materials.materials import (
     assign_displacement_materials_2)
 from .. operators.trim_tile import (
     create_tile_trimmers)
-from . create_displacement_mesh import create_displacement_object, convert_to_make_tile_obj
+from . create_displacement_mesh import create_displacement_object
 
 
 def create_straight_wall(tile_empty):
@@ -71,35 +71,10 @@ def create_openlock_wall_2(tile_properties, base):
     '''Creates the preview and displacement cores and adds side cutters for
     openLOCK clips'''
 
-    tile_properties['base_size'] = base.dimensions
-
-    preview_core = create_straight_wall_core_2(tile_properties)
-    preview_core, displacement_core = create_displacement_object(preview_core)
-
-    vert_groups = preview_core.vertex_groups
-
-    for group in vert_groups:
-        collectionItem = preview_core.mt_textured_areas_coll.add()
-        collectionItem.value = False
-        collectionItem.name = group.name
-
-    preview_core.parent = base
-    displacement_core.parent = base
-
-    preferences = get_prefs()
-
-    primary_material = bpy.data.materials[tile_properties['tile_materials']['tile_material_1']]
-
-    secondary_material = bpy.data.materials[preferences.secondary_material]
-
-    image_size = bpy.context.scene.mt_tile_resolution
-
-    assign_displacement_materials_2(displacement_core, [image_size, image_size], primary_material, secondary_material)
-
-    # create wall cutters
-    cores = [preview_core, displacement_core]
+    preview_core, displacement_core = create_plain_wall_2(tile_properties, base)
 
     wall_cutters = create_openlock_wall_cutters(preview_core, tile_properties)
+    cores = [preview_core, displacement_core]
 
     for wall_cutter in wall_cutters:
         wall_cutter.parent = base
@@ -111,8 +86,6 @@ def create_openlock_wall_2(tile_properties, base):
             wall_cutter_bool.operation = 'DIFFERENCE'
             wall_cutter_bool.object = wall_cutter
 
-    displacement_core.hide_viewport = True
-
 
 def create_plain_wall_2(tile_properties, base):
     '''Creates the preview and displacement cores'''
@@ -120,13 +93,6 @@ def create_plain_wall_2(tile_properties, base):
 
     preview_core = create_straight_wall_core_2(tile_properties)
     preview_core, displacement_core = create_displacement_object(preview_core)
-
-    vert_groups = preview_core.vertex_groups
-
-    for group in vert_groups:
-        collectionItem = preview_core.mt_textured_areas_coll.add()
-        collectionItem.value = False
-        collectionItem.name = group.name
 
     preview_core.parent = base
     displacement_core.parent = base
@@ -144,6 +110,8 @@ def create_plain_wall_2(tile_properties, base):
     displacement_core.parent = base
 
     displacement_core.hide_viewport = True
+
+    return preview_core, displacement_core
 
 
 def create_straight_wall_core_2(

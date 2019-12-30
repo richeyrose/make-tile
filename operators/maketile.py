@@ -32,38 +32,6 @@ from .. tile_creation.create_corner_wall import create_corner_wall
 from .. tile_creation.create_triangular_floor import create_triangular_floor
 
 
-class MT_Textured_Area_Custom_Bool(bpy.types.PropertyGroup):
-
-    def update_textured_area(self, context):
-        prefs = get_prefs()
-        obj = bpy.context.object
-        material_slots = obj.material_slots
-        vert_group = self.name
-        primary_material = bpy.data.materials[bpy.context.scene.mt_tile_material_1]
-
-        # TODO: Change this so we store material as property on object
-        secondary_material = bpy.data.materials[prefs.secondary_material]  
-
-        if secondary_material.name not in material_slots:
-            obj.data.materials.append(secondary_material)
-
-        if self.value is False:
-            if vert_group is not "":
-                assign_mat_to_vert_group(vert_group, obj, secondary_material)
-        else:
-            if primary_material.name not in material_slots:
-                obj.data.materials.append(primary_material)
-            if vert_group is not "":
-                assign_mat_to_vert_group(vert_group, obj, primary_material)
-
-    """A bpy.types.PropertyGroup descendant for bpy.props.CollectionProperty"""
-    value: bpy.props.BoolProperty(
-        name="",
-        default=False,
-        update=update_textured_area
-    )
-
-
 class MT_OT_Make_Tile(bpy.types.Operator):
     """Create a Tile"""
     bl_idname = "scene.make_tile"
@@ -205,12 +173,6 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         material_enum_collection.directory = ''
         material_enum_collection.enums = ()
         enum_collections["materials"] = material_enum_collection
-
-        # Collection of booleans dynamically generated from Vert groups that
-        # determines which areas of an object have a displacement texture applied
-        bpy.types.Object.mt_textured_areas_coll = bpy.props.CollectionProperty(
-            type=MT_Textured_Area_Custom_Bool,
-        )
 
         bpy.types.Scene.mt_tile_name = bpy.props.StringProperty(
             name="Tile Name",
@@ -415,7 +377,6 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         del bpy.types.Scene.mt_tile_blueprint
         del bpy.types.Scene.mt_main_part_blueprint
         del bpy.types.Scene.mt_tile_units
-        del bpy.types.Object.mt_textured_areas_coll
 
         for pcoll in enum_collections.values():
             bpy.utils.previews.remove(pcoll)

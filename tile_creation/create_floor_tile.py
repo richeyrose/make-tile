@@ -93,13 +93,6 @@ def create_slabs(tile_properties, base):
     preview_slab['linked_obj'] = displacement_slab
     displacement_slab['linked_obj'] = preview_slab
 
-    vert_groups = preview_slab.vertex_groups
-
-    for group in vert_groups:
-        collectionItem = preview_slab.mt_textured_areas_coll.add()
-        collectionItem.value = False
-        collectionItem.name = group.name
-
     preferences = get_prefs()
 
     primary_material = bpy.data.materials[tile_properties['tile_materials']['tile_material_1']]

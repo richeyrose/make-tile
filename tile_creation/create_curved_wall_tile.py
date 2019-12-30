@@ -289,13 +289,6 @@ def create_plain_wall_2(base, tile_properties, tile_empty):
     preview_core['linked_obj'] = displacement_core
     displacement_core['linked_obj'] = preview_core
 
-    vert_groups = preview_core.vertex_groups
-
-    for group in vert_groups:
-        collectionItem = preview_core.mt_textured_areas_coll.add()
-        collectionItem.value = False
-        collectionItem.name = group.name
-
     cores = [preview_core, displacement_core]
 
     preferences = get_prefs()

@@ -14,7 +14,8 @@ from .. lib.utils.selection import (
 from .. lib.utils.utils import mode, apply_all_modifiers
 from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
 from .. materials.materials import (
-    assign_displacement_materials_2)
+    assign_displacement_materials,
+    assign_preview_materials)
 from .. operators.trim_tile import (
     create_tile_trimmers)
 from . create_displacement_mesh import create_displacement_object
@@ -51,10 +52,10 @@ def create_straight_wall(tile_empty):
 
     if tile_properties['main_part_blueprint'] == 'OPENLOCK':
         tile_properties['tile_size'] = Vector((tile_properties['tile_size'][0], 0.3149, tile_properties['tile_size'][2]))
-        create_openlock_wall_2(tile_properties, base)
+        create_openlock_wall(tile_properties, base)
 
     if tile_properties['main_part_blueprint'] == 'PLAIN':
-        create_plain_wall_2(tile_properties, base)
+        create_plain_wall(tile_properties, base)
 
     # create tile trimmers. Used to ensure that displaced
     # textures don't extend beyond the original bounds of the tile.
@@ -67,11 +68,11 @@ def create_straight_wall(tile_empty):
     tile_empty['tile_properties'] = tile_properties
 
 
-def create_openlock_wall_2(tile_properties, base):
+def create_openlock_wall(tile_properties, base):
     '''Creates the preview and displacement cores and adds side cutters for
     openLOCK clips'''
 
-    preview_core, displacement_core = create_plain_wall_2(tile_properties, base)
+    preview_core, displacement_core = create_plain_wall(tile_properties, base)
 
     wall_cutters = create_openlock_wall_cutters(preview_core, tile_properties)
     cores = [preview_core, displacement_core]
@@ -87,11 +88,11 @@ def create_openlock_wall_2(tile_properties, base):
             wall_cutter_bool.object = wall_cutter
 
 
-def create_plain_wall_2(tile_properties, base):
+def create_plain_wall(tile_properties, base):
     '''Creates the preview and displacement cores'''
     tile_properties['base_size'] = base.dimensions
 
-    preview_core = create_straight_wall_core_2(tile_properties)
+    preview_core = create_straight_wall_core(tile_properties)
     preview_core, displacement_core = create_displacement_object(preview_core)
 
     preview_core.parent = base
@@ -104,8 +105,9 @@ def create_plain_wall_2(tile_properties, base):
 
     image_size = bpy.context.scene.mt_tile_resolution
 
-    assign_displacement_materials_2(displacement_core, [image_size, image_size], primary_material, secondary_material)
-
+    textured_vertex_groups = ['Front', 'Back', 'Top']
+    assign_displacement_materials(displacement_core, [image_size, image_size], primary_material, secondary_material)
+    assign_preview_materials(preview_core, primary_material, secondary_material, textured_vertex_groups)
     preview_core.parent = base
     displacement_core.parent = base
 
@@ -114,8 +116,7 @@ def create_plain_wall_2(tile_properties, base):
     return preview_core, displacement_core
 
 
-def create_straight_wall_core_2(
-        tile_properties):
+def create_straight_wall_core(tile_properties):
     '''Returns the core (vertical) part of a wall tile
     '''
     cursor = bpy.context.scene.cursor

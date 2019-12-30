@@ -11,8 +11,8 @@ from .. lib.turtle.scripts.openlock_floor_base import draw_openlock_rect_floor_b
 from . create_straight_wall_tile import create_openlock_straight_wall_base
 from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
 from .. materials.materials import (
-    assign_displacement_materials_2,
-    assign_preview_materials_2)
+    assign_displacement_materials,
+    assign_preview_materials)
 from .. operators.trim_tile import (
     create_tile_trimmers)
 
@@ -100,8 +100,8 @@ def create_slabs(tile_properties, base):
 
     image_size = bpy.context.scene.mt_tile_resolution
 
-    assign_displacement_materials_2(displacement_slab, [image_size, image_size], primary_material, secondary_material)
-    # assign_preview_materials_2(preview_slab, primary_material, secondary_material, tile_properties['textured_groups'])
+    assign_displacement_materials(displacement_slab, [image_size, image_size], primary_material, secondary_material)
+    assign_preview_materials(preview_slab, primary_material, secondary_material, ['Top'])
 
     slabs = [preview_slab, displacement_slab]
 

@@ -7,8 +7,8 @@ from .. lib.utils.vertex_groups import corner_wall_to_vert_groups
 from .. lib.utils.utils import mode
 from .. utils.registration import get_prefs
 from .. materials.materials import (
-    assign_displacement_materials_2,
-    assign_preview_materials_2)
+    assign_displacement_materials,
+    assign_preview_materials)
 from . create_straight_wall_tile import create_openlock_wall_cutters
 from .. operators.trim_tile import create_corner_wall_tile_trimmers
 from .. lib.utils.selection import (
@@ -218,7 +218,8 @@ def create_plain_cores(tile_properties, base):
 
     image_size = bpy.context.scene.mt_tile_resolution
 
-    assign_displacement_materials_2(displacement_core, [image_size, image_size], primary_material, secondary_material)
+    assign_displacement_materials(displacement_core, [image_size, image_size], primary_material, secondary_material)
+    assign_preview_materials(preview_core, primary_material, secondary_material, textured_vertex_groups=['Outer', 'Inner', 'Top'])
 
     displacement_core.hide_viewport = True
 

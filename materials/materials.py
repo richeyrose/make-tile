@@ -114,7 +114,13 @@ def update_preview_material_2(obj, primary_material_name):
             assign_mat_to_vert_group(key, obj, primary_material)
 
 
-def assign_displacement_materials_2(obj, image_size, primary_material, secondary_material):
+def assign_displacement_materials(obj, image_size, primary_material, secondary_material):
+    '''Keyword Arguments:
+    obj - bpy.types.Object
+    image_isize = [float, float]
+    primary_material - bpy.types.Material
+    secondary_material - bpy.types.Material
+    '''
     for material in obj.data.materials:
         obj.data.materials.pop(index=0)
 
@@ -123,24 +129,31 @@ def assign_displacement_materials_2(obj, image_size, primary_material, secondary
     obj.data.materials.append(primary_material)
 
 
-def assign_preview_materials_2(obj, primary_material, secondary_material, textured_groups):
+def assign_preview_materials(obj, primary_material, secondary_material, textured_vertex_groups):
+    '''Keyword Arguments:
+    obj - bpy.types.Object
+    primary_material - bpy.types.Material
+    secondary_material - bpy.types.Material
+    textured_vertex_groups - [str]
+    '''
     for material in obj.data.materials:
         obj.data.materials.pop(index=0)
-
-    obj['primary_material'] = primary_material
-    obj['secondary_material'] = secondary_material
-    obj['textured_groups'] = textured_groups
 
     add_preview_mesh_modifiers(obj)
 
     obj.data.materials.append(secondary_material)
     obj.data.materials.append(primary_material)
-    for key, value in textured_groups.items():
-        if value is 1 or value is True:
-            assign_mat_to_vert_group(key, obj, primary_material)
+
+    for group in textured_vertex_groups:
+        assign_mat_to_vert_group(group, obj, primary_material)
 
 
 def assign_texture_to_areas(obj, primary_material, secondary_material):
+    '''Keyword Arguments:
+    obj - bpy.types.Object
+    primary_material - bpy.types.Material
+    secondary_material - bpy.types.Material
+    '''
     material_slots = obj.material_slots
     all_vert_groups = obj.vertex_groups
     textured_vert_groups = obj.mt_textured_areas_coll

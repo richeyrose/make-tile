@@ -15,12 +15,12 @@ from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
 from .. materials.materials import (
     load_secondary_material,
     assign_mat_to_vert_group,
-    assign_displacement_materials_2,
-    assign_preview_materials_2)
+    assign_displacement_materials,
+    assign_preview_materials)
 from .. enums.enums import geometry_types
 from . create_straight_wall_tile import (
     create_straight_wall_base,
-    create_straight_wall_core_2,
+    create_straight_wall_core,
     create_openlock_base_slot_cutter)
 from .. operators.trim_tile import (
     create_curved_wall_tile_trimmers)
@@ -280,10 +280,10 @@ def create_plain_wall_2(base, tile_properties, tile_empty):
 
     tile_properties['tile_size'] = Vector((wall_length, tile_properties['tile_size'][1], tile_properties['tile_size'][2]))
 
-    preview_core = create_straight_wall_core_2(tile_properties)
+    preview_core = create_straight_wall_core(tile_properties)
     preview_core['geometry_type'] = 'PREVIEW'
 
-    displacement_core = create_straight_wall_core_2(tile_properties)
+    displacement_core = create_straight_wall_core(tile_properties)
     displacement_core['geometry_type'] = 'DISPLACEMENT'
 
     preview_core['linked_obj'] = displacement_core
@@ -298,8 +298,8 @@ def create_plain_wall_2(base, tile_properties, tile_empty):
 
     image_size = bpy.context.scene.mt_tile_resolution
 
-    assign_displacement_materials_2(displacement_core, [image_size, image_size], primary_material, secondary_material)
-
+    assign_displacement_materials(displacement_core, [image_size, image_size], primary_material, secondary_material)
+    assign_preview_materials(preview_core, primary_material, secondary_material, ['Front', 'Back', 'Top'])
     for core in cores:
         core.parent = base
         add_deform_modifiers(core, tile_properties['segments'], tile_properties['degrees_of_arc'])

@@ -9,8 +9,8 @@ from .. lib.utils.utils import mode
 from .. lib.utils.selection import select, activate, deselect_all, select_all, select_by_loc
 from . create_displacement_mesh import create_displacement_object
 from .. materials.materials import (
-    assign_displacement_materials_2,
-    assign_preview_materials_2)
+    assign_displacement_materials,
+    assign_preview_materials)
 from .. lib.utils.vertex_groups import tri_prism_to_vert_groups
 from .. operators.trim_tile import (
     create_tri_floor_tile_trimmers)
@@ -79,8 +79,8 @@ def create_slabs(tile_properties, base):
 
     image_size = bpy.context.scene.mt_tile_resolution
 
-    assign_displacement_materials_2(displacement_slab, [image_size, image_size], primary_material, secondary_material)
-
+    assign_displacement_materials(displacement_slab, [image_size, image_size], primary_material, secondary_material)
+    assign_preview_materials(preview_slab, primary_material, secondary_material, ['Top'])
     slabs = [preview_slab, displacement_slab]
 
     for slab in slabs:

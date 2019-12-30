@@ -2,7 +2,7 @@ import bpy
 from .. tile_creation.create_displacement_mesh import create_displacement_object
 from .. lib.utils.utils import mode
 from .. utils.registration import get_prefs
-from .. materials.materials import assign_displacement_materials_2, assign_mat_to_vert_group
+from .. materials.materials import assign_displacement_materials, assign_mat_to_vert_group
 from .. lib.utils.selection import (
     deselect_all,
     select_all,
@@ -78,7 +78,7 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
                     value.value = True
         '''
 
-        assign_displacement_materials_2(
+        assign_displacement_materials(
             displacement_obj,
             [image_size, image_size],
             material_1,

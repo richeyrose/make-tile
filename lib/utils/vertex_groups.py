@@ -46,7 +46,7 @@ def assign_material_to_faces(obj, face_list, material_index):
 def corner_wall_to_vert_groups(obj, vert_locs):
     """Creates vertex groups out of passed in corner wall and locations of bottom verts
     Keyword Arguments:
-    obj -- MESH_OBJ
+    obj -- bpy.types.Object
     vert_locs -- DICT"""
     cursor_orig_loc = bpy.context.scene.cursor.location.copy()
 

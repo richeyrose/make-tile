@@ -1,23 +1,6 @@
 """ Contains functions for turning objects into displacement meshes"""
-import os
-from math import radians
 import bpy
-from mathutils import Vector
 from .. lib.utils.collections import add_object_to_collection
-from .. utils.registration import get_prefs
-from .. lib.turtle.scripts.primitives import draw_cuboid
-from .. lib.utils.selection import (
-    deselect_all,
-    select_all,
-    select,
-    activate)
-from .. lib.utils.utils import mode, apply_all_modifiers
-from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
-from .. materials.materials import (
-    assign_displacement_materials_2,
-    assign_preview_materials_2)
-from .. operators.trim_tile import (
-    create_tile_trimmers)
 
 
 def create_displacement_object(obj):

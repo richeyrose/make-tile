@@ -61,6 +61,7 @@ def corner_wall_to_vert_groups(obj, vert_locs):
     mode('EDIT')
     deselect_all()
 
+    # vert_locs keys
     leg_1_verts = ['c', 'b']
     leg_2_verts = ['e', 'f']
     outer_verts = ['a', 'b', 'e']
@@ -176,6 +177,10 @@ def corner_wall_to_vert_groups(obj, vert_locs):
 
 
 def tri_prism_to_vert_groups(obj, dim, height):
+    """Keyword arguments:
+    obj - bpy.types.Object
+    dim - DICT
+    height - float"""
     # make vertex groups
     obj.vertex_groups.new(name='Side b')
     obj.vertex_groups.new(name='Side a')
@@ -187,7 +192,6 @@ def tri_prism_to_vert_groups(obj, dim, height):
 
     deselect_all()
 
-    # x pos = side a
     deselect_all()
     select_by_loc(
         lbound=dim['loc_C'],
@@ -208,7 +212,6 @@ def tri_prism_to_vert_groups(obj, dim, height):
     bpy.ops.object.vertex_group_set_active(group='Side a')
     bpy.ops.object.vertex_group_assign()
 
-    # x neg = side b
     deselect_all()
     select_by_loc(
         lbound=dim['loc_A'],
@@ -221,7 +224,6 @@ def tri_prism_to_vert_groups(obj, dim, height):
     bpy.ops.object.vertex_group_set_active(group='Side b')
     bpy.ops.object.vertex_group_assign()
 
-    # y neg = side c
     select_by_loc(
         lbound=dim['loc_A'],
         ubound=(
@@ -232,9 +234,6 @@ def tri_prism_to_vert_groups(obj, dim, height):
     bpy.ops.object.vertex_group_set_active(group='Side c')
     bpy.ops.object.vertex_group_assign()
 
-    # no y pos
-
-    # z pos
     deselect_all()
     select_by_loc(
         lbound=(
@@ -250,7 +249,6 @@ def tri_prism_to_vert_groups(obj, dim, height):
     bpy.ops.object.vertex_group_set_active(group='Top')
     bpy.ops.object.vertex_group_assign()
 
-    # z neg
     deselect_all()
     select_by_loc(
         lbound=(

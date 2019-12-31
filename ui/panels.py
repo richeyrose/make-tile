@@ -35,27 +35,22 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
     def draw_openlock_panel(self, context):
         scene = context.scene
         layout = self.layout
+        obj = context.object
 
         if scene.mt_tile_type == 'STRAIGHT_WALL':
-            layout.label(text="Tile Size")
+            layout.label(text="Tile Size:")
             row = layout.row()
             row.prop(scene, 'mt_tile_x')
             row.prop(scene, 'mt_tile_z')
 
-        elif scene.mt_tile_type == 'RECTANGULAR_FLOOR':
-            layout.label(text="Tile Size")
-            row = layout.row()
-            row.prop(scene, 'mt_tile_x')
-            row.prop(scene, 'mt_tile_y')
-
-        elif scene.mt_tile_type == 'TRIANGULAR_FLOOR':
-            layout.label(text="Tile Properties")
-            layout.prop(scene, 'mt_x_leg_len')
-            layout.prop(scene, 'mt_y_leg_len')
-            layout.prop(scene, 'mt_angle_1')
+            if obj is not None and obj.type == 'MESH':
+                layout.label(text="Side Sockets:")
+                for item in obj.mt_cutters_collection:
+                    row = layout.row()
+                    row.prop(item, "value", text=item.name)
 
         elif scene.mt_tile_type == 'CURVED_WALL':
-            layout.label(text="Tile Properties")
+            layout.label(text="Tile Properties:")
             layout.prop(scene, 'mt_wall_inner_radius')
             layout.prop(scene, 'mt_degrees_of_arc')
             layout.prop(scene, 'mt_segments')
@@ -66,12 +61,36 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
             layout.label(text="Wall Height")
             layout.prop(scene, 'mt_tile_z')
 
+            if obj is not None and obj.type == 'MESH':
+                layout.label(text="Side Sockets:")
+                for item in obj.mt_cutters_collection:
+                    row = layout.row()
+                    row.prop(item, "value", text=item.name)
+
         elif scene.mt_tile_type == 'CORNER_WALL':
             layout.label(text="Wall Height")
             row = layout.row()
             row.prop(scene, 'mt_tile_z')
 
             layout.label(text="Corner Properties")
+            layout.prop(scene, 'mt_x_leg_len')
+            layout.prop(scene, 'mt_y_leg_len')
+            layout.prop(scene, 'mt_angle_1')
+
+            if obj is not None and obj.type == 'MESH':
+                layout.label(text="Side Sockets:")
+                for item in obj.mt_cutters_collection:
+                    row = layout.row()
+                    row.prop(item, "value", text=item.name)
+
+        elif scene.mt_tile_type == 'RECTANGULAR_FLOOR':
+            layout.label(text="Tile Size")
+            row = layout.row()
+            row.prop(scene, 'mt_tile_x')
+            row.prop(scene, 'mt_tile_y')
+
+        elif scene.mt_tile_type == 'TRIANGULAR_FLOOR':
+            layout.label(text="Tile Properties:")
             layout.prop(scene, 'mt_x_leg_len')
             layout.prop(scene, 'mt_y_leg_len')
             layout.prop(scene, 'mt_angle_1')
@@ -358,6 +377,16 @@ class MT_PT_Trim_Panel(MT_PT_Panel, bpy.types.Panel):
             row = layout.row()
             row.prop(scene, 'mt_trim_z_neg')
             row.prop(scene, 'mt_trim_z_pos')
+
+        elif context.scene.mt_tile_type == 'TRIANGULAR_FLOOR':
+            layout.label(text='Sides:')
+            row = layout.row()
+            row.prop(scene, 'mt_trim_x_pos', text='a')
+            row.prop(scene, 'mt_trim_x_neg', text='b')
+            row.prop(scene, 'mt_trim_y_neg', text='c')
+            row = layout.row()
+            row.prop(scene, 'mt_trim_z_pos', text='Top')
+            row.prop(scene, 'mt_trim_z_neg', text='Bottom')
 
         elif context.scene.mt_tile_type == 'STRAIGHT_WALL' or context.scene.mt_tile_type == 'CURVED_WALL':
             row = layout.row()

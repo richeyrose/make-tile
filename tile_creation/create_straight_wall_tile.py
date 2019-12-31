@@ -55,7 +55,7 @@ def create_straight_wall(tile_empty):
         create_openlock_wall(tile_properties, base)
 
     if tile_properties['main_part_blueprint'] == 'PLAIN':
-        create_plain_wall(tile_properties, base)
+        create_wall_cores(tile_properties, base)
 
     # create tile trimmers. Used to ensure that displaced
     # textures don't extend beyond the original bounds of the tile.
@@ -72,23 +72,30 @@ def create_openlock_wall(tile_properties, base):
     '''Creates the preview and displacement cores and adds side cutters for
     openLOCK clips'''
 
-    preview_core, displacement_core = create_plain_wall(tile_properties, base)
+    preview_core, displacement_core = create_wall_cores(tile_properties, base)
 
     wall_cutters = create_openlock_wall_cutters(preview_core, tile_properties)
-    cores = [preview_core, displacement_core]
 
+    cores = [preview_core, displacement_core]
     for wall_cutter in wall_cutters:
         wall_cutter.parent = base
         wall_cutter.display_type = 'BOUNDS'
         wall_cutter.hide_viewport = True
 
         for core in cores:
-            wall_cutter_bool = core.modifiers.new('Wall Cutter', 'BOOLEAN')
+            wall_cutter_bool = core.modifiers.new(wall_cutter.name + '.bool', 'BOOLEAN')
             wall_cutter_bool.operation = 'DIFFERENCE'
             wall_cutter_bool.object = wall_cutter
 
+            # add cutters to object's mt_cutters_collection
+            # so we can activate and deactivate them when necessary
+            item = core.mt_cutters_collection.add()
+            item.name = wall_cutter.name
+            item.value = True
+            item.parent = core.name
 
-def create_plain_wall(tile_properties, base):
+
+def create_wall_cores(tile_properties, base):
     '''Creates the preview and displacement cores'''
     tile_properties['base_size'] = base.dimensions
 

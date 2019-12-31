@@ -189,9 +189,16 @@ def create_openlock_cores(tile_properties, base):
         cutter.hide_viewport = True
 
         for core in cores:
-            cutter_bool = core.modifiers.new('Wall Cutter', 'BOOLEAN')
+            cutter_bool = core.modifiers.new(cutter.name + '.bool', 'BOOLEAN')
             cutter_bool.operation = 'DIFFERENCE'
             cutter_bool.object = cutter
+
+            # add cutters to object's mt_cutters_collection
+            # so we can activate and deactivate them when necessary
+            item = core.mt_cutters_collection.add()
+            item.name = cutter.name
+            item.value = True
+            item.parent = core.name
 
 
 def create_plain_cores(tile_properties, base):

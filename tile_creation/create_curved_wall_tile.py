@@ -51,24 +51,14 @@ def create_curved_wall(tile_empty):
 
     if tile_properties['main_part_blueprint'] == 'OPENLOCK':
         tile_properties['tile_size'] = Vector((tile_properties['tile_size'][0], 0.5, tile_properties['tile_size'][2]))
-        wall = create_openlock_wall_2(base, tile_properties, tile_empty)
+        wall = create_openlock_wall(base, tile_properties, tile_empty)
 
     if tile_properties['main_part_blueprint'] == 'PLAIN':
-        wall = create_plain_wall_2(base, tile_properties, tile_empty)
+        wall = create_plain_wall(base, tile_properties, tile_empty)
 
     # create tile trimmers. Used to ensure that displaced
     # textures don't extend beyond the original bounds of the tile.
     # Used by voxeliser and exporter
-
-    # TODO: tile trimmers
-    # trimmers = create_curved_tile_trimmers(tile_properties)
-
-    # create X neg and x pos trimmers.
-    # move to end
-    # rotate (see openlock side cutters)
-
-    # create slabs that fit against inner and outer base radius for y neg and y pos trimmers
-    # subdivide by num segments
 
     tile_properties['trimmers'] = create_curved_wall_tile_trimmers(tile_properties)
 
@@ -76,8 +66,6 @@ def create_curved_wall(tile_empty):
     tile_empty.location = cursor_orig_loc
     cursor.location = cursor_orig_loc
     tile_empty['tile_properties'] = tile_properties
-    # TODO: why is this here?
-    wall[1].hide_viewport = True
 
 
 def create_openlock_curved_wall_base(tile_properties):
@@ -136,21 +124,29 @@ def create_openlock_curved_wall_base(tile_properties):
     return base, tile_properties['base_size']
 
 
-def create_openlock_wall_2(base, tile_properties, tile_empty):
-    wall = create_plain_wall_2(base, tile_properties, tile_empty)
+def create_openlock_wall(base, tile_properties, tile_empty):
+    cores = create_plain_wall(base, tile_properties, tile_empty)
 
-    cutters = create_openlock_wall_cutters(wall[0], tile_properties)
+    cutters = create_openlock_wall_cutters(cores[0], tile_properties)
 
     for cutter in cutters:
         cutter.parent = base
         cutter.display_type = 'BOUNDS'
         cutter.hide_viewport = True
 
-        for core in wall:
-            cutter_bool = core.modifiers.new('Wall Cutter', 'BOOLEAN')
+        for core in cores:
+            cutter_bool = core.modifiers.new(cutter.name + '.bool', 'BOOLEAN')
             cutter_bool.operation = 'DIFFERENCE'
             cutter_bool.object = cutter
-    return wall
+
+            # add cutters to object's mt_cutters_collection
+            # so we can activate and deactivate them when necessary
+            item = core.mt_cutters_collection.add()
+            item.name = cutter.name
+            item.value = True
+            item.parent = core.name
+
+    return cores
 
 
 def create_openlock_wall_cutters(core, tile_properties):
@@ -266,7 +262,7 @@ def create_openlock_wall_cutters(core, tile_properties):
     return cutters
 
 
-def create_plain_wall_2(base, tile_properties, tile_empty):
+def create_plain_wall(base, tile_properties, tile_empty):
 
     # correct for the Y thickness
     tile_properties['wall_inner_radius'] = tile_properties['wall_inner_radius'] + (tile_properties['tile_size'][1] / 2)
@@ -304,6 +300,8 @@ def create_plain_wall_2(base, tile_properties, tile_empty):
         core.parent = base
         add_deform_modifiers(core, tile_properties['segments'], tile_properties['degrees_of_arc'])
     tile_empty['tile_properties'] = tile_properties
+
+    displacement_core.hide_viewport = True
 
     return cores
 

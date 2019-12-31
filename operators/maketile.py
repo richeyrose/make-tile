@@ -32,6 +32,28 @@ from .. tile_creation.create_corner_wall import create_corner_wall
 from .. tile_creation.create_triangular_floor import create_triangular_floor
 
 
+# A cutter item used by mt_cutters_collection
+class MT_Cutter_Item(bpy.types.PropertyGroup):
+    def update_use_cutter(self, context):
+        if self.parent is not "":
+            parent_obj = bpy.data.objects[self.parent]
+
+            bool_mod = parent_obj.modifiers[self.name + '.bool']
+            bool_mod.show_viewport = self.value
+
+            if 'linked_obj' in parent_obj:
+                linked_obj = parent_obj['linked_obj']
+                bool_mod = linked_obj.modifiers[self.name + '.bool']
+                bool_mod.show_viewport = self.value
+
+    name: bpy.props.StringProperty(name="Cutter Name")
+    value: bpy.props.BoolProperty(
+        name="",
+        default=True,
+        update=update_use_cutter)
+    parent: bpy.props.StringProperty(name="")
+
+
 class MT_OT_Make_Tile(bpy.types.Operator):
     """Create a Tile"""
     bl_idname = "scene.make_tile"
@@ -174,6 +196,12 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         material_enum_collection.enums = ()
         enum_collections["materials"] = material_enum_collection
 
+        # Collection of cutter names and booleans that can be turned on or off 
+        # by MakeTile
+        bpy.types.Object.mt_cutters_collection = bpy.props.CollectionProperty(
+            type=MT_Cutter_Item
+        )
+        
         bpy.types.Scene.mt_tile_name = bpy.props.StringProperty(
             name="Tile Name",
             default="Tile"

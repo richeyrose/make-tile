@@ -19,8 +19,9 @@ from .. materials.materials import (
     assign_preview_materials)
 from .. enums.enums import geometry_types
 from . create_straight_wall_tile import (
-    create_straight_wall_base,
-    create_straight_wall_core,
+    create_plain_base as create_plain_straight_wall_base,
+    create_wall_cores as create_straight_wall_cores,
+    create_core,
     create_openlock_base_slot_cutter)
 from .. operators.trim_tile import (
     create_curved_wall_tile_trimmers)
@@ -39,23 +40,24 @@ def create_curved_wall(tile_empty):
     cursor = bpy.context.scene.cursor
     cursor_orig_loc = cursor.location.copy()
     cursor.location = (0, 0, 0)
+    tile_empty.location = (0, 0, 0)
 
     if tile_properties['base_blueprint'] == 'OPENLOCK':
         tile_properties['base_inner_radius'] = tile_properties['wall_inner_radius'] + (tile_properties['base_size'][1] / 2)
         tile_properties['base_size'] = Vector((tile_properties['tile_size'][0], 0.5, 0.2755))
-        base, tile_properties['base_size'] = create_openlock_curved_wall_base(tile_properties)
+        base = create_openlock_base(tile_properties)
 
     if tile_properties['base_blueprint'] == 'PLAIN':
         tile_properties['base_inner_radius'] = tile_properties['base_inner_radius'] + (tile_properties['base_size'][1] / 2)
-        base, tile_properties['base_size'] = create_plain_curved_wall_base(tile_properties)
+        base = create_plain_base(tile_properties)
 
     if tile_properties['main_part_blueprint'] == 'OPENLOCK':
         tile_properties['tile_size'] = Vector((tile_properties['tile_size'][0], 0.5, tile_properties['tile_size'][2]))
-        wall = create_openlock_wall(base, tile_properties, tile_empty)
+        preview_core, displacement_core = create_openlock_cores(base, tile_properties, tile_empty)
 
     if tile_properties['main_part_blueprint'] == 'PLAIN':
-        wall = create_plain_wall(base, tile_properties, tile_empty)
-
+        preview_core, displacement_core = create_wall_cores(base, tile_properties)
+        displacement_core.hide_viewport = True
     # create tile trimmers. Used to ensure that displaced
     # textures don't extend beyond the original bounds of the tile.
     # Used by voxeliser and exporter
@@ -68,66 +70,105 @@ def create_curved_wall(tile_empty):
     tile_empty['tile_properties'] = tile_properties
 
 
-def create_openlock_curved_wall_base(tile_properties):
+def create_plain_base(tile_properties):
 
-    base, tile_properties['base_size'] = create_plain_curved_wall_base(tile_properties)
+    circumference = 2 * pi * tile_properties['base_inner_radius']
+    base_length = circumference / (360 / tile_properties['degrees_of_arc'])
+    tile_properties['base_size'] = Vector((base_length, tile_properties['base_size'][1], tile_properties['base_size'][2]))
+
+    base = create_plain_straight_wall_base(tile_properties)
+    add_deform_modifiers(base, tile_properties['segments'], tile_properties['degrees_of_arc'])
+
+    return base
+
+
+def create_openlock_base(tile_properties):
+    base = create_plain_base(tile_properties)
 
     # make base slot
     if tile_properties['base_socket_sides'] == 'INNER':
         slot_cutter = create_openlock_base_slot_cutter(base, tile_properties, offset=0.017)
     else:
         slot_cutter = create_openlock_base_slot_cutter(base, tile_properties['base_size'], tile_properties['tile_name'])
-    cutter_degrees_of_arc = tile_properties['degrees_of_arc'] * (slot_cutter.dimensions[0] / tile_properties['base_size'][0])
 
-    slot_boolean = base.modifiers.new(slot_cutter.name, 'BOOLEAN')
-    slot_boolean.operation = 'DIFFERENCE'
-    slot_boolean.object = slot_cutter
-    slot_cutter.parent = base
-    slot_cutter.display_type = 'BOUNDS'
     add_deform_modifiers(slot_cutter, tile_properties['segments'], tile_properties['degrees_of_arc'])
     slot_cutter.hide_viewport = True
 
-    deselect_all()
+    clip_cutter = create_openlock_base_clip_cutter(base, tile_properties)
+
+    return base
+
+
+def create_openlock_base_clip_cutter(base, tile_properties):
+    # load base cutter
     preferences = get_prefs()
     booleans_path = os.path.join(preferences.assets_path, "meshes", "booleans", "openlock.blend")
 
-    # load base cutter
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
         data_to.objects = ['openlock.wall.base.cutter.clip_single']
 
-    base_cutter = data_to.objects[0]
-    add_object_to_collection(base_cutter, tile_properties['tile_name'])
+    clip_cutter = data_to.objects[0]
+    add_object_to_collection(clip_cutter, tile_properties['tile_name'])
 
-    select(base_cutter.name)
-    activate(base_cutter.name)
+    deselect_all()
+    select(clip_cutter.name)
 
     if tile_properties['base_socket_sides'] == 'INNER':
         bpy.ops.transform.rotate(value=radians(180), orient_axis='Z')
         bpy.ops.object.transform_apply(location=False, scale=False, properties=False)
 
-    loc = base_cutter.location
+    loc = clip_cutter.location
     circle_center = Vector((loc[0], loc[1] + tile_properties['base_inner_radius'], loc[2]))
 
     bpy.ops.transform.rotate(value=radians((tile_properties['degrees_of_arc'] / 2) - 22.5), orient_axis='Z', center_override=circle_center)
     bpy.ops.object.transform_apply(location=False, scale=False, properties=False)
     num_cutters = modf((tile_properties['degrees_of_arc'] - 22.5) / 22.5)
-    array_name, empty = add_circle_array(base_cutter, circle_center, num_cutters[1], 'Z', tile_properties['degrees_of_arc'] - 22.5)
+    array_name, empty = add_circle_array(clip_cutter, circle_center, num_cutters[1], 'Z', tile_properties['degrees_of_arc'] - 22.5)
     empty.parent = base
     empty.hide_viewport = True
-    base_cutter.parent = base
-    base_cutter.display_type = 'BOUNDS'
-    base_cutter.hide_viewport = True
-    base_cutter_bool = base.modifiers.new('Base Cutter', 'BOOLEAN')
-    base_cutter_bool.operation = 'DIFFERENCE'
-    base_cutter_bool.object = base_cutter
 
-    return base, tile_properties['base_size']
+    clip_cutter.parent = base
+    clip_cutter.display_type = 'BOUNDS'
+    clip_cutter.hide_viewport = True
+    clip_cutter_bool = base.modifiers.new('Base Cutter', 'BOOLEAN')
+    clip_cutter_bool.operation = 'DIFFERENCE'
+    clip_cutter_bool.object = clip_cutter
+
+    return clip_cutter
 
 
-def create_openlock_wall(base, tile_properties, tile_empty):
-    cores = create_plain_wall(base, tile_properties, tile_empty)
+def create_wall_cores(base, tile_properties):
+    # calculate wall dimensions
+    tile_properties['wall_inner_radius'] = (
+        tile_properties['wall_inner_radius'] + (tile_properties['tile_size'][1] / 2))
 
-    cutters = create_openlock_wall_cutters(cores[0], tile_properties)
+    circumference = 2 * pi * tile_properties['wall_inner_radius']
+    wall_length = circumference / (360 / tile_properties['degrees_of_arc'])
+
+    if tile_properties['main_part_blueprint'] == 'OPENLOCK':
+        tile_properties['tile_size'][1] = 0.3149
+
+    tile_properties['tile_size'] = Vector((
+        wall_length,
+        tile_properties['tile_size'][1],
+        tile_properties['tile_size'][2]))
+
+    preview_core, displacement_core = create_straight_wall_cores(tile_properties, base)
+
+    cores = [preview_core, displacement_core]
+    for core in cores:
+        add_deform_modifiers(core, tile_properties['segments'], tile_properties['degrees_of_arc'])
+
+    displacement_core.hide_viewport = True
+
+    return preview_core, displacement_core
+
+
+def create_openlock_cores(base, tile_properties, tile_empty):
+    preview_core, displacement_core = create_wall_cores(base, tile_properties)
+    cores = [preview_core, displacement_core]
+
+    cutters = create_openlock_wall_cutters(preview_core, tile_properties)
 
     for cutter in cutters:
         cutter.parent = base
@@ -146,7 +187,7 @@ def create_openlock_wall(base, tile_properties, tile_empty):
             item.value = True
             item.parent = core.name
 
-    return cores
+    return preview_core, displacement_core
 
 
 def create_openlock_wall_cutters(core, tile_properties):
@@ -260,60 +301,3 @@ def create_openlock_wall_cutters(core, tile_properties):
     cutters.extend([right_cutter_bottom, right_cutter_top])
 
     return cutters
-
-
-def create_plain_wall(base, tile_properties, tile_empty):
-
-    # correct for the Y thickness
-    tile_properties['wall_inner_radius'] = tile_properties['wall_inner_radius'] + (tile_properties['tile_size'][1] / 2)
-
-    circumference = 2 * pi * tile_properties['wall_inner_radius']
-    wall_length = circumference / (360 / tile_properties['degrees_of_arc'])
-
-    # TODO: Get rid of hack used to correct for openlock width here
-    if tile_properties['main_part_blueprint'] == 'OPENLOCK':
-        tile_properties['tile_size'][1] = 0.3149
-
-    tile_properties['tile_size'] = Vector((wall_length, tile_properties['tile_size'][1], tile_properties['tile_size'][2]))
-
-    preview_core = create_straight_wall_core(tile_properties)
-    preview_core['geometry_type'] = 'PREVIEW'
-
-    displacement_core = create_straight_wall_core(tile_properties)
-    displacement_core['geometry_type'] = 'DISPLACEMENT'
-
-    preview_core['linked_obj'] = displacement_core
-    displacement_core['linked_obj'] = preview_core
-
-    cores = [preview_core, displacement_core]
-
-    preferences = get_prefs()
-
-    primary_material = bpy.data.materials[tile_properties['tile_materials']['tile_material_1']]
-    secondary_material = bpy.data.materials[preferences.secondary_material]
-
-    image_size = bpy.context.scene.mt_tile_resolution
-
-    assign_displacement_materials(displacement_core, [image_size, image_size], primary_material, secondary_material)
-    assign_preview_materials(preview_core, primary_material, secondary_material, ['Front', 'Back', 'Top'])
-    for core in cores:
-        core.parent = base
-        add_deform_modifiers(core, tile_properties['segments'], tile_properties['degrees_of_arc'])
-    tile_empty['tile_properties'] = tile_properties
-
-    displacement_core.hide_viewport = True
-
-    return cores
-
-
-def create_plain_curved_wall_base(tile_properties):
-
-    circumference = 2 * pi * tile_properties['base_inner_radius']
-
-    base_length = circumference / (360 / tile_properties['degrees_of_arc'])
-    tile_properties['base_size'] = Vector((base_length, tile_properties['base_size'][1], tile_properties['base_size'][2]))
-
-    base = create_straight_wall_base(tile_properties)
-    add_deform_modifiers(base, tile_properties['segments'], tile_properties['degrees_of_arc'])
-
-    return base, tile_properties['base_size']

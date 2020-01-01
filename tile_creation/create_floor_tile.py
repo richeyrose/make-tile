@@ -8,7 +8,7 @@ from .. lib.utils.selection import select, activate
 from .. utils.registration import get_prefs
 from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. lib.turtle.scripts.openlock_floor_base import draw_openlock_rect_floor_base
-from . create_straight_wall_tile import create_openlock_straight_wall_base
+from . create_straight_wall_tile import create_openlock_base
 from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
 from .. materials.materials import (
     assign_displacement_materials,
@@ -160,7 +160,7 @@ def create_openlock_floor_base(tile_properties):
     '''Creates an openlock style base'''
     if tile_properties['base_size'][0] >= 1 and tile_properties['base_size'][1] < 1 and tile_properties['base_size'][1] > 0.496:
         # if base is less than an inch wide use a wall type base
-        base = create_openlock_straight_wall_base(tile_properties)
+        base = create_openlock_base(tile_properties)
     elif tile_properties['base_size'][0] < 1 or tile_properties['base_size'][1] <= 0.496:
         # TODO: Display message in viewport
         print('Tile too small')

@@ -106,30 +106,46 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
             row.prop(scene, 'mt_base_y')
             row.prop(scene, 'mt_base_z')
 
+        if scene.mt_tile_type == 'CORNER_WALL':
+            layout.label(text="Base Thickness and Height")
+            row = layout.row()
+            row.prop(scene, 'mt_base_y')
+            row.prop(scene, 'mt_base_z')
+
         if scene.mt_tile_type == 'TRIANGULAR_FLOOR':
             layout.label(text="Base Height")
             row = layout.row()
             row.prop(scene, 'mt_base_z')
-            layout.label(text="TIle Height")
+
+            layout.label(text="Tile Height")
             row = layout.row()
             row.prop(scene, 'mt_tile_z')
-            layout.label(text="Tile_Properties")
+
+            layout.label(text="Tile Properties")
             layout.prop(scene, 'mt_x_leg_len')
             layout.prop(scene, 'mt_y_leg_len')
             layout.prop(scene, 'mt_angle_1')
 
-        elif scene.mt_tile_type == 'CURVED_WALL':
+        if scene.mt_tile_type == 'CURVED_FLOOR':
+            layout.label(text="Base Height")
+            layout.prop(scene, 'mt_base_z')
+
+            layout.label(text="Tile Height")
+            layout.prop(scene, 'mt_tile_z')
+
+            layout.label(text="Tile Properties")
+            layout.prop(scene, 'mt_base_inner_radius', text="Straight edge length")
+            layout.prop(scene, 'mt_angle_1', text="Degrees of arc")
+            layout.prop(scene, 'mt_curve_type')
+            layout.prop(scene, 'mt_segments')
+
+        if scene.mt_tile_type == 'CURVED_WALL':
             layout.label(text="Base Properties")
             layout.prop(scene, 'mt_base_inner_radius')
             row = layout.row()
             row.prop(scene, 'mt_base_y')
             row.prop(scene, 'mt_base_z')
 
-        elif scene.mt_tile_type == 'CORNER_WALL':
-            layout.label(text="Base Thickness and Height")
-            row = layout.row()
-            row.prop(scene, 'mt_base_y')
-            row.prop(scene, 'mt_base_z')
 
     def draw_plain_main_part_panel(self, context):
         scene = context.scene

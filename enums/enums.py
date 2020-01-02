@@ -6,6 +6,11 @@ units = [
     ("INCHES", "Inches", "", 2),
 ]
 
+curve_types = [
+    ("POS", "Positive", "", 1),
+    ("NEG", "Negative", "", 2),
+]
+
 tile_blueprints = [
     ("PLAIN", "Plain", "", 1),
     ("OPENLOCK", "OpenLOCK", "", 2),
@@ -28,7 +33,8 @@ tile_types = [
     ("CURVED_WALL", "Curved Wall", "", 2),
     ("CORNER_WALL", "Corner Wall", "", 3),
     ("RECTANGULAR_FLOOR", "Rectangular Floor", "", 4),
-    ("TRIANGULAR_FLOOR", "Triangular Floor", "", 5)
+    ("TRIANGULAR_FLOOR", "Triangular Floor", "", 5),
+    ("CURVED_FLOOR", "Curved Floor", "", 6)
 ]
 
 geometry_types = [

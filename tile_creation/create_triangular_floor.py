@@ -17,12 +17,13 @@ from .. operators.trim_tile import (
 
 
 def create_triangular_floor(tile_empty):
-    """Returns a triangular floor"""
+    """Creates a triangular floor"""
     tile_properties = tile_empty['tile_properties']
 
     cursor = bpy.context.scene.cursor
     cursor_orig_loc = cursor.location.copy()
     cursor.location = (0, 0, 0)
+    tile_empty.location = (0, 0, 0)
 
     if tile_properties['base_blueprint'] == 'OPENLOCK':
         tile_properties['base_size'][2] = .2756

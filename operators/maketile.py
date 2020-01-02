@@ -15,7 +15,8 @@ from .. enums.enums import (
     units,
     base_systems,
     tile_blueprints,
-    base_socket_side)
+    base_socket_side,
+    curve_types)
 
 from .. materials.materials import (
     load_materials,
@@ -30,6 +31,7 @@ from .. tile_creation.create_floor_tile import create_rectangular_floor
 from .. tile_creation.create_curved_wall_tile import create_curved_wall
 from .. tile_creation.create_corner_wall import create_corner_wall
 from .. tile_creation.create_triangular_floor import create_triangular_floor
+from .. tile_creation.create_curved_floor import create_curved_floor
 
 
 # A cutter item used by mt_cutters_collection
@@ -106,7 +108,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             tile_collection = bpy.data.collections.new(tile_name)
             bpy.data.collections['Walls'].children.link(tile_collection)
 
-        elif tile_type == 'RECTANGULAR_FLOOR' or tile_type == 'TRIANGULAR_FLOOR':
+        elif tile_type == 'RECTANGULAR_FLOOR' or tile_type == 'TRIANGULAR_FLOOR' or tile_type == 'CURVED_FLOOR':
             # create floor collection if one doesn't already exist
             floors_collection = create_collection('Floors', tiles_collection)
             # create new collection that operates as our "tile" and activate it
@@ -185,6 +187,9 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         if tile_type == 'TRIANGULAR_FLOOR':
             create_triangular_floor(tile_empty)
 
+        if tile_type == 'CURVED_FLOOR':
+            create_curved_floor(tile_empty)
+
         return {'FINISHED'}
 
     @classmethod
@@ -201,7 +206,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         bpy.types.Object.mt_cutters_collection = bpy.props.CollectionProperty(
             type=MT_Cutter_Item
         )
-        
+
         bpy.types.Scene.mt_tile_name = bpy.props.StringProperty(
             name="Tile Name",
             default="Tile"
@@ -367,6 +372,14 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             min=0
         )
 
+        # used for curved floors
+        bpy.types.Scene.mt_curve_type = bpy.props.EnumProperty(
+            items=curve_types,
+            name="Curve type",
+            default="POS",
+            description="Whether the tile has a positive or negative curvature"
+        )
+
         # TODO: Fix hack to make 360 curved wall work. Ideally this should merge everything
         bpy.types.Scene.mt_degrees_of_arc = bpy.props.FloatProperty(
             name="Degrees of arc",
@@ -389,6 +402,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         del bpy.types.Scene.mt_segments
         del bpy.types.Scene.mt_base_inner_radius
         del bpy.types.Scene.mt_wall_inner_radius
+        del bpy.types.Scene.mt_curve_type
         del bpy.types.Scene.mt_degrees_of_arc
         del bpy.types.Scene.mt_base_socket_side
         del bpy.types.Scene.mt_base_x

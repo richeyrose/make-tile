@@ -77,7 +77,7 @@ def create_plain_base(tile_properties):
     bpy.context.scene.cursor.location = cursor_start_location
     return base
 
-
+# TODO: Refactor
 def create_slabs(tile_properties, base):
     ''''creates the preview and displacement slabs for the floor tile'''
     preview_slab = create_floor_slab(
@@ -110,7 +110,7 @@ def create_slabs(tile_properties, base):
 
     displacement_slab.hide_viewport = True
 
-
+# TODO: Refactor
 def create_floor_slab(tile_properties, geometry_type):
     """Returns a displacement or preview floor slab depending on the geometry type"""
     cursor_start_location = bpy.context.scene.cursor.location.copy()

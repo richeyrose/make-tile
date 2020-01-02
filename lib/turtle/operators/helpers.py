@@ -1,11 +1,14 @@
 import bpy
 import bmesh
+from bpy.props import FloatProperty
 
 
 class TURTLE_OT_merge(bpy.types.Operator):
     bl_idname = "turtle.merge"
     bl_label = "Merge Verts"
-    bl_description = "Merges duplicate vertices"
+    bl_description = "Merges duplicate vertices. t= threshold"
+
+    t: FloatProperty(default=0.0001)
 
     @classmethod
     def poll(cls, context):
@@ -15,7 +18,7 @@ class TURTLE_OT_merge(bpy.types.Operator):
         bpy.ops.object.editmode_toggle()
         bpy.ops.object.editmode_toggle()
 
-        bpy.ops.mesh.remove_doubles()
+        bpy.ops.mesh.remove_doubles(threshold=self.t)
 
         return {'FINISHED'}
 

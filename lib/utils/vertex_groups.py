@@ -1,7 +1,7 @@
 from math import sqrt, radians, degrees, cos, acos
 import bpy
 import bmesh
-from . selection import select_by_loc, deselect_all, select
+from . selection import select_by_loc, select_inverse_by_loc, deselect_all, select_all, select
 from . utils import mode
 
 
@@ -176,6 +176,89 @@ def corner_wall_to_vert_groups(obj, vert_locs):
         deselect_all()
 
 
+def curved_floor_to_vert_groups(obj, height, side_length):
+
+    obj.vertex_groups.new(name='Side a')
+    obj.vertex_groups.new(name='Side b')
+    obj.vertex_groups.new(name='Side c')
+    obj.vertex_groups.new(name='Bottom')
+    obj.vertex_groups.new(name='Top')
+    select(obj.name)
+    mode('EDIT')
+
+    deselect_all()
+    select_by_loc(
+        lbound=(obj.location),
+        ubound=(
+            obj.location[0] + side_length,
+            obj.location[1] + side_length,
+            obj.location[2]),
+        coords='GLOBAL'
+    )
+    bpy.ops.object.vertex_group_set_active(group='Bottom')
+    bpy.ops.object.vertex_group_assign()
+
+    deselect_all()
+    select_by_loc(
+        lbound=(
+            obj.location[0],
+            obj.location[1],
+            obj.location[2] + height),
+        ubound=(
+            obj.location[0] + side_length,
+            obj.location[1] + side_length,
+            obj.location[2] + height),
+        coords='GLOBAL'
+    )
+    bpy.ops.object.vertex_group_set_active(group='Top')
+    bpy.ops.object.vertex_group_assign()
+
+    deselect_all()
+    select_by_loc(
+        lbound=(
+            obj.location[0],
+            obj.location[1],
+            obj.location[2]),
+        ubound=(
+            obj.location[0] + side_length,
+            obj.location[1],
+            obj.location[2] + height),
+        coords='GLOBAL'
+    )
+    bpy.ops.object.vertex_group_set_active(group='Side c')
+    bpy.ops.object.vertex_group_assign()
+
+    deselect_all()
+    select_by_loc(
+        lbound=(
+            obj.location[0],
+            obj.location[1],
+            obj.location[2]),
+        ubound=(
+            obj.location[0],
+            obj.location[1] + side_length,
+            obj.location[2] + height),
+        coords='GLOBAL'
+    )
+    bpy.ops.object.vertex_group_set_active(group='Side b')
+    bpy.ops.object.vertex_group_assign()
+
+    deselect_all()
+    select_inverse_by_loc(
+        lbound=(
+            obj.location[0],
+            obj.location[1],
+            obj.location[2]),
+        ubound=(
+            obj.location[0],
+            obj.location[1],
+            obj.location[2] + height),
+        coords='GLOBAL'
+    )
+    bpy.ops.object.vertex_group_set_active(group='Side a')
+    bpy.ops.object.vertex_group_assign()
+
+
 def tri_prism_to_vert_groups(obj, dim, height):
     """Keyword arguments:
     obj - bpy.types.Object
@@ -189,8 +272,6 @@ def tri_prism_to_vert_groups(obj, dim, height):
     obj.vertex_groups.new(name='Top')
 
     mode('EDIT')
-
-    deselect_all()
 
     deselect_all()
     select_by_loc(

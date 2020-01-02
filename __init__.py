@@ -25,6 +25,15 @@ from . ui.panels import (
     MT_PT_Trim_Panel,
     MT_PT_Vertex_Groups_Panel,
     MT_PT_Converter_Panel)
+
+# Include tinycad operators as library in case user doesn;t have it installed
+from . lib.utils.tinycad.BIX import MT_OT_LineOnBisection
+from . lib.utils.tinycad.CCEN import MT_OT_CallBackCCEN, MT_OT_CircleCenter
+from . lib.utils.tinycad.E2F import MT_OT_EdgeToFace
+from . lib.utils.tinycad.V2X import MT_OT_Vert2Intersection
+from . lib.utils.tinycad.VTX import MT_OT_AutoVTX
+from . lib.utils.tinycad.XALL import MT_OT_IntersectAllEdges
+
 from . operators.maketile import MT_OT_Make_Tile, MT_Cutter_Item
 from . operators.makevertgroups import MT_OT_makeVertGroupsFromFaces
 from . operators.object_converter import MT_OT_Convert_To_MT_Obj
@@ -69,6 +78,13 @@ classes = (
     MT_OT_Export_Tile,
     MT_OT_Assign_Material_To_Vert_Group,
     MT_OT_Remove_Material_From_Vert_Group,
+    MT_OT_LineOnBisection,
+    MT_OT_CallBackCCEN,
+    MT_OT_CircleCenter,
+    MT_OT_EdgeToFace,
+    MT_OT_Vert2Intersection,
+    MT_OT_AutoVTX,
+    MT_OT_IntersectAllEdges,
     MT_PT_Main_Panel,
     MT_PT_Vertex_Groups_Panel,
     MT_PT_Material_Panel,

@@ -95,6 +95,13 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
             layout.prop(scene, 'mt_y_leg_len')
             layout.prop(scene, 'mt_angle_1')
 
+        elif scene.mt_tile_type == 'CURVED_FLOOR':
+            layout.label(text="Tile Properties")
+            layout.prop(scene, 'mt_base_inner_radius', text="Straight edge length")
+            layout.prop(scene, 'mt_angle_1', text="Degrees of arc")
+            layout.prop(scene, 'mt_curve_type')
+            layout.prop(scene, 'mt_segments')
+
     def draw_plain_base_panel(self, context):
         scene = context.scene
         layout = self.layout

@@ -1,4 +1,4 @@
-from math import radians
+from math import radians, sqrt
 import bpy
 import bmesh
 from mathutils import Vector
@@ -132,3 +132,13 @@ def add_deform_modifiers(obj, segments=8, degrees_of_arc=90, axis='Z', show_rend
     curve_mod.angle = radians(degrees_of_arc)
 
     return curve_mod.name
+
+
+def distance_between_two_verts(first, second):
+    '''returns the distance between 2 verts'''
+    locx = second[0] - first[0]
+    locy = second[1] - first[1]
+    locz = second[2] - first[2]
+
+    distance = sqrt((locx)**2 + (locy)**2 + (locz)**2) 
+    return distance

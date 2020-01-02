@@ -56,6 +56,7 @@ class TURTLE_OT_add_vert(bpy.types.Operator):
 
         from bpy_extras import object_utils
         object_utils.object_data_add(context, mesh, operator=None)
-        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.object.editmode_toggle()
+        bpy.ops.object.editmode_toggle()
 
         return {'FINISHED'}

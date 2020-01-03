@@ -2,6 +2,7 @@ import os
 import bpy
 from .. lib.utils.selection import select, activate, deselect_all, select_all
 from .. utils.registration import get_prefs
+from .. lib.utils.utils import view3d_find
 from .. enums.enums import units
 from .voxeliser import voxelise_mesh, apply_all_modifiers
 
@@ -24,33 +25,45 @@ class MT_OT_Export_Tile(bpy.types.Operator):
 
         tile_name = context.object.users_collection[0].name
 
+        obs = []
         for obj in context.layer_collection.collection.all_objects:
             if obj.type == 'MESH':
-                obj.select_set(True)
-        meshes = bpy.context.selected_objects.copy()
+                if obj.hide_viewport is False:
+                    obs.append(obj)
+                    select(obj.name)
 
-        mesh_copies = []
+        '''
+        ctx = bpy.context.copy()
+        ctx['active_object'] = obs[0]
+        ctx['object'] = obs[0]
+        ctx['selected_objects'] = obs
+        ctx['selected_editable_objects'] = obs
+        '''
+        # cannot get this to work with context override whatever I do so using select
+        '''
+        bpy.ops.object.convert(ctx, target='MESH', keep_original=True)
+        '''
 
-        for mesh in meshes:
-            mesh_copy = mesh.copy()
-            mesh_copies.append(mesh_copy)
-            mesh.hide_viewport = True
+        bpy.ops.object.convert(target='MESH', keep_original=True)
 
-        for copy in mesh_copies:
-            context.layer_collection.collection.objects.link(copy)
+        deselect_all()
 
+        for obj in obs:
+            obj.hide_viewport = True
+
+        copies = []
         for obj in context.layer_collection.collection.all_objects:
             if obj.type == 'MESH':
-                obj.select_set(True)
-            obj.select_set(True)
+                if obj.hide_viewport is False:
+                    copies.append(obj)
 
-        bpy.ops.object.make_single_user(type='SELECTED_OBJECTS', obdata=True)
+        ctx = bpy.context.copy()
+        ctx['active_object'] = copies[0]
+        ctx['object'] = copies[0]
+        ctx['selected_objects'] = copies
+        ctx['selected_editable_objects'] = copies
 
-        for copy in mesh_copies:
-            apply_all_modifiers(copy)
-        if len(mesh_copies) > 1:
-            activate(mesh_copies[0].name)
-            bpy.ops.object.join()
+        bpy.ops.object.join(ctx)
 
         if bpy.context.scene.mt_voxelise_on_export is True:
             voxelise_mesh(bpy.context.object)
@@ -66,11 +79,20 @@ class MT_OT_Export_Tile(bpy.types.Operator):
         if not os.path.exists(export_path):
             os.mkdir(export_path)
         file_path = os.path.join(context.scene.mt_export_path, tile_name + '.stl')
+
+        deselect_all()
+        for obj in context.layer_collection.collection.all_objects:
+            if obj.type == 'MESH':
+                if obj.hide_viewport is False:
+                    select(obj.name)
+
         bpy.ops.export_mesh.stl('INVOKE_DEFAULT', filepath=file_path, check_existing=True, filter_glob="*.stl", use_selection=True, global_scale=unit_multiplier, use_mesh_modifiers=True)
 
-        for mesh in meshes:
-            mesh.hide_viewport = False
-
+        #TODO: Create merged_tiles collections
+        '''
+        for obj in obs:
+            obj.hide_viewport = False
+        '''
         return {'FINISHED'}
 
     @classmethod

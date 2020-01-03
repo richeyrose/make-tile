@@ -110,6 +110,7 @@ def create_slabs(tile_properties, base):
 
     displacement_slab.hide_viewport = True
 
+
 # TODO: Refactor
 def create_floor_slab(tile_properties, geometry_type):
     """Returns a displacement or preview floor slab depending on the geometry type"""

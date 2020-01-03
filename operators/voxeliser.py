@@ -91,7 +91,7 @@ def apply_all_modifiers(mesh, only_visible=True):
 
     for mod in mesh.modifiers[:]:
         contxt['modifier'] = mod
-
+        print(mod.name)
         if only_visible is True:
             if contxt['modifier'].show_viewport is True:
                 bpy.ops.object.modifier_apply(

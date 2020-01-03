@@ -153,7 +153,6 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
             row.prop(scene, 'mt_base_y')
             row.prop(scene, 'mt_base_z')
 
-
     def draw_plain_main_part_panel(self, context):
         scene = context.scene
         layout = self.layout
@@ -401,7 +400,7 @@ class MT_PT_Trim_Panel(MT_PT_Panel, bpy.types.Panel):
             row.prop(scene, 'mt_trim_z_neg')
             row.prop(scene, 'mt_trim_z_pos')
 
-        elif context.scene.mt_tile_type == 'TRIANGULAR_FLOOR':
+        elif context.scene.mt_tile_type == 'TRIANGULAR_FLOOR' or context.scene.mt_tile_type == 'CURVED_FLOOR':
             layout.label(text='Sides:')
             row = layout.row()
             row.prop(scene, 'mt_trim_x_pos', text='a')
@@ -410,6 +409,7 @@ class MT_PT_Trim_Panel(MT_PT_Panel, bpy.types.Panel):
             row = layout.row()
             row.prop(scene, 'mt_trim_z_pos', text='Top')
             row.prop(scene, 'mt_trim_z_neg', text='Bottom')
+            
 
         elif context.scene.mt_tile_type == 'STRAIGHT_WALL' or context.scene.mt_tile_type == 'CURVED_WALL':
             row = layout.row()

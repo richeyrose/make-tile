@@ -1,4 +1,4 @@
-from math import radians, sqrt
+from math import radians, sqrt, cos, acos, degrees
 import bpy
 import bmesh
 from mathutils import Vector
@@ -142,3 +142,20 @@ def distance_between_two_verts(first, second):
 
     distance = sqrt((locx)**2 + (locy)**2 + (locz)**2) 
     return distance
+
+
+def calc_tri(A, b, c):
+    '''returns full dimensions of triangle given 1 angle and 2 sides'''
+    a = sqrt((b**2 + c**2) - ((2 * b * c) * cos(radians(A))))
+    B = degrees(acos((c**2 + a**2 - (b**2)) / (2 * c * a)))
+    C = 180 - A - B
+
+    dimensions = {
+        'a': a,
+        'b': b,
+        'c': c,
+        'A': A,
+        'B': B,
+        'C': C}
+
+    return dimensions

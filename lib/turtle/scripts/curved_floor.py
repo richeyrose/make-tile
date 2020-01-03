@@ -22,7 +22,7 @@ def distance_between_two_verts(first, second):
     return distance
 
 
-def draw_openlock_pos_curved_slab(length, segments, angle, height):
+def draw_openlock_pos_curved_base(length, segments, angle, height):
     t = bpy.ops.turtle
     turtle = bpy.context.scene.cursor
     origin = turtle.location.copy()
@@ -43,7 +43,7 @@ def draw_openlock_pos_curved_slab(length, segments, angle, height):
     t.arc(r=length, d=angle, s=segments)
     t.select_all()
     t.merge(t=0.01)
-    bpy.ops.object.editmode_toggle()
+
     bpy.ops.object.editmode_toggle()
 
     # save outer loop vert inidices
@@ -51,7 +51,7 @@ def draw_openlock_pos_curved_slab(length, segments, angle, height):
     for vert in bpy.context.object.data.vertices:
         if vert.select is True:
             outer_loop.append(vert.index)
-
+    bpy.ops.object.editmode_toggle()
     t.deselect_all()
     t.pu()
 
@@ -241,7 +241,10 @@ def draw_openlock_pos_curved_slab(length, segments, angle, height):
     bpy.ops.mesh.normals_make_consistent()
     t.deselect_all()
     t.home()
-
+    t.select_all()
+    bpy.ops.mesh.quads_convert_to_tris(
+        quad_method='BEAUTY',
+        ngon_method='BEAUTY')
     bpy.ops.object.editmode_toggle()
 
 
@@ -272,6 +275,10 @@ def draw_pos_curved_slab(length, segments, angle, height):
     bpy.ops.mesh.normals_make_consistent()
     t.pu()
     t.home()
+    t.select_all()
+    bpy.ops.mesh.quads_convert_to_tris(
+        quad_method='BEAUTY',
+        ngon_method='BEAUTY')
     mode('OBJECT')
 
 
@@ -284,19 +291,27 @@ def draw_neg_curved_slab(length, segments, angle, height):
     mode('OBJECT')
     t.add_turtle()
     t.pd()
+
+    # draw side b
     t.fd(d=length)
     t.pu()
     t.home()
     t.deselect_all()
     t.select_at_cursor()
     t.pd()
+
+    # draw side c
     t.rt(d=angle)
     t.fd(d=length)
     t.deselect_all()
     t.pu()
+
+    # move to opposite of angle A on mirror triangle
     t.lt(d=180 - dim['C'] * 2)
     t.fd(d=length)
     t.lt(d=180)
+
+    # draw side a
     t.arc(r=length, d=angle, s=segments)
     t.select_all()
     t.merge(t=0.01)
@@ -307,6 +322,9 @@ def draw_neg_curved_slab(length, segments, angle, height):
     bpy.ops.mesh.normals_make_consistent()
     t.pu()
     t.home()
+    bpy.ops.mesh.quads_convert_to_tris(
+        quad_method='BEAUTY',
+        ngon_method='BEAUTY')
     mode('OBJECT')
 
 

@@ -24,7 +24,7 @@ def draw_cuboid(size):
 
 
 def draw_triangle(b, c, A):
-    '''draws a triangle given the length of two sides (a, b) and the angle between them (A)'''
+    '''draws a triangle given the length of two sides (b, c) and the angle between them (A)'''
     a = sqrt((b**2 + c**2) - ((2 * b * c) * cos(radians(A))))
     B = degrees(acos((c**2 + a**2 - (b**2)) / (2 * c * a)))
     C = 180 - A - B
@@ -71,3 +71,20 @@ def draw_tri_prism(b, c, A, height):
     bpy.ops.mesh.normals_make_consistent()
     dimensions['height'] = height
     return bpy.context.object, dimensions
+
+
+def draw_curved_slab(radius, A, height, width, segments):
+    turtle = bpy.context.scene.cursor
+    t = bpy.ops.turtle
+    t.add_turtle()
+    t.pd()
+    t.arc(r=radius, d=A, s=segments)
+    t.arc(r=radius + width, d=A, s=segments)
+    t.select_all()
+    t.bridge()
+    t.select_all()
+    t.pd()
+    t.up(d=height)
+    t.select_all()
+    bpy.ops.mesh.normals_make_consistent()
+    return bpy.context.object

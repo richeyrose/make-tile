@@ -1,7 +1,7 @@
 import os
 import bpy
 from math import radians
-from .. lib.turtle.scripts.curved_floor import draw_neg_curved_slab, draw_pos_curved_slab, draw_openlock_pos_curved_slab
+from .. lib.turtle.scripts.curved_floor import draw_neg_curved_slab, draw_pos_curved_slab, draw_openlock_pos_curved_base
 from .. lib.utils.vertex_groups import curved_floor_to_vert_groups
 from .. utils.registration import get_prefs
 from .. materials.materials import (
@@ -11,6 +11,8 @@ from . create_displacement_mesh import create_displacement_object
 from .. lib.utils.selection import select, activate, deselect_all, select_all, select_by_loc
 from .. lib.utils.utils import mode
 from .. lib.utils.collections import add_object_to_collection
+from .create_corner_wall import calculate_corner_wall_triangles, move_cursor_to_wall_start, draw_corner_outline
+from ..operators.trim_tile import create_curved_floor_trimmers
 
 
 def create_curved_floor(tile_empty):
@@ -44,10 +46,13 @@ def create_curved_floor(tile_empty):
 
     preview_slab, displacement_slab = create_slabs(tile_properties, base)
 
+    tile_properties['trimmers'] = create_curved_floor_trimmers(tile_properties)
     displacement_slab.hide_viewport = True
     base.parent = tile_empty
     tile_empty.location = cursor_orig_loc
     cursor.location = cursor_orig_loc
+    
+    
     tile_empty['tile_properties'] = tile_properties
 
 
@@ -78,21 +83,39 @@ def create_openlock_base(tile_properties):
     cursor = bpy.context.scene.cursor
     cursor_orig_loc = cursor.location.copy()
 
-    radius = tile_properties['radius']
+    length = tile_properties['radius']
     segments = tile_properties['segments']
     angle = tile_properties['angle']
     height = tile_properties['base_height']
     curve_type = tile_properties['curve_type']
 
     if curve_type == 'POS':
-        draw_openlock_pos_curved_slab(radius, segments, angle, height)
+        draw_openlock_pos_curved_base(length, segments, angle, height)
         base = bpy.context.object
 
-    base['geometry_type'] = 'BASE'
-    cursor.location = cursor_orig_loc
-    select(base.name)
-    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
-    deselect_all()
+        base['geometry_type'] = 'BASE'
+        cursor.location = cursor_orig_loc
+        select(base.name)
+        bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+        deselect_all()
+
+    else:
+        draw_neg_curved_slab(length, segments, angle, height)
+        base = bpy.context.object
+        base['geometry_type'] = 'BASE'
+        cursor.location = cursor_orig_loc
+        select(base.name)
+        bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+        deselect_all()
+
+        if length >= 3:
+            cutter = create_openlock_neg_curve_base_cutters(tile_properties)
+            cutter.parent = base
+            cutter.display_type = 'BOUNDS'
+            cutter.hide_viewport = True
+            cutter_bool = base.modifiers.new('Slot Cutter', 'BOOLEAN')
+            cutter_bool.operation = 'DIFFERENCE'
+            cutter_bool.object = cutter
 
     cutters = create_openlock_base_clip_cutters(base, tile_properties)
 
@@ -109,6 +132,70 @@ def create_openlock_base(tile_properties):
     return base
 
 
+def create_openlock_neg_curve_base_cutters(tile_properties):
+    cursor = bpy.context.scene.cursor
+    cursor_orig_loc = cursor.location.copy()
+
+    length = tile_properties['radius'] / 2
+    segments = tile_properties['segments']
+    angle = tile_properties['angle']
+    height = tile_properties['base_height']
+    curve_type = tile_properties['curve_type']
+    face_dist = 0.233
+    slot_width = 0.197
+    slot_height = 0.25
+    end_dist = 0.236  # distance of slot from base end
+
+    cutter_triangles_1 = calculate_corner_wall_triangles(
+        length,
+        length,
+        face_dist,
+        angle)
+
+    # reuse method we use to work out where to start our wall
+    move_cursor_to_wall_start(
+        cutter_triangles_1,
+        angle,
+        face_dist,
+        -0.01)
+
+    cutter_x_leg = cutter_triangles_1['b_adj'] - end_dist
+    cutter_y_leg = cutter_triangles_1['d_adj'] - end_dist
+
+    # work out dimensions of cutter
+    cutter_triangles_2 = calculate_corner_wall_triangles(
+        cutter_x_leg,
+        cutter_y_leg,
+        slot_width,
+        angle
+    )
+
+    draw_corner_outline(
+        cutter_triangles_2,
+        angle,
+        slot_width
+    )
+
+    # fill face and extrude cutter
+    turtle = bpy.context.scene.cursor
+    t = bpy.ops.turtle
+    bpy.ops.mesh.edge_face_add()
+    t.pd()
+    t.up(d=slot_height)
+    t.select_all()
+    bpy.ops.mesh.normals_make_consistent()
+    bpy.ops.mesh.quads_convert_to_tris(quad_method='BEAUTY', ngon_method='BEAUTY')
+    t.pu()
+    t.deselect_all()
+    t.home()
+
+    mode('OBJECT')
+    cutter = bpy.context.object
+    cutter.name = tile_properties['tile_name'] + '.base.cutter'
+
+    return cutter
+
+
 def create_openlock_base_clip_cutters(base, tile_properties):
 
     mode('OBJECT')
@@ -122,12 +209,14 @@ def create_openlock_base_clip_cutters(base, tile_properties):
     angle = tile_properties['angle']
     height = tile_properties['base_height']
     curve_type = tile_properties['curve_type']
+    cutters = []
+    if curve_type == 'NEG':
+        radius = radius / 2
 
     if radius >= 1:
         preferences = get_prefs()
         booleans_path = os.path.join(preferences.assets_path, "meshes", "booleans", "openlock.blend")
 
-        cutters = []
         with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
             data_to.objects = ['openlock.wall.base.cutter.clip', 'openlock.wall.base.cutter.clip.cap.start', 'openlock.wall.base.cutter.clip.cap.end']
 
@@ -199,10 +288,9 @@ def create_openlock_base_clip_cutters(base, tile_properties):
 
         deselect_all()
 
-    with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
-        data_to.objects = ['openlock.wall.base.cutter.clip_single']
-
     if tile_properties['curve_type'] == 'POS':
+        with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
+            data_to.objects = ['openlock.wall.base.cutter.clip_single']
         clip_cutter_3 = data_to.objects[0]
         add_object_to_collection(clip_cutter_3, tile_properties['tile_name'])
 
@@ -218,7 +306,6 @@ def create_openlock_base_clip_cutters(base, tile_properties):
             center_override=cursor_orig_loc)
 
         cutters.append(clip_cutter_3)
-    
 
     return cutters
 

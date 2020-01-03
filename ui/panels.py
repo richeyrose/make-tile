@@ -409,7 +409,6 @@ class MT_PT_Trim_Panel(MT_PT_Panel, bpy.types.Panel):
             row = layout.row()
             row.prop(scene, 'mt_trim_z_pos', text='Top')
             row.prop(scene, 'mt_trim_z_neg', text='Bottom')
-            
 
         elif context.scene.mt_tile_type == 'STRAIGHT_WALL' or context.scene.mt_tile_type == 'CURVED_WALL':
             row = layout.row()
@@ -427,6 +426,8 @@ class MT_PT_Trim_Panel(MT_PT_Panel, bpy.types.Panel):
             row = layout.row()
             row.prop(scene, 'mt_trim_z_neg')
             row.prop(scene, 'mt_trim_z_pos')
+
+        layout.prop(scene, 'mt_trim_buffer')
 
 
 class MT_PT_Export_Panel(MT_PT_Panel, bpy.types.Panel):

@@ -4,7 +4,7 @@ from .. lib.utils.selection import select, activate, deselect_all, select_all
 from .. utils.registration import get_prefs
 from .. lib.utils.collections import create_collection, add_object_to_collection
 from .. enums.enums import units
-from .voxeliser import voxelise_mesh, apply_all_modifiers
+from .voxeliser import voxelise_mesh
 
 
 class MT_OT_Export_Tile(bpy.types.Operator):

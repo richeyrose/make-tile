@@ -4,7 +4,7 @@ from .. lib.utils.collections import add_object_to_collection, create_collection
 
 
 class MT_OT_Tile_Voxeliser(bpy.types.Operator):
-    """Operator class used to voxelise tiles"""
+    """Voxelises the visible objects in the active collection"""
     bl_idname = "scene.voxelise_tile"
     bl_label = "Voxelise tile"
     bl_options = {'REGISTER', 'UNDO'}
@@ -122,23 +122,3 @@ def voxelise_mesh(obj):
     obj.modifiers.new('Triangulate', 'TRIANGULATE')
 
     return obj
-
-
-def apply_all_modifiers(mesh, only_visible=True):
-    '''Applies all modifiers. if only_vsible is True it only applies those
-    modifiers that are visible in the viewport'''
-    ctx = bpy.context.copy()
-    ctx['object'] = mesh
-
-    for mod in mesh.modifiers[:]:
-        ctx['modifier'] = mod
-        print(mod.name)
-        if only_visible is True:
-            if ctx['modifier'].show_viewport is True:
-                bpy.ops.object.modifier_apply(
-                    ctx, apply_as='DATA',
-                    modifier=ctx['modifier'].name)
-        else:
-            bpy.ops.object.modifier_apply(
-                ctx, apply_as='DATA',
-                modifier=ctx['modifier'].name)

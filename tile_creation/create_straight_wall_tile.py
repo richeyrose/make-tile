@@ -11,7 +11,7 @@ from .. lib.utils.selection import (
     select_all,
     select,
     activate)
-from .. lib.utils.utils import mode, apply_all_modifiers
+from .. lib.utils.utils import mode
 from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
 from .. materials.materials import (
     assign_displacement_materials,
@@ -21,7 +21,7 @@ from .. operators.trim_tile import (
 from . create_displacement_mesh import create_displacement_object
 
 
-def create_straight_wall(tile_empty):
+def create_straight_wall(tile_empty, tile_name):
     """Returns a straight wall
     Keyword arguments:
     tile_empty -- EMPTY, empty which the tile is parented to. \
@@ -33,18 +33,27 @@ def create_straight_wall(tile_empty):
     # moves cursor to origin and creates objects
     # then moves base to cursor original location and resets cursor
     # TODO: get rid of hack and parent properly
-    cursor = bpy.context.scene.cursor
+    scene = bpy.context.scene
+    cursor = scene.cursor
     cursor_orig_loc = cursor.location.copy()
     cursor.location = (0, 0, 0)
     tile_empty.location = (0, 0, 0)
 
     if tile_properties['base_blueprint'] == 'OPENLOCK':
+        base_size = Vector((
+            scene.mt_tile_x,
+            0.5,
+            0.2755))
         tile_properties['base_size'] = Vector((tile_properties['tile_size'][0], 0.5, 0.2755))
-        base = create_openlock_base(tile_properties)
-        
+        base = create_openlock_base(tile_name, base_size)
 
     if tile_properties['base_blueprint'] == 'PLAIN':
-        base = create_plain_base(tile_properties)
+        base_size = Vector((
+            scene.mt_base_x,
+            scene.mt_base_y,
+            scene.mt_base_z))
+
+        base = create_plain_base(tile_name, base_size)
 
     if tile_properties['base_blueprint'] == 'NONE':
         base = bpy.data.objects.new(tile_properties['tile_name'] + '.base', None)
@@ -65,7 +74,7 @@ def create_straight_wall(tile_empty):
     tile_properties['trimmers'] = create_tile_trimmers(tile_properties)
 
     base.parent = tile_empty
-    
+
     tile_empty.location = cursor_orig_loc
     cursor.location = cursor_orig_loc
     tile_empty['tile_properties'] = tile_properties
@@ -75,42 +84,50 @@ def create_straight_wall(tile_empty):
 #              BASE                 #
 #####################################
 
-def create_plain_base(tile_properties):
+def create_plain_base(tile_name, base_size):
     """Returns a base for a wall tile
     """
     cursor = bpy.context.scene.cursor
     cursor_start_location = cursor.location.copy()
 
     # make base
-    base = draw_cuboid(tile_properties['base_size'])
-    base.name = tile_properties['tile_name'] + '.base'
-    add_object_to_collection(base, tile_properties['tile_name'])
+    base = draw_cuboid(base_size)
+    base.name = tile_name + '.base'
+    add_object_to_collection(base, tile_name)
     base_location = base.location.copy()
 
     mode('OBJECT')
     select(base.name)
     activate(base.name)
 
-    base.location = (base_location[0] - tile_properties['base_size'][0] / 2, base_location[1] + tile_properties['base_size'][1] / 2, base_location[2] + tile_properties['base_size'][2])
+    base.location = (
+        base_location[0] - base_size[0] / 2,
+        base_location[1] + base_size[1] / 2,
+        base_location[2] + base_size[2])
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
     base.location = cursor_start_location
     bpy.context.scene.cursor.location = cursor_start_location
+    # TODO: - add to tile properties
     base['geometry_type'] = 'BASE'
-    base.mt_tile_name = tile_properties['tile_name']
+
+    item = base.mt_tile_properties_collection.add()
+    item.is_mt_object = True
+    item.tile_name = tile_name
+    item.base_size = base_size
 
     return base
 
 
-def create_openlock_base(tile_properties):
+def create_openlock_base(tile_name, base_size):
     """takes a straight wall base and makes it into an openlock style base"""
     # make base
-    base = create_plain_base(tile_properties)
+    base = create_plain_base(tile_name, base_size)
 
-    slot_cutter = create_openlock_base_slot_cutter(base, tile_properties)
+    slot_cutter = create_openlock_base_slot_cutter(base)
     slot_cutter.hide_viewport = True
 
     if base.dimensions[0] >= 1:
-        clip_cutter = create_openlock_base_clip_cutter(base, tile_properties)
+        clip_cutter = create_openlock_base_clip_cutter(base)
         clip_boolean = base.modifiers.new(clip_cutter.name, 'BOOLEAN')
         clip_boolean.operation = 'DIFFERENCE'
         clip_boolean.object = clip_cutter
@@ -121,7 +138,7 @@ def create_openlock_base(tile_properties):
     return base
 
 
-def create_openlock_base_slot_cutter(base, tile_properties, offset=0.18):
+def create_openlock_base_slot_cutter(base, offset=0.18):
     """Makes a cutter for the openlock base slot
     based on the width of the base
 
@@ -132,6 +149,7 @@ def create_openlock_base_slot_cutter(base, tile_properties, offset=0.18):
     cursor = bpy.context.scene.cursor
     mode('OBJECT')
     base_dimensions = base.dimensions
+    tile_properties = base.mt_tile_properties_collection[0]
 
     # get original location of object and cursor
     base_location = base.location.copy()
@@ -139,13 +157,13 @@ def create_openlock_base_slot_cutter(base, tile_properties, offset=0.18):
 
     # work out bool size X from base size, y and z are constants
     bool_size = [
-        tile_properties['base_size'][0] - (0.236 * 2),
+        tile_properties.base_size[0] - (0.236 * 2),
         0.197,
         0.25]
 
     cutter_mesh = bpy.data.meshes.new("cutter_mesh")
-    cutter = bpy.data.objects.new(tile_properties['tile_name'] + ".cutter.slot", cutter_mesh)
-    add_object_to_collection(cutter, tile_properties['tile_name'])
+    cutter = bpy.data.objects.new(tile_properties.tile_name + ".cutter.slot", cutter_mesh)
+    add_object_to_collection(cutter, tile_properties.tile_name)
     cutter = draw_cuboid(bool_size)
 
     mode('OBJECT')
@@ -172,7 +190,7 @@ def create_openlock_base_slot_cutter(base, tile_properties, offset=0.18):
     return cutter
 
 
-def create_openlock_base_clip_cutter(base, tile_properties):
+def create_openlock_base_clip_cutter(base):
     """Makes a cutter for the openlock base clip based
     on the width of the base and positions it correctly
 
@@ -182,7 +200,7 @@ def create_openlock_base_clip_cutter(base, tile_properties):
     """
 
     mode('OBJECT')
-    tile_properties['base_size'] = base.dimensions
+    tile_properties = base.mt_tile_properties_collection[0]
 
     # get original location of cursor
     cursor_original_location = bpy.context.scene.cursor.location.copy()
@@ -197,7 +215,7 @@ def create_openlock_base_clip_cutter(base, tile_properties):
         data_to.objects = ['openlock.wall.base.cutter.clip', 'openlock.wall.base.cutter.clip.cap.start', 'openlock.wall.base.cutter.clip.cap.end']
 
     for obj in data_to.objects:
-        add_object_to_collection(obj, tile_properties['tile_name'])
+        add_object_to_collection(obj, tile_properties.tile_name)
 
     clip_cutter = data_to.objects[0]
     cutter_start_cap = data_to.objects[1]
@@ -207,8 +225,8 @@ def create_openlock_base_clip_cutter(base, tile_properties):
     cutter_end_cap.hide_viewport = True
 
     clip_cutter.location = Vector((
-        base_location[0] - (tile_properties['base_size'][0] / 2) + 0.5,
-        base_location[1] - (tile_properties['base_size'][1] / 2) + 0.25,
+        base_location[0] - (tile_properties.base_size[0] / 2) + 0.5,
+        base_location[1] - (tile_properties.base_size[1] / 2) + 0.25,
         base_location[2]))
 
     array_mod = clip_cutter.modifiers.new('Array', 'ARRAY')
@@ -217,7 +235,7 @@ def create_openlock_base_clip_cutter(base, tile_properties):
     array_mod.use_merge_vertices = True
 
     array_mod.fit_type = 'FIT_LENGTH'
-    array_mod.fit_length = tile_properties['base_size'][0] - 1
+    array_mod.fit_length = tile_properties.base_size[0] - 1
 
     return clip_cutter
 

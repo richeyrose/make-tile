@@ -48,12 +48,77 @@ class MT_Cutter_Item(bpy.types.PropertyGroup):
                 bool_mod = linked_obj.modifiers[self.name + '.bool']
                 bool_mod.show_viewport = self.value
 
-    name: bpy.props.StringProperty(name="Cutter Name")
+    name: bpy.props.StringProperty(
+        name="Cutter Name")
     value: bpy.props.BoolProperty(
         name="",
         default=True,
         update=update_use_cutter)
-    parent: bpy.props.StringProperty(name="")
+    parent: bpy.props.StringProperty(
+        name="")
+
+
+class MT_Tile_Properties_Item(bpy.types.PropertyGroup):
+    is_mt_object: bpy.props.BoolProperty(
+        name="Is MakeTile object",
+        default=False)
+
+    tile_name: bpy.props.StringProperty(
+        name="Tile Name",
+        description="Name of MakeTile collection this object belongs to",
+        default="")
+
+    tile_blueprint: bpy.props.EnumProperty(
+        items=tile_blueprints,
+        name="Blueprint",
+        description="Blueprint for entire tile - e.g. openLOCK or Plain")
+
+    main_part_blueprint: bpy.props.EnumProperty(
+        items=tile_main_systems,
+        name="Main System",
+        description="Blueprint for main part of tile. \
+        #  E.g. for a wall this would be the system used for the \
+        #vertical bit")
+
+    base_blueprint: bpy.props.EnumProperty(
+        items=base_systems,
+        name="Base System",
+        description="Blueprint for base of the tile.")
+
+    tile_type: bpy.props.EnumProperty(
+        items=tile_types,
+        name="Type",
+        description="The type of tile e.g. Straight Wall, Curved Floor",
+        default="STRAIGHT_WALL",
+    )
+
+    tile_size: bpy.props.FloatVectorProperty(
+        name="Tile Size"
+    )
+
+    base_size: bpy.props.FloatVectorProperty(
+        name="Base_size"
+    )
+
+    radius: bpy.props.FloatProperty(
+        name="Radius"
+    )
+
+    angle: bpy.props.FloatProperty(
+        name="Angle"
+    )
+
+    segments: bpy.props.IntProperty(
+        name="Segments"
+    )
+
+    leg_1_len: bpy.props.FloatProperty(
+        name="Leg 1 Length"
+    )
+
+    leg_2_len: bpy.props.FloatProperty(
+        name="Leg 2 Length"
+    )
 
 
 class MT_OT_Make_Tile(bpy.types.Operator):
@@ -146,7 +211,18 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             'tile_material_1': context.scene.mt_tile_material_1,
             'tile_material_2': context.scene.mt_tile_material_2
         }
+        '''
+        item = tile_empty.mt_tile_properties_collection.add()
+        item.is_mt_object = True
 
+        # set generic tile properties
+        tile_empty.mt_is_mt_object = True
+        tile_empty.mt_tile_name = tile_name
+        tile_empty.mt_tile_blueprint = context.scene.mt_tile_blueprint
+        tile_empty.mt_main_part_blueprint = context.scene.mt_main_part_blueprint
+        tile_empty.mt_base_blueprint = context.scene.mt_base_blueprint
+        tile_empty.mt_tile_type = context.scene.mt_tile_type
+        '''
         tile_empty['tile_properties'] = {
             'tile_name': tile_name,
             'empty_name': tile_empty.name,
@@ -157,15 +233,15 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             'tile_size': tile_size,
             'base_size': base_size,
             'tile_materials': tile_materials,
-            'base_inner_radius': context.scene.mt_base_inner_radius,  # used for curved tiles only
+            'base_inner_radius': context.scene.mt_radius,  # used for curved tiles only
             'wall_inner_radius': context.scene.mt_wall_inner_radius,  # used for curved walls only
             'degrees_of_arc': context.scene.mt_degrees_of_arc,  # used for curved tiles only
             'segments': context.scene.mt_segments,  # used for curved tiles only
             'base_socket_sides': context.scene.mt_base_socket_side,  # used for bases that can or should have sockets only on certain sides
             'trimmers': {},  # used to trim sides of tile on voxelisation and export
-            'angle_1': context.scene.mt_angle_1,  # used for corner walls & triangular floors
-            'x_leg': context.scene.mt_x_leg_len,  # used for corner walls & triangular floors
-            'y_leg': context.scene.mt_y_leg_len,  # used for corner walls & triangular floors
+            'angle_1': context.scene.mt_angle,  # used for corner walls & triangular floors
+            'x_leg': context.scene.mt_leg_1_len,  # used for corner walls & triangular floors
+            'y_leg': context.scene.mt_leg_2_len,  # used for corner walls & triangular floors
         }
 
         ###############
@@ -173,7 +249,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         ###############
 
         if tile_type == 'STRAIGHT_WALL':
-            create_straight_wall(tile_empty)
+            create_straight_wall(tile_empty, tile_name)
 
         if tile_type == 'CURVED_WALL':
             create_curved_wall(tile_empty)
@@ -201,16 +277,15 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         material_enum_collection.enums = ()
         enum_collections["materials"] = material_enum_collection
 
-        # Collection of cutter names and booleans that can be turned on or off
-        # by MakeTile
-        bpy.types.Object.mt_cutters_collection = bpy.props.CollectionProperty(
-            type=MT_Cutter_Item
+        bpy.types.Object.mt_tile_properties_collection = bpy.props.CollectionProperty(
+            type=MT_Tile_Properties_Item
         )
 
-        bpy.types.Object.mt_tile_name = bpy.props.StringProperty(
-            name="Tile Name",
-            description="Name of MakeTile collection this object belongs to",
-            default=""
+        # Collection of cutters that can be turned on or off
+        # by MakeTile. Don't seem to be able to have a PropertyGroup
+        # nested in a CollectionProperty
+        bpy.types.Object.mt_cutters_collection = bpy.props.CollectionProperty(
+            type=MT_Cutter_Item
         )
 
         bpy.types.Scene.mt_tile_name = bpy.props.StringProperty(
@@ -331,14 +406,14 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         )
 
         # Corner walll and triangular base specific
-        bpy.types.Scene.mt_angle_1 = bpy.props.FloatProperty(
+        bpy.types.Scene.mt_angle = bpy.props.FloatProperty(
             name="Base Angle",
             default=90,
             step=5,
             precision=1
         )
 
-        bpy.types.Scene.mt_x_leg_len = bpy.props.FloatProperty(
+        bpy.types.Scene.mt_leg_1_len = bpy.props.FloatProperty(
             name="Leg 1 Length",
             description="Length of leg",
             default=2,
@@ -346,7 +421,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             precision=2
         )
 
-        bpy.types.Scene.mt_y_leg_len = bpy.props.FloatProperty(
+        bpy.types.Scene.mt_leg_2_len = bpy.props.FloatProperty(
             name="Leg 2 Length",
             description="Length of leg",
             default=2,
@@ -362,7 +437,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         )
 
         # Used for curved wall tiles
-        bpy.types.Scene.mt_base_inner_radius = bpy.props.FloatProperty(
+        bpy.types.Scene.mt_radius = bpy.props.FloatProperty(
             name="Base inner radius",
             default=2.0,
             step=0.5,
@@ -404,9 +479,10 @@ class MT_OT_Make_Tile(bpy.types.Operator):
     @classmethod
     def unregister(cls):
         print("Unregistered class: %s" % cls.bl_label)
+
         del bpy.types.Scene.mt_tile_name
         del bpy.types.Scene.mt_segments
-        del bpy.types.Scene.mt_base_inner_radius
+        del bpy.types.Scene.mt_radius
         del bpy.types.Scene.mt_wall_inner_radius
         del bpy.types.Scene.mt_curve_type
         del bpy.types.Scene.mt_degrees_of_arc
@@ -425,6 +501,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         del bpy.types.Scene.mt_tile_blueprint
         del bpy.types.Scene.mt_main_part_blueprint
         del bpy.types.Scene.mt_tile_units
+        del bpy.types.Object.mt_tile_properties_collection
         del bpy.types.Object.mt_cutters_collection
 
         for pcoll in enum_collections.values():

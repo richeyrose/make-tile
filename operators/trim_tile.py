@@ -22,8 +22,8 @@ class MT_OT_Tile_Trimmer(bpy.types.Operator):
         # object to be trimmed
         obj = context.active_object
 
-        # get collection name / name of tile
-        tile_name = obj.users_collection[0].name
+        # get name of tile
+        tile_name = obj.mt_tile_name
 
         # get tile empty with properties stored on it
         if tile_name + '.empty' in bpy.data.objects:
@@ -188,7 +188,7 @@ def create_curved_trimmer(arc, radius, height, width, curve_type, segments, dim,
         t.deselect_all()
         t.home()
         mode('OBJECT')
-        
+
     return bpy.context.object
 
 

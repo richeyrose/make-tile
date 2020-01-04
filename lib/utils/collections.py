@@ -23,6 +23,7 @@ def add_object_to_collection(obj, collection_name):
 def get_collection(gp_collection, collection_name):
     """Recursively searches for a layer collection and returns it.
     God knows why this isn't part of the API!
+    Keywords -- gp_collection -- Grandparent collection
     """
     found = None
     if (gp_collection.name == collection_name):

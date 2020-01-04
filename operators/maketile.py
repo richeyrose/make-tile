@@ -201,10 +201,16 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         material_enum_collection.enums = ()
         enum_collections["materials"] = material_enum_collection
 
-        # Collection of cutter names and booleans that can be turned on or off 
+        # Collection of cutter names and booleans that can be turned on or off
         # by MakeTile
         bpy.types.Object.mt_cutters_collection = bpy.props.CollectionProperty(
             type=MT_Cutter_Item
+        )
+
+        bpy.types.Object.mt_tile_name = bpy.props.StringProperty(
+            name="Tile Name",
+            description="Name of MakeTile collection this object belongs to",
+            default=""
         )
 
         bpy.types.Scene.mt_tile_name = bpy.props.StringProperty(
@@ -419,6 +425,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         del bpy.types.Scene.mt_tile_blueprint
         del bpy.types.Scene.mt_main_part_blueprint
         del bpy.types.Scene.mt_tile_units
+        del bpy.types.Object.mt_cutters_collection
 
         for pcoll in enum_collections.values():
             bpy.utils.previews.remove(pcoll)

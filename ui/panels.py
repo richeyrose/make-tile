@@ -401,7 +401,6 @@ class MT_PT_Trim_Panel(MT_PT_Panel, bpy.types.Panel):
             row.prop(scene, 'mt_trim_z_pos')
 
         elif context.scene.mt_tile_type == 'TRIANGULAR_FLOOR' or context.scene.mt_tile_type == 'CURVED_FLOOR':
-            layout.label(text='Sides:')
             row = layout.row()
             row.prop(scene, 'mt_trim_x_pos', text='a')
             row.prop(scene, 'mt_trim_x_neg', text='b')
@@ -450,6 +449,7 @@ class MT_PT_Export_Panel(MT_PT_Panel, bpy.types.Panel):
         row = layout.row()
         layout.prop(scene, 'mt_units')
         layout.prop(scene, 'mt_voxelise_on_export')
+        layout.prop(scene, 'mt_trim_on_export')
 
 
 class MT_PT_Converter_Panel(MT_PT_Panel, bpy.types.Panel):

@@ -41,6 +41,7 @@ def create_straight_wall(tile_empty):
     if tile_properties['base_blueprint'] == 'OPENLOCK':
         tile_properties['base_size'] = Vector((tile_properties['tile_size'][0], 0.5, 0.2755))
         base = create_openlock_base(tile_properties)
+        
 
     if tile_properties['base_blueprint'] == 'PLAIN':
         base = create_plain_base(tile_properties)
@@ -64,6 +65,7 @@ def create_straight_wall(tile_empty):
     tile_properties['trimmers'] = create_tile_trimmers(tile_properties)
 
     base.parent = tile_empty
+    
     tile_empty.location = cursor_orig_loc
     cursor.location = cursor_orig_loc
     tile_empty['tile_properties'] = tile_properties
@@ -94,6 +96,7 @@ def create_plain_base(tile_properties):
     base.location = cursor_start_location
     bpy.context.scene.cursor.location = cursor_start_location
     base['geometry_type'] = 'BASE'
+    base.mt_tile_name = tile_properties['tile_name']
 
     return base
 
@@ -244,6 +247,9 @@ def create_wall_cores(tile_properties, base):
     assign_preview_materials(preview_core, primary_material, secondary_material, textured_vertex_groups)
     preview_core.parent = base
     displacement_core.parent = base
+
+    preview_core.mt_tile_name = tile_properties['tile_name']
+    displacement_core.mt_tile_name = tile_properties['tile_name']
 
     return preview_core, displacement_core
 

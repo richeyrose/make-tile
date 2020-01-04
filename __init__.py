@@ -13,7 +13,6 @@
 
 import os
 import bpy
-from bpy.props import PointerProperty
 from . preferences import MT_MakeTilePreferences
 from . ui.panels import (
     MT_PT_Display_Panel,

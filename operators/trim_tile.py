@@ -14,9 +14,9 @@ class MT_OT_Tile_Trimmer(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        obj = bpy.context.active_object
+        obj = context.active_object
         if obj is not None:
-            return bpy.context.object.mode == 'OBJECT'
+            return context.object.mode == 'OBJECT'
 
     def execute(self, context):
         # object to be trimmed

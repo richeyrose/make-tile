@@ -2,7 +2,6 @@ import os
 import bpy
 from .. lib.utils.selection import select, activate, deselect_all, select_all
 from .. utils.registration import get_prefs
-from .. lib.utils.utils import view3d_find
 from .. lib.utils.collections import create_collection, add_object_to_collection
 from .. enums.enums import units
 from .voxeliser import voxelise_mesh, apply_all_modifiers
@@ -84,9 +83,10 @@ class MT_OT_Export_Tile(bpy.types.Operator):
 
         # Trim if trim tile is true
         if context.scene.mt_trim_on_export is True:
-            select(merged_obj.name)
-            activate(merged_obj.name)
-            bpy.ops.scene.trim_tile()
+            ctx['object'] = merged_obj
+            ctx['active_object'] = merged_obj
+
+            bpy.ops.scene.trim_tile(ctx)
 
         # create a sub collection in our tile collection called Flattened objects
         # and add our copies to it
@@ -106,8 +106,8 @@ class MT_OT_Export_Tile(bpy.types.Operator):
             os.mkdir(export_path)
         file_path = os.path.join(context.scene.mt_export_path, tile_name + '.stl')
 
-        deselect_all()
-        select(merged_obj.name)
+        ctx['active_object'] = merged_obj
+        ctx['object'] = merged_obj
 
         # export our merged object
         bpy.ops.export_mesh.stl('INVOKE_DEFAULT', filepath=file_path, check_existing=True, filter_glob="*.stl", use_selection=True, global_scale=unit_multiplier, use_mesh_modifiers=True)

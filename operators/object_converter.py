@@ -9,6 +9,7 @@ from .. lib.utils.selection import (
     select,
     activate)
 
+
 # TODO: Fix bug with object creation not working if you delete default cube, add an object and try to convert that object wothout first creating a tile
 class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
     '''Convert a mesh into a MakeTile object'''

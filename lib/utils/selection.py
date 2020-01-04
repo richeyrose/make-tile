@@ -226,7 +226,7 @@ def select_inverse_by_loc(
                 select = False
             else:
                 select = True
-                
+
             if additive:
                 edge_obj.select |= select
             else:
@@ -241,7 +241,7 @@ def select_inverse_by_loc(
         [to_select.append(all(in_bbox(lbound, ubound, v, buffer) for v in f))for f in verts]
 
         for face_obj, select in zip(bm.faces, to_select):
-            
+
             if select is True:
                 select = False
             else:

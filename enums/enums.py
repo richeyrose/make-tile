@@ -20,6 +20,7 @@ tile_blueprints = [
 tile_main_systems = [
     ("OPENLOCK", "OpenLOCK", "", 1),
     ("PLAIN", "Plain", "", 2),
+    ("NONE", "None", "", 3)
 ]
 
 base_systems = [

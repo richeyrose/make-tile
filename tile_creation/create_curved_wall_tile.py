@@ -20,7 +20,7 @@ from .. materials.materials import (
 from .. enums.enums import geometry_types
 from . create_straight_wall_tile import (
     create_plain_base as create_plain_straight_wall_base,
-    create_wall_cores as create_straight_wall_cores,
+    create_cores as create_straight_wall_cores,
     create_core,
     create_openlock_base_slot_cutter)
 from .. operators.trim_tile import (

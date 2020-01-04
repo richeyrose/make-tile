@@ -45,7 +45,7 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
 
             if obj is not None and obj.type == 'MESH':
                 layout.label(text="Side Sockets:")
-                for item in obj.mt_cutters_collection:
+                for item in obj.mt_tile_properties.cutters_collection:
                     row = layout.row()
                     row.prop(item, "value", text=item.name)
 

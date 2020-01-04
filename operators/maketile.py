@@ -16,7 +16,8 @@ from .. enums.enums import (
     base_systems,
     tile_blueprints,
     base_socket_side,
-    curve_types)
+    curve_types,
+    geometry_types)
 
 from .. materials.materials import (
     load_materials,
@@ -58,7 +59,7 @@ class MT_Cutter_Item(bpy.types.PropertyGroup):
         name="")
 
 
-class MT_Tile_Properties_Item(bpy.types.PropertyGroup):
+class MT_Tile_Properties(bpy.types.PropertyGroup):
     is_mt_object: bpy.props.BoolProperty(
         name="Is MakeTile object",
         default=False)
@@ -92,6 +93,10 @@ class MT_Tile_Properties_Item(bpy.types.PropertyGroup):
         default="STRAIGHT_WALL",
     )
 
+    geometry_type: bpy.props.EnumProperty(
+        items=geometry_types
+    )
+
     tile_size: bpy.props.FloatVectorProperty(
         name="Tile Size"
     )
@@ -118,6 +123,12 @@ class MT_Tile_Properties_Item(bpy.types.PropertyGroup):
 
     leg_2_len: bpy.props.FloatProperty(
         name="Leg 2 Length"
+    )
+
+    # Collection of cutters that can be turned on or off
+    # by MakeTile.
+    cutters_collection: bpy.props.CollectionProperty(
+        type=MT_Cutter_Item
     )
 
 
@@ -192,64 +203,12 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         tile_empty = bpy.data.objects.new(tile_name + ".empty", None)
         bpy.context.layer_collection.collection.objects.link(tile_empty)
 
-        ###################################
-        #  Package up our tile properties #
-        # and store them on our empty     #
-        ###################################
-
-        tile_size = Vector((
-            context.scene.mt_tile_x,
-            context.scene.mt_tile_y,
-            context.scene.mt_tile_z))
-
-        base_size = Vector((
-            context.scene.mt_base_x,
-            context.scene.mt_base_y,
-            context.scene.mt_base_z))
-
-        tile_materials = {
-            'tile_material_1': context.scene.mt_tile_material_1,
-            'tile_material_2': context.scene.mt_tile_material_2
-        }
-        '''
-        item = tile_empty.mt_tile_properties_collection.add()
-        item.is_mt_object = True
-
-        # set generic tile properties
-        tile_empty.mt_is_mt_object = True
-        tile_empty.mt_tile_name = tile_name
-        tile_empty.mt_tile_blueprint = context.scene.mt_tile_blueprint
-        tile_empty.mt_main_part_blueprint = context.scene.mt_main_part_blueprint
-        tile_empty.mt_base_blueprint = context.scene.mt_base_blueprint
-        tile_empty.mt_tile_type = context.scene.mt_tile_type
-        '''
-        tile_empty['tile_properties'] = {
-            'tile_name': tile_name,
-            'empty_name': tile_empty.name,
-            'tile_blueprint': context.scene.mt_tile_blueprint,
-            'base_blueprint': context.scene.mt_base_blueprint,
-            'main_part_blueprint': context.scene.mt_main_part_blueprint,
-            'tile_type': context.scene.mt_tile_type,
-            'tile_size': tile_size,
-            'base_size': base_size,
-            'tile_materials': tile_materials,
-            'base_inner_radius': context.scene.mt_radius,  # used for curved tiles only
-            'wall_inner_radius': context.scene.mt_wall_inner_radius,  # used for curved walls only
-            'degrees_of_arc': context.scene.mt_degrees_of_arc,  # used for curved tiles only
-            'segments': context.scene.mt_segments,  # used for curved tiles only
-            'base_socket_sides': context.scene.mt_base_socket_side,  # used for bases that can or should have sockets only on certain sides
-            'trimmers': {},  # used to trim sides of tile on voxelisation and export
-            'angle_1': context.scene.mt_angle,  # used for corner walls & triangular floors
-            'x_leg': context.scene.mt_leg_1_len,  # used for corner walls & triangular floors
-            'y_leg': context.scene.mt_leg_2_len,  # used for corner walls & triangular floors
-        }
-
         ###############
         # Create Tile #
         ###############
 
         if tile_type == 'STRAIGHT_WALL':
-            create_straight_wall(tile_empty, tile_name)
+            create_straight_wall(tile_name, tile_empty)
 
         if tile_type == 'CURVED_WALL':
             create_curved_wall(tile_empty)
@@ -277,15 +236,8 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         material_enum_collection.enums = ()
         enum_collections["materials"] = material_enum_collection
 
-        bpy.types.Object.mt_tile_properties_collection = bpy.props.CollectionProperty(
-            type=MT_Tile_Properties_Item
-        )
-
-        # Collection of cutters that can be turned on or off
-        # by MakeTile. Don't seem to be able to have a PropertyGroup
-        # nested in a CollectionProperty
-        bpy.types.Object.mt_cutters_collection = bpy.props.CollectionProperty(
-            type=MT_Cutter_Item
+        bpy.types.Object.mt_tile_properties = bpy.props.PointerProperty(
+            type=MT_Tile_Properties
         )
 
         bpy.types.Scene.mt_tile_name = bpy.props.StringProperty(
@@ -501,8 +453,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         del bpy.types.Scene.mt_tile_blueprint
         del bpy.types.Scene.mt_main_part_blueprint
         del bpy.types.Scene.mt_tile_units
-        del bpy.types.Object.mt_tile_properties_collection
-        del bpy.types.Object.mt_cutters_collection
+        del bpy.types.Object.mt_tile_properties
 
         for pcoll in enum_collections.values():
             bpy.utils.previews.remove(pcoll)

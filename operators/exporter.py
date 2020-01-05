@@ -75,7 +75,7 @@ class MT_OT_Export_Tile(bpy.types.Operator):
         # Rename merged tile
         merged_obj = copies[0]
         merged_obj.name = tile_name + '.merged'
-        merged_obj.mt_tile_name = tile_name
+        merged_obj.mt_tile_properties.tile_name = tile_name
 
         # voxelise if necessary
         if context.scene.mt_voxelise_on_export is True:

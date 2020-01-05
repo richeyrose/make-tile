@@ -42,7 +42,7 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
         for obj in tile_collection.all_objects:
             if obj.type == 'MESH':
                 if obj.hide_viewport is False and obj.hide_get() is False:
-                    obj.mt_tile_name = tile_name
+                    obj.mt_tile_properties.tile_name = tile_name
                     copies.append(obj)
 
         # create a sub collection in our tile collection called Flattened objects

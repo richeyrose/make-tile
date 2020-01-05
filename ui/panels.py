@@ -80,8 +80,10 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
             if obj is not None and obj.type == 'MESH':
                 layout.label(text="Side Sockets:")
                 for item in obj.mt_cutters_collection:
+                    seperator = '.'
+                    stripped_name = item.name.split(seperator, 1)[0]
                     row = layout.row()
-                    row.prop(item, "value", text=item.name)
+                    row.prop(item, "value", text=stripped_name)
 
         elif scene.mt_tile_type == 'RECTANGULAR_FLOOR':
             layout.label(text="Tile Size")
@@ -387,46 +389,19 @@ class MT_PT_Trim_Panel(MT_PT_Panel, bpy.types.Panel):
         scene = context.scene
         layout = self.layout
 
-        layout.operator('scene.trim_tile', text='Trim Tile')
+        obj = context.object
 
-        if context.scene.mt_tile_type == 'RECTANGULAR_FLOOR':
-            row = layout.row()
-            row.prop(scene, 'mt_trim_x_neg')
-            row.prop(scene, 'mt_trim_x_pos')
-            row = layout.row()
-            row.prop(scene, 'mt_trim_y_neg')
-            row.prop(scene, 'mt_trim_y_pos')
-            row = layout.row()
-            row.prop(scene, 'mt_trim_z_neg')
-            row.prop(scene, 'mt_trim_z_pos')
+        if obj is not None:
+            tile_properties = obj.mt_tile_properties
 
-        elif context.scene.mt_tile_type == 'TRIANGULAR_FLOOR' or context.scene.mt_tile_type == 'CURVED_FLOOR':
-            row = layout.row()
-            row.prop(scene, 'mt_trim_x_pos', text='a')
-            row.prop(scene, 'mt_trim_x_neg', text='b')
-            row.prop(scene, 'mt_trim_y_neg', text='c')
-            row = layout.row()
-            row.prop(scene, 'mt_trim_z_pos', text='Top')
-            row.prop(scene, 'mt_trim_z_neg', text='Bottom')
+            if tile_properties.is_mt_object is True:
+                tile_name = tile_properties.tile_name
+                tile_empty = bpy.data.objects[tile_name + '.empty']
 
-        elif context.scene.mt_tile_type == 'STRAIGHT_WALL' or context.scene.mt_tile_type == 'CURVED_WALL':
-            row = layout.row()
-            row.prop(scene, 'mt_trim_x_neg')
-            row.prop(scene, 'mt_trim_x_pos')
-            row = layout.row()
-            row.prop(scene, 'mt_trim_z_neg')
-            row.prop(scene, 'mt_trim_z_pos')
-
-        elif context.scene.mt_tile_type == 'CORNER_WALL':
-            layout.prop(scene, 'mt_trim_buffer')
-            row = layout.row()
-            row.prop(scene, 'mt_trim_x_pos')
-            row.prop(scene, 'mt_trim_y_pos')
-            row = layout.row()
-            row.prop(scene, 'mt_trim_z_neg')
-            row.prop(scene, 'mt_trim_z_pos')
-
-        layout.prop(scene, 'mt_trim_buffer')
+                for item in tile_empty.mt_tile_properties.trimmers_collection:
+                    seperator = '.'
+                    stripped_name = item.name.split(seperator, 1)[0]
+                    layout.prop(item, "value", text=stripped_name)
 
 
 class MT_PT_Export_Panel(MT_PT_Panel, bpy.types.Panel):

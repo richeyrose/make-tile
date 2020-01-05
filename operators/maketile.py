@@ -35,12 +35,11 @@ from .. tile_creation.create_triangular_floor import create_triangular_floor
 from .. tile_creation.create_curved_floor import create_curved_floor
 
 
-# A cutter item used by mt_cutters_collection
+# A cutter item used by mt_cutters_collection and mt_trimmers_collection
 class MT_Cutter_Item(bpy.types.PropertyGroup):
     def update_use_cutter(self, context):
         if self.parent is not "":
             parent_obj = bpy.data.objects[self.parent]
-
             bool_mod = parent_obj.modifiers[self.name + '.bool']
             bool_mod.show_viewport = self.value
 
@@ -55,6 +54,24 @@ class MT_Cutter_Item(bpy.types.PropertyGroup):
         name="",
         default=True,
         update=update_use_cutter)
+    parent: bpy.props.StringProperty(
+        name="")
+
+
+class MT_Trimmer_Item(bpy.types.PropertyGroup):
+    def update_use_trimmer(self, context):
+        print(self.name)
+        obj = context.object
+        if self.name + '.bool' in obj.modifiers:
+            bool_mod = obj.modifiers[self.name + '.bool']
+            bool_mod.show_viewport = self.value
+
+    name: bpy.props.StringProperty(
+        name="Trimmer Name")
+    value: bpy.props.BoolProperty(
+        name="",
+        default=False,
+        update=update_use_trimmer)
     parent: bpy.props.StringProperty(
         name="")
 
@@ -129,6 +146,12 @@ class MT_Tile_Properties(bpy.types.PropertyGroup):
     # by MakeTile.
     cutters_collection: bpy.props.CollectionProperty(
         type=MT_Cutter_Item
+    )
+
+    # Collection of trimmers that can be turned on or off
+    # by MakeTile.
+    trimmers_collection: bpy.props.CollectionProperty(
+        type=MT_Trimmer_Item
     )
 
 
@@ -428,11 +451,18 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             name="Number of segments",
             default=8,
         )
+        
+        bpy.types.Scene.mt_trim_buffer = bpy.props.FloatProperty(
+            name="Buffer",
+            description="Buffer to use for trimming. Helps Booleans work",
+            default=-0.001,
+            precision=4
+        )
 
     @classmethod
     def unregister(cls):
         print("Unregistered class: %s" % cls.bl_label)
-
+        del bpy.types.Scene.mt_trim_buffer
         del bpy.types.Scene.mt_tile_name
         del bpy.types.Scene.mt_segments
         del bpy.types.Scene.mt_radius

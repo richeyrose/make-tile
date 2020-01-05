@@ -6,107 +6,6 @@ from .. lib.turtle.scripts.primitives import draw_cuboid, draw_tri_prism, draw_c
 from math import radians
 
 
-class MT_OT_Tile_Trimmer(bpy.types.Operator):
-    """Operator class used to trim tiles before export"""
-    bl_idname = "scene.trim_tile"
-    bl_label = "Trim Tile"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    @classmethod
-    def poll(cls, context):
-        obj = context.active_object
-        if obj is not None:
-            return context.object.mode == 'OBJECT'
-
-    def execute(self, context):
-        # object to be trimmed
-        obj = context.active_object
-
-        # get name of tile
-        tile_name = obj.mt_tile_name
-
-        # get tile empty with properties stored on it
-        if tile_name + '.empty' in bpy.data.objects:
-            tile_empty = bpy.data.objects[tile_name + '.empty']
-            trimmers = tile_empty['tile_properties']['trimmers']
-
-            if context.scene.mt_trim_x_neg is True:
-                trimmer = trimmers['x_neg']
-                trim_side(obj, trimmer, context.scene.mt_trim_buffer)
-            if context.scene.mt_trim_x_pos is True:
-                trimmer = trimmers['x_pos']
-                trim_side(obj, trimmer, context.scene.mt_trim_buffer)
-            if context.scene.mt_trim_y_neg is True:
-                trimmer = trimmers['y_neg']
-                trim_side(obj, trimmer, context.scene.mt_trim_buffer)
-            if context.scene.mt_trim_y_pos is True:
-                trimmer = trimmers['y_pos']
-                trim_side(obj, trimmer, context.scene.mt_trim_buffer)
-            if context.scene.mt_trim_z_neg is True:
-                trimmer = trimmers['z_neg']
-                trim_side(obj, trimmer, context.scene.mt_trim_buffer)
-            if context.scene.mt_trim_z_pos is True:
-                trimmer = trimmers['z_pos']
-                trim_side(obj, trimmer, context.scene.mt_trim_buffer)
-
-        return {'FINISHED'}
-
-    @classmethod
-    def register(cls):
-        bpy.types.Scene.mt_trim_buffer = bpy.props.FloatProperty(
-            name="Buffer",
-            description="Buffer to use for trimming. Helps Booleans work",
-            default=-0.001,
-            precision=4
-        )
-
-        bpy.types.Scene.mt_trim_x_neg = bpy.props.BoolProperty(
-            name="X Negative",
-            description="Trim the X negative side of tile",
-            default=False
-        )
-
-        bpy.types.Scene.mt_trim_x_pos = bpy.props.BoolProperty(
-            name="X Positive",
-            description="Trim the X positive side of tile",
-            default=False
-        )
-
-        bpy.types.Scene.mt_trim_y_neg = bpy.props.BoolProperty(
-            name="Y Negative",
-            description="Trim the Y negative side of tile",
-            default=False
-        )
-
-        bpy.types.Scene.mt_trim_y_pos = bpy.props.BoolProperty(
-            name="Y Positive",
-            description="Trim the Y positive side of tile",
-            default=False
-        )
-
-        bpy.types.Scene.mt_trim_z_neg = bpy.props.BoolProperty(
-            name="Z Negative",
-            description="Trim the Z positive side of tile",
-            default=False
-        )
-
-        bpy.types.Scene.mt_trim_z_pos = bpy.props.BoolProperty(
-            name="Z Positive",
-            description="Trim the Z positive side of tile",
-            default=False
-        )
-
-    @classmethod
-    def unregister(cls):
-        del bpy.types.Scene.mt_trim_buffer
-        del bpy.types.Scene.mt_trim_x_neg
-        del bpy.types.Scene.mt_trim_x_pos
-        del bpy.types.Scene.mt_trim_y_neg
-        del bpy.types.Scene.mt_trim_y_pos
-        del bpy.types.Scene.mt_trim_z_neg
-        del bpy.types.Scene.mt_trim_z_pos
-
-
 def create_curved_floor_trimmers(tile_properties):
     mode('OBJECT')
     deselect_all
@@ -524,7 +423,13 @@ def create_b_trimmer(dim):
 
 
 # works for rectangular floors and straight walls
-def create_tile_trimmers(tile_properties):
+def create_cuboid_tile_trimmers(
+        tile_size,
+        base_size,
+        tile_name,
+        base_blueprint,
+        tile_empty):
+
     mode('OBJECT')
     deselect_all()
 
@@ -533,13 +438,13 @@ def create_tile_trimmers(tile_properties):
 
     # create a cuboid the size of our tile and center it to use
     # as our bounding box for entire tile
-    if tile_properties['base_blueprint'] is not 'NONE':
+    if base_blueprint is not 'NONE':
         bbox_proxy = draw_cuboid(Vector((
-            tile_properties['tile_size'][0],
-            tile_properties['base_size'][1],
-            tile_properties['tile_size'][2])))
+            tile_size[0],
+            base_size[1],
+            tile_size[2])))
     else:
-        bbox_proxy = draw_cuboid(tile_properties['tile_size'])
+        bbox_proxy = draw_cuboid(tile_size)
     mode('OBJECT')
 
     bbox_proxy.location = (
@@ -557,47 +462,70 @@ def create_tile_trimmers(tile_properties):
     # create trimmers
     buffer = bpy.context.scene.mt_trim_buffer
     x_neg_trimmer = create_x_neg_trimmer(bound_box, dimensions, buffer)
-    x_neg_trimmer.name = tile_properties['tile_name'] + '.x_neg_trimmer'
+    x_neg_trimmer.name = 'X Neg Trimmer.' + tile_name
     x_pos_trimmer = create_x_pos_trimmer(bound_box, dimensions, buffer)
-    x_pos_trimmer.name = tile_properties['tile_name'] + '.x_pos_trimmer'
+    x_pos_trimmer.name = 'X Pos Trimmer.' + tile_name
     y_neg_trimmer = create_y_neg_trimmer(bound_box, dimensions, buffer)
-    y_neg_trimmer.name = tile_properties['tile_name'] + '.y_neg_trimmer'
+    y_neg_trimmer.name = 'Y Neg Trimmer.' + tile_name
     y_pos_trimmer = create_y_pos_trimmer(bound_box, dimensions, buffer)
-    y_pos_trimmer.name = tile_properties['tile_name'] + '.y_pos_trimmer'
+    y_pos_trimmer.name = 'Y Pos Trimmer.' + tile_name
     z_pos_trimmer = create_z_pos_trimmer(bound_box, dimensions, buffer)
-    z_pos_trimmer.name = tile_properties['tile_name'] + '.z_pos_trimmer'
+    z_pos_trimmer.name = 'Z Pos Trimmer.' + tile_name
     z_neg_trimmer = create_z_neg_trimmer(bound_box, dimensions, buffer)
-    z_neg_trimmer.name = tile_properties['tile_name'] + '.z_neg_trimmer'
+    z_neg_trimmer.name = 'Z Neg Trimmer.' + tile_name
 
-    trimmers = {
-        'x_neg': x_neg_trimmer,
-        'x_pos': x_pos_trimmer,
-        'y_neg': y_neg_trimmer,
-        'y_pos': y_pos_trimmer,
-        'z_pos': z_pos_trimmer,
-        'z_neg': z_neg_trimmer
-    }
+    trimmers = [x_neg_trimmer,
+                x_pos_trimmer,
+                y_neg_trimmer,
+                y_pos_trimmer,
+                z_pos_trimmer,
+                z_neg_trimmer]
 
     cursor.location = cursor_orig_location
 
-    for trimmer in trimmers.values():
+    ctx = {
+        'selected_objects': trimmers,
+        'active_object': trimmers[0],
+        'object': trimmers[0]
+    }
+
+    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+
+    for trimmer in trimmers:
         trimmer.display_type = 'BOUNDS'
-        select(trimmer.name)
-        bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
-        trimmer.hide_viewport = True
-        trimmer.parent = bpy.context.scene.objects[tile_properties['empty_name']]
+
+        # trimmer.hide_viewport = True
+        trimmer.parent = tile_empty
+        trimmer.mt_tile_properties.tile_name = tile_name
+        trimmer.mt_tile_properties.geometry_type = 'TRIMMER'
+        trimmer.mt_tile_properties.is_mt_object = True
+
+        # Store references to trimmers on empty
+        item = tile_empty.mt_tile_properties.trimmers_collection.add()
+        item.name = trimmer.name
+        item.value = False
+        item.parent = tile_empty.name
 
     bpy.ops.object.delete({"selected_objects": [bbox_proxy]})
+
     return trimmers
 
 
-def trim_side(obj, trimmer, buffer):
-    boolean = obj.modifiers.new(trimmer.name + '_trimmer', 'BOOLEAN')
+def add_bool_modifier(obj, trimmer_name):
+    trimmer = bpy.data.objects[trimmer_name]
+    boolean = obj.modifiers.new(trimmer.name + '.bool', 'BOOLEAN')
+    boolean.show_viewport = False
     boolean.operation = 'DIFFERENCE'
     boolean.object = trimmer
     trimmer.parent = obj
     trimmer.display_type = 'BOUNDS'
     trimmer.hide_viewport = True
+
+
+def trim_side(obj, trimmer_name):
+    trimmer = bpy.data.objects[trimmer_name]
+    boolean = obj.modifiers[trimmer.name + '.bool']
+    boolean.show_viewport = True
 
 
 def create_x_neg_trimmer(bound_box, dimensions, buffer):

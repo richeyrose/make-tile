@@ -14,7 +14,7 @@ from .. materials.materials import (
     assign_displacement_materials,
     assign_preview_materials)
 from .. operators.trim_tile import (
-    create_tile_trimmers)
+    create_cuboid_tile_trimmers)
 
 
 def create_rectangular_floor(tile_empty):
@@ -52,7 +52,7 @@ def create_rectangular_floor(tile_empty):
     # create tile trimmers. Used to ensure that displaced
     # textures don't extend beyond the original bounds of the tile.
     # Used by voxeliser and exporter
-    tile_properties['trimmers'] = create_tile_trimmers(tile_properties)
+    tile_properties['trimmers'] = create_cuboid_tile_trimmers(tile_properties)
 
     base.parent = tile_empty
     tile_empty.location = cursor_orig_loc

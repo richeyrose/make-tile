@@ -33,7 +33,7 @@ from . lib.utils.tinycad.V2X import MT_OT_Vert2Intersection
 from . lib.utils.tinycad.VTX import MT_OT_AutoVTX
 from . lib.utils.tinycad.XALL import MT_OT_IntersectAllEdges
 
-from . operators.maketile import MT_OT_Make_Tile, MT_Cutter_Item, MT_Tile_Properties
+from . operators.maketile import MT_OT_Make_Tile, MT_Cutter_Item, MT_Trimmer_Item, MT_Tile_Properties
 from . operators.makevertgroups import MT_OT_makeVertGroupsFromFaces
 from . operators.object_converter import MT_OT_Convert_To_MT_Obj
 from . operators.bakedisplacement import MT_OT_Bake_Displacement, MT_OT_Assign_Material_To_Vert_Group, MT_OT_Remove_Material_From_Vert_Group
@@ -41,7 +41,6 @@ from . operators.return_to_preview import MT_OT_Return_To_Preview
 from . operators.create_lighting_setup import MT_OT_Create_Lighting_Setup
 from . operators.exporter import MT_OT_Export_Tile
 from . operators.voxeliser import MT_OT_Tile_Voxeliser
-from . operators.trim_tile import MT_OT_Tile_Trimmer
 from . lib.turtle.operators.basic_commands import *
 from . lib.turtle.operators.curve import *
 from . lib.turtle.operators.helpers import *
@@ -66,6 +65,7 @@ bl_info = {
 classes = (
     MT_MakeTilePreferences,
     MT_Cutter_Item,
+    MT_Trimmer_Item,
     MT_Tile_Properties,
     MT_OT_Make_Tile,
     MT_OT_makeVertGroupsFromFaces,
@@ -74,7 +74,6 @@ classes = (
     MT_OT_Return_To_Preview,
     MT_OT_Create_Lighting_Setup,
     MT_OT_Tile_Voxeliser,
-    MT_OT_Tile_Trimmer,
     MT_OT_Export_Tile,
     MT_OT_Assign_Material_To_Vert_Group,
     MT_OT_Remove_Material_From_Vert_Group,

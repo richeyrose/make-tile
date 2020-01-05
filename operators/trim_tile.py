@@ -430,9 +430,6 @@ def create_cuboid_tile_trimmers(
         base_blueprint,
         tile_empty):
 
-    mode('OBJECT')
-    deselect_all()
-
     cursor = bpy.context.scene.cursor
     cursor_orig_location = cursor.location.copy()
 
@@ -445,15 +442,17 @@ def create_cuboid_tile_trimmers(
             tile_size[2])))
     else:
         bbox_proxy = draw_cuboid(tile_size)
-    mode('OBJECT')
 
     bbox_proxy.location = (
         bbox_proxy.location[0] - bbox_proxy.dimensions[0] / 2,
         bbox_proxy.location[1] - bbox_proxy.dimensions[1] / 2,
         bbox_proxy.location[2])
 
-    cursor.location = cursor_orig_location
-    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+    ctx = {
+        'selected_objects': [bbox_proxy]
+    }
+
+    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
 
     # get bounding box and dimensions of cuboid
     bound_box = bbox_proxy.bound_box
@@ -489,7 +488,7 @@ def create_cuboid_tile_trimmers(
         'object': trimmers[0]
     }
 
-    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
 
     for trimmer in trimmers:
         trimmer.display_type = 'BOUNDS'

@@ -46,7 +46,8 @@ geometry_types = [
     ("DISPLACEMENT", "Displacement", "", 5),
     ("PROP", "Prop", "", 6),
     ("GREEBLE", "Greeble", "", 7),
-    ("TRIMMER", "Trimmer", "", 8)
+    ("TRIMMER", "Trimmer", "", 8),
+    ("EMPTY", "Empty", "", 9)
 ]
 
 base_socket_side = [

@@ -17,8 +17,8 @@ from .. operators.trim_tile import (
 from . create_displacement_mesh import create_displacement_object
 
 
-def create_straight_wall(tile_name, tile_empty):
-    """Returns a straight wall
+def create_straight_wall(tile_empty):
+    """Creates a straight wall tile
     Keyword arguments:
     tile_empty -- EMPTY, empty which the tile is parented to. \
         Stores properties that relate to the entire tile
@@ -32,13 +32,14 @@ def create_straight_wall(tile_name, tile_empty):
     cursor_orig_loc = cursor.location.copy()
     cursor.location = (0, 0, 0)
     tile_empty.location = (0, 0, 0)
+    tile_name = tile_empty.mt_tile_properties.tile_name
 
     # Get base and main part blueprints
     base_blueprint = scene.mt_base_blueprint
     main_part_blueprint = scene.mt_main_part_blueprint
 
-    # We store a list of meshes here because we're going to add 
-    # trimmer modifiers to all of them later but we don't yet 
+    # We store a list of meshes here because we're going to add
+    # trimmer modifiers to all of them later but we don't yet
     # know the full dimensions of our tile
     tile_meshes = []
 

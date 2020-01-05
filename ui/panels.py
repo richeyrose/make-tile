@@ -51,7 +51,7 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
 
         elif scene.mt_tile_type == 'CURVED_WALL':
             layout.label(text="Tile Properties:")
-            layout.prop(scene, 'mt_wall_inner_radius')
+            layout.prop(scene, 'mt_wall_radius')
             layout.prop(scene, 'mt_degrees_of_arc')
             layout.prop(scene, 'mt_segments')
             '''
@@ -63,7 +63,7 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
 
             if obj is not None and obj.type == 'MESH':
                 layout.label(text="Side Sockets:")
-                for item in obj.mt_cutters_collection:
+                for item in obj.mt_tile_properties.mt_cutters_collection:
                     row = layout.row()
                     row.prop(item, "value", text=item.name)
 
@@ -79,7 +79,7 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
 
             if obj is not None and obj.type == 'MESH':
                 layout.label(text="Side Sockets:")
-                for item in obj.mt_cutters_collection:
+                for item in obj.mt_tile_properties.mt_cutters_collection:
                     seperator = '.'
                     stripped_name = item.name.split(seperator, 1)[0]
                     row = layout.row()
@@ -99,7 +99,7 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
 
         elif scene.mt_tile_type == 'CURVED_FLOOR':
             layout.label(text="Tile Properties")
-            layout.prop(scene, 'mt_base_inner_radius', text="Straight edge length")
+            layout.prop(scene, 'mt_base_radius', text="Straight edge length")
             layout.prop(scene, 'mt_angle_1', text="Degrees of arc")
             layout.prop(scene, 'mt_curve_type')
             layout.prop(scene, 'mt_segments')
@@ -143,14 +143,14 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
             layout.prop(scene, 'mt_tile_z')
 
             layout.label(text="Tile Properties")
-            layout.prop(scene, 'mt_base_inner_radius', text="Straight edge length")
+            layout.prop(scene, 'mt_base_radius', text="Straight edge length")
             layout.prop(scene, 'mt_angle_1', text="Degrees of arc")
             layout.prop(scene, 'mt_curve_type')
             layout.prop(scene, 'mt_segments')
 
         if scene.mt_tile_type == 'CURVED_WALL':
             layout.label(text="Base Properties")
-            layout.prop(scene, 'mt_base_inner_radius')
+            layout.prop(scene, 'mt_base_radius')
             row = layout.row()
             row.prop(scene, 'mt_base_y')
             row.prop(scene, 'mt_base_z')
@@ -175,7 +175,7 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
 
         elif scene.mt_tile_type == 'CURVED_WALL':
             layout.label(text="Tile Properties")
-            layout.prop(scene, 'mt_wall_inner_radius')
+            layout.prop(scene, 'mt_wall_radius')
             layout.prop(scene, 'mt_degrees_of_arc')
             layout.prop(scene, 'mt_segments')
 

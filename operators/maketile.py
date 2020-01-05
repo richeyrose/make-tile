@@ -60,7 +60,6 @@ class MT_Cutter_Item(bpy.types.PropertyGroup):
 
 class MT_Trimmer_Item(bpy.types.PropertyGroup):
     def update_use_trimmer(self, context):
-        print(self.name)
         obj = context.object
         if self.name + '.bool' in obj.modifiers:
             bool_mod = obj.modifiers[self.name + '.bool']
@@ -119,11 +118,19 @@ class MT_Tile_Properties(bpy.types.PropertyGroup):
     )
 
     base_size: bpy.props.FloatVectorProperty(
-        name="Base_size"
+        name="Base size"
     )
 
-    radius: bpy.props.FloatProperty(
-        name="Radius"
+    base_radius: bpy.props.FloatProperty(
+        name="Base Radius"
+    )
+
+    wall_radius: bpy.props.FloatProperty(
+        name="Wall Radius"
+    )
+
+    degrees_of_arc: bpy.props.FloatProperty(
+        name="Degrees of Arc"
     )
 
     angle: bpy.props.FloatProperty(
@@ -224,6 +231,17 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         #####################
 
         tile_empty = bpy.data.objects.new(tile_name + ".empty", None)
+
+        # Store some of our tile properties on our empty for easy access later
+        empty_props = tile_empty.mt_tile_properties
+        empty_props.is_mt_object = True
+        empty_props.geometry_type = 'EMPTY'
+        empty_props.tile_name = tile_name
+        empty_props.tile_type = tile_type
+        empty_props.tile_blueprint = tile_blueprint
+        empty_props.main_part_blueprint = context.scene.mt_main_part_blueprint
+        empty_props.base_blueprint = context.scene.mt_base_blueprint
+
         bpy.context.layer_collection.collection.objects.link(tile_empty)
         tile_empty.location = context.scene.cursor.location
 
@@ -232,13 +250,13 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         ###############
 
         if tile_type == 'STRAIGHT_WALL':
-            create_straight_wall(tile_name, tile_empty)
+            create_straight_wall(tile_empty)
 
         if tile_type == 'CURVED_WALL':
             create_curved_wall(tile_empty)
 
         if tile_type == 'CORNER_WALL':
-            create_corner_wall(tile_empty)
+            create_corner_wall(tile_name, tile_empty)
 
         if tile_type == 'RECTANGULAR_FLOOR':
             create_rectangular_floor(tile_empty)
@@ -381,7 +399,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             min=0
         )
 
-        # Corner walll and triangular base specific
+        # Corner wall and triangular base specific
         bpy.types.Scene.mt_angle = bpy.props.FloatProperty(
             name="Base Angle",
             default=90,
@@ -413,7 +431,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         )
 
         # Used for curved wall tiles
-        bpy.types.Scene.mt_radius = bpy.props.FloatProperty(
+        bpy.types.Scene.mt_base_radius = bpy.props.FloatProperty(
             name="Base inner radius",
             default=2.0,
             step=0.5,
@@ -421,7 +439,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             min=0,
         )
 
-        bpy.types.Scene.mt_wall_inner_radius = bpy.props.FloatProperty(
+        bpy.types.Scene.mt_wall_radius = bpy.props.FloatProperty(
             name="Wall inner radius",
             default=2.0,
             step=0.5,
@@ -451,10 +469,10 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             name="Number of segments",
             default=8,
         )
-        
+
         bpy.types.Scene.mt_trim_buffer = bpy.props.FloatProperty(
             name="Buffer",
-            description="Buffer to use for trimming. Helps Booleans work",
+            description="Buffer to use for creating tile trimmers. Helps Booleans work",
             default=-0.001,
             precision=4
         )
@@ -465,8 +483,8 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         del bpy.types.Scene.mt_trim_buffer
         del bpy.types.Scene.mt_tile_name
         del bpy.types.Scene.mt_segments
-        del bpy.types.Scene.mt_radius
-        del bpy.types.Scene.mt_wall_inner_radius
+        del bpy.types.Scene.mt_base_radius
+        del bpy.types.Scene.mt_wall_radius
         del bpy.types.Scene.mt_curve_type
         del bpy.types.Scene.mt_degrees_of_arc
         del bpy.types.Scene.mt_base_socket_side

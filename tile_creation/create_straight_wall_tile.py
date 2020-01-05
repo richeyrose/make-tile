@@ -6,11 +6,6 @@ from mathutils import Vector
 from .. lib.utils.collections import add_object_to_collection
 from .. utils.registration import get_prefs
 from .. lib.turtle.scripts.primitives import draw_cuboid
-from .. lib.utils.selection import (
-    deselect_all,
-    select_all,
-    select,
-    activate)
 from .. lib.utils.utils import mode
 from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
 from .. materials.materials import (
@@ -96,26 +91,27 @@ def create_plain_base(tile_name, base_size):
     """Returns a base for a wall tile
     """
     cursor = bpy.context.scene.cursor
-    cursor_start_location = cursor.location.copy()
+    cursor_orig_loc = cursor.location.copy()
 
     # make base
     base = draw_cuboid(base_size)
     base.name = tile_name + '.base'
     add_object_to_collection(base, tile_name)
-    base_location = base.location.copy()
 
-    mode('OBJECT')
-    select(base.name)
-    activate(base.name)
-
+    # reposition base and set origin
     base.location = (
-        base_location[0] - base_size[0] / 2,
-        base_location[1] + base_size[1] / 2,
-        base_location[2] + base_size[2])
-    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
-    base.location = cursor_start_location
-    bpy.context.scene.cursor.location = cursor_start_location
+        cursor_orig_loc[0] - base_size[0] / 2,
+        cursor_orig_loc[1] - base_size[1] / 2,
+        cursor_orig_loc[2])
 
+    ctx = {
+        'object': base,
+        'active_object': base,
+        'selected_objects': [base]
+    }
+    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+
+    # Store tile properties on base
     tile_properties = base.mt_tile_properties
     tile_properties.is_mt_object = True
     tile_properties.tile_name = tile_name
@@ -130,8 +126,8 @@ def create_openlock_base(tile_name, base_size):
     # make base
     base = create_plain_base(tile_name, base_size)
 
-    slot_cutter = create_openlock_base_slot_cutter(base)
-    slot_cutter.hide_viewport = True
+    slot_cutter = create_openlock_base_slot_cutter(base, offset=0.018)
+    #slot_cutter.hide_viewport = True
 
     if base.dimensions[0] >= 1:
         clip_cutter = create_openlock_base_clip_cutter(base)
@@ -151,11 +147,8 @@ def create_openlock_base_slot_cutter(base, offset=0.18):
 
     Keyword arguments:
     base -- OBJ, base the cutter will be used on
-    tile_name -- STR
     """
     cursor = bpy.context.scene.cursor
-    mode('OBJECT')
-    base_dimensions = base.dimensions
     tile_properties = base.mt_tile_properties
 
     # get original location of object and cursor
@@ -168,28 +161,21 @@ def create_openlock_base_slot_cutter(base, offset=0.18):
         0.197,
         0.25]
 
-    cutter_mesh = bpy.data.meshes.new("cutter_mesh")
-    cutter = bpy.data.objects.new(tile_properties.tile_name + ".cutter.slot", cutter_mesh)
-    add_object_to_collection(cutter, tile_properties.tile_name)
     cutter = draw_cuboid(bool_size)
-
-    mode('OBJECT')
-    deselect_all()
-    select(cutter.name)
-    activate(cutter.name)
+    cutter.name = tile_properties.tile_name + ".slot_cutter"
 
     cutter.location = (
         base_location[0] - bool_size[0] / 2,
-        base_location[1] + offset,
-        base_location[2] + cutter.dimensions[2] - 0.001)
+        base_location[1] - offset,
+        base_location[2] - 0.001)
 
-    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+    ctx = {
+        'object': cutter,
+        'active_object': cutter,
+        'selected_objects': [cutter]
+    }
 
-    # reset cursor location
-    cursor.location = cursor_original_location
-
-    # set cutter location to base origin
-    cutter.location = base_location
+    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
 
     slot_boolean = base.modifiers.new(cutter.name, 'BOOLEAN')
     slot_boolean.operation = 'DIFFERENCE'
@@ -217,7 +203,6 @@ def create_openlock_base_clip_cutter(base):
     cursor_original_location = bpy.context.scene.cursor.location.copy()
     base_location = base.location.copy()
     # Get cutter
-    deselect_all()
     preferences = get_prefs()
     booleans_path = os.path.join(preferences.assets_path, "meshes", "booleans", "openlock.blend")
 
@@ -287,9 +272,7 @@ def create_core(tile_size, base_size, tile_name):
     '''Returns the core (vertical) part of a wall tile
     '''
     cursor = bpy.context.scene.cursor
-    cursor_start_location = cursor.location.copy()
-
-    deselect_all()
+    cursor_start_loc = cursor.location.copy()
 
     # make our core
     core = draw_cuboid([
@@ -299,23 +282,26 @@ def create_core(tile_size, base_size, tile_name):
 
     core.name = tile_name + '.core'
     add_object_to_collection(core, tile_name)
-    core_location = core.location.copy()
     mode('OBJECT')
 
     # move core so centred, move up so on top of base and set origin to world origin
     core.location = (
-        core_location[0] - tile_size[0] / 2,
-        core_location[1] - tile_size[1] / 2,
-        core_location[2] + base_size[2])
+        cursor_start_loc[0] - tile_size[0] / 2,
+        cursor_start_loc[1] - tile_size[1] / 2,
+        cursor_start_loc[2] + base_size[2])
 
-    cursor.location = cursor_start_location
-    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+    ctx = {
+        'object': core,
+        'active_object': core,
+        'selected_objects': [core]
+    }
 
-    bpy.ops.uv.smart_project()
+    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+    bpy.ops.uv.smart_project(ctx)
+
     cuboid_sides_to_vert_groups(core)
 
     tile_props = core.mt_tile_properties
-
     tile_props.is_mt_object = True
     tile_props.tile_name = tile_name
     tile_props.tile_size = tile_size
@@ -356,7 +342,6 @@ def create_openlock_wall_cutters(core):
     Keyword arguments:
     core -- OBJ, wall core object
     """
-    deselect_all()
     preferences = get_prefs()
     tile_properties = core.mt_tile_properties
     tile_name = tile_properties.tile_name

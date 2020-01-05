@@ -20,6 +20,10 @@ def draw_cuboid(size):
     t.up(d=size[2])
     t.select_all()
     bpy.ops.mesh.normals_make_consistent()
+    t.pu()
+    t.home()
+    bpy.ops.object.mode_set(mode='OBJECT')
+
     return bpy.context.object
 
 

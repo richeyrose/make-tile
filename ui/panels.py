@@ -45,7 +45,7 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
 
             if obj is not None and obj.type == 'MESH':
                 layout.label(text="Side Sockets:")
-                for item in obj.mt_tile_properties.cutters_collection:
+                for item in obj.mt_object_props.cutters_collection:
                     row = layout.row()
                     row.prop(item, "value", text=item.name)
 
@@ -63,7 +63,7 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
 
             if obj is not None and obj.type == 'MESH':
                 layout.label(text="Side Sockets:")
-                for item in obj.mt_tile_properties.mt_cutters_collection:
+                for item in obj.mt_object_props.cutters_collection:
                     row = layout.row()
                     row.prop(item, "value", text=item.name)
 
@@ -79,7 +79,7 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
 
             if obj is not None and obj.type == 'MESH':
                 layout.label(text="Side Sockets:")
-                for item in obj.mt_tile_properties.mt_cutters_collection:
+                for item in obj.mt_object_props.cutters_collection:
                     seperator = '.'
                     stripped_name = item.name.split(seperator, 1)[0]
                     row = layout.row()
@@ -389,19 +389,17 @@ class MT_PT_Trim_Panel(MT_PT_Panel, bpy.types.Panel):
         scene = context.scene
         layout = self.layout
 
-        obj = context.object
+        tile_collection = context.collection
 
-        if obj is not None:
-            tile_properties = obj.mt_tile_properties
+        tile_props = tile_collection.mt_tile_props
 
-            if tile_properties.is_mt_object is True:
-                tile_name = tile_properties.tile_name
-                tile_empty = bpy.data.objects[tile_name + '.empty']
+        if tile_props.is_mt_collection is True:
+            tile_name = tile_props.tile_name
 
-                for item in tile_empty.mt_tile_properties.trimmers_collection:
-                    seperator = '.'
-                    stripped_name = item.name.split(seperator, 1)[0]
-                    layout.prop(item, "value", text=stripped_name)
+            for item in tile_props.trimmers_collection:
+                seperator = '.'
+                stripped_name = item.name.split(seperator, 1)[0]
+                layout.prop(item, "value", text=stripped_name)
 
 
 class MT_PT_Export_Panel(MT_PT_Panel, bpy.types.Panel):

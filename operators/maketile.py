@@ -253,17 +253,6 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         #####################
 
         tile_empty = bpy.data.objects.new(tile_name + ".empty", None)
-        ''''
-        # Store some of our tile properties on our empty for easy access later
-        empty_props = tile_empty.mt_tile_properties
-        empty_props.is_mt_object = True
-        empty_props.geometry_type = 'EMPTY'
-        empty_props.tile_name = tile_name
-        empty_props.tile_type = tile_type
-        empty_props.tile_blueprint = tile_blueprint
-        empty_props.main_part_blueprint = context.scene.mt_main_part_blueprint
-        empty_props.base_blueprint = context.scene.mt_base_blueprint
-        '''
 
         bpy.context.layer_collection.collection.objects.link(tile_empty)
         tile_empty.location = context.scene.cursor.location
@@ -279,7 +268,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             create_curved_wall(tile_empty)
 
         if tile_type == 'CORNER_WALL':
-            create_corner_wall(tile_name, tile_empty)
+            create_corner_wall(tile_empty)
 
         if tile_type == 'RECTANGULAR_FLOOR':
             create_rectangular_floor(tile_empty)

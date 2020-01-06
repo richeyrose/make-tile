@@ -34,7 +34,7 @@ def create_straight_wall(tile_empty):
 
     tile_props = bpy.context.collection.mt_tile_props
     tile_name = tile_props.tile_name
-   
+
     # Get base and main part blueprints
     base_blueprint = tile_props.base_blueprint
     main_part_blueprint = tile_props.main_part_blueprint
@@ -76,6 +76,7 @@ def create_straight_wall(tile_empty):
             0.3149,
             scene.mt_tile_z))
         preview_core, displacement_core = create_openlock_cores(base, tile_props.tile_size, tile_name)
+        displacement_core.hide_viewport = True
         tile_meshes.extend([preview_core, displacement_core])
 
     if main_part_blueprint == 'PLAIN':
@@ -308,8 +309,6 @@ def create_cores(base, tile_size, tile_name):
     assign_displacement_materials(displacement_core, [image_size, image_size], primary_material, secondary_material)
     assign_preview_materials(preview_core, primary_material, secondary_material, textured_vertex_groups)
 
-    displacement_core.hide_viewport = True
-
     preview_core.mt_object_props.geometry_type = 'PREVIEW'
     displacement_core.mt_object_props.geometry_type = 'DISPLACEMENT'
 
@@ -473,6 +472,7 @@ def create_openlock_wall_cutters(core):
 
     right_cutter_top = right_cutter_bottom.copy()
     right_cutter_top.name = 'X Pos Top.' + tile_name
+
     add_object_to_collection(right_cutter_top, tile_name)
     right_cutter_top.location[2] = right_cutter_top.location[2] + 0.75
 

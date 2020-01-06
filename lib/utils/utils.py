@@ -160,6 +160,7 @@ def calc_tri(A, b, c):
 
     return dimensions
 
+
 def apply_all_modifiers(mesh, only_visible=True):
     '''Applies all modifiers. if only_vsible is True it only applies those
     modifiers that are visible in the viewport'''

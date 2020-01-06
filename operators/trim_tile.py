@@ -72,6 +72,114 @@ def create_cuboid_tile_trimmers(
 
     return trimmers
 
+# TODO: Make work with negative curvature
+def create_curved_wall_tile_trimmers(tile_size, base_size, tile_name, base_blueprint, tile_empty):
+    deselect_all()
+
+    cursor = bpy.context.scene.cursor
+    cursor_orig_location = cursor.location.copy()
+    tile_props = bpy.context.collection.mt_tile_props
+
+    # create a cuboid the size of our tile and center it to use
+    # as our bounding box for entire tile for Z trimmers
+    if base_blueprint is not 'NONE':
+        bbox_proxy = draw_cuboid(Vector((
+            tile_size[0],
+            base_size[1],
+            tile_size[2])))
+    else:
+        bbox_proxy = draw_cuboid(tile_size)
+    mode('OBJECT')
+
+    bbox_proxy.location = (
+        bbox_proxy.location[0] - bbox_proxy.dimensions[0] / 2,
+        bbox_proxy.location[1] - bbox_proxy.dimensions[1] / 2,
+        bbox_proxy.location[2])
+
+    cursor.location = cursor_orig_location
+    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+
+    # get bounding box and dimensions of cuboid
+    bound_box = bbox_proxy.bound_box
+    dimensions = bbox_proxy.dimensions.copy()
+
+    buffer = bpy.context.scene.mt_trim_buffer
+
+    # create x trimmers
+    x_pos_trimmer = draw_cuboid(Vector((
+        1,
+        tile_size[1] + 1,
+        tile_size[2] + 1)))
+
+    x_pos_trimmer.name = tile_name + '.x_pos_trimmer'
+    mode('OBJECT')
+    x_pos_trimmer.location = (
+        x_pos_trimmer.location[0],
+        x_pos_trimmer.location[1] - x_pos_trimmer.dimensions[1] / 2,
+        x_pos_trimmer.location[2] - 0.5)
+    cursor.location = cursor_orig_location
+    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+
+    circle_center = Vector((
+        x_pos_trimmer.location[0],
+        x_pos_trimmer.location[1] + tile_props.wall_radius,
+        x_pos_trimmer.location[2]))
+
+    bpy.ops.transform.rotate(
+        value=-radians((tile_props.degrees_of_arc / 2)),
+        orient_axis='Z',
+        orient_type='GLOBAL',
+        center_override=circle_center)
+
+    x_neg_trimmer = draw_cuboid(Vector((-1, tile_size[1] + 1, tile_size[2] + 1)))
+    x_neg_trimmer.name = tile_name + 'x_neg_trimmer'
+    mode('OBJECT')
+    x_neg_trimmer.location = (
+        x_neg_trimmer.location[0],
+        x_neg_trimmer.location[1] - x_neg_trimmer.dimensions[1] / 2,
+        x_neg_trimmer.location[2] - 0.5)
+    cursor.location = cursor_orig_location
+    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+
+    bpy.ops.transform.rotate(
+        value=radians(tile_props.degrees_of_arc / 2),
+        orient_axis='Z',
+        orient_type='GLOBAL',
+        center_override=circle_center)
+
+    mode('OBJECT')
+
+    cursor.location = cursor_orig_location
+
+    # create Z trimmers
+    z_pos_trimmer = create_z_pos_trimmer(bound_box, dimensions, buffer)
+    z_pos_trimmer.name = tile_name + '.z_pos_trimmer'
+
+    z_neg_trimmer = create_z_neg_trimmer(bound_box, dimensions, buffer)
+    z_neg_trimmer.name = tile_name + '.z_neg_trimmer'
+
+    cursor.location = cursor_orig_location
+    z_trimmers = [z_pos_trimmer, z_neg_trimmer]
+
+    for trimmer in z_trimmers:
+        bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+        add_deform_modifiers(trimmer, tile_props.segments, tile_props.degrees_of_arc)
+
+    trimmers = [
+        x_neg_trimmer,
+        x_pos_trimmer,
+        z_pos_trimmer,
+        z_neg_trimmer
+    ]
+
+    cursor.location = cursor_orig_location
+
+    save_trimmer_props(trimmers, tile_empty, tile_name)
+
+    bpy.ops.object.delete({"selected_objects": [bbox_proxy]})
+
+    return trimmers
+
 
 def save_trimmer_props(trimmers, tile_empty, tile_name):
     ctx = {
@@ -116,17 +224,17 @@ def create_curved_floor_trimmers(tile_properties):
 
     buffer = bpy.context.scene.mt_trim_buffer
 
-    a_trimmer = create_curved_trimmer(angle, length, dim['height'] + 1, 1, tile_properties['curve_type'], tile_properties['segments'], dim, buffer)
-    a_trimmer.name = tile_properties['tile_name'] + '.a_trimmer'
+    a_trimmer = create_curved_trimmer(angle, length, dim['height'] + 1, 1, tile_properties['curve_type'], tile_props.segments, dim, buffer)
+    a_trimmer.name = tile_name + '.a_trimmer'
     b_trimmer = create_b_trimmer(dim)
-    b_trimmer.name = tile_properties['tile_name'] + '.b_trimmer'
+    b_trimmer.name = tile_name + '.b_trimmer'
     c_trimmer = create_c_trimmer(dim)
-    c_trimmer.name = tile_properties['tile_name'] + '.c_trimmer'
+    c_trimmer.name = tile_name + '.c_trimmer'
 
     z_pos_trimmer = create_z_pos_tri_trimmer(dim)
-    z_pos_trimmer.name = tile_properties['tile_name'] + '.z_pos_trimmer'
+    z_pos_trimmer.name = tile_name + '.z_pos_trimmer'
     z_neg_trimmer = create_z_neg_tri_trimmer(dim)
-    z_neg_trimmer.name = tile_properties['tile_name'] + '.z_neg_trimmer'
+    z_neg_trimmer.name = tile_name + '.z_neg_trimmer'
 
     trimmers = {
         'x_neg': b_trimmer,
@@ -204,129 +312,23 @@ def create_corner_wall_tile_trimmers(tile_properties):
     # create trimmers
     buffer = bpy.context.scene.mt_trim_buffer
     x_neg_trimmer = create_x_neg_trimmer(bound_box, dimensions, buffer)
-    x_neg_trimmer.name = tile_properties['tile_name'] + '.x_neg_trimmer'
+    x_neg_trimmer.name = tile_name + '.x_neg_trimmer'
     x_pos_trimmer = create_x_pos_trimmer(bound_box, dimensions, buffer)
-    x_pos_trimmer.name = tile_properties['tile_name'] + '.x_pos_trimmer'
+    x_pos_trimmer.name = tile_name + '.x_pos_trimmer'
     y_neg_trimmer = create_y_neg_trimmer(bound_box, dimensions, buffer)
-    y_neg_trimmer.name = tile_properties['tile_name'] + '.y_neg_trimmer'
+    y_neg_trimmer.name = tile_name + '.y_neg_trimmer'
     y_pos_trimmer = create_y_pos_trimmer(bound_box, dimensions, buffer)
-    y_pos_trimmer.name = tile_properties['tile_name'] + '.y_pos_trimmer'
+    y_pos_trimmer.name = tile_name + '.y_pos_trimmer'
     z_pos_trimmer = create_z_pos_trimmer(bound_box, dimensions, buffer)
-    z_pos_trimmer.name = tile_properties['tile_name'] + '.z_pos_trimmer'
+    z_pos_trimmer.name = tile_name + '.z_pos_trimmer'
     z_neg_trimmer = create_z_neg_trimmer(bound_box, dimensions, buffer)
-    z_neg_trimmer.name = tile_properties['tile_name'] + '.z_neg_trimmer'
+    z_neg_trimmer.name = tile_name + '.z_neg_trimmer'
 
     trimmers = {
         'x_neg': x_neg_trimmer,
         'x_pos': x_pos_trimmer,
         'y_neg': y_neg_trimmer,
         'y_pos': y_pos_trimmer,
-        'z_pos': z_pos_trimmer,
-        'z_neg': z_neg_trimmer
-    }
-
-    cursor.location = cursor_orig_location
-
-    for trimmer in trimmers.values():
-        trimmer.display_type = 'BOUNDS'
-        select(trimmer.name)
-        bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
-        trimmer.hide_viewport = True
-        trimmer.parent = bpy.context.scene.objects[tile_properties['empty_name']]
-
-    bpy.ops.object.delete({"selected_objects": [bbox_proxy]})
-    return trimmers
-
-
-def create_curved_wall_tile_trimmers(tile_properties):
-    deselect_all()
-
-    cursor = bpy.context.scene.cursor
-    cursor_orig_location = cursor.location.copy()
-    tile_size = tile_properties['tile_size']
-    # create a cuboid the size of our tile and center it to use
-    # as our bounding box for entire tile for Z trimmers
-    if tile_properties['base_blueprint'] is not 'NONE':
-        bbox_proxy = draw_cuboid(Vector((
-            tile_size[0],
-            tile_properties['base_size'][1],
-            tile_size[2])))
-    else:
-        bbox_proxy = draw_cuboid(tile_size)
-    mode('OBJECT')
-
-    bbox_proxy.location = (
-        bbox_proxy.location[0] - bbox_proxy.dimensions[0] / 2,
-        bbox_proxy.location[1] - bbox_proxy.dimensions[1] / 2,
-        bbox_proxy.location[2])
-
-    cursor.location = cursor_orig_location
-    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
-
-    # get bounding box and dimensions of cuboid
-    bound_box = bbox_proxy.bound_box
-    dimensions = bbox_proxy.dimensions.copy()
-
-    buffer = bpy.context.scene.mt_trim_buffer
-
-    # create x trimmers
-    x_pos_trimmer = draw_cuboid(Vector((1, tile_size[1] + 1, tile_size[2] + 1)))
-    x_pos_trimmer.name = tile_properties['tile_name'] + '.x_pos_trimmer'
-    mode('OBJECT')
-    x_pos_trimmer.location = (
-        x_pos_trimmer.location[0],
-        x_pos_trimmer.location[1] - x_pos_trimmer.dimensions[1] / 2,
-        x_pos_trimmer.location[2] - 0.5)
-    cursor.location = cursor_orig_location
-    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
-
-    circle_center = Vector((
-        x_pos_trimmer.location[0],
-        x_pos_trimmer.location[1] + tile_properties['wall_inner_radius'],
-        x_pos_trimmer.location[2]))
-
-    bpy.ops.transform.rotate(
-        value=-radians((tile_properties['degrees_of_arc'] / 2)),
-        orient_axis='Z',
-        orient_type='GLOBAL',
-        center_override=circle_center)
-
-    x_neg_trimmer = draw_cuboid(Vector((-1, tile_size[1] + 1, tile_size[2] + 1)))
-    x_neg_trimmer.name = tile_properties['tile_name'] + 'x_neg_trimmer'
-    mode('OBJECT')
-    x_neg_trimmer.location = (
-        x_neg_trimmer.location[0],
-        x_neg_trimmer.location[1] - x_neg_trimmer.dimensions[1] / 2,
-        x_neg_trimmer.location[2] - 0.5)
-    cursor.location = cursor_orig_location
-    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
-
-    bpy.ops.transform.rotate(
-        value=radians(tile_properties['degrees_of_arc'] / 2),
-        orient_axis='Z',
-        orient_type='GLOBAL',
-        center_override=circle_center)
-
-    mode('OBJECT')
-
-    cursor.location = cursor_orig_location
-    # create Z trimmers
-    z_pos_trimmer = create_z_pos_trimmer(bound_box, dimensions, buffer)
-    z_pos_trimmer.name = tile_properties['tile_name'] + '.z_pos_trimmer'
-
-    z_neg_trimmer = create_z_neg_trimmer(bound_box, dimensions, buffer)
-    z_neg_trimmer.name = tile_properties['tile_name'] + '.z_neg_trimmer'
-
-    cursor.location = cursor_orig_location
-    z_trimmers = [z_pos_trimmer, z_neg_trimmer]
-
-    for trimmer in z_trimmers:
-        bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
-        add_deform_modifiers(trimmer, tile_properties['segments'], tile_properties['degrees_of_arc'])
-
-    trimmers = {
-        'x_neg': x_neg_trimmer,
-        'x_pos': x_pos_trimmer,
         'z_pos': z_pos_trimmer,
         'z_neg': z_neg_trimmer
     }
@@ -352,15 +354,15 @@ def create_tri_floor_tile_trimmers(tile_properties, dim):
     cursor_orig_location = cursor.location.copy()
     dim['height'] = tile_properties['tile_size'][2]
     b_trimmer = create_b_trimmer(dim)
-    b_trimmer.name = tile_properties['tile_name'] + '.b_trimmer'
+    b_trimmer.name = tile_name + '.b_trimmer'
     c_trimmer = create_c_trimmer(dim)
-    c_trimmer.name = tile_properties['tile_name'] + '.c_trimmer'
+    c_trimmer.name = tile_name + '.c_trimmer'
     a_trimmer = create_a_trimmer(dim)
-    a_trimmer.name = tile_properties['tile_name'] + '.a_trimmer'
+    a_trimmer.name = tile_name + '.a_trimmer'
     z_pos_trimmer = create_z_pos_tri_trimmer(dim)
-    z_pos_trimmer.name = tile_properties['tile_name'] + '.z_pos_trimmer'
+    z_pos_trimmer.name = tile_name + '.z_pos_trimmer'
     z_neg_trimmer = create_z_neg_tri_trimmer(dim)
-    z_neg_trimmer.name = tile_properties['tile_name'] + '.z_neg_trimmer'
+    z_neg_trimmer.name = tile_name + '.z_neg_trimmer'
 
     trimmers = {
         'x_neg': b_trimmer,

@@ -10,21 +10,32 @@ from .. lib.utils.selection import (
     select_all,
     select,
     activate)
-from .. lib.utils.utils import mode, view3d_find, add_circle_array, add_deform_modifiers
+
+from .. lib.utils.utils import (
+    mode,
+    view3d_find,
+    add_circle_array,
+    add_deform_modifiers)
+
 from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
+
 from .. materials.materials import (
     load_secondary_material,
     assign_mat_to_vert_group,
     assign_displacement_materials,
     assign_preview_materials)
+
 from .. enums.enums import geometry_types
+
 from . create_straight_wall_tile import (
     create_plain_base as create_plain_straight_wall_base,
     create_cores as create_straight_wall_cores,
     create_core,
     create_openlock_base_slot_cutter)
+
 from .. operators.trim_tile import (
-    create_curved_wall_tile_trimmers)
+    create_curved_wall_tile_trimmers,
+    add_bool_modifier)
 
 
 # TODO: Make it work for "negative" degrees of arc for openlock
@@ -50,6 +61,7 @@ def create_curved_wall(tile_empty):
     # Get tile dimensions
     tile_props.base_radius = scene.mt_base_radius
     tile_props.wall_radius = scene.mt_wall_radius
+    tile_props.segments = scene.mt_segments
 
     # We store a list of meshes here because we're going to add
     # trimmer modifiers to all of them later but we don't yet
@@ -75,25 +87,37 @@ def create_curved_wall(tile_empty):
         ))
         base = create_plain_base(tile_props.base_radius, tile_props.base_size, tile_name)
         tile_meshes.append(base)
-    '''
+
     if main_part_blueprint == 'OPENLOCK':
-        tile_properties['tile_size'] = Vector((tile_properties['tile_size'][0], 0.5, tile_properties['tile_size'][2]))
-        preview_core, displacement_core = create_openlock_cores(base, tile_properties, tile_empty)
+        tile_props.tile_size = Vector((
+            scene.mt_tile_x,
+            0.5,
+            scene.mt_tile_z))
+        preview_core, displacement_core = create_openlock_cores(base)
+        tile_meshes.extend([preview_core, displacement_core])
 
     if main_part_blueprint == 'PLAIN':
-        preview_core, displacement_core = create_wall_cores(base, tile_properties)
+        preview_core, displacement_core = create_wall_cores(base)
         displacement_core.hide_viewport = True
+        tile_meshes.extend([preview_core, displacement_core])
+
     # create tile trimmers. Used to ensure that displaced
     # textures don't extend beyond the original bounds of the tile.
-    # Used by voxeliser and exporter
+    trimmers = create_curved_wall_tile_trimmers(
+        tile_props.tile_size,
+        tile_props.base_size,
+        tile_name,
+        base_blueprint,
+        tile_empty)
 
-    tile_properties['trimmers'] = create_curved_wall_tile_trimmers(tile_properties)
+    for obj in tile_meshes:
+        for trimmer in trimmers:
+            add_bool_modifier(obj, trimmer.name)
 
     base.parent = tile_empty
+
     tile_empty.location = cursor_orig_loc
     cursor.location = cursor_orig_loc
-    tile_empty['tile_properties'] = tile_properties
-    '''
 
 
 def create_plain_base(base_radius, base_size, tile_name):
@@ -221,43 +245,59 @@ def create_openlock_base_clip_cutter(base):
     return clip_cutter
 
 
-def create_wall_cores(base, tile_properties):
+def create_wall_cores(base):
+    tile_props = bpy.context.collection.mt_tile_props
     # calculate wall dimensions
-    tile_properties['wall_inner_radius'] = (
-        tile_properties['wall_inner_radius'] + (tile_properties['tile_size'][1] / 2))
 
-    circumference = 2 * pi * tile_properties['wall_inner_radius']
-    wall_length = circumference / (360 / tile_properties['degrees_of_arc'])
+    tile_props.wall_radius = (
+        tile_props.wall_radius + tile_props.tile_size[1] / 2)
 
-    if tile_properties['main_part_blueprint'] == 'OPENLOCK':
-        tile_properties['tile_size'][1] = 0.3149
+    circumference = 2 * pi * tile_props.wall_radius
+    wall_length = circumference / (360 / tile_props.degrees_of_arc)
 
-    tile_properties['tile_size'] = Vector((
+    if tile_props.main_part_blueprint == 'OPENLOCK':
+        tile_props.tile_size[1] = 0.3149
+
+    tile_props.tile_size = Vector((
         wall_length,
-        tile_properties['tile_size'][1],
-        tile_properties['tile_size'][2]))
+        tile_props.tile_size[1],
+        tile_props.tile_size[2]))
 
-    preview_core, displacement_core = create_straight_wall_cores(tile_properties, base)
+    preview_core, displacement_core = create_straight_wall_cores(
+        base,
+        tile_props.tile_size,
+        tile_props.tile_name)
 
     cores = [preview_core, displacement_core]
+
     for core in cores:
-        add_deform_modifiers(core, tile_properties['segments'], tile_properties['degrees_of_arc'])
+        add_deform_modifiers(
+            core,
+            segments=tile_props.segments,
+            degrees_of_arc=tile_props.degrees_of_arc)
 
     displacement_core.hide_viewport = True
 
     return preview_core, displacement_core
 
 
-def create_openlock_cores(base, tile_properties, tile_empty):
-    preview_core, displacement_core = create_wall_cores(base, tile_properties)
+def create_openlock_cores(base):
+
+    tile_props = bpy.context.collection.mt_tile_props
+
+    preview_core, displacement_core = create_wall_cores(base)
     cores = [preview_core, displacement_core]
 
-    cutters = create_openlock_wall_cutters(preview_core, tile_properties)
+    cutters = create_openlock_wall_cutters(preview_core)
 
     for cutter in cutters:
+        obj_props = cutter.mt_object_props
         cutter.parent = base
-        cutter.display_type = 'BOUNDS'
-        cutter.hide_viewport = True
+        cutter.display_type = 'WIRE'
+        #cutter.hide_viewport = True
+        obj_props.is_mt_object = True
+        obj_props.tile_name = tile_props.tile_name
+        obj_props.geometrt_type = 'CUTTER'
 
         for core in cores:
             cutter_bool = core.modifiers.new(cutter.name + '.bool', 'BOOLEAN')
@@ -266,7 +306,7 @@ def create_openlock_cores(base, tile_properties, tile_empty):
 
             # add cutters to object's mt_cutters_collection
             # so we can activate and deactivate them when necessary
-            item = core.mt_cutters_collection.add()
+            item = core.mt_object_props.cutters_collection.add()
             item.name = cutter.name
             item.value = True
             item.parent = core.name
@@ -274,8 +314,12 @@ def create_openlock_cores(base, tile_properties, tile_empty):
     return preview_core, displacement_core
 
 
-def create_openlock_wall_cutters(core, tile_properties):
+def create_openlock_wall_cutters(core):
     deselect_all()
+
+    tile_props = bpy.context.collection.mt_tile_props
+    tile_name = tile_props.tile_name
+
     preferences = get_prefs()
     booleans_path = os.path.join(preferences.assets_path, "meshes", "booleans", "openlock.blend")
 
@@ -289,7 +333,9 @@ def create_openlock_wall_cutters(core, tile_properties):
 
     # left side cutters
     left_cutter_bottom = data_to.objects[0].copy()
-    add_object_to_collection(left_cutter_bottom, tile_properties['tile_name'])
+    left_cutter_bottom.name = 'X Neg Bottom.' + tile_name
+
+    add_object_to_collection(left_cutter_bottom, tile_props.tile_name)
 
     # move cutter to origin and up by 0.63 inches
     left_cutter_bottom.location = Vector((
@@ -297,16 +343,22 @@ def create_openlock_wall_cutters(core, tile_properties):
         core_location[1],
         core_location[2] + 0.63))
 
-    circle_center = Vector((
-        left_cutter_bottom.location[0],
-        left_cutter_bottom.location[1] + tile_properties['wall_inner_radius'],
-        left_cutter_bottom.location[2]))
+    if tile_props.degrees_of_arc > 0:
+        circle_center = Vector((
+            left_cutter_bottom.location[0],
+            left_cutter_bottom.location[1] + tile_props.wall_radius,
+            left_cutter_bottom.location[2]))
+    else:
+        circle_center = Vector((
+            left_cutter_bottom.location[0],
+            left_cutter_bottom.location[1] - tile_props.wall_radius,
+            left_cutter_bottom.location[2]))
 
     # rotate cutter
     select(left_cutter_bottom.name)
     activate(left_cutter_bottom.name)
     bpy.ops.transform.rotate(
-        value=radians(tile_properties['degrees_of_arc'] / 2),
+        value=radians(tile_props.degrees_of_arc / 2),
         orient_axis='Z',
         orient_type='GLOBAL',
         center_override=circle_center)
@@ -317,19 +369,20 @@ def create_openlock_wall_cutters(core, tile_properties):
     array_mod.use_constant_offset = True
     array_mod.constant_offset_displace[2] = 2
     array_mod.fit_type = 'FIT_LENGTH'
-    array_mod.fit_length = tile_properties['tile_size'][2] - 1
+    array_mod.fit_length = tile_props.tile_size[2] - 1
 
     # make a copy of left cutter bottom
     left_cutter_top = left_cutter_bottom.copy()
+    left_cutter_top.name = 'X Neg Top.' + tile_name
 
-    add_object_to_collection(left_cutter_top, tile_properties['tile_name'])
+    add_object_to_collection(left_cutter_top, tile_props.tile_name)
 
     # move cutter up by 0.75 inches
     left_cutter_top.location[2] = left_cutter_top.location[2] + 0.75
 
     # modify array
     array_mod = left_cutter_top.modifiers[array_mod.name]
-    array_mod.fit_length = tile_properties['tile_size'][2] - 1.8
+    array_mod.fit_length = tile_props.tile_size[2] - 1.8
 
     cutters.extend([left_cutter_bottom, left_cutter_top])
 
@@ -337,7 +390,9 @@ def create_openlock_wall_cutters(core, tile_properties):
     deselect_all()
 
     right_cutter_bottom = data_to.objects[0].copy()
-    add_object_to_collection(right_cutter_bottom, tile_properties['tile_name'])
+    right_cutter_bottom.name = 'X Pos Bottom.' + tile_name
+
+    add_object_to_collection(right_cutter_bottom, tile_props.tile_name)
 
     # move cutter to origin and up by 0.63 inches
     right_cutter_bottom.location = Vector((
@@ -348,16 +403,22 @@ def create_openlock_wall_cutters(core, tile_properties):
     # rotate cutter 180 degrees around Z
     right_cutter_bottom.rotation_euler[2] = radians(180)
 
-    circle_center = Vector((
-        right_cutter_bottom.location[0],
-        right_cutter_bottom.location[1] + tile_properties['wall_inner_radius'],
-        right_cutter_bottom.location[2]))
+    if tile_props.degrees_of_arc > 0:
+        circle_center = Vector((
+            right_cutter_bottom.location[0],
+            right_cutter_bottom.location[1] + tile_props.wall_radius,
+            right_cutter_bottom.location[2]))
+    else:
+        circle_center = Vector((
+            right_cutter_bottom.location[0],
+            right_cutter_bottom.location[1] - tile_props.wall_radius,
+            right_cutter_bottom.location[2]))
 
     # rotate cutter around circle center
     select(right_cutter_bottom.name)
     activate(right_cutter_bottom.name)
     bpy.ops.transform.rotate(
-        value=-radians(tile_properties['degrees_of_arc'] / 2),
+        value=-radians(tile_props.degrees_of_arc / 2),
         orient_axis='Z',
         orient_type='GLOBAL',
         center_override=circle_center)
@@ -368,19 +429,20 @@ def create_openlock_wall_cutters(core, tile_properties):
     array_mod.use_constant_offset = True
     array_mod.constant_offset_displace[2] = 2
     array_mod.fit_type = 'FIT_LENGTH'
-    array_mod.fit_length = tile_properties['tile_size'][2] - 1
+    array_mod.fit_length = tile_props.tile_size[2] - 1
 
     # make a copy of right_cutter_bottom
     right_cutter_top = right_cutter_bottom.copy()
+    right_cutter_top.name = 'X Pos Top.' + tile_name
 
-    add_object_to_collection(right_cutter_top, tile_properties['tile_name'])
+    add_object_to_collection(right_cutter_top, tile_props.tile_name)
 
     # move cutter up by 0.75 inches
     right_cutter_top.location[2] = right_cutter_top.location[2] + 0.75
 
     # modify array
     array_mod = right_cutter_top.modifiers[array_mod.name]
-    array_mod.fit_length = tile_properties['tile_size'][2] - 1.8
+    array_mod.fit_length = tile_props.tile_size[2] - 1.8
 
     cutters.extend([right_cutter_bottom, right_cutter_top])
 

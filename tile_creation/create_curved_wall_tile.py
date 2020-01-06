@@ -97,6 +97,10 @@ def create_curved_wall(tile_empty):
         tile_meshes.extend([preview_core, displacement_core])
 
     if main_part_blueprint == 'PLAIN':
+        tile_props.tile_size = Vector((
+            scene.mt_tile_x,
+            scene.mt_tile_y,
+            scene.mt_tile_z))
         preview_core, displacement_core = create_wall_cores(base)
         displacement_core.hide_viewport = True
         tile_meshes.extend([preview_core, displacement_core])
@@ -113,7 +117,8 @@ def create_curved_wall(tile_empty):
     for obj in tile_meshes:
         for trimmer in trimmers:
             add_bool_modifier(obj, trimmer.name)
-
+            trimmer.display_type = 'WIRE'
+            trimmer.hide_viewport = True
     base.parent = tile_empty
 
     tile_empty.location = cursor_orig_loc
@@ -294,7 +299,7 @@ def create_openlock_cores(base):
         obj_props = cutter.mt_object_props
         cutter.parent = base
         cutter.display_type = 'WIRE'
-        #cutter.hide_viewport = True
+        cutter.hide_viewport = True
         obj_props.is_mt_object = True
         obj_props.tile_name = tile_props.tile_name
         obj_props.geometrt_type = 'CUTTER'

@@ -72,7 +72,7 @@ def create_cuboid_tile_trimmers(
 
     return trimmers
 
-# TODO: Make work with negative curvature
+
 def create_curved_wall_tile_trimmers(tile_size, base_size, tile_name, base_blueprint, tile_empty):
     deselect_all()
 
@@ -83,18 +83,41 @@ def create_curved_wall_tile_trimmers(tile_size, base_size, tile_name, base_bluep
     # create a cuboid the size of our tile and center it to use
     # as our bounding box for entire tile for Z trimmers
     if base_blueprint is not 'NONE':
-        bbox_proxy = draw_cuboid(Vector((
-            tile_size[0],
-            base_size[1],
-            tile_size[2])))
+        if tile_props.degrees_of_arc > 0:
+            bbox_size = Vector((
+                tile_size[0],
+                base_size[1],
+                tile_size[2]))
+        else:
+            bbox_size = Vector((
+                tile_size[0] * -1,
+                base_size[1],
+                tile_size[2]))
+
+        bbox_proxy = draw_cuboid(bbox_size)
     else:
-        bbox_proxy = draw_cuboid(tile_size)
+        if tile_props.degrees_of_arc > 0:
+            bbox_size = tile_size
+        else:
+            bbox_size = Vector((
+                tile_size[0] * -1,
+                tile_size[1],
+                tile_size[2]))
+
+        bbox_proxy = draw_cuboid(bbox_size)
+
     mode('OBJECT')
 
-    bbox_proxy.location = (
-        bbox_proxy.location[0] - bbox_proxy.dimensions[0] / 2,
-        bbox_proxy.location[1] - bbox_proxy.dimensions[1] / 2,
-        bbox_proxy.location[2])
+    if tile_props.degrees_of_arc > 0:
+        bbox_proxy.location = (
+            bbox_proxy.location[0] - bbox_proxy.dimensions[0] / 2,
+            bbox_proxy.location[1] - bbox_proxy.dimensions[1] / 2,
+            bbox_proxy.location[2])
+    else:
+        bbox_proxy.location = (
+            bbox_proxy.location[0] - bbox_proxy.dimensions[0] / 2,
+            bbox_proxy.location[1] - bbox_proxy.dimensions[1] / 4,
+            bbox_proxy.location[2])
 
     cursor.location = cursor_orig_location
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
@@ -111,7 +134,8 @@ def create_curved_wall_tile_trimmers(tile_size, base_size, tile_name, base_bluep
         tile_size[1] + 1,
         tile_size[2] + 1)))
 
-    x_pos_trimmer.name = tile_name + '.x_pos_trimmer'
+    x_pos_trimmer.name = 'X Pos Trimmer.' + tile_name
+    
     mode('OBJECT')
     x_pos_trimmer.location = (
         x_pos_trimmer.location[0],
@@ -120,10 +144,16 @@ def create_curved_wall_tile_trimmers(tile_size, base_size, tile_name, base_bluep
     cursor.location = cursor_orig_location
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
 
-    circle_center = Vector((
-        x_pos_trimmer.location[0],
-        x_pos_trimmer.location[1] + tile_props.wall_radius,
-        x_pos_trimmer.location[2]))
+    if tile_props.degrees_of_arc > 0:
+        circle_center = Vector((
+            x_pos_trimmer.location[0],
+            x_pos_trimmer.location[1] + tile_props.wall_radius,
+            x_pos_trimmer.location[2]))
+    else:
+        circle_center = Vector((
+            x_pos_trimmer.location[0],
+            x_pos_trimmer.location[1] - tile_props.wall_radius,
+            x_pos_trimmer.location[2]))
 
     bpy.ops.transform.rotate(
         value=-radians((tile_props.degrees_of_arc / 2)),
@@ -132,7 +162,7 @@ def create_curved_wall_tile_trimmers(tile_size, base_size, tile_name, base_bluep
         center_override=circle_center)
 
     x_neg_trimmer = draw_cuboid(Vector((-1, tile_size[1] + 1, tile_size[2] + 1)))
-    x_neg_trimmer.name = tile_name + 'x_neg_trimmer'
+    x_neg_trimmer.name = 'X Neg Trimmer.' + tile_name
     mode('OBJECT')
     x_neg_trimmer.location = (
         x_neg_trimmer.location[0],
@@ -153,17 +183,28 @@ def create_curved_wall_tile_trimmers(tile_size, base_size, tile_name, base_bluep
 
     # create Z trimmers
     z_pos_trimmer = create_z_pos_trimmer(bound_box, dimensions, buffer)
-    z_pos_trimmer.name = tile_name + '.z_pos_trimmer'
+    z_pos_trimmer.name = 'Z Pos Trimmer.' + tile_name
 
     z_neg_trimmer = create_z_neg_trimmer(bound_box, dimensions, buffer)
-    z_neg_trimmer.name = tile_name + '.z_neg_trimmer'
+    z_neg_trimmer.name = 'Z Neg Trimmer.' + tile_name
 
     cursor.location = cursor_orig_location
     z_trimmers = [z_pos_trimmer, z_neg_trimmer]
 
+    if tile_props.degrees_of_arc >= 0:
+        if tile_props.degrees_of_arc + 12.5 < 360:
+            arc_adjusted = tile_props.degrees_of_arc + 12.5
+        else:
+            arc_adjusted = 359.999
+    else:
+        if tile_props.degrees_of_arc - 12.5 > -360:
+            arc_adjusted = tile_props.degrees_of_arc - 12.5
+        else:
+            arc_adjusted = -359.999
+
     for trimmer in z_trimmers:
-        bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
-        add_deform_modifiers(trimmer, tile_props.segments, tile_props.degrees_of_arc)
+        bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')    
+        add_deform_modifiers(trimmer, tile_props.segments, arc_adjusted)
 
     trimmers = [
         x_neg_trimmer,
@@ -523,8 +564,6 @@ def add_bool_modifier(obj, trimmer_name):
     boolean.show_viewport = False
     boolean.operation = 'DIFFERENCE'
     boolean.object = trimmer
-    trimmer.display_type = 'BOUNDS'
-    trimmer.hide_viewport = True
 
 
 def trim_side(obj, trimmer_name):

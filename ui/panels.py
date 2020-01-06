@@ -43,29 +43,13 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
             row.prop(scene, 'mt_tile_x')
             row.prop(scene, 'mt_tile_z')
 
-            if obj is not None and obj.type == 'MESH':
-                layout.label(text="Side Sockets:")
-                for item in obj.mt_object_props.cutters_collection:
-                    row = layout.row()
-                    row.prop(item, "value", text=item.name)
-
         elif scene.mt_tile_type == 'CURVED_WALL':
             layout.label(text="Tile Properties:")
             layout.prop(scene, 'mt_wall_radius')
             layout.prop(scene, 'mt_degrees_of_arc')
             layout.prop(scene, 'mt_segments')
-            '''
-            layout.label(text="Base Properties")
-            layout.prop(scene, 'mt_base_socket_side')
-            '''
             layout.label(text="Wall Height")
             layout.prop(scene, 'mt_tile_z')
-
-            if obj is not None and obj.type == 'MESH':
-                layout.label(text="Side Sockets:")
-                for item in obj.mt_object_props.cutters_collection:
-                    row = layout.row()
-                    row.prop(item, "value", text=item.name)
 
         elif scene.mt_tile_type == 'CORNER_WALL':
             layout.label(text="Wall Height")
@@ -76,14 +60,6 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
             layout.prop(scene, 'mt_x_leg_len')
             layout.prop(scene, 'mt_y_leg_len')
             layout.prop(scene, 'mt_angle_1')
-
-            if obj is not None and obj.type == 'MESH':
-                layout.label(text="Side Sockets:")
-                for item in obj.mt_object_props.cutters_collection:
-                    seperator = '.'
-                    stripped_name = item.name.split(seperator, 1)[0]
-                    row = layout.row()
-                    row.prop(item, "value", text=stripped_name)
 
         elif scene.mt_tile_type == 'RECTANGULAR_FLOOR':
             layout.label(text="Tile Size")
@@ -104,6 +80,15 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
             layout.prop(scene, 'mt_curve_type')
             layout.prop(scene, 'mt_segments')
 
+        if scene.mt_tile_type == 'STRAIGHT_WALL' or scene.mt_tile_type == 'CURVED_WALL' or scene.mt_tile_type == 'CORNER_WALL':
+            if obj is not None and obj.mt_object_props.is_mt_object is True:
+                layout.label(text="Side Sockets:")
+                for item in obj.mt_object_props.cutters_collection:
+                    seperator = '.'
+                    stripped_name = item.name.split(seperator, 1)[0]
+                    row = layout.row()
+                    row.prop(item, "value", text=stripped_name)
+        
     def draw_plain_base_panel(self, context):
         scene = context.scene
         layout = self.layout

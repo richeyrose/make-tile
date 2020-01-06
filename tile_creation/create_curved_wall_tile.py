@@ -26,7 +26,8 @@ from . create_straight_wall_tile import (
 from .. operators.trim_tile import (
     create_curved_wall_tile_trimmers)
 
-#TODO: Make it work for "negative" degrees of arc for openlock
+
+# TODO: Make it work for "negative" degrees of arc for openlock
 def create_curved_wall(tile_empty):
     """Creates a curved wall tile"""
     # hack to correct for parenting issues.
@@ -38,15 +39,17 @@ def create_curved_wall(tile_empty):
     cursor_orig_loc = cursor.location.copy()
     cursor.location = (0, 0, 0)
     tile_empty.location = (0, 0, 0)
-    tile_name = tile_empty.mt_tile_properties.tile_name
+
+    tile_props = bpy.context.collection.mt_tile_props
+    tile_name = tile_props.tile_name
 
     # Get base and main part blueprints
-    base_blueprint = scene.mt_base_blueprint
-    main_part_blueprint = scene.mt_main_part_blueprint
+    base_blueprint = tile_props.base_blueprint
+    main_part_blueprint = tile_props.main_part_blueprint
 
     # Get tile dimensions
-    base_radius = scene.mt_base_radius
-    wall_radius = scene.mt_wall_radius
+    tile_props.base_radius = scene.mt_base_radius
+    tile_props.wall_radius = scene.mt_wall_radius
 
     # We store a list of meshes here because we're going to add
     # trimmer modifiers to all of them later but we don't yet
@@ -55,22 +58,22 @@ def create_curved_wall(tile_empty):
 
     if base_blueprint == 'OPENLOCK':
         # TODO: Check this. Shouldn't it be a constant?
-        base_radius = wall_radius + scene.mt_base_y / 2
-        base_size = Vector((
+        tile_props.base_radius = tile_props.wall_radius + scene.mt_base_y / 2
+        tile_props.base_size = Vector((
             scene.mt_tile_x,
             0.5,
             0.2755))
-        base = create_openlock_base(base_radius, base_size, tile_name)
+        base = create_openlock_base(tile_props.base_radius, tile_props.base_size, tile_name)
         tile_meshes.append(base)
 
     if base_blueprint == 'PLAIN':
-        base_radius = base_radius + scene.mt_base_y / 2
-        base_size = Vector((
+        tile_props.base_radius = tile_props.base_radius + scene.mt_base_y / 2
+        tile_props.base_size = Vector((
             scene.mt_base_x,
             scene.mt_base_y,
             scene.mt_base_z
         ))
-        base = create_plain_base(base_radius, base_size, tile_name)
+        base = create_plain_base(tile_props.base_radius, tile_props.base_size, tile_name)
         tile_meshes.append(base)
     '''
     if main_part_blueprint == 'OPENLOCK':
@@ -95,24 +98,22 @@ def create_curved_wall(tile_empty):
 
 def create_plain_base(base_radius, base_size, tile_name):
     scene = bpy.context.scene
-    degrees_of_arc = scene.mt_degrees_of_arc
+    tile_props = bpy.context.collection.mt_tile_props
+
+    tile_props.degrees_of_arc = scene.mt_degrees_of_arc
     circumference = 2 * pi * base_radius
-    base_length = circumference / (360 / degrees_of_arc)
-    base_size[0] = base_length
+    base_length = circumference / (360 / tile_props.degrees_of_arc)
+    tile_props.base_size[0] = base_length
 
     base = create_plain_straight_wall_base(tile_name, base_size)
     add_deform_modifiers(base,
                          scene.mt_segments,
-                         degrees_of_arc)
+                         tile_props.degrees_of_arc)
 
-    props = base.mt_tile_properties
-
-    props.is_mt_object = True
-    props.geometry_type = 'BASE'
-    props.tile_name = tile_name
-    props.base_size = base_size
-    props.base_radius = base_radius
-    props.degrees_of_arc = degrees_of_arc
+    obj_props = base.mt_object_props
+    obj_props.is_mt_object = True
+    obj_props.geometry_type = 'BASE'
+    obj_props.tile_name = tile_name
 
     return base
 
@@ -120,12 +121,18 @@ def create_plain_base(base_radius, base_size, tile_name):
 def create_openlock_base(base_radius, base_size, tile_name):
     scene = bpy.context.scene
     base = create_plain_base(base_radius, base_size, tile_name)
-
     slot_cutter = create_openlock_base_slot_cutter(base)
+    # Bit of a guestimate this
+    if base_size[0] > 0:
+        cutter_arc = scene.mt_degrees_of_arc - 12.5
+    else:
+        cutter_arc = scene.mt_degrees_of_arc + 12.5
+
     add_deform_modifiers(
         slot_cutter,
         scene.mt_segments,
-        scene.mt_degrees_of_arc - 12.5)  # This is a guestimate
+        cutter_arc)
+
     slot_cutter.hide_viewport = True
 
     clip_cutter = create_openlock_base_clip_cutter(base)
@@ -137,29 +144,40 @@ def create_openlock_base_clip_cutter(base):
     # load base cutter
     preferences = get_prefs()
     booleans_path = os.path.join(preferences.assets_path, "meshes", "booleans", "openlock.blend")
-    props = base.mt_tile_properties
+    tile_props = bpy.context.collection.mt_tile_props
 
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
         data_to.objects = ['openlock.wall.base.cutter.clip_single']
 
     clip_cutter = data_to.objects[0]
-    add_object_to_collection(clip_cutter, props.tile_name)
+    add_object_to_collection(clip_cutter, tile_props.tile_name)
 
     deselect_all()
     select(clip_cutter.name)
 
-    #TODO: Override context. Haven't worked out what we need for it yet
+    # TODO: Override context. Haven't worked out what we need for it yet
     bpy.ops.transform.rotate(value=radians(180), orient_axis='Z')
     bpy.ops.object.transform_apply(location=False, scale=False, properties=False)
 
     loc = clip_cutter.location
+
+    if tile_props.degrees_of_arc > 0:
+        y_offset = loc[1] + tile_props.base_radius
+    else:
+        y_offset = loc[1] - tile_props.base_radius
+
     circle_center = Vector((
         loc[0],
-        loc[1] + props.base_radius,
+        y_offset,
         loc[2]))
 
+    if tile_props.degrees_of_arc > 0:
+        rot_offset = (tile_props.degrees_of_arc / 2) - 22.5
+    else:
+        rot_offset = (tile_props.degrees_of_arc / 2) + 22.5
+
     bpy.ops.transform.rotate(
-        value=radians((props.degrees_of_arc / 2) - 22.5),
+        value=radians(rot_offset),
         orient_axis='Z',
         center_override=circle_center)
 
@@ -168,23 +186,37 @@ def create_openlock_base_clip_cutter(base):
         scale=False,
         properties=False)
 
-    num_cutters = modf((props.degrees_of_arc - 22.5) / 22.5)
+    if tile_props.degrees_of_arc > 0:
+        num_cutters = modf((tile_props.degrees_of_arc - 22.5) / 22.5)
+    else:
+        num_cutters = modf((tile_props.degrees_of_arc * -1 - 22.5) / 22.5)
+
+    if tile_props.degrees_of_arc > 0:
+        rot_offset = tile_props.degrees_of_arc - 22.5
+    else:
+        rot_offset = tile_props.degrees_of_arc + 22.5
 
     array_name, empty = add_circle_array(
         clip_cutter,
         circle_center,
-        num_cutters[1], 'Z',
-        props.degrees_of_arc - 22.5)
+        num_cutters[1],
+        'Z',
+        rot_offset)
 
     empty.parent = base
     empty.hide_viewport = True
 
     clip_cutter.parent = base
-    clip_cutter.display_type = 'BOUNDS'
+    clip_cutter.display_type = 'WIRE'
     clip_cutter.hide_viewport = True
     clip_cutter_bool = base.modifiers.new('Base Cutter', 'BOOLEAN')
     clip_cutter_bool.operation = 'DIFFERENCE'
     clip_cutter_bool.object = clip_cutter
+
+    obj_props = clip_cutter.mt_object_props
+    obj_props.is_mt_object = True
+    obj_props.tile_name = tile_props.tile_name
+    obj_props.geometry_type = 'CUTTER'
 
     return clip_cutter
 

@@ -273,7 +273,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         ###############
 
         if tile_type == 'STRAIGHT_WALL':
-            create_straight_wall(tile_empty, tile_name)
+            create_straight_wall(tile_empty)
 
         if tile_type == 'CURVED_WALL':
             create_curved_wall(tile_empty)

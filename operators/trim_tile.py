@@ -66,6 +66,14 @@ def create_cuboid_tile_trimmers(
 
     cursor.location = cursor_orig_location
 
+    save_trimmer_props(trimmers, tile_empty, tile_name)
+
+    bpy.ops.object.delete({"selected_objects": [bbox_proxy]})
+
+    return trimmers
+
+
+def save_trimmer_props(trimmers, tile_empty, tile_name):
     ctx = {
         'selected_objects': trimmers,
         'active_object': trimmers[0],
@@ -89,10 +97,6 @@ def create_cuboid_tile_trimmers(
         item.name = trimmer.name
         item.value = False
         item.parent = tile_empty.name
-
-    bpy.ops.object.delete({"selected_objects": [bbox_proxy]})
-
-    return trimmers
 
 
 def create_curved_floor_trimmers(tile_properties):

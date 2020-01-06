@@ -17,11 +17,10 @@ from .. operators.trim_tile import (
 from . create_displacement_mesh import create_displacement_object
 
 
-def create_straight_wall(tile_empty, tile_name):
+def create_straight_wall(tile_empty):
     """Creates a straight wall tile
     Keyword arguments:
-    tile_empty -- EMPTY, empty which the tile is parented to. \
-        Stores properties that relate to the entire tile
+    tile_empty -- EMPTY, empty which the tile is parented to.
     """
     # hack to correct for parenting issues.
     # moves cursor to origin and creates objects
@@ -33,7 +32,9 @@ def create_straight_wall(tile_empty, tile_name):
     cursor.location = (0, 0, 0)
     tile_empty.location = (0, 0, 0)
 
-    tile_props = bpy.data.collections[tile_name].mt_tile_props
+    tile_props = bpy.context.collection.mt_tile_props
+    tile_name = tile_props.tile_name
+   
     # Get base and main part blueprints
     base_blueprint = tile_props.base_blueprint
     main_part_blueprint = tile_props.main_part_blueprint
@@ -60,15 +61,14 @@ def create_straight_wall(tile_empty, tile_name):
 
         base = create_plain_base(tile_name, tile_props.base_size)
         tile_meshes.append(base)
-    '''
+
     if base_blueprint == 'NONE':
         # If we have no base create an empty instead for storing details on
         # and parenting
-        base_size = (0, 0, 0)
+        tile_props.base_size = (0, 0, 0)
         base = bpy.data.objects.new(tile_name + '.base', None)
-        base.mt_tile_properties.base_size = base_size
         add_object_to_collection(base, tile_name)
-    '''
+
     if main_part_blueprint == 'OPENLOCK':
         # Again Width is a constant for OpenLOCK tiles
         tile_props.tile_size = Vector((
@@ -87,10 +87,10 @@ def create_straight_wall(tile_empty, tile_name):
         preview_core, displacement_core = create_cores(base, tile_props.tile_size, tile_name)
         tile_meshes.extend([preview_core, displacement_core])
         displacement_core.hide_viewport = True
-    '''
+
     if main_part_blueprint == 'NONE':
-        tile_size = base_size
-    '''
+        tile_props.tile_size = tile_props.base_size
+
     # create tile trimmers. Used to ensure that displaced
     # textures don't extend beyond the original bounds of the tile.
     # We store per tile details of the trimmers on our tile empty
@@ -111,7 +111,6 @@ def create_straight_wall(tile_empty, tile_name):
     # Reset location
     tile_empty.location = cursor_orig_loc
     cursor.location = cursor_orig_loc
-
 
 
 #####################################
@@ -189,11 +188,18 @@ def create_openlock_base_slot_cutter(base, offset=0.18):
     base_location = base.location.copy()
     cursor_original_location = cursor.location.copy()
 
-    # work out bool size X from base size, y and z are constants
-    bool_size = [
-        tile_props.base_size[0] - (0.236 * 2),
-        0.197,
-        0.25]
+    # work out bool size X from base size, y and z are constants.
+    # Correct for negative base dimensions when making curved walls
+    if tile_props.base_size[0] > 0:
+        bool_size = [
+            tile_props.base_size[0] - (0.236 * 2),
+            0.197,
+            0.25]
+    else:
+        bool_size = [
+            tile_props.base_size[0] + (0.236 * 2),
+            0.197,
+            0.25]
 
     cutter = draw_cuboid(bool_size)
     cutter.name = tile_props.tile_name + ".slot_cutter"

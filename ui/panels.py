@@ -375,7 +375,6 @@ class MT_PT_Trim_Panel(MT_PT_Panel, bpy.types.Panel):
         layout = self.layout
 
         tile_collection = context.collection
-
         tile_props = tile_collection.mt_tile_props
 
         if tile_props.is_mt_collection is True:

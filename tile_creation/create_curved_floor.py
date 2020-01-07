@@ -12,59 +12,80 @@ from .. lib.utils.selection import select, activate, deselect_all, select_all, s
 from .. lib.utils.utils import mode
 from .. lib.utils.collections import add_object_to_collection
 from .create_corner_wall import calculate_corner_wall_triangles, move_cursor_to_wall_start, draw_corner_outline
-from ..operators.trim_tile import create_curved_floor_trimmers
+from ..operators.trim_tile import (
+    create_curved_floor_trimmers,
+    add_bool_modifier)
 
 
 def create_curved_floor(tile_empty):
     scene = bpy.context.scene
+    cursor = scene.cursor
+    cursor_orig_loc = cursor.location.copy()
+    cursor.location = (0, 0, 0)
+    tile_empty.location = (0, 0, 0)
 
-    tile_properties = tile_empty['tile_properties']
-    tile_properties['radius'] = scene.mt_base_inner_radius
-    tile_properties['segments'] = scene.mt_segments
-    tile_properties['angle'] = scene.mt_angle_1
-    tile_properties['base_height'] = scene.mt_base_z
-    tile_properties['tile_height'] = scene.mt_tile_z
-    tile_properties['curve_type'] = scene.mt_curve_type
+    tile_props = bpy.context.collection.mt_tile_props
+    tile_name = tile_props.tile_name
+
+    # Get base and main part blueprints
+    base_blueprint = tile_props.base_blueprint
+    main_part_blueprint = tile_props.main_part_blueprint
+
+    tile_props.base_radius = scene.mt_base_radius
+    tile_props.segments = scene.mt_segments
+    tile_props.angle = scene.mt_angle
+    tile_props.base_size[2] = scene.mt_base_z
+    tile_props.tile_size[2] = scene.mt_tile_z
+    tile_props.curve_type = scene.mt_curve_type
 
     cursor = bpy.context.scene.cursor
     cursor_orig_loc = cursor.location.copy()
     cursor.location = (0, 0, 0)
     tile_empty.location = (0, 0, 0)
 
-    if tile_properties['base_blueprint'] == 'OPENLOCK':
-        tile_properties['base_height'] = 0.2756
-        tile_properties['tile_height'] = 0.374
-        base = create_openlock_base(tile_properties)
+    tile_meshes = []
 
-    if tile_properties['base_blueprint'] == 'PLAIN':
-        base = create_plain_base(tile_properties)
+    if base_blueprint == 'OPENLOCK':
+        tile_props.base_size[2] = 0.2756
+        tile_props.tile_size[2] = 0.374
+        base = create_openlock_base(tile_props)
+        tile_meshes.append(base)
+    if base_blueprint == 'PLAIN':
+        base = create_plain_base(tile_props)
+        tile_meshes.append(base)
 
-    if tile_properties['base_blueprint'] == 'NONE':
+    if base_blueprint == 'NONE':
         tile_properties['base_size'] = (0, 0, 0)
-        base = bpy.data.objects.new(tile_properties['tile_name'] + '.base', None)
-        add_object_to_collection(base, tile_properties['tile_name'])
+        base = bpy.data.objects.new(tile_props.tile_name + '.base', None)
+        add_object_to_collection(base, tile_props.tile_name)
 
-    preview_slab, displacement_slab = create_slabs(tile_properties, base)
+    if main_part_blueprint != 'NONE':
+        preview_slab, displacement_slab = create_slabs(tile_props, base)
+        tile_meshes.extend([preview_slab, displacement_slab])
+        displacement_slab.hide_viewport = True
 
-    tile_properties['trimmers'] = create_curved_floor_trimmers(tile_properties)
-    displacement_slab.hide_viewport = True
+    trimmers = create_curved_floor_trimmers(tile_props, tile_empty)
+
+    for obj in tile_meshes:
+        for trimmer in trimmers:
+            add_bool_modifier(obj, trimmer.name)
+            trimmer.display_type = 'WIRE'
+            #trimmer.hide_viewport = True
+
     base.parent = tile_empty
     tile_empty.location = cursor_orig_loc
     cursor.location = cursor_orig_loc
-    
-    
-    tile_empty['tile_properties'] = tile_properties
 
 
-def create_plain_base(tile_properties):
+def create_plain_base(tile_props):
     cursor = bpy.context.scene.cursor
     cursor_orig_loc = cursor.location.copy()
 
-    radius = tile_properties['radius']
-    segments = tile_properties['segments']
-    angle = tile_properties['angle']
-    height = tile_properties['base_height']
-    curve_type = tile_properties['curve_type']
+    radius = tile_props.base_radius
+    segments = tile_props.segments
+    angle = tile_props.angle
+    height = tile_props.base_size[2]
+    curve_type = tile_props.curve_type
 
     if curve_type == 'POS':
         draw_pos_curved_slab(radius, segments, angle, height)
@@ -79,15 +100,15 @@ def create_plain_base(tile_properties):
     return base
 
 
-def create_openlock_base(tile_properties):
+def create_openlock_base(tile_props):
     cursor = bpy.context.scene.cursor
     cursor_orig_loc = cursor.location.copy()
 
-    length = tile_properties['radius']
-    segments = tile_properties['segments']
-    angle = tile_properties['angle']
-    height = tile_properties['base_height']
-    curve_type = tile_properties['curve_type']
+    length = tile_props.base_radius
+    segments = tile_props.segments
+    angle = tile_props.angle
+    height = tile_props.base_size[2]
+    curve_type = tile_props.curve_type
 
     if curve_type == 'POS':
         draw_openlock_pos_curved_base(length, segments, angle, height)
@@ -109,7 +130,7 @@ def create_openlock_base(tile_properties):
         deselect_all()
 
         if length >= 3:
-            cutter = create_openlock_neg_curve_base_cutters(tile_properties)
+            cutter = create_openlock_neg_curve_base_cutters(tile_props)
             cutter.parent = base
             cutter.display_type = 'BOUNDS'
             cutter.hide_viewport = True
@@ -117,7 +138,7 @@ def create_openlock_base(tile_properties):
             cutter_bool.operation = 'DIFFERENCE'
             cutter_bool.object = cutter
 
-    cutters = create_openlock_base_clip_cutters(base, tile_properties)
+    cutters = create_openlock_base_clip_cutters(base, tile_props)
 
     for clip_cutter in cutters:
         matrixcopy = clip_cutter.matrix_world.copy()
@@ -132,15 +153,15 @@ def create_openlock_base(tile_properties):
     return base
 
 
-def create_openlock_neg_curve_base_cutters(tile_properties):
+def create_openlock_neg_curve_base_cutters(tile_props):
     cursor = bpy.context.scene.cursor
     cursor_orig_loc = cursor.location.copy()
 
-    length = tile_properties['radius'] / 2
-    segments = tile_properties['segments']
-    angle = tile_properties['angle']
-    height = tile_properties['base_height']
-    curve_type = tile_properties['curve_type']
+    length = tile_props.base_radius / 2
+    segments = tile_props.segments
+    angle = tile_props.angle
+    height = tile_props.base_size[2]
+    curve_type = tile_props.curve_type
     face_dist = 0.233
     slot_width = 0.197
     slot_height = 0.25
@@ -191,12 +212,12 @@ def create_openlock_neg_curve_base_cutters(tile_properties):
 
     mode('OBJECT')
     cutter = bpy.context.object
-    cutter.name = tile_properties['tile_name'] + '.base.cutter'
+    cutter.name = tile_props.tile_name + '.base.cutter'
 
     return cutter
 
 
-def create_openlock_base_clip_cutters(base, tile_properties):
+def create_openlock_base_clip_cutters(base, tile_props):
 
     mode('OBJECT')
     deselect_all
@@ -204,11 +225,11 @@ def create_openlock_base_clip_cutters(base, tile_properties):
     cursor = bpy.context.scene.cursor
     cursor_orig_loc = cursor.location.copy()
 
-    radius = tile_properties['radius']
-    segments = tile_properties['segments']
-    angle = tile_properties['angle']
-    height = tile_properties['base_height']
-    curve_type = tile_properties['curve_type']
+    radius = tile_props.base_radius
+    segments = tile_props.segments
+    angle = tile_props.angle
+    height = tile_props.base_size[2]
+    curve_type = tile_props.curve_type
     cutters = []
     if curve_type == 'NEG':
         radius = radius / 2
@@ -221,7 +242,7 @@ def create_openlock_base_clip_cutters(base, tile_properties):
             data_to.objects = ['openlock.wall.base.cutter.clip', 'openlock.wall.base.cutter.clip.cap.start', 'openlock.wall.base.cutter.clip.cap.end']
 
         for obj in data_to.objects:
-            add_object_to_collection(obj, tile_properties['tile_name'])
+            add_object_to_collection(obj, tile_props.tile_name)
 
         clip_cutter_1 = data_to.objects[0]
         cutter_start_cap = data_to.objects[1]
@@ -264,7 +285,7 @@ def create_openlock_base_clip_cutters(base, tile_properties):
         cutters.append(clip_cutter_1)
         # cutter 2
         clip_cutter_2 = clip_cutter_1.copy()
-        add_object_to_collection(clip_cutter_2, tile_properties['tile_name'])
+        add_object_to_collection(clip_cutter_2, tile_props.tile_name)
 
         array_mod = clip_cutter_2.modifiers['Array']
 
@@ -288,11 +309,11 @@ def create_openlock_base_clip_cutters(base, tile_properties):
 
         deselect_all()
 
-    if tile_properties['curve_type'] == 'POS':
+    if tile_props.curve_type == 'POS':
         with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
             data_to.objects = ['openlock.wall.base.cutter.clip_single']
         clip_cutter_3 = data_to.objects[0]
-        add_object_to_collection(clip_cutter_3, tile_properties['tile_name'])
+        add_object_to_collection(clip_cutter_3, tile_props.tile_name)
 
         deselect_all()
         select(clip_cutter_3.name)
@@ -310,15 +331,15 @@ def create_openlock_base_clip_cutters(base, tile_properties):
     return cutters
 
 
-def create_slabs(tile_properties, base):
+def create_slabs(tile_props, base):
     cursor = bpy.context.scene.cursor
     cursor_orig_loc = cursor.location.copy()
 
-    radius = tile_properties['radius']
-    segments = tile_properties['segments']
-    angle = tile_properties['angle']
-    height = tile_properties['tile_height'] - base.dimensions[2]
-    curve_type = tile_properties['curve_type']
+    radius = tile_props.base_radius
+    segments = tile_props.segments
+    angle = tile_props.angle
+    height = tile_props.tile_size[2] - base.dimensions[2]
+    curve_type = tile_props.curve_type
 
     cursor.location[2] = cursor.location[2] + base.dimensions[2]
 
@@ -332,7 +353,7 @@ def create_slabs(tile_properties, base):
 
     preferences = get_prefs()
 
-    primary_material = bpy.data.materials[tile_properties['tile_materials']['tile_material_1']]
+    primary_material = bpy.data.materials[bpy.context.scene.mt_tile_material_1]
     secondary_material = bpy.data.materials[preferences.secondary_material]
 
     image_size = bpy.context.scene.mt_tile_resolution

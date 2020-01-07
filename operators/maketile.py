@@ -166,6 +166,10 @@ class MT_Tile_Properties(bpy.types.PropertyGroup):
         name="Leg 2 Length"
     )
 
+    curve_type: bpy.props.EnumProperty(
+        name="Curve Type",
+        items=curve_types
+    )
     # Collection of trimmers that can be turned on or off
     # by MakeTile.
     trimmers_collection: bpy.props.CollectionProperty(
@@ -341,7 +345,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         bpy.types.Scene.mt_tile_material_2 = bpy.props.EnumProperty(
             items=load_material_enums,
             name="Material 2",
-            update=update_material_2,
+            #update=update_material_2,
         )
 
         bpy.types.Scene.mt_tile_resolution = bpy.props.IntProperty(
@@ -561,9 +565,9 @@ def update_material_1(self, context):
             disp_obj = preview_obj['linked_obj']
 
             update_displacement_material_2(disp_obj, bpy.context.scene.mt_tile_material_1)
-            assign_texture_to_areas(preview_obj, context.scene.mt_tile_material_1, prefs.secondary_material)
+            #assign_texture_to_areas(preview_obj, context.scene.mt_tile_material_1, prefs.secondary_material)
 
-
+'''
 def update_material_2(self, context):
     preview_obj = bpy.context.object
 
@@ -573,6 +577,6 @@ def update_material_2(self, context):
 
             update_displacement_material_2(disp_obj, bpy.context.scene.mt_tile_material_1)
             update_preview_material_2(preview_obj, bpy.context.scene.mt_tile_material_1)
-
+'''
 
 enum_collections = {}

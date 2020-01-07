@@ -75,7 +75,7 @@ class MT_OT_Export_Tile(bpy.types.Operator):
         # Rename merged tile
         merged_obj = copies[0]
         merged_obj.name = tile_name + '.merged'
-        merged_obj.mt_tile_properties.tile_name = tile_name
+        merged_obj.mt_object_props.tile_name = tile_name
 
         # voxelise if necessary
         if context.scene.mt_voxelise_on_export is True:
@@ -88,9 +88,9 @@ class MT_OT_Export_Tile(bpy.types.Operator):
 
             bpy.ops.scene.trim_tile(ctx)
 
-        # create a sub collection in our tile collection called Flattened objects
+        # create a collection called Flattened objects
         # and add our copies to it
-        new_collection = create_collection("Flattened Objects", tile_collection)
+        new_collection = create_collection("Flattened Objects", bpy.context.scene.collection)
         add_object_to_collection(merged_obj, new_collection.name)
 
         # set up exporter

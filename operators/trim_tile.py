@@ -248,10 +248,10 @@ def save_trimmer_props(trimmers, tile_empty, tile_name):
         item.parent = tile_empty.name
 
 
-def create_curved_floor_trimmers(tile_props):
+def create_curved_floor_trimmers(tile_props, tile_empty):
     mode('OBJECT')
     deselect_all
-
+    tile_name = tile_props.tile_name
     cursor = bpy.context.scene.cursor
     cursor_orig_location = cursor.location.copy()
 
@@ -261,36 +261,41 @@ def create_curved_floor_trimmers(tile_props):
 
     dim = calc_tri(angle, length, length)
     dim['loc_A'] = cursor_orig_location
-    dim['height'] = tile_properties['tile_height']
+    dim['height'] = tile_props.tile_size[2]
 
     buffer = bpy.context.scene.mt_trim_buffer
 
-    a_trimmer = create_curved_trimmer(angle, length, dim['height'] + 1, 1, tile_properties['curve_type'], tile_props.segments, dim, buffer)
-    a_trimmer.name = tile_name + '.a_trimmer'
+    a_trimmer = create_curved_trimmer(
+        angle,
+        length,
+        dim['height'] + 1,
+        1,
+        tile_props.curve_type,
+        tile_props.segments,
+        dim,
+        buffer)
+
+    a_trimmer.name = 'Side a Trimmer.' + tile_name
     b_trimmer = create_b_trimmer(dim)
-    b_trimmer.name = tile_name + '.b_trimmer'
+    b_trimmer.name = 'Side b Trimmer.' + tile_name
     c_trimmer = create_c_trimmer(dim)
-    c_trimmer.name = tile_name + '.c_trimmer'
+    c_trimmer.name = 'Side c Trimmer.' + tile_name
 
     z_pos_trimmer = create_z_pos_tri_trimmer(dim)
-    z_pos_trimmer.name = tile_name + '.z_pos_trimmer'
+    z_pos_trimmer.name = 'Z Pos Trimmer.' + tile_name
     z_neg_trimmer = create_z_neg_tri_trimmer(dim)
-    z_neg_trimmer.name = tile_name + '.z_neg_trimmer'
+    z_neg_trimmer.name = 'Z Neg Trimmer.' + tile_name
 
-    trimmers = {
-        'x_neg': b_trimmer,
-        'y_neg': c_trimmer,
-        'x_pos': a_trimmer,
-        'z_pos': z_pos_trimmer,
-        'z_neg': z_neg_trimmer
-    }
+    trimmers = [
+        a_trimmer,
+        b_trimmer,
+        c_trimmer,
+        z_pos_trimmer,
+        z_neg_trimmer]
 
-    for trimmer in trimmers.values():
-        trimmer.display_type = 'BOUNDS'
-        select(trimmer.name)
-        bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
-        trimmer.hide_viewport = True
-        trimmer.parent = bpy.context.scene.objects[tile_properties['empty_name']]
+    cursor.location = cursor_orig_location
+
+    save_trimmer_props(trimmers, tile_empty, tile_name)
 
     return trimmers
 
@@ -458,11 +463,11 @@ def create_tri_floor_tile_trimmers(tile_props, dim, tile_empty):
     tile_name = tile_props.tile_name
 
     a_trimmer = create_a_trimmer(dim)
-    a_trimmer.name = 'Side a Trimmer' + tile_name
+    a_trimmer.name = 'Side a Trimmer.' + tile_name
     b_trimmer = create_b_trimmer(dim)
-    b_trimmer.name = 'Side b Trimmer' + tile_name
+    b_trimmer.name = 'Side b Trimmer.' + tile_name
     c_trimmer = create_c_trimmer(dim)
-    c_trimmer.name = 'Side c Trimmer' + tile_name
+    c_trimmer.name = 'Side c Trimmer.' + tile_name
     z_pos_trimmer = create_z_pos_tri_trimmer(dim)
     z_pos_trimmer.name = 'Z Pos Trimmer.' + tile_name
     z_neg_trimmer = create_z_neg_tri_trimmer(dim)

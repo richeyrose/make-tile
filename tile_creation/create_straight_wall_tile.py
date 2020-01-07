@@ -106,7 +106,7 @@ def create_straight_wall(tile_empty):
         for trimmer in trimmers:
             add_bool_modifier(obj, trimmer.name)
             trimmer.display_type = 'WIRE'
-            #trimmer.hide_viewport = True
+            trimmer.hide_viewport = True
 
     # Parent our base to our tile empty
     base.parent = tile_empty

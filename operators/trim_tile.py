@@ -203,7 +203,7 @@ def create_curved_wall_tile_trimmers(tile_size, base_size, tile_name, base_bluep
             arc_adjusted = -359.999
 
     for trimmer in z_trimmers:
-        bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')    
+        bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
         add_deform_modifiers(trimmer, tile_props.segments, arc_adjusted)
 
     trimmers = [
@@ -248,7 +248,7 @@ def save_trimmer_props(trimmers, tile_empty, tile_name):
         item.parent = tile_empty.name
 
 
-def create_curved_floor_trimmers(tile_properties):
+def create_curved_floor_trimmers(tile_props):
     mode('OBJECT')
     deselect_all
 
@@ -256,8 +256,8 @@ def create_curved_floor_trimmers(tile_properties):
     cursor_orig_location = cursor.location.copy()
 
     scene = bpy.context.scene
-    angle = tile_properties['angle']
-    length = tile_properties['radius']
+    angle = tile_props.angle
+    length = tile_props.base_radius
 
     dim = calc_tri(angle, length, length)
     dim['loc_A'] = cursor_orig_location
@@ -447,38 +447,37 @@ def create_leg_1_corner_wall_trimmer(tile_props, buffer):
     return trimmer
 
 
-def create_tri_floor_tile_trimmers(tile_properties, dim):
+def create_tri_floor_tile_trimmers(tile_props, dim, tile_empty):
     mode('OBJECT')
     deselect_all()
 
     cursor = bpy.context.scene.cursor
     cursor_orig_location = cursor.location.copy()
+
     dim['height'] = tile_props.tile_size[2]
-    b_trimmer = create_b_trimmer(dim)
-    b_trimmer.name = tile_name + '.b_trimmer'
-    c_trimmer = create_c_trimmer(dim)
-    c_trimmer.name = tile_name + '.c_trimmer'
+    tile_name = tile_props.tile_name
+
     a_trimmer = create_a_trimmer(dim)
-    a_trimmer.name = tile_name + '.a_trimmer'
+    a_trimmer.name = 'Side a Trimmer' + tile_name
+    b_trimmer = create_b_trimmer(dim)
+    b_trimmer.name = 'Side b Trimmer' + tile_name
+    c_trimmer = create_c_trimmer(dim)
+    c_trimmer.name = 'Side c Trimmer' + tile_name
     z_pos_trimmer = create_z_pos_tri_trimmer(dim)
-    z_pos_trimmer.name = tile_name + '.z_pos_trimmer'
+    z_pos_trimmer.name = 'Z Pos Trimmer.' + tile_name
     z_neg_trimmer = create_z_neg_tri_trimmer(dim)
-    z_neg_trimmer.name = tile_name + '.z_neg_trimmer'
+    z_neg_trimmer.name = 'Z Neg Trimmer.' + tile_name
 
-    trimmers = {
-        'x_neg': b_trimmer,
-        'y_neg': c_trimmer,
-        'x_pos': a_trimmer,
-        'z_pos': z_pos_trimmer,
-        'z_neg': z_neg_trimmer
-    }
+    trimmers = [
+        b_trimmer,
+        c_trimmer,
+        a_trimmer,
+        z_pos_trimmer,
+        z_neg_trimmer]
 
-    for trimmer in trimmers.values():
-        trimmer.display_type = 'BOUNDS'
-        select(trimmer.name)
-        bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
-        trimmer.hide_viewport = True
-        trimmer.parent = bpy.context.scene.objects[tile_properties['empty_name']]
+    cursor.location = cursor_orig_location
+
+    save_trimmer_props(trimmers, tile_empty, tile_name)
 
     return trimmers
 
@@ -622,6 +621,7 @@ def add_bool_modifier(obj, trimmer_name):
     trimmer = bpy.data.objects[trimmer_name]
     boolean = obj.modifiers.new(trimmer.name + '.bool', 'BOOLEAN')
     boolean.show_viewport = False
+    boolean.show_render = False
     boolean.operation = 'DIFFERENCE'
     boolean.object = trimmer
 

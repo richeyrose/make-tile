@@ -55,7 +55,7 @@ bl_info = {
     "author": "Richard Rose",
     "description": "Add on for creating 3d printable tiles",
     "blender": (2, 80, 1),
-    "version": (0, 0, 2),
+    "version": (0, 0, 4),
     "location": "View3D > UI > MakeTile",
     "warning": "",
     "category": "3D View"

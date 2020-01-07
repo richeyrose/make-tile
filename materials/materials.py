@@ -3,6 +3,7 @@ import bpy
 from .. utils.registration import get_path, get_prefs
 from .. lib.utils.utils import mode
 from .. lib.utils.selection import deselect_all, select_all, select, activate
+from .. lib.utils.vertex_groups import get_verts_in_vert_group, get_vert_indexes_in_vert_group
 
 
 def load_materials(directory_path, blend_filenames):
@@ -39,26 +40,24 @@ def load_secondary_material():
     return blank_material
 
 
-def assign_mat_to_vert_group(vert_group, obj, material):
-    # TODO: Replace with low level version as sloooooooow
-    # https://blender.stackexchange.com/questions/69166/set-material-of-a-vertex-group-of-a-certain-face?rq=1
-    '''
-    Assigns the passed in material to the object's Vertex group
-    Keyword arguments   -- vert_group (str) Vertex group
-                        -- obj (bpy.types.Object)
-                        -- material (bpy.types.Material)
-    '''
-    mode('OBJECT')
-    deselect_all()
-    activate(obj.name)
-    mode('EDIT')
-    deselect_all()
-    bpy.ops.object.vertex_group_set_active(group=vert_group)
-    bpy.ops.object.vertex_group_select()
+def get_material_index(obj, material):
     material_index = list(obj.material_slots.keys()).index(material.name)
-    obj.active_material_index = material_index
-    bpy.ops.object.material_slot_assign()
-    mode('OBJECT')
+    return material_index
+
+
+def assign_mat_to_vert_group(vert_group, obj, material):
+    vert_group = get_vert_indexes_in_vert_group(vert_group, obj)
+    material_index = get_material_index(obj, material)
+
+    poly_list = []
+    #TODO: Rewrite as list comp
+    for poly in obj.data.polygons:
+        count = 0
+        for vert in poly.vertices:
+            if vert in vert_group:
+                count += 1
+        if count == len(poly.vertices):
+            poly.material_index = material_index
 
 
 def add_preview_mesh_modifiers(obj):

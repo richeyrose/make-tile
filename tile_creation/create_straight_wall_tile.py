@@ -25,7 +25,7 @@ def create_straight_wall(tile_empty):
     # hack to correct for parenting issues.
     # moves cursor to origin and creates objects
     # then moves base to cursor original location and resets cursor
-    # TODO: get rid of hack and parent properly
+
     scene = bpy.context.scene
     cursor = scene.cursor
     cursor_orig_loc = cursor.location.copy()

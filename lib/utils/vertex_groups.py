@@ -5,6 +5,20 @@ from . selection import select_by_loc, select_inverse_by_loc, deselect_all, sele
 from . utils import mode
 
 
+def get_vert_indexes_in_vert_group(vert_group_name, obj):
+    '''returns a list of vert indexes in a vert group'''
+    vg_index = obj.vertex_groups[vert_group_name].index
+    verts = [v.index for v in obj.data.vertices if vg_index in [vg.group for vg in v.groups]]
+    return verts
+
+
+def get_verts_in_vert_group(vert_group_name, obj):
+    '''return a list of vert objects in a vert group'''
+    vg_index = obj.vertex_groups[vert_group_name].index
+    verts = [v for v in obj.data.vertices if vg_index in [vg.group for vg in v.groups]]
+    return verts
+
+
 def get_selected_face_indices(obj):
     mesh = obj.data
     bm = bmesh.from_mesh(mesh)

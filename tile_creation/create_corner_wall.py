@@ -83,13 +83,13 @@ def create_corner_wall(tile_empty):
         preview_core, displacement_core = create_plain_cores(base)
         tile_meshes.extend([preview_core, displacement_core])
 
-    trimmers = create_corner_wall_tile_trimmers(tile_props, tile_empty)
+    trimmers = create_corner_wall_tile_trimmers(tile_props, tile_empty, base)
 
     for obj in tile_meshes:
         for trimmer in trimmers:
             add_bool_modifier(obj, trimmer.name)
             trimmer.display_type = 'WIRE'
-            #trimmer.hide_viewport = True
+            trimmer.hide_viewport = True
 
     base.parent = tile_empty
 

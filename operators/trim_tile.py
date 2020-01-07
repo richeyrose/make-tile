@@ -333,16 +333,35 @@ def create_curved_trimmer(arc, radius, height, width, curve_type, segments, dim,
     return bpy.context.object
 
 
-def create_corner_wall_tile_trimmers(tile_props, tile_empty):
+def create_corner_wall_tile_trimmers(tile_props, tile_empty, base):
     deselect_all()
     tile_name = tile_props.tile_name
     cursor = bpy.context.scene.cursor
     cursor_orig_location = cursor.location.copy()
 
-    bbox_proxy = draw_cuboid([
-        tile_props.leg_1_len,
-        tile_props.leg_2_len,
-        tile_props.tile_size[2]])
+    if tile_props.angle > 0:
+        bbox_proxy = draw_cuboid([  # bbox = bound box
+            base.dimensions[0],
+            base.dimensions[1],
+            tile_props.tile_size[2]])
+    else:
+        base_bbox = base.bound_box
+        # set cursor to front bottom left of base bbox
+        cursor.location = base_bbox[0]
+        # draw bbox
+        bbox_proxy = draw_cuboid([  # bbox = bound box
+            base.dimensions[0],
+            base.dimensions[1],
+            tile_props.tile_size[2]])
+
+    cursor.location = cursor_orig_location
+
+    ctx = {
+        'selected_objects': [bbox_proxy]
+    }
+
+    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+    bbox_proxy.display_type = 'WIRE'
 
     mode('OBJECT')
 
@@ -352,24 +371,19 @@ def create_corner_wall_tile_trimmers(tile_props, tile_empty):
 
     # create trimmers
     buffer = bpy.context.scene.mt_trim_buffer
-    x_neg_trimmer = create_x_neg_trimmer(bound_box, dimensions, buffer)
-    x_neg_trimmer.name = 'X Neg Trimmer.' + tile_name
-    x_pos_trimmer = create_x_pos_trimmer(bound_box, dimensions, buffer)
-    x_pos_trimmer.name = 'X Pos Trimmer.' + tile_name
-    y_neg_trimmer = create_y_neg_trimmer(bound_box, dimensions, buffer)
-    y_neg_trimmer.name = 'Y Neg Trimmer.' + tile_name
-    y_pos_trimmer = create_y_pos_trimmer(bound_box, dimensions, buffer)
-    y_pos_trimmer.name = 'Y Pos Trimmer.' + tile_name
+
+    leg_1_trimmer = create_leg_1_corner_wall_trimmer(tile_props, buffer)
+    leg_1_trimmer.name = 'Leg 1 Trimmer.' + tile_name
+    leg_2_trimmer = create_leg_2_corner_wall_trimmer(tile_props, buffer)
+    leg_2_trimmer.name = 'Leg 2 Trimmer.' + tile_name
     z_neg_trimmer = create_z_neg_trimmer(bound_box, dimensions, buffer)
     z_neg_trimmer.name = 'Z Neg Trimmer.' + tile_name
     z_pos_trimmer = create_z_pos_trimmer(bound_box, dimensions, buffer)
     z_pos_trimmer.name = 'Z Pos Trimmer.' + tile_name
 
     trimmers = [
-        x_neg_trimmer,
-        x_pos_trimmer,
-        y_neg_trimmer,
-        y_pos_trimmer,
+        leg_1_trimmer,
+        leg_2_trimmer,
         z_pos_trimmer,
         z_neg_trimmer
     ]
@@ -379,7 +393,58 @@ def create_corner_wall_tile_trimmers(tile_props, tile_empty):
     save_trimmer_props(trimmers, tile_empty, tile_name)
 
     bpy.ops.object.delete({"selected_objects": [bbox_proxy]})
+
     return trimmers
+
+
+def create_leg_2_corner_wall_trimmer(tile_props, buffer):
+    mode('OBJECT')
+    deselect_all()
+
+    cursor = bpy.context.scene.cursor
+    cursor_orig_location = cursor.location.copy()
+
+    trimmer = draw_cuboid([
+        tile_props.base_size[1] + 1,
+        1,
+        tile_props.tile_size[2] + 1])
+
+    trimmer.location = (
+        trimmer.location[0] - 0.5,
+        trimmer.location[1] + tile_props.leg_2_len - buffer,
+        trimmer.location[2] - 0.5
+    )
+
+    cursor.location = cursor_orig_location
+    return trimmer
+
+
+def create_leg_1_corner_wall_trimmer(tile_props, buffer):
+    mode('OBJECT')
+    deselect_all()
+
+    cursor = bpy.context.scene.cursor
+    cursor_orig_location = cursor.location.copy()
+
+    trimmer = draw_cuboid([
+        1,
+        tile_props.base_size[1] + 1,
+        tile_props.tile_size[2] + 1])
+
+    trimmer.location = (
+        trimmer.location[0] + tile_props.leg_1_len - buffer,
+        trimmer.location[1] - 0.25,
+        trimmer.location[2] - 0.5
+    )
+
+    cursor.location = cursor_orig_location
+
+    select(trimmer.name)
+    bpy.ops.transform.rotate(
+        value=radians(tile_props.angle - 90),
+        orient_axis='Z',
+        center_override=cursor.location)
+    return trimmer
 
 
 def create_tri_floor_tile_trimmers(tile_properties, dim):
@@ -669,15 +734,16 @@ def create_y_pos_trimmer(bound_box, dimensions, buffer):
 def create_z_pos_trimmer(bound_box, dimensions, buffer):
     deselect_all()
 
-    front_top_left = bound_box[2]
+    front_top_left = bound_box[1]
     t = bpy.ops.turtle
 
     t.add_turtle()
     t.pu()
     t.set_position(v=Vector((front_top_left)))
+
     t.dn(d=buffer)
     t.lf(d=0.5)
-    t.bk(d=1)
+    t.bk(d=0.5)
     t.pd()
     t.fd(d=dimensions[1] + 1)
     t.select_all()

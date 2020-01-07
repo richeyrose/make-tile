@@ -38,11 +38,6 @@ def create_curved_floor(tile_empty):
     tile_props.tile_size[2] = scene.mt_tile_z
     tile_props.curve_type = scene.mt_curve_type
 
-    cursor = bpy.context.scene.cursor
-    cursor_orig_loc = cursor.location.copy()
-    cursor.location = (0, 0, 0)
-    tile_empty.location = (0, 0, 0)
-
     tile_meshes = []
 
     if base_blueprint == 'OPENLOCK':
@@ -50,6 +45,7 @@ def create_curved_floor(tile_empty):
         tile_props.tile_size[2] = 0.374
         base = create_openlock_base(tile_props)
         tile_meshes.append(base)
+    
     if base_blueprint == 'PLAIN':
         base = create_plain_base(tile_props)
         tile_meshes.append(base)
@@ -70,7 +66,7 @@ def create_curved_floor(tile_empty):
         for trimmer in trimmers:
             add_bool_modifier(obj, trimmer.name)
             trimmer.display_type = 'WIRE'
-            #trimmer.hide_viewport = True
+            trimmer.hide_viewport = True
 
     base.parent = tile_empty
     tile_empty.location = cursor_orig_loc

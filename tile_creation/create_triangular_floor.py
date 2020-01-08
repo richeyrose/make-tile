@@ -49,13 +49,13 @@ def create_triangular_floor(tile_empty):
     if base_blueprint == 'OPENLOCK':
         tile_props.base_size[2] = .2756
         tile_props.tile_size[2] = 0.374
-        base = create_openlock_base(tile_props)
+        base, dimensions = create_openlock_base(tile_props)
         tile_meshes.append(base)
 
     if base_blueprint == 'PLAIN':
         tile_props.base_size[2] = scene.mt_base_z
         tile_props.tile_size[2] = scene.mt_tile_z
-        base = create_plain_base(tile_props)
+        base, dimensions = create_plain_base(tile_props)
         tile_meshes.append(base)
 
     if base_blueprint == 'NONE':
@@ -66,6 +66,7 @@ def create_triangular_floor(tile_empty):
 
     if main_part_blueprint == 'NONE':
         tile_props.tile_size = tile_props.base_size
+    
     else:
         # slabs are the textured part of the tile
         preview_slab, displacement_slab, dimensions = create_slabs(tile_props, base)
@@ -148,7 +149,7 @@ def create_openlock_base(tile_props):
         clip_cutter_bool = base.modifiers.new('Clip Cutter', 'BOOLEAN')
         clip_cutter_bool.operation = 'DIFFERENCE'
         clip_cutter_bool.object = clip_cutter
-    return base
+    return base, dimensions
 
 
 def create_openlock_base_clip_cutters(base, dimensions, tile_props):
@@ -317,4 +318,4 @@ def create_plain_base(tile_props):
     t.pu()
     t.home()
     mode('OBJECT')
-    return base
+    return base, dimensions

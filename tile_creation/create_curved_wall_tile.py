@@ -87,6 +87,13 @@ def create_curved_wall(tile_empty):
         base = create_plain_base(tile_props.base_radius, tile_props.base_size, tile_name)
         tile_meshes.append(base)
 
+    if base_blueprint == 'NONE':
+        # If we have no base create an empty instead for storing details on
+        # and parenting
+        tile_props.base_size = (0, 0, 0)
+        base = bpy.data.objects.new(tile_name + '.base', None)
+        add_object_to_collection(base, tile_name)
+
     if main_part_blueprint == 'OPENLOCK':
         tile_props.tile_size = Vector((
             scene.mt_tile_x,
@@ -104,6 +111,8 @@ def create_curved_wall(tile_empty):
         displacement_core.hide_viewport = True
         tile_meshes.extend([preview_core, displacement_core])
 
+    if main_part_blueprint == 'NONE':
+        tile_props.tile_size = tile_props.base_size
     # create tile trimmers. Used to ensure that displaced
     # textures don't extend beyond the original bounds of the tile.
     trimmers = create_curved_wall_tile_trimmers(

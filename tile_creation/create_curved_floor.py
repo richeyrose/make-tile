@@ -45,7 +45,7 @@ def create_curved_floor(tile_empty):
         tile_props.tile_size[2] = 0.374
         base = create_openlock_base(tile_props)
         tile_meshes.append(base)
-    
+
     if base_blueprint == 'PLAIN':
         base = create_plain_base(tile_props)
         tile_meshes.append(base)
@@ -59,6 +59,8 @@ def create_curved_floor(tile_empty):
         preview_slab, displacement_slab = create_slabs(tile_props, base)
         tile_meshes.extend([preview_slab, displacement_slab])
         displacement_slab.hide_viewport = True
+    else:
+        tile_props.tile_size = tile_props.base_size
 
     trimmers = create_curved_floor_trimmers(tile_props, tile_empty)
 
@@ -370,7 +372,7 @@ def create_slabs(tile_props, base):
     slabs = [preview_slab, displacement_slab]
 
     cursor.location = cursor_orig_loc
-
+    mode('OBJECT')
     for slab in slabs:
         deselect_all()
         select(slab.name)

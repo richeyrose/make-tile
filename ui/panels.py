@@ -186,35 +186,16 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
         layout = self.layout
 
         layout.row()
-        if scene.mt_tile_type == 'STRAIGHT_WALL':
-            layout.prop(scene, 'mt_base_blueprint')
-            layout.prop(scene, 'mt_main_part_blueprint')
+        
+        layout.prop(scene, 'mt_base_blueprint')
+        layout.prop(scene, 'mt_main_part_blueprint')
 
-            if scene.mt_base_blueprint == 'PLAIN':
-                self.draw_plain_base_panel(context)
-            if scene.mt_main_part_blueprint == 'PLAIN':
-                self.draw_plain_main_part_panel(context)
-            if scene.mt_main_part_blueprint == 'OPENLOCK':
-                self.draw_openlock_panel(context)
-
-        if scene.mt_tile_type == 'RECTANGULAR_FLOOR':
-            layout.prop(scene, 'mt_base_blueprint')
-            if scene.mt_base_blueprint == 'PLAIN':
-                self.draw_plain_base_panel(context)
-                self.draw_plain_main_part_panel(context)
-            if scene.mt_base_blueprint == 'OPENLOCK':
-                self.draw_openlock_panel(context)
-
-        if scene.mt_tile_type == 'CURVED_WALL':
-            layout.prop(scene, 'mt_base_blueprint')
-            layout.prop(scene, 'mt_main_part_blueprint')
-
-            if scene.mt_base_blueprint == 'PLAIN':
-                self.draw_plain_base_panel(context)
-            if scene.mt_main_part_blueprint == 'PLAIN':
-                self.draw_plain_main_part_panel(context)
-            if scene.mt_main_part_blueprint == 'OPENLOCK':
-                self.draw_openlock_panel(context)
+        if scene.mt_base_blueprint == 'PLAIN':
+            self.draw_plain_base_panel(context)
+        if scene.mt_main_part_blueprint == 'PLAIN':
+            self.draw_plain_main_part_panel(context)
+        if scene.mt_main_part_blueprint == 'OPENLOCK':
+            self.draw_openlock_panel(context)
 
 
 class MT_PT_Vertex_Groups_Panel(MT_PT_Panel, bpy.types.Panel):

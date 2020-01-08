@@ -19,6 +19,7 @@ from .. operators.trim_tile import (
 from . create_displacement_mesh import create_displacement_object
 
 
+# TODO: Make sure you can choose to create just bases or just main bits for each tile type
 def create_rectangular_floor(tile_empty):
     """"Returns a rectangular floor"""
     # hack to correct for parenting issues.
@@ -73,7 +74,8 @@ def create_rectangular_floor(tile_empty):
         preview_core, displacement_core = create_cores(base, tile_props)
         displacement_core.hide_viewport = True
         tile_meshes.extend([preview_core, displacement_core])
-    elif main_part_blueprint == 'PLAIN':
+
+    if main_part_blueprint == 'PLAIN':
         tile_props.tile_size = Vector((
             scene.mt_tile_x,
             scene.mt_tile_y,
@@ -81,7 +83,8 @@ def create_rectangular_floor(tile_empty):
         preview_core, displacement_core = create_cores(base, tile_props)
         displacement_core.hide_viewport = True
         tile_meshes.extend([preview_core, displacement_core])
-    else:
+
+    if main_part_blueprint == 'NONE':
         tile_props.tile_size = tile_props.base_size
 
     # create tile trimmers. Used to ensure that displaced

@@ -38,7 +38,7 @@ def create_straight_wall(tile_empty):
     tile_props = bpy.context.collection.mt_tile_props
     tile_name = tile_props.tile_name
 
-    # Get base and main part blueprints 
+    # Get base and main part blueprints
     base_blueprint = tile_props.base_blueprint
     main_part_blueprint = tile_props.main_part_blueprint
 
@@ -56,7 +56,7 @@ def create_straight_wall(tile_empty):
 
         base = create_plain_base(tile_name, tile_props.base_size)
         tile_meshes.append(base)
-        
+
     if base_blueprint == 'OPENLOCK':
         # For OpenLOCK tiles the width and height of the base are constants
         tile_props.base_size = Vector((

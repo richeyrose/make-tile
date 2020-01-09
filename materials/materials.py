@@ -67,28 +67,9 @@ def add_preview_mesh_modifiers(obj):
     obj_subsurf.levels = bpy.context.scene.mt_cycles_subdivision_quality
 
 
-def add_displacement_mesh_modifiers_2(obj, image_size):
-    obj_subsurf = obj.modifiers.new('Subsurf', 'SUBSURF')
-    obj_subsurf.subdivision_type = 'SIMPLE'
-    obj_subsurf.levels = 0
-
-    obj_disp_mod = obj.modifiers.new('Displacement', 'DISPLACE')
-    obj_disp_mod.strength = 0
-    obj_disp_mod.texture_coords = 'UV'
-    obj_disp_mod.direction = 'NORMAL'
-    obj_disp_mod.mid_level = 0
-
-    obj_triangulate_mod = obj.modifiers.new('Triangulate', 'TRIANGULATE')
-
-    obj_disp_texture = bpy.data.textures.new(obj.name + '.texture', 'IMAGE')
-    obj['disp_texture'] = obj_disp_texture
-    obj['subsurf_mod_name'] = obj_subsurf.name
-    obj['disp_mod_name'] = obj_disp_mod.name
-
-
 def update_displacement_material_2(obj, primary_material_name):
-    for material in obj.data.materials:
-        obj.data.materials.pop(index=0)
+    #for material in obj.data.materials:
+    #    obj.data.materials.pop(index=0)
 
     primary_material = bpy.data.materials[primary_material_name]
     obj['primary_material'] = primary_material
@@ -97,9 +78,10 @@ def update_displacement_material_2(obj, primary_material_name):
 
 def update_preview_material_2(obj, primary_material_name):
     # get rid of existing materials
+    '''
     for material in obj.data.materials:
         obj.data.materials.pop(index=0)
-
+    '''
     textured_groups = obj['textured_groups']
 
     primary_material = bpy.data.materials[primary_material_name]
@@ -121,12 +103,28 @@ def assign_displacement_materials(obj, image_size, primary_material, secondary_m
     primary_material - bpy.types.Material
     secondary_material - bpy.types.Material
     '''
-    for material in obj.data.materials:
-        obj.data.materials.pop(index=0)
 
-    obj['primary_material'] = primary_material
-    add_displacement_mesh_modifiers_2(obj, image_size)
+    # create new displacement modifier
+    obj_disp_mod = obj.modifiers.new('Displacement', 'DISPLACE')
+    obj_disp_mod.strength = 0
+    obj_disp_mod.texture_coords = 'UV'
+    obj_disp_mod.direction = 'NORMAL'
+    obj_disp_mod.mid_level = 0
+
+    # Create texture for this displacement modifier
+    obj_disp_texture = bpy.data.textures.new(obj.name + '.texture', 'IMAGE')
+    #obj_disp_image = bpy.data.images.new(obj.name + '.image', width=image_size[0], height=image_size[1])
+    obj['disp_texture'] = obj_disp_texture
+    obj['disp_mod_name'] = obj_disp_mod.name
+
+    # obj['primary_material'] = primary_material
     obj.data.materials.append(primary_material)
+
+    # create new displacement material item and save it on our displacement object
+    item = obj.mt_object_props.disp_materials_collection.add()
+    item.material = primary_material
+    item.disp_texture = obj_disp_texture
+    item.disp_mod_name = obj_disp_mod.name
 
 
 def assign_preview_materials(obj, primary_material, secondary_material, textured_vertex_groups):

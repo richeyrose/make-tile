@@ -75,6 +75,13 @@ class MT_Trimmer_Item(bpy.types.PropertyGroup):
         name="")
 
 
+class MT_Disp_Mat_Item(bpy.types.PropertyGroup):
+    material: bpy.props.PointerProperty(
+        name="Displacement Material",
+        type=bpy.types.Material
+    )
+
+
 class MT_Object_Properties(bpy.types.PropertyGroup):
     is_mt_object: bpy.props.BoolProperty(
         name="Is MakeTile Object",
@@ -101,6 +108,11 @@ class MT_Object_Properties(bpy.types.PropertyGroup):
         name="Linked Object",
         type=bpy.types.Object,
         description="Used for storing a reference from a preview object to a displacement object and vice versa"
+    )
+
+    disp_materials_collection: bpy.props.CollectionProperty(
+        name="Displacement materials collection",
+        type=MT_Disp_Mat_Item
     )
 
 

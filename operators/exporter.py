@@ -6,6 +6,7 @@ from .. lib.utils.collections import create_collection, add_object_to_collection
 from .. enums.enums import units
 from .voxeliser import voxelise_mesh
 
+
 # TODO: Ensure you no longer have to manually switch collections to get exporter to work
 class MT_OT_Export_Tile(bpy.types.Operator):
     '''Exports contents of current collection as an .stl. 

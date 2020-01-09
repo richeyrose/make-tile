@@ -60,6 +60,7 @@ def assign_mat_to_vert_group(vert_group, obj, material):
             poly.material_index = material_index
 
 
+# TODO: Chnage this back to using adaptive subdivision
 def add_preview_mesh_modifiers(obj):
     obj_subsurf = obj.modifiers.new('Subsurf', 'SUBSURF')
     obj_subsurf.subdivision_type = 'SIMPLE'

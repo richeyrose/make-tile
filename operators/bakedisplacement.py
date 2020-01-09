@@ -40,7 +40,7 @@ class MT_OT_Assign_Material_To_Vert_Group(bpy.types.Operator):
             assign_mat_to_vert_group(vertex_group, obj, material)
 
         # create new displacement material item and save it on our displacement object
-        disp_obj = object_props.linked_object        
+        disp_obj = object_props.linked_object
         item = disp_obj.mt_object_props.disp_materials_collection.add()
         item.material = primary_material
         return {'FINISHED'}
@@ -92,7 +92,7 @@ class MT_OT_Bake_Displacement(bpy.types.Operator):
         preview_obj = bpy.context.object
         disp_obj = preview_obj.mt_object_props.linked_object
         disp_mat_coll = disp_obj.mt_object_props.disp_materials_collection
-        
+
         resolution = context.scene.mt_tile_resolution
         disp_obj.hide_viewport = False
         disp_image = bake_displacement_map(disp_obj, resolution)
@@ -113,6 +113,7 @@ class MT_OT_Bake_Displacement(bpy.types.Operator):
 
 
 def bake_displacement_map(disp_obj, resolution):
+    prefs = get_prefs()
     # save original settings
     orig_engine = bpy.context.scene.render.engine
     # cycles settings
@@ -168,20 +169,32 @@ def bake_displacement_map(disp_obj, resolution):
     bpy.context.scene.render.bake.use_selected_to_active = True
     bpy.context.scene.render.bake.cage_extrusion = 1
 
+    # temporarily assign a displacement material so we can bake to an image
+    for material in disp_obj.data.materials:
+        disp_obj.data.materials.pop(index=0)
+    disp_obj.data.materials.append(disp_mat_coll[0].material)
+
     # bake
     bpy.ops.object.bake(type='EMIT')
 
     # pack image
     disp_image.pack()
-    
+
     # reset shaders
     for item in disp_mat_coll:
         material = item.material
         tree = material.node_tree
         surface_shader_node = tree.nodes['surface_shader']
+        displacement_node = tree.nodes['final_disp']
         mat_output_node = tree.nodes['Material Output']
         tree.links.new(surface_shader_node.outputs['BSDF'], mat_output_node.inputs['Surface'])
         tree.links.new(displacement_node.outputs['Displacement'], mat_output_node.inputs['Displacement'])
+
+    #TODO: This is really hacky. get rid and do it properly when you make a decent secondary material
+    # remove displacement material and add secondary material
+    for material in disp_obj.data.materials:
+        disp_obj.data.materials.pop(index=0)
+    disp_obj.data.materials.append(bpy.data.materials[prefs.secondary_material])
 
     # reset engine
     bpy.context.scene.cycles.samples = orig_samples

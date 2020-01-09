@@ -113,11 +113,10 @@ def assign_displacement_materials(obj, image_size, primary_material, secondary_m
 
     # Create texture for this displacement modifier
     obj_disp_texture = bpy.data.textures.new(obj.name + '.texture', 'IMAGE')
-    #obj_disp_image = bpy.data.images.new(obj.name + '.image', width=image_size[0], height=image_size[1])
     obj['disp_texture'] = obj_disp_texture
     obj['disp_mod_name'] = obj_disp_mod.name
 
-    # obj['primary_material'] = primary_material
+    obj.data.materials.append(secondary_material)
     obj.data.materials.append(primary_material)
 
     # create new displacement material item and save it on our displacement object

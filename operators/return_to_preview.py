@@ -24,10 +24,6 @@ class MT_OT_Return_To_Preview(bpy.types.Operator):
         select(preview_obj.name)
         activate(preview_obj.name)
         reset_displacement_modifiers(disp_obj)
-
-        tile_material = disp_obj['primary_material']
-        disp_obj.data.materials.clear()
-        disp_obj.data.materials.append(tile_material)
         disp_obj.hide_viewport = True
 
         return {'FINISHED'}

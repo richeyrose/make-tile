@@ -50,11 +50,13 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
 
         # if merge is true join meshes together
         if context.scene.mt_merge_and_voxelise is True:
-            ctx = bpy.context.copy()
-            ctx['active_object'] = copies[0]
-            ctx['object'] = copies[0]
-            ctx['selected_objects'] = copies
-            ctx['selected_editable_objects'] = copies
+
+            ctx = {
+                'active_object': copies[0],
+                'object': copies[0],
+                'selected_objects': copies,
+                'selected_editable_objects':copies
+            }
 
             bpy.ops.object.join(ctx)
 
@@ -65,12 +67,24 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
 
             add_object_to_collection(merged_obj, new_collection.name)
 
+            ctx = {
+                'object': merged_obj,
+                'active_obj': merged_obj
+            }
+            # add trimmers to voxelised object
+            bpy.ops.scene.add_trimmers(ctx)
+
         # otherwise just voxelise displacement objects
         else:
             for copy in copies:
                 if copy.mt_object_props.geometry_type == 'DISPLACEMENT':
                     voxelise_mesh(copy)
                     add_object_to_collection(copy, new_collection.name)
+                    ctx = {
+                        'object': copy,
+                        'active_obj': copy
+                    }
+                    bpy.ops.scene.add_trimmers(ctx)
 
         return {'FINISHED'}
 
@@ -107,7 +121,7 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
 def voxelise_mesh(obj):
     """Voxelises the passed in object
     Keyword Arguments:
-    obj -- MESH OBJECT
+    obj -- bpy.types.Object
     """
 
     obj.data.remesh_voxel_size = bpy.context.scene.mt_voxel_quality

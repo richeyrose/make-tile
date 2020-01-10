@@ -6,6 +6,33 @@ from .. lib.turtle.scripts.primitives import draw_cuboid, draw_tri_prism, draw_c
 from math import radians
 
 
+class MT_OT_Add_Trimmers(bpy.types.Operator):
+    bl_idname = "scene.add_trimmers"
+    bl_label = "Adds trimmers to active object"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        if bpy.context.object is not None:
+            return bpy.context.object.mode == 'OBJECT'
+        else:
+            return True
+
+    def execute(self, context):
+        obj = context.object
+        obj_props = obj.mt_object_props
+        tile_name = obj_props.tile_name
+        tile_collection = bpy.data.collections[tile_name]
+        tile_props = tile_collection.mt_tile_props
+        trimmers = tile_props.trimmers_collection
+
+        for item in trimmers:
+            trimmer = bpy.data.objects[item.name]
+            bool_mod = add_bool_modifier(obj, trimmer.name)
+
+        return{'FINISHED'}
+
+
 # works for rectangular floors and straight walls
 def create_cuboid_tile_trimmers(
         tile_size,
@@ -629,7 +656,7 @@ def add_bool_modifier(obj, trimmer_name):
     boolean.show_render = False
     boolean.operation = 'DIFFERENCE'
     boolean.object = trimmer
-
+    return boolean
 
 def trim_side(obj, trimmer_name):
     trimmer = bpy.data.objects[trimmer_name]

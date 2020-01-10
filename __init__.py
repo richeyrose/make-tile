@@ -41,6 +41,7 @@ from . operators.return_to_preview import MT_OT_Return_To_Preview
 from . operators.create_lighting_setup import MT_OT_Create_Lighting_Setup
 from . operators.exporter import MT_OT_Export_Tile
 from . operators.voxeliser import MT_OT_Tile_Voxeliser
+from . operators.trim_tile import MT_OT_Add_Trimmers
 from . lib.turtle.operators.basic_commands import *
 from . lib.turtle.operators.curve import *
 from . lib.turtle.operators.helpers import *
@@ -71,6 +72,7 @@ classes = (
     MT_Object_Properties,
     MT_OT_Make_Tile,
     MT_OT_makeVertGroupsFromFaces,
+    MT_OT_Add_Trimmers,
     MT_OT_Convert_To_MT_Obj,
     MT_OT_Bake_Displacement,
     MT_OT_Return_To_Preview,

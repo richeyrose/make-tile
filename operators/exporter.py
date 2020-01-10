@@ -78,23 +78,23 @@ class MT_OT_Export_Tile(bpy.types.Operator):
         merged_obj.name = tile_name + '.merged'
         merged_obj.mt_object_props.tile_name = tile_name
 
+        # update context
+        ctx['active_object'] = merged_obj
+        ctx['object'] = merged_obj
+
         # voxelise if necessary
         if context.scene.mt_voxelise_on_export is True:
             merged_obj = voxelise_mesh(merged_obj)
 
-        # Trim if trim tile is true
-        if context.scene.mt_trim_on_export is True:
-            ctx['object'] = merged_obj
-            ctx['active_object'] = merged_obj
-
-            bpy.ops.scene.trim_tile(ctx)
-
-        # create a collection called Flattened objects
-        # and add our copies to it
-        new_collection = create_collection("Flattened Objects", bpy.context.scene.collection)
+        # create a collection called Exported objects
+        # and add our copy to it
+        new_collection = create_collection("Exported Objects", bpy.context.scene.collection)
         add_object_to_collection(merged_obj, new_collection.name)
 
-        # set up exporter
+        # remove copy from tile collection
+        bpy.ops.collection.objects_remove(ctx, collection=tile_name)
+
+        # set up exporter options
         units = bpy.context.scene.mt_units
         export_path = context.scene.mt_export_path
 
@@ -106,9 +106,6 @@ class MT_OT_Export_Tile(bpy.types.Operator):
         if not os.path.exists(export_path):
             os.mkdir(export_path)
         file_path = os.path.join(context.scene.mt_export_path, tile_name + '.stl')
-
-        ctx['active_object'] = merged_obj
-        ctx['object'] = merged_obj
 
         # export our merged object
         bpy.ops.export_mesh.stl('INVOKE_DEFAULT', filepath=file_path, check_existing=True, filter_glob="*.stl", use_selection=True, global_scale=unit_multiplier, use_mesh_modifiers=True)

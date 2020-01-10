@@ -88,7 +88,7 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
                     stripped_name = item.name.split(seperator, 1)[0]
                     row = layout.row()
                     row.prop(item, "value", text=stripped_name)
-        
+
     def draw_plain_base_panel(self, context):
         scene = context.scene
         layout = self.layout
@@ -364,6 +364,7 @@ class MT_PT_Trim_Panel(MT_PT_Panel, bpy.types.Panel):
                 seperator = '.'
                 stripped_name = item.name.split(seperator, 1)[0]
                 layout.prop(item, "value", text=stripped_name)
+        layout.operator('object.convert', text="Flatten Selected Object")
 
 
 class MT_PT_Export_Panel(MT_PT_Panel, bpy.types.Panel):

@@ -45,8 +45,8 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
                     obj.mt_object_props.tile_name = tile_name
                     copies.append(obj)
 
-        # create a collection called Flattened objects
-        new_collection = create_collection("Flattened Objects", bpy.context.scene.collection)
+        # create a collection called Voxelised Objects
+        new_collection = create_collection("Voxelised Objects", bpy.context.scene.collection)
 
         # if merge is true join meshes together
         if context.scene.mt_merge_and_voxelise is True:

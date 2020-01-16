@@ -132,7 +132,7 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
         bpy.types.Scene.mt_view_mode = bpy.props.EnumProperty(
             items=view_mode,
             name="Render Engine",
-            default="EEVEE",
+            default="CYCLES",
             update=update_view_mode,
         )
 

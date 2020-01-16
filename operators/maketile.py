@@ -397,6 +397,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         bpy.types.Scene.mt_tile_material_1 = bpy.props.EnumProperty(
             items=load_material_enums,
             name="Material 1",
+            update=update_material_enums
         )
 
         bpy.types.Scene.mt_material_mapping_method = bpy.props.EnumProperty(
@@ -594,11 +595,11 @@ class MT_OT_Make_Tile(bpy.types.Operator):
 def load_material_enums(self, context):
     '''Constructs a material Enum from materials found in the materials asset folder'''
     enum_items = []
-    preferences = get_prefs()
+    prefs = get_prefs()
     if context is None:
         return enum_items
 
-    materials_path = os.path.join(preferences.assets_path, "materials")
+    materials_path = os.path.join(prefs.assets_path, "materials")
     blend_filenames = get_blend_filenames(materials_path)
     enum_collection = enum_collections['materials']
     if materials_path == enum_collection.directory:
@@ -608,13 +609,27 @@ def load_material_enums(self, context):
     materials = bpy.data.materials
     for material in materials:
         # prevent make-tile adding the default material to the list
-        if material.name != preferences.secondary_material:
+        if material.name != prefs.secondary_material and material.name != 'Material':
+            enum = (material.name, material.name, "")
+            enum_items.append(enum)
+
+    return enum_items
+
+
+def update_material_enums(self, context):
+    enum_items = []
+    materials = bpy.data.materials
+    prefs = get_prefs()
+
+    for material in materials:
+        # prevent make-tile adding the default material to the list
+        if material.name != prefs.secondary_material and material.name != 'Material':
             enum = (material.name, material.name, "")
             enum_items.append(enum)
 
     enum_collection.enums = enum_items
-    enum_collection.directory = materials_path
-    return enum_collection.enums
+
+    return enum_items
 
 
 def update_disp_subdivisions(self, context):
@@ -660,9 +675,6 @@ def update_material_mapping(self, context):
             tree.links.new(
                 map_type_node.outputs['Color'],
                 mapping_node.inputs['Vector'])
-
-
-
 
 
 enum_collections = {}

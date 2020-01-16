@@ -43,6 +43,7 @@ from . operators.maketile import (
     MT_Object_Properties,
     MT_Radio_Buttons)
 
+from . operators.save_material import MT_OT_Export_Material
 
 from . operators.makevertgroups import MT_OT_makeVertGroupsFromFaces
 from . operators.object_converter import MT_OT_Convert_To_MT_Obj
@@ -82,6 +83,7 @@ classes = (
     MT_Tile_Properties,
     MT_Object_Properties,
     MT_OT_Make_Tile,
+    MT_OT_Export_Material,
     MT_OT_makeVertGroupsFromFaces,
     MT_OT_Add_Trimmers,
     MT_OT_Convert_To_MT_Obj,

@@ -61,11 +61,20 @@ def assign_mat_to_vert_group(vert_group, obj, material):
             poly.material_index = material_index
 
 
-# TODO: Chnage this back to using adaptive subdivision
-def add_preview_mesh_modifiers(obj):
+def add_preview_mesh_subsurf(obj):
+    '''Adds a triangulate modifier so that sockets etc. appear correctly
+    then adds an adaptive subdivison modifier'''
+
+    obj_triangulate = obj.modifiers.new('Triangulate', 'TRIANGULATE')
+
     obj_subsurf = obj.modifiers.new('Subsurf', 'SUBSURF')
     obj_subsurf.subdivision_type = 'SIMPLE'
     obj_subsurf.levels = bpy.context.scene.mt_cycles_subdivision_quality
+    obj.cycles.use_adaptive_subdivision = True
+    bpy.context.scene.cycles.preview_dicing_rate = 1
+
+    if 'Camera' in bpy.data.objects:
+        bpy.context.scene.cycles.dicing_camera = bpy.data.objects['Camera']
 
 
 def update_displacement_material_2(obj, primary_material_name):
@@ -129,7 +138,7 @@ def assign_preview_materials(obj, primary_material, secondary_material, textured
     for material in obj.data.materials:
         obj.data.materials.pop(index=0)
 
-    add_preview_mesh_modifiers(obj)
+    # add_preview_mesh_subsurf(obj)
 
     obj.data.materials.append(secondary_material)
     obj.data.materials.append(primary_material)

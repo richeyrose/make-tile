@@ -15,6 +15,7 @@ from .. operators.trim_tile import (
     create_cuboid_tile_trimmers,
     add_bool_modifier)
 from . create_displacement_mesh import create_displacement_object
+from . generic import finalise_tile
 
 
 def create_straight_wall(tile_empty):
@@ -46,6 +47,8 @@ def create_straight_wall(tile_empty):
     # trimmer modifiers to all of them later but we don't yet
     # know the full dimensions of our tile
     tile_meshes = []
+    preview_core = None
+    displacement_core = None
 
     if base_blueprint == 'PLAIN':
         # get our base size props from menu and store in collection
@@ -106,6 +109,13 @@ def create_straight_wall(tile_empty):
         base_blueprint,
         tile_empty)
 
+    finalise_tile(tile_meshes,
+                  trimmers,
+                  tile_empty,
+                  base,
+                  preview_core,
+                  cursor_orig_loc)
+    '''
     for obj in tile_meshes:
         for trimmer in trimmers:
             add_bool_modifier(obj, trimmer.name)
@@ -114,15 +124,19 @@ def create_straight_wall(tile_empty):
 
     # Parent our base to our tile empty
     base.parent = tile_empty
-    
+
     # Assign secondary material to our base
     prefs = get_prefs()
     base.data.materials.append(bpy.data.materials[prefs.secondary_material])
 
+    # Add subsurf modifier to our cores
+    if preview_core is not None:
+        add_preview_mesh_subsurf(preview_core)
+
     # Reset location
     tile_empty.location = cursor_orig_loc
     cursor.location = cursor_orig_loc
-
+    '''
 
 #####################################
 #              BASE                 #

@@ -126,7 +126,7 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
         bpy.types.Scene.mt_cycles_subdivision_quality = bpy.props.IntProperty(
             name="Subdivision",
             description="Cycles subdivision - higher = higher quality.",
-            default=6,
+            default=1,
         )
 
         bpy.types.Scene.mt_view_mode = bpy.props.EnumProperty(

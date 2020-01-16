@@ -17,7 +17,7 @@ from .. operators.trim_tile import (
     create_cuboid_tile_trimmers,
     add_bool_modifier)
 from . create_displacement_mesh import create_displacement_object
-
+from . generic import finalise_tile
 
 def create_rectangular_floor(tile_empty):
     """"Creates a rectangular floor"""
@@ -96,23 +96,12 @@ def create_rectangular_floor(tile_empty):
         base_blueprint,
         tile_empty)
 
-    for obj in tile_meshes:
-        for trimmer in trimmers:
-            add_bool_modifier(obj, trimmer.name)
-            trimmer.display_type = 'WIRE'
-            trimmer.hide_viewport = True
-
-    # Parent our base to our tile empty
-    base.parent = tile_empty
-
-    # Add secondary material to base
-    prefs = get_prefs()
-    base.data.materials.append(bpy.data.materials[prefs.secondary_material])
-
-    # Reset location
-    tile_empty.location = cursor_orig_loc
-    cursor.location = cursor_orig_loc
-
+    finalise_tile(tile_meshes,
+                  trimmers,
+                  tile_empty,
+                  base,
+                  preview_core,
+                  cursor_orig_loc)
 
 def create_plain_base(tile_props):
     '''Creates a plain cuboid base'''

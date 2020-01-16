@@ -361,12 +361,6 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             update=update_material_1,
         )
 
-        bpy.types.Scene.mt_tile_material_2 = bpy.props.EnumProperty(
-            items=load_material_enums,
-            name="Material 2",
-            #update=update_material_2,
-        )
-
         bpy.types.Scene.mt_tile_resolution = bpy.props.IntProperty(
             name="Resolution",
             description="Bake resolution of displacement maps. Higher = better quality but slower",
@@ -382,6 +376,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             Going above 8 is really not recommended and may cause Blender to freeze up for a loooooong time!",
             default=6,
             soft_max=8,
+            update=update_disp_subdivisions
         )
 
         # Tile and base size. We use seperate floats so that we can only show
@@ -536,7 +531,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         del bpy.types.Scene.mt_base_blueprint
         del bpy.types.Scene.mt_tile_resolution
         del bpy.types.Scene.mt_tile_material_1
-        del bpy.types.Scene.mt_tile_material_2
+        del bpy.types.Scene.mt_subdivisions
         del bpy.types.Scene.mt_tile_type
         del bpy.types.Scene.mt_tile_blueprint
         del bpy.types.Scene.mt_main_part_blueprint
@@ -582,6 +577,14 @@ def update_material_1(self, context):
         disp_obj = preview_obj.mt_object_props.linked_object
 
         update_displacement_material_2(disp_obj, bpy.context.scene.mt_tile_material_1)
+
+
+def update_disp_subdivisions(self, context):
+    disp_obj = bpy.context.object
+
+    if 'Subsurf' in disp_obj.modifiers:
+        modifier = disp_obj.modifiers['Subsurf']
+        modifier.levels = context.scene.mt_subdivisions
 
 
 enum_collections = {}

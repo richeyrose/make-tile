@@ -15,6 +15,7 @@ from .create_corner_wall import calculate_corner_wall_triangles, move_cursor_to_
 from ..operators.trim_tile import (
     create_curved_floor_trimmers,
     add_bool_modifier)
+from . generic import finalise_tile
 
 
 # TODO: Fix dimensioning disappearing when no base
@@ -57,27 +58,20 @@ def create_curved_floor(tile_empty):
         add_object_to_collection(base, tile_props.tile_name)
 
     if main_part_blueprint != 'NONE':
-        preview_slab, displacement_slab = create_cores(tile_props, base)
-        tile_meshes.extend([preview_slab, displacement_slab])
-        displacement_slab.hide_viewport = True
+        preview_core, displacement_core = create_cores(tile_props, base)
+        tile_meshes.extend([preview_core, displacement_core])
+        displacement_core.hide_viewport = True
     else:
         tile_props.tile_size = tile_props.base_size
 
     trimmers = create_curved_floor_trimmers(tile_props, tile_empty)
 
-    for obj in tile_meshes:
-        for trimmer in trimmers:
-            add_bool_modifier(obj, trimmer.name)
-            trimmer.display_type = 'WIRE'
-            trimmer.hide_viewport = True
-
-    base.parent = tile_empty
-    
-    prefs = get_prefs()
-    base.data.materials.append(bpy.data.materials[prefs.secondary_material])
-
-    tile_empty.location = cursor_orig_loc
-    cursor.location = cursor_orig_loc
+    finalise_tile(tile_meshes,
+                  trimmers,
+                  tile_empty,
+                  base,
+                  preview_core,
+                  cursor_orig_loc)
 
 
 def create_plain_base(tile_props):

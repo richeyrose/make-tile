@@ -37,6 +37,8 @@ from .. operators.trim_tile import (
     create_curved_wall_tile_trimmers,
     add_bool_modifier)
 
+from . generic import finalise_tile
+
 
 # TODO: fix divide by zero error when have no base
 def create_curved_wall(tile_empty):
@@ -122,19 +124,12 @@ def create_curved_wall(tile_empty):
         base_blueprint,
         tile_empty)
 
-    for obj in tile_meshes:
-        for trimmer in trimmers:
-            add_bool_modifier(obj, trimmer.name)
-            trimmer.display_type = 'WIRE'
-            trimmer.hide_viewport = True
-
-    base.parent = tile_empty
-    
-    prefs = get_prefs()
-    base.data.materials.append(bpy.data.materials[prefs.secondary_material])
-
-    tile_empty.location = cursor_orig_loc
-    cursor.location = cursor_orig_loc
+    finalise_tile(tile_meshes,
+                  trimmers,
+                  tile_empty,
+                  base,
+                  preview_core,
+                  cursor_orig_loc)
 
 
 def create_plain_base(base_radius, base_size, tile_name):

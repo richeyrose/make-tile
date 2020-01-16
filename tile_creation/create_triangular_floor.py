@@ -15,6 +15,7 @@ from .. lib.utils.vertex_groups import tri_prism_to_vert_groups
 from .. operators.trim_tile import (
     create_tri_floor_tile_trimmers,
     add_bool_modifier)
+from . generic import finalise_tile
 
 
 #TODO: fix dimensioning disappearing when no base
@@ -69,24 +70,18 @@ def create_triangular_floor(tile_empty):
         tile_props.tile_size = tile_props.base_size
 
     else:
-        # slabs are the textured part of the tile
-        preview_slab, displacement_slab, dimensions = create_slabs(tile_props, base)
-        tile_meshes.extend([preview_slab, displacement_slab])
+        # cores are the textured part of the tile
+        preview_core, displacement_core, dimensions = create_slabs(tile_props, base)
+        tile_meshes.extend([preview_core, displacement_core])
 
     trimmers = create_tri_floor_tile_trimmers(tile_props, dimensions, tile_empty)
 
-    for obj in tile_meshes:
-        for trimmer in trimmers:
-            add_bool_modifier(obj, trimmer.name)
-            trimmer.display_type = 'WIRE'
-            trimmer.hide_viewport = True
-
-    base.parent = tile_empty
-    prefs = get_prefs()
-    base.data.materials.append(bpy.data.materials[prefs.secondary_material])
-
-    tile_empty.location = cursor_orig_loc
-    cursor.location = cursor_orig_loc
+    finalise_tile(tile_meshes,
+                  trimmers,
+                  tile_empty,
+                  base,
+                  preview_core,
+                  cursor_orig_loc)
 
 
 def create_slabs(tile_props, base):
@@ -108,7 +103,7 @@ def create_slabs(tile_props, base):
     mode('OBJECT')
     obj = bpy.context.object
 
-    preview_slab, displacement_slab = create_displacement_object(obj)
+    preview_core, displacement_core = create_displacement_object(obj)
 
     preferences = get_prefs()
 
@@ -117,18 +112,18 @@ def create_slabs(tile_props, base):
 
     image_size = bpy.context.scene.mt_tile_resolution
 
-    assign_displacement_materials(displacement_slab, [image_size, image_size], primary_material, secondary_material)
-    assign_preview_materials(preview_slab, primary_material, secondary_material, ['Top'])
-    slabs = [preview_slab, displacement_slab]
+    assign_displacement_materials(displacement_core, [image_size, image_size], primary_material, secondary_material)
+    assign_preview_materials(preview_core, primary_material, secondary_material, ['Top'])
+    slabs = [preview_core, displacement_core]
 
     for slab in slabs:
         deselect_all()
         select(slab.name)
         bpy.ops.uv.smart_project()
         slab.parent = base
-    displacement_slab.hide_viewport = True
+    displacement_core.hide_viewport = True
 
-    return preview_slab, displacement_slab, dimensions
+    return preview_core, displacement_core, dimensions
 
 
 def create_openlock_base(tile_props):

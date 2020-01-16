@@ -34,7 +34,7 @@ class MT_OT_Assign_Material_To_Vert_Group(bpy.types.Operator):
         if mat_name in obj.material_slots.keys():
             assign_mat_to_vert_group(vertex_group, obj, material)
         else:
-            if len(obj.material_slots) == 0:  # check to make sure we have a material applied already otherwise material will be applied to whole object      
+            if len(obj.material_slots) == 0:  # check to make sure we have a material applied already otherwise material will be applied to whole object
                 obj.data.materials.append(secondary_material)
             obj.data.materials.append(primary_material)
             assign_mat_to_vert_group(vertex_group, obj, material)
@@ -59,8 +59,6 @@ class MT_OT_Remove_Material_From_Vert_Group(bpy.types.Operator):
         return (obj and obj.type in {'MESH'})
 
     def execute(self, context):
-        # TODO: go back to having a single primary material
-
         prefs = get_prefs()
         obj = context.object
         vertex_group = obj.vertex_groups.active.name
@@ -190,7 +188,8 @@ def bake_displacement_map(disp_obj, resolution):
         tree.links.new(surface_shader_node.outputs['BSDF'], mat_output_node.inputs['Surface'])
         tree.links.new(displacement_node.outputs['Displacement'], mat_output_node.inputs['Displacement'])
 
-    #TODO: This is really hacky. get rid and do it properly when you make a decent secondary material
+    # TODO: This is really hacky. get rid and do it properly when
+    #  you make a decent secondary material
     # remove displacement material and add secondary material
     for material in disp_obj.data.materials:
         disp_obj.data.materials.pop(index=0)

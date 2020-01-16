@@ -2,6 +2,8 @@
 import bpy
 from .. lib.utils.collections import add_object_to_collection
 
+from . generic import finalise_tile
+
 
 def create_displacement_object(obj):
     '''Takes a mesh object and returns a displacement and preview object'''

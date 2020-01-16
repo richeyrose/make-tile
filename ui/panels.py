@@ -282,8 +282,8 @@ class MT_PT_Material_Panel(MT_PT_Panel, bpy.types.Panel):
             if bpy.context.object.mt_object_props.geometry_type == 'PREVIEW':
                 layout.operator('scene.bake_displacement', text='Make 3D')
             if bpy.context.object.mt_object_props.geometry_type == 'DISPLACEMENT':
+                layout.prop(scene, 'mt_subdivisions')
                 layout.operator('scene.return_to_preview', text='Return to Preview')
-        layout.prop(scene, 'mt_subdivisions')
         layout.prop(scene, 'mt_tile_material_1')
 
 

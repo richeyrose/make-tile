@@ -24,6 +24,7 @@ from .. lib.utils.selection import (
     activate)
 
 from . create_displacement_mesh import create_displacement_object
+from . generic import finalise_tile
 
 
 def create_corner_wall(tile_empty):
@@ -94,19 +95,12 @@ def create_corner_wall(tile_empty):
 
     trimmers = create_corner_wall_tile_trimmers(tile_props, tile_empty, base)
 
-    for obj in tile_meshes:
-        for trimmer in trimmers:
-            add_bool_modifier(obj, trimmer.name)
-            trimmer.display_type = 'WIRE'
-            trimmer.hide_viewport = True
-
-    base.parent = tile_empty
-    
-    prefs = get_prefs()
-    base.data.materials.append(bpy.data.materials[prefs.secondary_material])
-
-    tile_empty.location = cursor_orig_loc
-    cursor.location = cursor_orig_loc
+    finalise_tile(tile_meshes,
+                  trimmers,
+                  tile_empty,
+                  base,
+                  preview_core,
+                  cursor_orig_loc)
 
 
 def create_plain_base():

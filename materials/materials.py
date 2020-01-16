@@ -30,14 +30,15 @@ def get_materials_from_file(file_path):
     return data_to.materials
 
 
-# TODO: Change this so get to choose what secondary material to load
 def load_secondary_material():
     '''Adds a blank material to the passed in object'''
-    if "Blank_Material" not in bpy.data.materials:
-        blank_material = bpy.data.materials.new("Blank_Material")
+    prefs = get_prefs
+    secondary_mat = prefs.secondary_material
+    if secondary_mat not in bpy.data.materials:
+        secondary_mat = bpy.data.materials.new("Blank_Material")
     else:
-        blank_material = bpy.data.materials['Blank_Material']
-    return blank_material
+        secondary_mat = bpy.data.materials['secondary_mat']
+    return secondary_mat
 
 
 def get_material_index(obj, material):
@@ -68,20 +69,12 @@ def add_preview_mesh_modifiers(obj):
 
 
 def update_displacement_material_2(obj, primary_material_name):
-    #for material in obj.data.materials:
-    #    obj.data.materials.pop(index=0)
-
     primary_material = bpy.data.materials[primary_material_name]
     obj['primary_material'] = primary_material
     obj.data.materials.append(primary_material)
 
 
 def update_preview_material_2(obj, primary_material_name):
-    # get rid of existing materials
-    '''
-    for material in obj.data.materials:
-        obj.data.materials.pop(index=0)
-    '''
     textured_groups = obj['textured_groups']
 
     primary_material = bpy.data.materials[primary_material_name]

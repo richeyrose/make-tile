@@ -17,6 +17,7 @@ from ..operators.trim_tile import (
     add_bool_modifier)
 
 
+# TODO: Fix dimensioning disappearing when no base
 def create_curved_floor(tile_empty):
     scene = bpy.context.scene
     cursor = scene.cursor
@@ -71,6 +72,10 @@ def create_curved_floor(tile_empty):
             trimmer.hide_viewport = True
 
     base.parent = tile_empty
+    
+    prefs = get_prefs()
+    base.data.materials.append(bpy.data.materials[prefs.secondary_material])
+
     tile_empty.location = cursor_orig_loc
     cursor.location = cursor_orig_loc
 

@@ -101,12 +101,16 @@ def create_corner_wall(tile_empty):
             trimmer.hide_viewport = True
 
     base.parent = tile_empty
+    
+    prefs = get_prefs()
+    base.data.materials.append(bpy.data.materials[prefs.secondary_material])
 
     tile_empty.location = cursor_orig_loc
     cursor.location = cursor_orig_loc
 
 
 def create_plain_base():
+
     tile_props = bpy.context.collection.mt_tile_props
 
     leg_1_len = tile_props.leg_1_len

@@ -565,7 +565,7 @@ def load_material_enums(self, context):
     materials = bpy.data.materials
     for material in materials:
         # prevent make-tile adding the default material to the list
-        if material.name != 'Material':
+        if material.name != preferences.secondary_material:
             enum = (material.name, material.name, "")
             enum_items.append(enum)
 
@@ -574,7 +574,6 @@ def load_material_enums(self, context):
     return enum_collection.enums
 
 
-# TODO: Rewrite for two materials
 def update_material_1(self, context):
     prefs = get_prefs()
     preview_obj = bpy.context.object
@@ -583,7 +582,6 @@ def update_material_1(self, context):
         disp_obj = preview_obj.mt_object_props.linked_object
 
         update_displacement_material_2(disp_obj, bpy.context.scene.mt_tile_material_1)
-        #assign_texture_to_areas(preview_obj, context.scene.mt_tile_material_1, prefs.secondary_material)
 
 
 enum_collections = {}

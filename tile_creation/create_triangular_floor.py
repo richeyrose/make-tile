@@ -17,6 +17,7 @@ from .. operators.trim_tile import (
     add_bool_modifier)
 
 
+#TODO: fix dimensioning disappearing when no base
 def create_triangular_floor(tile_empty):
     """Creates a triangular floor"""
     # hack to correct for parenting issues.
@@ -66,7 +67,7 @@ def create_triangular_floor(tile_empty):
 
     if main_part_blueprint == 'NONE':
         tile_props.tile_size = tile_props.base_size
-    
+
     else:
         # slabs are the textured part of the tile
         preview_slab, displacement_slab, dimensions = create_slabs(tile_props, base)
@@ -81,6 +82,8 @@ def create_triangular_floor(tile_empty):
             trimmer.hide_viewport = True
 
     base.parent = tile_empty
+    prefs = get_prefs()
+    base.data.materials.append(bpy.data.materials[prefs.secondary_material])
 
     tile_empty.location = cursor_orig_loc
     cursor.location = cursor_orig_loc

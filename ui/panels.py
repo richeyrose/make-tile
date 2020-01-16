@@ -186,7 +186,7 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
         layout = self.layout
 
         layout.row()
-        
+
         layout.prop(scene, 'mt_base_blueprint')
         layout.prop(scene, 'mt_main_part_blueprint')
 
@@ -201,7 +201,7 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
 class MT_PT_Vertex_Groups_Panel(MT_PT_Panel, bpy.types.Panel):
     bl_label = "Vertex Groups"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
+    COMPAT_ENGINES = {'CYCLES', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     @classmethod
     def poll(cls, context):

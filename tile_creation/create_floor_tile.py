@@ -105,6 +105,10 @@ def create_rectangular_floor(tile_empty):
     # Parent our base to our tile empty
     base.parent = tile_empty
 
+    # Add secondary material to base
+    prefs = get_prefs()
+    base.data.materials.append(bpy.data.materials[prefs.secondary_material])
+
     # Reset location
     tile_empty.location = cursor_orig_loc
     cursor.location = cursor_orig_loc

@@ -38,7 +38,7 @@ from .. operators.trim_tile import (
     add_bool_modifier)
 
 
-# TODO: Make it work for "negative" degrees of arc for openlock
+# TODO: fix divide by zero error when have no base
 def create_curved_wall(tile_empty):
     """Creates a curved wall tile"""
     # hack to correct for parenting issues.
@@ -127,13 +127,19 @@ def create_curved_wall(tile_empty):
             add_bool_modifier(obj, trimmer.name)
             trimmer.display_type = 'WIRE'
             trimmer.hide_viewport = True
+
     base.parent = tile_empty
+    
+    prefs = get_prefs()
+    base.data.materials.append(bpy.data.materials[prefs.secondary_material])
 
     tile_empty.location = cursor_orig_loc
     cursor.location = cursor_orig_loc
 
 
 def create_plain_base(base_radius, base_size, tile_name):
+    prefs = get_prefs()
+
     scene = bpy.context.scene
     tile_props = bpy.context.collection.mt_tile_props
 
@@ -151,7 +157,7 @@ def create_plain_base(base_radius, base_size, tile_name):
     obj_props.is_mt_object = True
     obj_props.geometry_type = 'BASE'
     obj_props.tile_name = tile_name
-
+    
     return base
 
 

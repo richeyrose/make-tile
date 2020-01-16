@@ -70,7 +70,7 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
     secondary_material: StringProperty(
         name="Secondary Material",
         description="Material to use for none textured bits of tiles",
-        default="Material",
+        default="Plastic",
         update=update_secondary_material
     )
 

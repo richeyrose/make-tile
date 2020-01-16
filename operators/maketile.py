@@ -17,7 +17,8 @@ from .. enums.enums import (
     tile_blueprints,
     base_socket_side,
     curve_types,
-    geometry_types)
+    geometry_types,
+    material_mapping)
 
 from .. materials.materials import (
     load_materials,
@@ -33,6 +34,40 @@ from .. tile_creation.create_curved_wall_tile import create_curved_wall
 from .. tile_creation.create_corner_wall import create_corner_wall
 from .. tile_creation.create_triangular_floor import create_triangular_floor
 from .. tile_creation.create_curved_floor import create_curved_floor
+
+
+# Radio buttons used in menus
+class MT_Radio_Buttons(bpy.types.PropertyGroup):
+    def update_mapping_axis(self, context):
+        axis = context.window_manager.mt_radio_buttons.mapping_axis
+        material = bpy.data.materials[context.scene.mt_tile_material_1]
+        tree = material.node_tree
+        nodes = tree.nodes
+        axis_node = nodes['Wrap Around Axis']
+
+        if axis == 'X':
+            axis_node.inputs[0].default_value = 1
+            axis_node.inputs[1].default_value = 0
+            axis_node.inputs[2].default_value = 0
+        elif axis == 'Y':
+            axis_node.inputs[0].default_value = 0
+            axis_node.inputs[1].default_value = 1
+            axis_node.inputs[2].default_value = 0
+        elif axis == 'Z':
+            axis_node.inputs[0].default_value = 0
+            axis_node.inputs[1].default_value = 0
+            axis_node.inputs[2].default_value = 1
+
+    mapping_axis: bpy.props.EnumProperty(
+        items=[
+            ('X', 'X', 'X', '', 0),
+            ('Y', 'Y', 'Y', '', 1),
+            ('Z', 'Z', 'Z', '', 2)
+        ],
+        default='Z',
+        description='Mapping axis for wrap around material projection',
+        update=update_mapping_axis
+    )
 
 
 # A cutter item used by mt_cutters_collection and mt_trimmers_collection
@@ -313,6 +348,10 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         material_enum_collection.enums = ()
         enum_collections["materials"] = material_enum_collection
 
+        bpy.types.WindowManager.mt_radio_buttons = bpy.props.PointerProperty(
+            type=MT_Radio_Buttons,
+        )
+
         bpy.types.Collection.mt_tile_props = bpy.props.PointerProperty(
             type=MT_Tile_Properties
         )
@@ -358,7 +397,13 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         bpy.types.Scene.mt_tile_material_1 = bpy.props.EnumProperty(
             items=load_material_enums,
             name="Material 1",
-            update=update_material_1,
+        )
+
+        bpy.types.Scene.mt_material_mapping_method = bpy.props.EnumProperty(
+            items=material_mapping,
+            description="How to map the active material onto an object",
+            name="Material Mapping Method",
+            update=update_material_mapping,
         )
 
         bpy.types.Scene.mt_tile_resolution = bpy.props.IntProperty(
@@ -531,6 +576,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         del bpy.types.Scene.mt_base_blueprint
         del bpy.types.Scene.mt_tile_resolution
         del bpy.types.Scene.mt_tile_material_1
+        del bpy.types.Scene.mt_material_mapping_method
         del bpy.types.Scene.mt_subdivisions
         del bpy.types.Scene.mt_tile_type
         del bpy.types.Scene.mt_tile_blueprint
@@ -538,6 +584,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         del bpy.types.Scene.mt_tile_units
         del bpy.types.Collection.mt_tile_props
         del bpy.types.Object.mt_object_props
+        del bpy.types.WindowManager.mt_radio_buttons
 
         for pcoll in enum_collections.values():
             bpy.utils.previews.remove(pcoll)
@@ -545,6 +592,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
 
 
 def load_material_enums(self, context):
+    '''Constructs a material Enum from materials found in the materials asset folder'''
     enum_items = []
     preferences = get_prefs()
     if context is None:
@@ -569,22 +617,52 @@ def load_material_enums(self, context):
     return enum_collection.enums
 
 
-def update_material_1(self, context):
-    prefs = get_prefs()
-    preview_obj = bpy.context.object
-
-    if preview_obj.mt_object_props.geometry_type == 'PREVIEW':
-        disp_obj = preview_obj.mt_object_props.linked_object
-
-        update_displacement_material_2(disp_obj, bpy.context.scene.mt_tile_material_1)
-
-
 def update_disp_subdivisions(self, context):
+    '''Updates the numnber of subdivisions used by the displacement material modifier'''
     disp_obj = bpy.context.object
 
     if 'Subsurf' in disp_obj.modifiers:
         modifier = disp_obj.modifiers['Subsurf']
         modifier.levels = context.scene.mt_subdivisions
+
+
+def update_material_mapping(self, context):
+    '''updates which mapping method to use for a material'''
+    material = bpy.data.materials[context.scene.mt_tile_material_1]
+    tree = material.node_tree
+    nodes = tree.nodes
+    map_meth = context.scene.mt_material_mapping_method
+
+    if 'master_mapping' in nodes:
+        mapping_node = nodes['master_mapping']
+        if map_meth == 'WRAP_AROUND':
+            map_type_node = nodes['wrap_around_map']
+            tree.links.new(
+                map_type_node.outputs['Vector'],
+                mapping_node.inputs['Vector'])
+        elif map_meth == 'TRIPLANAR':
+            map_type_node = nodes['triplanar_map']
+            tree.links.new(
+                map_type_node.outputs['Vector'],
+                mapping_node.inputs['Vector'])
+        elif map_meth == 'OBJECT':
+            map_type_node = nodes['object_map']
+            tree.links.new(
+                map_type_node.outputs['Color'],
+                mapping_node.inputs['Vector'])
+        elif map_meth == 'GENERATED':
+            map_type_node = nodes['generated_map']
+            tree.links.new(
+                map_type_node.outputs['Color'],
+                mapping_node.inputs['Vector'])
+        elif map_meth == 'UV':
+            map_type_node = nodes['UV_map']
+            tree.links.new(
+                map_type_node.outputs['Color'],
+                mapping_node.inputs['Vector'])
+
+
+
 
 
 enum_collections = {}

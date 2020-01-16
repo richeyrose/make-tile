@@ -330,6 +330,20 @@ class MT_PT_Material_Options_Panel(MT_PT_Panel, bpy.types.Panel):
                     layout.prop(node.outputs['Value'], 'default_value', text=node.label)
 
 
+class MT_PT_Material_Mapping_Options_Panel(MT_PT_Panel, bpy.types.Panel):
+    bl_idname = "MT_PT_Material_Mapping_Panel"
+    bl_label = "Material Mapping"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        scene = context.scene
+        layout = self.layout
+
+        layout.prop(scene, 'mt_material_mapping_method')
+        if scene.mt_material_mapping_method == 'WRAP_AROUND':
+            layout.prop(context.window_manager.mt_radio_buttons, 'mapping_axis', expand=True)
+
+
 class MT_PT_Voxelise_Panel(MT_PT_Panel, bpy.types.Panel):
     bl_idname = "MT_PT_Voxelise_Panel"
     bl_label = "Voxelise Settings"

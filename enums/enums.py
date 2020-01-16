@@ -59,3 +59,11 @@ view_mode = [
     ("CYCLES", "Cycles", "", 1),
     ("EEVEE", "Eevee", "", 2),
 ]
+
+material_mapping = [
+    ("WRAP_AROUND", "Wrap around", "", 1),
+    ("TRIPLANAR", "Triplanar", "", 2),
+    ("OBJECT", "Object", "", 3),
+    ("GENERATED", "Generated", "", 4),
+    ("UV", "UV", "", 5)
+]

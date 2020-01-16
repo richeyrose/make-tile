@@ -19,6 +19,7 @@ from . ui.panels import (
     MT_PT_Export_Panel,
     MT_PT_Main_Panel,
     MT_PT_Material_Panel,
+    MT_PT_Material_Mapping_Options_Panel,
     MT_PT_Voxelise_Panel,
     MT_PT_Material_Options_Panel,
     MT_PT_Trim_Panel,
@@ -33,7 +34,16 @@ from . lib.utils.tinycad.V2X import MT_OT_Vert2Intersection
 from . lib.utils.tinycad.VTX import MT_OT_AutoVTX
 from . lib.utils.tinycad.XALL import MT_OT_IntersectAllEdges
 
-from . operators.maketile import MT_OT_Make_Tile, MT_Cutter_Item, MT_Trimmer_Item, MT_Disp_Mat_Item, MT_Tile_Properties, MT_Object_Properties
+from . operators.maketile import (
+    MT_OT_Make_Tile,
+    MT_Cutter_Item,
+    MT_Trimmer_Item,
+    MT_Disp_Mat_Item,
+    MT_Tile_Properties,
+    MT_Object_Properties,
+    MT_Radio_Buttons)
+
+
 from . operators.makevertgroups import MT_OT_makeVertGroupsFromFaces
 from . operators.object_converter import MT_OT_Convert_To_MT_Obj
 from . operators.bakedisplacement import MT_OT_Bake_Displacement, MT_OT_Assign_Material_To_Vert_Group, MT_OT_Remove_Material_From_Vert_Group
@@ -65,6 +75,7 @@ bl_info = {
 
 classes = (
     MT_MakeTilePreferences,
+    MT_Radio_Buttons,
     MT_Cutter_Item,
     MT_Trimmer_Item,
     MT_Disp_Mat_Item,
@@ -92,6 +103,7 @@ classes = (
     MT_PT_Vertex_Groups_Panel,
     MT_PT_Material_Panel,
     MT_PT_Material_Options_Panel,
+    MT_PT_Material_Mapping_Options_Panel,
     MT_PT_Display_Panel,
     MT_PT_Voxelise_Panel,
     MT_PT_Trim_Panel,

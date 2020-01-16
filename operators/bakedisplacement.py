@@ -136,7 +136,9 @@ def bake_displacement_map(disp_obj, resolution):
         tree = material.node_tree
         mat_output_node = tree.nodes['Material Output']
         displacement_emission_node = tree.nodes['disp_emission']
-        tree.links.new(displacement_emission_node.outputs['Emission'], mat_output_node.inputs['Surface'])
+        tree.links.new(
+            displacement_emission_node.outputs['Emission'],
+            mat_output_node.inputs['Surface'])
 
         # sever displacement node link because otherwise it screws up baking
         displacement_node = tree.nodes['final_disp']

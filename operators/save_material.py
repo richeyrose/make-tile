@@ -5,7 +5,7 @@ from .. materials.materials import get_blend_filenames
 
 
 class MT_OT_Export_Material(bpy.types.Operator):
-    '''Exports the currently selected maketile material to an external library .blend file'''
+    '''Exports the active material to an external library .blend file'''
     bl_idname = "material.mt_export_material"
     bl_label = "Export Material"
     bl_options = {'REGISTER'}

@@ -405,6 +405,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             description="How to map the active material onto an object",
             name="Material Mapping Method",
             update=update_material_mapping,
+            default='OBJECT'
         )
 
         bpy.types.Scene.mt_tile_resolution = bpy.props.IntProperty(
@@ -627,8 +628,6 @@ def update_material_enums(self, context):
             enum = (material.name, material.name, "")
             enum_items.append(enum)
 
-    enum_collection.enums = enum_items
-
     return enum_items
 
 
@@ -646,6 +645,7 @@ def update_material_mapping(self, context):
     material = bpy.data.materials[context.scene.mt_tile_material_1]
     tree = material.node_tree
     nodes = tree.nodes
+
     map_meth = context.scene.mt_material_mapping_method
 
     if 'master_mapping' in nodes:

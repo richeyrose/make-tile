@@ -49,7 +49,7 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
         light_1.shape = 'RECTANGLE'
         light_1.size = 1
         light_1.size_y = 2
-        light_1.energy = 250
+        light_1.energy = 300
 
         light_obj.location = (-5, -5, 5)
         light_obj.rotation_euler = (1, 0, -0.8)
@@ -73,7 +73,7 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
         light_3.shape = 'RECTANGLE'
         light_3.size = 1
         light_3.size_y = 2
-        light_3.energy = 250
+        light_3.energy = 300
 
         light_3_obj.location = (-5, 5, 5)
         light_3_obj.rotation_euler = (1, 0, -2.3)
@@ -93,14 +93,15 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
         if bpy.context.scene.mt_view_mode == 'CYCLES':
             v3d.shading.type = 'RENDERED'
             bpy.context.scene.render.engine = 'CYCLES'
-            bpy.context.space_data.shading.use_scene_world_render = True
+            bpy.context.space_data.shading.use_scene_world_render = False
+            bpy.context.space_data.shading.studio_light = 'city.exr'
             bpy.context.scene.cycles.feature_set = 'EXPERIMENTAL'
 
         if bpy.context.scene.mt_view_mode == 'EEVEE':
             v3d.shading.type = 'RENDERED'
             bpy.context.scene.render.engine = 'BLENDER_EEVEE'
             bpy.context.space_data.shading.use_scene_world_render = False
-            bpy.context.space_data.shading.studio_light = 'night.exr'
+            bpy.context.space_data.shading.studio_light = 'city.exr'
 
         if bpy.context.scene.mt_view_mode == 'PREVIEW':
             v3d.shading.type = 'MATERIAL'

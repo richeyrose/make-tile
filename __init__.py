@@ -14,21 +14,26 @@
 import os
 import bpy
 from . preferences import MT_MakeTilePreferences
-from . ui.panels import (
-    MT_PT_Display_Panel,
-    MT_PT_Export_Panel,
-    MT_PT_Main_Panel,
-    MT_PT_Material_Slots_Panel,
+
+from . ui.object_generation_panels import (
+    MT_PT_Converter_Panel,
+    MT_PT_Tile_Generator_Panel)
+
+from . ui.material_panels import (
     MT_PT_Material_Mapping_Options_Panel,
-    MT_PT_Voxelise_Panel,
     MT_PT_Material_Options_Panel,
+    MT_PT_Material_Slots_Panel,
+    MT_PT_Vertex_Groups_Panel)
+
+from . ui.export_panels import (
+    MT_PT_Export_Panel,
     MT_PT_Trim_Panel,
-    MT_PT_Vertex_Groups_Panel,
-    MT_PT_Converter_Panel)
+    MT_PT_Voxelise_Panel)
 
+from . ui.options_panels import (
+    MT_PT_Display_Panel)
 
-
-# Include tinycad operators as library in case user doesn;t have it installed
+# Include tinycad operators as library in case user doesn't have it installed
 from . lib.utils.tinycad.BIX import MT_OT_LineOnBisection
 from . lib.utils.tinycad.CCEN import MT_OT_CallBackCCEN, MT_OT_CircleCenter
 from . lib.utils.tinycad.E2F import MT_OT_EdgeToFace
@@ -105,12 +110,12 @@ classes = (
     MT_OT_Vert2Intersection,
     MT_OT_AutoVTX,
     MT_OT_IntersectAllEdges,
-    MT_PT_Main_Panel,
-    MT_PT_Vertex_Groups_Panel,
+    MT_PT_Tile_Generator_Panel,
+    MT_PT_Display_Panel,
     MT_PT_Material_Slots_Panel,
+    MT_PT_Vertex_Groups_Panel,
     MT_PT_Material_Options_Panel,
     MT_PT_Material_Mapping_Options_Panel,
-    MT_PT_Display_Panel,
     MT_PT_Voxelise_Panel,
     MT_PT_Trim_Panel,
     MT_PT_Converter_Panel,

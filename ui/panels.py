@@ -21,6 +21,7 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
         layout.operator('scene.make_tile', text="Make Tile")
         layout.prop(scene, 'mt_tile_blueprint')
         layout.prop(scene, 'mt_tile_type')
+        layout.prop(scene, 'mt_tile_material_1', text="Main Material")
 
         if scene.mt_tile_blueprint == 'PLAIN':
             self.draw_plain_base_panel(context)
@@ -31,6 +32,13 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
 
         if scene.mt_tile_blueprint == 'CUSTOM':
             self.draw_custom_panel(context)
+            
+        if bpy.context.object is not None:
+            if bpy.context.object.mt_object_props.geometry_type == 'PREVIEW':
+                layout.operator('scene.bake_displacement', text='Make 3D')
+            if bpy.context.object.mt_object_props.geometry_type == 'DISPLACEMENT':
+                layout.prop(scene, 'mt_subdivisions')
+                layout.operator('scene.return_to_preview', text='Return to Preview')
 
     def draw_openlock_panel(self, context):
         scene = context.scene
@@ -198,6 +206,36 @@ class MT_PT_Main_Panel(MT_PT_Panel, bpy.types.Panel):
             self.draw_openlock_panel(context)
 
 
+class MT_PT_Material_Slots_Panel(MT_PT_Panel, bpy.types.Panel):
+    bl_label = "Materials"
+    #bl_options = {'HIDE_HEADER'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        ob = context.object
+        space = context.space_data
+
+        if ob:
+            is_sortable = len(ob.material_slots) > 1
+            rows = 3
+            if is_sortable:
+                rows = 5
+
+            row = layout.row()
+
+            row.template_list("MATERIAL_UL_matslots", "", ob, "material_slots", ob, "active_material_index", rows=rows)
+
+            col = row.column(align=True)
+            col.operator("object.material_slot_add", icon='ADD', text="")
+            col.operator("object.material_slot_remove", icon='REMOVE', text="")
+
+        layout.template_ID(ob, "active_material")
+        row = layout.row()
+        row.operator('material.mt_copy')
+        row.operator('material.mt_export_material')
+
+
 class MT_PT_Vertex_Groups_Panel(MT_PT_Panel, bpy.types.Panel):
     bl_label = "Vertex Groups"
     bl_options = {'DEFAULT_CLOSED'}
@@ -271,41 +309,31 @@ class MT_PT_Display_Panel(MT_PT_Panel, bpy.types.Panel):
             layout.prop(scene, 'mt_cycles_subdivision_quality')
 
 
-class MT_PT_Material_Panel(MT_PT_Panel, bpy.types.Panel):
-    bl_idname = "MT_PT_Material_Panel"
-    bl_label = "Materials"
-
-    def draw(self, context):
-        scene = context.scene
-        layout = self.layout
-        if bpy.context.object is not None:
-            if bpy.context.object.mt_object_props.geometry_type == 'PREVIEW':
-                layout.operator('scene.bake_displacement', text='Make 3D')
-            if bpy.context.object.mt_object_props.geometry_type == 'DISPLACEMENT':
-                layout.prop(scene, 'mt_subdivisions')
-                layout.operator('scene.return_to_preview', text='Return to Preview')
-        layout.prop(scene, 'mt_tile_material_1')
-
-
 class MT_PT_Material_Options_Panel(MT_PT_Panel, bpy.types.Panel):
     bl_idname = "MT_PT_Material_Options_Panel"
     bl_label = "Material Options"
     bl_options = {'DEFAULT_CLOSED'}
 
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        if obj is not None:
+            mat = obj.active_material
+            return mat is not None
+        return False
+    
     def draw(self, context):
         scene = context.scene
         layout = self.layout
-
         layout.prop(scene, 'mt_tile_resolution')
+        obj = context.object
+        material = obj.active_material
+        tree = material.node_tree
+        nodes = tree.nodes
 
-        if context.scene.mt_tile_material_1 in bpy.data.materials:
-            material = bpy.data.materials[context.scene.mt_tile_material_1]
-            tree = material.node_tree
-            nodes = tree.nodes
-
-            # get all frame nodes in material that are within the 'editable_inputs' frame
-            frame_names = []
-
+        # get all frame nodes in material that are within the 'editable_inputs' frame
+        frame_names = []
+        if 'editable_inputs' in nodes:
             for frame in nodes:
                 if frame.parent == nodes['editable_inputs']:
                     frame_names.append(frame.name)

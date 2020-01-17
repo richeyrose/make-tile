@@ -18,13 +18,15 @@ from . ui.panels import (
     MT_PT_Display_Panel,
     MT_PT_Export_Panel,
     MT_PT_Main_Panel,
-    MT_PT_Material_Panel,
+    MT_PT_Material_Slots_Panel,
     MT_PT_Material_Mapping_Options_Panel,
     MT_PT_Voxelise_Panel,
     MT_PT_Material_Options_Panel,
     MT_PT_Trim_Panel,
     MT_PT_Vertex_Groups_Panel,
     MT_PT_Converter_Panel)
+
+
 
 # Include tinycad operators as library in case user doesn;t have it installed
 from . lib.utils.tinycad.BIX import MT_OT_LineOnBisection
@@ -43,6 +45,7 @@ from . operators.maketile import (
     MT_Object_Properties,
     MT_Radio_Buttons)
 
+from . operators.copy_material import MT_OT_Copy_Material
 from . operators.save_material import MT_OT_Export_Material
 
 from . operators.makevertgroups import MT_OT_makeVertGroupsFromFaces
@@ -76,6 +79,7 @@ bl_info = {
 
 classes = (
     MT_MakeTilePreferences,
+    MT_OT_Copy_Material,
     MT_Radio_Buttons,
     MT_Cutter_Item,
     MT_Trimmer_Item,
@@ -103,7 +107,7 @@ classes = (
     MT_OT_IntersectAllEdges,
     MT_PT_Main_Panel,
     MT_PT_Vertex_Groups_Panel,
-    MT_PT_Material_Panel,
+    MT_PT_Material_Slots_Panel,
     MT_PT_Material_Options_Panel,
     MT_PT_Material_Mapping_Options_Panel,
     MT_PT_Display_Panel,

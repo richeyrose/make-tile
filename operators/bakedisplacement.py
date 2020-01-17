@@ -8,7 +8,7 @@ from .. utils.registration import get_prefs
 
 
 class MT_OT_Assign_Material_To_Vert_Group(bpy.types.Operator):
-    """Assigns the selected material to the selected vertex group"""
+    """Assigns the active material to the selected vertex group"""
     bl_idname = "object.assign_mat_to_active_vert_group"
     bl_label = "Assign Material"
     bl_options = {'REGISTER', 'UNDO'}
@@ -23,21 +23,13 @@ class MT_OT_Assign_Material_To_Vert_Group(bpy.types.Operator):
         obj = context.object
 
         object_props = obj.mt_object_props
-        mat_name = context.scene.mt_tile_material_1
-        material = bpy.data.materials[mat_name]
         vertex_group = obj.vertex_groups.active.name
-        primary_material = bpy.data.materials[mat_name]
+        primary_material = context.object.active_material
         secondary_material = bpy.data.materials[prefs.secondary_material]
         image_size = bpy.context.scene.mt_tile_resolution
 
         # check that material is on our object and add it if not
-        if mat_name in obj.material_slots.keys():
-            assign_mat_to_vert_group(vertex_group, obj, material)
-        else:
-            if len(obj.material_slots) == 0:  # check to make sure we have a material applied already otherwise material will be applied to whole object
-                obj.data.materials.append(secondary_material)
-            obj.data.materials.append(primary_material)
-            assign_mat_to_vert_group(vertex_group, obj, material)
+        assign_mat_to_vert_group(vertex_group, obj, primary_material)
 
         # create new displacement material item and save it on our displacement object
         disp_obj = object_props.linked_object

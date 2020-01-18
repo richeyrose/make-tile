@@ -10,14 +10,6 @@ class MT_PT_Material_Slots_Panel(Panel):
     bl_label = "Materials"
     bl_options = {'DEFAULT_CLOSED'}
 
-    @classmethod
-    def poll(cls, context):
-        obj = context.object
-        if obj is not None:
-            mat = obj.active_material
-            return mat is not None
-        return False
-
     def draw(self, context):
         layout = self.layout
 
@@ -34,14 +26,10 @@ class MT_PT_Material_Slots_Panel(Panel):
 
             row.template_list("MATERIAL_UL_matslots", "", ob, "material_slots", ob, "active_material_index", rows=rows)
 
-            col = row.column(align=True)
-            col.operator("object.material_slot_add", icon='ADD', text="")
-            col.operator("object.material_slot_remove", icon='REMOVE', text="")
-
         layout.template_ID(ob, "active_material")
         row = layout.row()
         row.operator('material.mt_copy')
-        row.operator('material.mt_export_material')
+        row.operator('material.mt_export_material', text='Save Materials')
 
 
 class MT_PT_Material_Options_Panel(Panel):

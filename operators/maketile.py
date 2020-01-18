@@ -45,8 +45,8 @@ class MT_OT_Make_Tile(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        if bpy.context.object is not None:
-            return bpy.context.object.mode == 'OBJECT'
+        if context.object is not None:
+            return context.object.mode == 'OBJECT'
         else:
             return True
 

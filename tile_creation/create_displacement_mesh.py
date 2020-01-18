@@ -13,7 +13,7 @@ def create_displacement_object(obj):
     # duplicate preview_obj and make it single user
     displacement_obj = preview_obj.copy()
     displacement_obj.data = displacement_obj.data.copy()
-    
+
     # add subsurf modifier
     displacement_obj_subsurf = displacement_obj.modifiers.new('Subsurf', 'SUBSURF')
     displacement_obj_subsurf.subdivision_type = 'SIMPLE'

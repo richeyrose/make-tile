@@ -269,6 +269,8 @@ def create_openlock_base_clip_cutter(base, tile_props):
     mirror_mod.mirror_object = base
 
     clip_cutter2 = clip_cutter.copy()
+    clip_cutter2.data = clip_cutter2.data.copy()
+    
     add_object_to_collection(clip_cutter2, tile_props.tile_name)
     clip_cutter2.rotation_euler = (0, 0, math.radians(90))
 
@@ -289,7 +291,6 @@ def create_openlock_base_clip_cutter(base, tile_props):
     mirror_mod2.use_axis[0] = True
     mirror_mod2.use_axis[1] = False
 
-    # TODO: See if there's a low level equiv
     bpy.ops.object.make_single_user(type='ALL', object=True, obdata=True)
 
     return [clip_cutter, clip_cutter2]

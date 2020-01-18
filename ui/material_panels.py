@@ -1,5 +1,6 @@
 import bpy
 from bpy.types import Panel
+from .. property_groups.property_groups import MT_Radio_Buttons
 
 
 class MT_PT_Material_Slots_Panel(Panel):
@@ -111,6 +112,13 @@ class MT_PT_Material_Mapping_Options_Panel(Panel):
             return mat is not None
         return False
 
+    @classmethod
+    def register(cls):
+        # Property group containing radio buttons
+        bpy.types.WindowManager.mt_radio_buttons = bpy.props.PointerProperty(
+            type=MT_Radio_Buttons,
+        )
+
     def draw(self, context):
         scene = context.scene
         layout = self.layout
@@ -118,6 +126,10 @@ class MT_PT_Material_Mapping_Options_Panel(Panel):
         layout.prop(scene, 'mt_material_mapping_method')
         if scene.mt_material_mapping_method == 'WRAP_AROUND':
             layout.prop(context.window_manager.mt_radio_buttons, 'mapping_axis', expand=True)
+
+    @classmethod
+    def unregister(cls):
+        del bpy.types.WindowManager.mt_radio_buttons
 
 
 class MT_PT_Vertex_Groups_Panel(bpy.types.Panel):

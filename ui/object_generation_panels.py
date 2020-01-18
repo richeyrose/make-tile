@@ -210,13 +210,13 @@ class MT_PT_Converter_Panel(Panel):
     bl_idname = "MT_PT_Panel"
     bl_label = "Object Converter"
     bl_options = {"DEFAULT_CLOSED"}
-    
+
     @classmethod
     def poll(cls, context):
         engine = context.engine
         obj = context.object
         return (obj and obj.type in {'MESH'})
-    
+
     def draw(self, context):
         scene = context.scene
         layout = self.layout

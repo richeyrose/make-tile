@@ -34,7 +34,9 @@ from .. tile_creation.create_corner_wall import create_corner_wall
 from .. tile_creation.create_triangular_floor import create_triangular_floor
 from .. tile_creation.create_curved_floor import create_curved_floor
 
-from .. property_groups.property_groups import MT_Radio_Buttons, MT_Tile_Properties, MT_Object_Properties
+from .. property_groups.property_groups import MT_Tile_Properties, MT_Object_Properties
+
+
 class MT_OT_Make_Tile(bpy.types.Operator):
     """Create a Tile"""
     bl_idname = "scene.make_tile"
@@ -152,14 +154,12 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         material_enum_collection.enums = ()
         enum_collections["materials"] = material_enum_collection
 
-        bpy.types.WindowManager.mt_radio_buttons = bpy.props.PointerProperty(
-            type=MT_Radio_Buttons,
-        )
-
+        # Property group that contains properties relating to a tile on the tile collection
         bpy.types.Collection.mt_tile_props = bpy.props.PointerProperty(
             type=MT_Tile_Properties
         )
 
+        # Property group that contains properties of an object stored on the object
         bpy.types.Object.mt_object_props = bpy.props.PointerProperty(
             type=MT_Object_Properties
         )
@@ -364,7 +364,6 @@ class MT_OT_Make_Tile(bpy.types.Operator):
 
     @classmethod
     def unregister(cls):
-        print("Unregistered class: %s" % cls.bl_label)
         del bpy.types.Scene.mt_trim_buffer
         del bpy.types.Scene.mt_tile_name
         del bpy.types.Scene.mt_segments
@@ -390,7 +389,6 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         del bpy.types.Scene.mt_tile_units
         del bpy.types.Collection.mt_tile_props
         del bpy.types.Object.mt_object_props
-        del bpy.types.WindowManager.mt_radio_buttons
 
         for pcoll in enum_collections.values():
             bpy.utils.previews.remove(pcoll)

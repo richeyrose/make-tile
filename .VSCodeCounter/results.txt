@@ -1,12 +1,12 @@
-Date : 2020-01-03 13:05:59
+Date : 2020-01-17 20:11:52
 Directory : e:\BlenderScripts\Addons\MakeTile
-Total : 47 files,  6977 codes, 694 comments, 2036 blanks, all 9707 lines
+Total : 53 files,  7709 codes, 769 comments, 2249 blanks, all 10727 lines
 
 Languages
 +--------------------+------------+------------+------------+------------+------------+
 | language           | files      | code       | comment    | blank      | total      |
 +--------------------+------------+------------+------------+------------+------------+
-| Python             |         45 |      6,959 |        694 |      2,034 |      9,687 |
+| Python             |         51 |      7,691 |        769 |      2,247 |     10,707 |
 | JSON with Comments |          1 |         16 |          0 |          1 |         17 |
 | Markdown           |          1 |          2 |          0 |          1 |          3 |
 +--------------------+------------+------------+------------+------------+------------+
@@ -15,18 +15,18 @@ Directories
 +---------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
 | path                                                                            | files      | code       | comment    | blank      | total      |
 +---------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
-| .                                                                               |         47 |      6,977 |        694 |      2,036 |      9,707 |
-| enums                                                                           |          1 |         47 |          1 |         11 |         59 |
-| lib                                                                             |         22 |      3,171 |        377 |        995 |      4,543 |
-| lib\turtle                                                                      |         11 |      1,963 |        116 |        605 |      2,684 |
+| .                                                                               |         53 |      7,709 |        769 |      2,249 |     10,727 |
+| enums                                                                           |          1 |         57 |          1 |         12 |         70 |
+| lib                                                                             |         22 |      3,212 |        378 |      1,009 |      4,599 |
+| lib\turtle                                                                      |         11 |      1,976 |        116 |        612 |      2,704 |
 | lib\turtle\operators                                                            |          7 |      1,119 |         49 |        440 |      1,608 |
-| lib\turtle\scripts                                                              |          4 |        844 |         67 |        165 |      1,076 |
-| lib\utils                                                                       |         11 |      1,208 |        261 |        390 |      1,859 |
+| lib\turtle\scripts                                                              |          4 |        857 |         67 |        172 |      1,096 |
+| lib\utils                                                                       |         11 |      1,236 |        262 |        397 |      1,895 |
 | lib\utils\tinycad                                                               |          7 |        562 |        157 |        228 |        947 |
-| materials                                                                       |          1 |        128 |          5 |         38 |        171 |
-| operators                                                                       |          9 |      1,477 |        105 |        375 |      1,957 |
-| tile_creation                                                                   |          7 |      1,514 |        174 |        460 |      2,148 |
-| ui                                                                              |          1 |        359 |          6 |        101 |        466 |
+| materials                                                                       |          1 |        124 |          6 |         40 |        170 |
+| operators                                                                       |         11 |      1,753 |        135 |        469 |      2,357 |
+| tile_creation                                                                   |          8 |      1,860 |        217 |        548 |      2,625 |
+| ui                                                                              |          4 |        402 |          6 |        109 |        517 |
 | utils                                                                           |          2 |         25 |          8 |         21 |         54 |
 +---------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
 
@@ -36,8 +36,8 @@ Files
 +---------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+
 | e:\BlenderScripts\Addons\MakeTile\MakeTileWS.code-workspace                     | JSON with Comments |         16 |          0 |          1 |         17 |
 | e:\BlenderScripts\Addons\MakeTile\README.md                                     | Markdown           |          2 |          0 |          1 |          3 |
-| e:\BlenderScripts\Addons\MakeTile\__init__.py                                   | Python             |        147 |         13 |          9 |        169 |
-| e:\BlenderScripts\Addons\MakeTile\enums\enums.py                                | Python             |         47 |          1 |         11 |         59 |
+| e:\BlenderScripts\Addons\MakeTile\__init__.py                                   | Python             |        167 |         13 |         15 |        195 |
+| e:\BlenderScripts\Addons\MakeTile\enums\enums.py                                | Python             |         57 |          1 |         12 |         70 |
 | e:\BlenderScripts\Addons\MakeTile\lib\turtle\operators\aliases.py               | Python             |        237 |          0 |        114 |        351 |
 | e:\BlenderScripts\Addons\MakeTile\lib\turtle\operators\basic_commands.py        | Python             |        507 |         29 |        168 |        704 |
 | e:\BlenderScripts\Addons\MakeTile\lib\turtle\operators\curve.py                 | Python             |        124 |         20 |         39 |        183 |
@@ -45,11 +45,11 @@ Files
 | e:\BlenderScripts\Addons\MakeTile\lib\turtle\operators\path.py                  | Python             |         59 |          0 |         35 |         94 |
 | e:\BlenderScripts\Addons\MakeTile\lib\turtle\operators\selection.py             | Python             |         79 |          0 |         30 |        109 |
 | e:\BlenderScripts\Addons\MakeTile\lib\turtle\operators\vertex_group.py          | Python             |         69 |          0 |         35 |        104 |
-| e:\BlenderScripts\Addons\MakeTile\lib\turtle\scripts\curved_floor.py            | Python             |        259 |         27 |         56 |        342 |
+| e:\BlenderScripts\Addons\MakeTile\lib\turtle\scripts\curved_floor.py            | Python             |        269 |         27 |         62 |        358 |
 | e:\BlenderScripts\Addons\MakeTile\lib\turtle\scripts\openlock_floor_base.py     | Python             |        387 |         25 |         56 |        468 |
 | e:\BlenderScripts\Addons\MakeTile\lib\turtle\scripts\openlock_floor_tri_base.py | Python             |        122 |         13 |         40 |        175 |
-| e:\BlenderScripts\Addons\MakeTile\lib\turtle\scripts\primitives.py              | Python             |         76 |          2 |         13 |         91 |
-| e:\BlenderScripts\Addons\MakeTile\lib\utils\collections.py                      | Python             |         23 |          9 |          9 |         41 |
+| e:\BlenderScripts\Addons\MakeTile\lib\turtle\scripts\primitives.py              | Python             |         79 |          2 |         14 |         95 |
+| e:\BlenderScripts\Addons\MakeTile\lib\utils\collections.py                      | Python             |         23 |         10 |          9 |         42 |
 | e:\BlenderScripts\Addons\MakeTile\lib\utils\selection.py                        | Python             |        148 |         55 |         54 |        257 |
 | e:\BlenderScripts\Addons\MakeTile\lib\utils\tinycad\BIX.py                      | Python             |         52 |         22 |         21 |         95 |
 | e:\BlenderScripts\Addons\MakeTile\lib\utils\tinycad\CCEN.py                     | Python             |        101 |         23 |         36 |        160 |
@@ -58,28 +58,34 @@ Files
 | e:\BlenderScripts\Addons\MakeTile\lib\utils\tinycad\VTX.py                      | Python             |        106 |         27 |         43 |        176 |
 | e:\BlenderScripts\Addons\MakeTile\lib\utils\tinycad\XALL.py                     | Python             |        103 |         27 |         47 |        177 |
 | e:\BlenderScripts\Addons\MakeTile\lib\utils\tinycad\cad_module.py               | Python             |        115 |         18 |         40 |        173 |
-| e:\BlenderScripts\Addons\MakeTile\lib\utils\utils.py                            | Python             |        113 |         12 |         37 |        162 |
-| e:\BlenderScripts\Addons\MakeTile\lib\utils\vertex_groups.py                    | Python             |        362 |         28 |         62 |        452 |
-| e:\BlenderScripts\Addons\MakeTile\materials\materials.py                        | Python             |        128 |          5 |         38 |        171 |
-| e:\BlenderScripts\Addons\MakeTile\operators\bakedisplacement.py                 | Python             |        136 |         20 |         40 |        196 |
-| e:\BlenderScripts\Addons\MakeTile\operators\create_lighting_setup.py            | Python             |        121 |          8 |         38 |        167 |
-| e:\BlenderScripts\Addons\MakeTile\operators\exporter.py                         | Python             |         82 |          1 |         25 |        108 |
-| e:\BlenderScripts\Addons\MakeTile\operators\maketile.py                         | Python             |        351 |         42 |         85 |        478 |
+| e:\BlenderScripts\Addons\MakeTile\lib\utils\utils.py                            | Python             |        130 |         12 |         39 |        181 |
+| e:\BlenderScripts\Addons\MakeTile\lib\utils\vertex_groups.py                    | Python             |        373 |         28 |         67 |        468 |
+| e:\BlenderScripts\Addons\MakeTile\materials\materials.py                        | Python             |        124 |          6 |         40 |        170 |
+| e:\BlenderScripts\Addons\MakeTile\operators\bakedisplacement.py                 | Python             |        138 |         22 |         40 |        200 |
+| e:\BlenderScripts\Addons\MakeTile\operators\copy_material.py                    | Python             |         18 |          1 |          6 |         25 |
+| e:\BlenderScripts\Addons\MakeTile\operators\create_lighting_setup.py            | Python             |        122 |          8 |         38 |        168 |
+| e:\BlenderScripts\Addons\MakeTile\operators\exporter.py                         | Python             |        104 |         16 |         31 |        151 |
+| e:\BlenderScripts\Addons\MakeTile\operators\maketile.py                         | Python             |        514 |         47 |        120 |        681 |
 | e:\BlenderScripts\Addons\MakeTile\operators\makevertgroups.py                   | Python             |         18 |          0 |          6 |         24 |
-| e:\BlenderScripts\Addons\MakeTile\operators\object_converter.py                 | Python             |         66 |          9 |         16 |         91 |
-| e:\BlenderScripts\Addons\MakeTile\operators\return_to_preview.py                | Python             |         30 |          2 |          9 |         41 |
-| e:\BlenderScripts\Addons\MakeTile\operators\trim_tile.py                        | Python             |        595 |         17 |        137 |        749 |
-| e:\BlenderScripts\Addons\MakeTile\operators\voxeliser.py                        | Python             |         78 |          6 |         19 |        103 |
+| e:\BlenderScripts\Addons\MakeTile\operators\object_converter.py                 | Python             |         66 |          9 |         17 |         92 |
+| e:\BlenderScripts\Addons\MakeTile\operators\return_to_preview.py                | Python             |         27 |          2 |          8 |         37 |
+| e:\BlenderScripts\Addons\MakeTile\operators\save_material.py                    | Python             |         21 |          0 |          6 |         27 |
+| e:\BlenderScripts\Addons\MakeTile\operators\trim_tile.py                        | Python             |        630 |         16 |        168 |        814 |
+| e:\BlenderScripts\Addons\MakeTile\operators\voxeliser.py                        | Python             |         95 |         14 |         29 |        138 |
 | e:\BlenderScripts\Addons\MakeTile\preferences.py                                | Python             |         91 |          5 |         24 |        120 |
-| e:\BlenderScripts\Addons\MakeTile\tile_creation\create_corner_wall.py           | Python             |        367 |         37 |         97 |        501 |
-| e:\BlenderScripts\Addons\MakeTile\tile_creation\create_curved_floor.py          | Python             |        285 |          4 |         76 |        365 |
-| e:\BlenderScripts\Addons\MakeTile\tile_creation\create_curved_wall_tile.py      | Python             |        198 |         29 |         77 |        304 |
-| e:\BlenderScripts\Addons\MakeTile\tile_creation\create_displacement_mesh.py     | Python             |         13 |          5 |          7 |         25 |
-| e:\BlenderScripts\Addons\MakeTile\tile_creation\create_floor_tile.py            | Python             |        188 |         22 |         59 |        269 |
-| e:\BlenderScripts\Addons\MakeTile\tile_creation\create_straight_wall_tile.py    | Python             |        241 |         66 |         89 |        396 |
-| e:\BlenderScripts\Addons\MakeTile\tile_creation\create_triangular_floor.py      | Python             |        222 |         11 |         55 |        288 |
-| e:\BlenderScripts\Addons\MakeTile\ui\panels.py                                  | Python             |        359 |          6 |        101 |        466 |
+| e:\BlenderScripts\Addons\MakeTile\tile_creation\create_corner_wall.py           | Python             |        405 |         42 |        114 |        561 |
+| e:\BlenderScripts\Addons\MakeTile\tile_creation\create_curved_floor.py          | Python             |        322 |          6 |         86 |        414 |
+| e:\BlenderScripts\Addons\MakeTile\tile_creation\create_curved_wall_tile.py      | Python             |        322 |         37 |        105 |        464 |
+| e:\BlenderScripts\Addons\MakeTile\tile_creation\create_displacement_mesh.py     | Python             |         19 |          7 |         12 |         38 |
+| e:\BlenderScripts\Addons\MakeTile\tile_creation\create_floor_tile.py            | Python             |        214 |         22 |         60 |        296 |
+| e:\BlenderScripts\Addons\MakeTile\tile_creation\create_straight_wall_tile.py    | Python             |        310 |         81 |        104 |        495 |
+| e:\BlenderScripts\Addons\MakeTile\tile_creation\create_triangular_floor.py      | Python             |        243 |         18 |         59 |        320 |
+| e:\BlenderScripts\Addons\MakeTile\tile_creation\generic.py                      | Python             |         25 |          4 |          8 |         37 |
+| e:\BlenderScripts\Addons\MakeTile\ui\export_panels.py                           | Python             |         70 |          1 |         19 |         90 |
+| e:\BlenderScripts\Addons\MakeTile\ui\material_panels.py                         | Python             |        136 |          5 |         41 |        182 |
+| e:\BlenderScripts\Addons\MakeTile\ui\object_generation_panels.py                | Python             |        180 |          0 |         45 |        225 |
+| e:\BlenderScripts\Addons\MakeTile\ui\options_panels.py                          | Python             |         16 |          0 |          4 |         20 |
 | e:\BlenderScripts\Addons\MakeTile\utils\registration.py                         | Python             |         17 |          7 |         15 |         39 |
 | e:\BlenderScripts\Addons\MakeTile\utils\system.py                               | Python             |          8 |          1 |          6 |         15 |
-| Total                                                                           |                    |      6,977 |        694 |      2,036 |      9,707 |
+| Total                                                                           |                    |      7,709 |        769 |      2,249 |     10,727 |
 +---------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+

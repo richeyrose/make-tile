@@ -13,23 +13,23 @@ class MT_PT_Material_Slots_Panel(Panel):
     def draw(self, context):
         layout = self.layout
 
-        ob = context.object
+        obj = context.object
         space = context.space_data
 
-        if ob:
-            is_sortable = len(ob.material_slots) > 1
+        if obj:
+            is_sortable = len(obj.material_slots) > 1
             rows = 3
             if is_sortable:
                 rows = 5
 
             row = layout.row()
 
-            row.template_list("MATERIAL_UL_matslots", "", ob, "material_slots", ob, "active_material_index", rows=rows)
+            row.template_list("MATERIAL_UL_matslots", "", obj, "material_slots", obj, "active_material_index", rows=rows)
 
-        layout.template_ID(ob, "active_material")
+        layout.template_ID(obj, "active_material")
         row = layout.row()
         row.operator('material.mt_copy')
-        row.operator('material.mt_export_material', text='Save Materials')
+        row.operator('material.mt_export_material', text='Save Material')
 
 
 class MT_PT_Material_Options_Panel(Panel):

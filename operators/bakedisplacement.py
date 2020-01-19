@@ -182,9 +182,6 @@ def bake_displacement_map(disp_obj, resolution):
         tree.links.new(surface_shader_node.outputs['BSDF'], mat_output_node.inputs['Surface'])
         tree.links.new(displacement_node.outputs['Displacement'], mat_output_node.inputs['Displacement'])
 
-    # TODO: This is really hacky. get rid and do it properly when
-    #  you make a decent secondary material
-    # remove displacement material and add secondary material
     for material in disp_obj.data.materials:
         disp_obj.data.materials.pop(index=0)
     disp_obj.data.materials.append(bpy.data.materials[prefs.secondary_material])

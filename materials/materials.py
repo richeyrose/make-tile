@@ -49,9 +49,7 @@ def get_material_index(obj, material):
 def assign_mat_to_vert_group(vert_group, obj, material):
     vert_group = get_vert_indexes_in_vert_group(vert_group, obj)
     material_index = get_material_index(obj, material)
-
     poly_list = []
-    # TODO: Rewrite as list comp
     for poly in obj.data.polygons:
         count = 0
         for vert in poly.vertices:

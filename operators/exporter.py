@@ -4,7 +4,7 @@ from .. lib.utils.selection import select, activate, deselect_all, select_all
 from .. utils.registration import get_prefs
 from .. lib.utils.collections import create_collection, add_object_to_collection
 from .. enums.enums import units
-from .voxeliser import voxelise_mesh
+from .voxeliser import voxelise_and_triangulate
 
 
 # TODO: Ensure you no longer have to manually switch collections to get exporter to work
@@ -107,7 +107,7 @@ class MT_OT_Export_Tile(bpy.types.Operator):
 
             # voxelise if necessary
             if context.scene.mt_voxelise_on_export is True:
-                merged_obj = voxelise_mesh(merged_obj)
+                merged_obj = voxelise_and_triangulate(merged_obj)
 
             # add merged object to exported objects collection
             add_object_to_collection(merged_obj, exported_obj_collection.name)
@@ -126,7 +126,7 @@ class MT_OT_Export_Tile(bpy.types.Operator):
             obj_copy.data = obj_copy.data.copy()
 
             if context.scene.mt_voxelise_on_export is True:
-                obj = voxelise_mesh(obj)
+                obj = voxelise_and_triangulate(obj)
 
             file_path = os.path.join(context.scene.mt_export_path, context.active_object.name + '.stl')
             bpy.ops.export_mesh.stl('INVOKE_DEFAULT', filepath=file_path, check_existing=True, filter_glob="*.stl", use_selection=True, global_scale=unit_multiplier, use_mesh_modifiers=True)

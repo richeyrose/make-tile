@@ -4,7 +4,7 @@ from .. lib.utils.collections import add_object_to_collection, create_collection
 
 
 class MT_OT_Tile_Voxeliser(bpy.types.Operator):
-    """Voxelises the visible objects in the active collection"""
+    """Voxelises the visible objects in the active collection and adds a triangulate modifier"""
     bl_idname = "scene.voxelise_tile"
     bl_label = "Voxelise tile"
     bl_options = {'REGISTER', 'UNDO'}
@@ -71,7 +71,7 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
                 # Rename merged tile
                 merged_obj = copies[0]
                 merged_obj.name = tile_name + '.merged'
-                merged_obj = voxelise_mesh(merged_obj)
+                merged_obj = voxelise_and_triangulate(merged_obj)
 
                 add_object_to_collection(merged_obj, new_collection.name)
 
@@ -88,7 +88,7 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
             else:
                 for copy in copies:
                     if copy.mt_object_props.geometry_type == 'DISPLACEMENT':
-                        voxelise_mesh(copy)
+                        voxelise_and_triangulate(copy)
                         add_object_to_collection(copy, new_collection.name)
                         ctx = {
                             'object': copy,
@@ -100,7 +100,7 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
         # just voxelise the active object and add it to our voxelised objects collection
         else:
             obj = context.active_object
-            voxelise_mesh(obj)
+            voxelise_and_triangulate(obj)
             add_object_to_collection(obj, new_collection.name)
             select(obj.name)
 
@@ -136,8 +136,9 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
         del bpy.types.Scene.mt_voxel_quality
 
 
-def voxelise_mesh(obj):
-    """Voxelises the passed in object
+def voxelise_and_triangulate(obj, triangulate=True):
+    """Voxelises the passed in object and adds a triangulate modifier
+    by default
     Keyword Arguments:
     obj -- bpy.types.Object
     """
@@ -150,6 +151,8 @@ def voxelise_mesh(obj):
         'active_object': obj}
 
     bpy.ops.object.voxel_remesh(ctx)
-    obj.modifiers.new('Triangulate', 'TRIANGULATE')
+
+    if triangulate is True:
+        obj.modifiers.new('Triangulate', 'TRIANGULATE')
 
     return obj

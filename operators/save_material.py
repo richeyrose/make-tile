@@ -20,11 +20,13 @@ class MT_OT_Export_Material(bpy.types.Operator):
         materials_path = os.path.join(prefs.assets_path, "materials")
         filepath = os.path.join(materials_path, 'user_material_library.blend')
 
-        with bpy.data.libraries.load(filepath) as (data_from, data_to):
-            data_to.materials = data_from.materials
-
-        data_to.materials.append(context.object.active_material)
-        data_blocks = {*data_to.materials}
+        if os.path.isfile(filepath) is True:
+            with bpy.data.libraries.load(filepath) as (data_from, data_to):
+                data_to.materials = data_from.materials
+            data_to.materials.append(context.object.active_material)
+            data_blocks = {*data_to.materials}
+        else:
+            data_blocks = {context.object.active_material}
         bpy.data.libraries.write(filepath, data_blocks, fake_user=True)
 
         return {'FINISHED'}

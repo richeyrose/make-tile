@@ -77,8 +77,10 @@ class MT_PT_Export_Panel(Panel):
 
         layout.operator('scene.export_tile', text='Export Tile')
         layout.prop(scene, 'mt_export_path')
+
         # get collection name / name of tile
         obj = bpy.context.active_object
+
         if obj is not None:
             tile_collection = obj.users_collection[0]
             layout.prop(tile_collection, "name", text="")
@@ -87,3 +89,4 @@ class MT_PT_Export_Panel(Panel):
         layout.prop(scene, 'mt_units')
         layout.prop(scene, 'mt_voxelise_on_export')
         layout.prop(scene, 'mt_trim_on_export')
+        layout.prop(scene, 'mt_num_variants')

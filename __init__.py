@@ -58,7 +58,7 @@ from . operators.object_converter import MT_OT_Convert_To_MT_Obj
 from . operators.bakedisplacement import MT_OT_Bake_Displacement, MT_OT_Assign_Material_To_Vert_Group, MT_OT_Remove_Material_From_Vert_Group
 from . operators.return_to_preview import MT_OT_Return_To_Preview
 from . operators.create_lighting_setup import MT_OT_Create_Lighting_Setup
-from . operators.exporter import MT_OT_Export_Tile
+from . operators.exporter import MT_OT_Export_Tile, MT_OT_Export_Tile_Variants
 from . operators.voxeliser import MT_OT_Tile_Voxeliser
 from . operators.trim_tile import MT_OT_Add_Trimmers
 from . lib.turtle.operators.basic_commands import *
@@ -99,6 +99,7 @@ classes = (
     MT_OT_Return_To_Preview,
     MT_OT_Create_Lighting_Setup,
     MT_OT_Tile_Voxeliser,
+    MT_OT_Export_Tile_Variants,
     MT_OT_Export_Tile,
     MT_OT_Assign_Material_To_Vert_Group,
     MT_OT_Remove_Material_From_Vert_Group,

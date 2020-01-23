@@ -72,17 +72,17 @@ def create_cuboid_tile_trimmers(
     # create trimmers
     buffer = bpy.context.scene.mt_trim_buffer
     x_neg_trimmer = create_x_neg_trimmer(bound_box, dimensions, buffer)
-    x_neg_trimmer.name = 'X Neg Trimmer.' + tile_name
+    x_neg_trimmer.name = 'trimmer_x_neg.' + tile_name
     x_pos_trimmer = create_x_pos_trimmer(bound_box, dimensions, buffer)
-    x_pos_trimmer.name = 'X Pos Trimmer.' + tile_name
+    x_pos_trimmer.name = 'trimmer_x_pos.' + tile_name
     y_neg_trimmer = create_y_neg_trimmer(bound_box, dimensions, buffer)
-    y_neg_trimmer.name = 'Y Neg Trimmer.' + tile_name
+    y_neg_trimmer.name = 'trimmer_y_neg.' + tile_name
     y_pos_trimmer = create_y_pos_trimmer(bound_box, dimensions, buffer)
-    y_pos_trimmer.name = 'Y Pos Trimmer.' + tile_name
+    y_pos_trimmer.name = 'trimmer_y_pos.' + tile_name
     z_pos_trimmer = create_z_pos_trimmer(bound_box, dimensions, buffer)
-    z_pos_trimmer.name = 'Z Pos Trimmer.' + tile_name
+    z_pos_trimmer.name = 'trimmer_z_pos.' + tile_name
     z_neg_trimmer = create_z_neg_trimmer(bound_box, dimensions, buffer)
-    z_neg_trimmer.name = 'Z Neg Trimmer.' + tile_name
+    z_neg_trimmer.name = 'trimmer_z_neg.' + tile_name
 
     trimmers = [x_neg_trimmer,
                 x_pos_trimmer,
@@ -161,7 +161,7 @@ def create_curved_wall_tile_trimmers(tile_size, base_size, tile_name, base_bluep
         tile_size[1] + 1,
         tile_size[2] + 1)))
 
-    x_pos_trimmer.name = 'X Pos Trimmer.' + tile_name
+    x_pos_trimmer.name = 'trimmer_x_pos.' + tile_name
 
     mode('OBJECT')
     x_pos_trimmer.location = (
@@ -189,7 +189,7 @@ def create_curved_wall_tile_trimmers(tile_size, base_size, tile_name, base_bluep
         center_override=circle_center)
 
     x_neg_trimmer = draw_cuboid(Vector((-1, tile_size[1] + 1, tile_size[2] + 1)))
-    x_neg_trimmer.name = 'X Neg Trimmer.' + tile_name
+    x_neg_trimmer.name = 'trimmer_x_neg.' + tile_name
     mode('OBJECT')
     x_neg_trimmer.location = (
         x_neg_trimmer.location[0],
@@ -210,10 +210,10 @@ def create_curved_wall_tile_trimmers(tile_size, base_size, tile_name, base_bluep
 
     # create Z trimmers
     z_pos_trimmer = create_z_pos_trimmer(bound_box, dimensions, buffer)
-    z_pos_trimmer.name = 'Z Pos Trimmer.' + tile_name
+    z_pos_trimmer.name = 'trimmer_z_pos.' + tile_name
 
     z_neg_trimmer = create_z_neg_trimmer(bound_box, dimensions, buffer)
-    z_neg_trimmer.name = 'Z Neg Trimmer.' + tile_name
+    z_neg_trimmer.name = 'trimmer_z_neg.' + tile_name
 
     cursor.location = cursor_orig_location
     z_trimmers = [z_pos_trimmer, z_neg_trimmer]
@@ -302,16 +302,16 @@ def create_curved_floor_trimmers(tile_props, tile_empty):
         dim,
         buffer)
 
-    a_trimmer.name = 'Side a Trimmer.' + tile_name
+    a_trimmer.name = 'trimmer_side_a.' + tile_name
     b_trimmer = create_b_trimmer(dim)
-    b_trimmer.name = 'Side b Trimmer.' + tile_name
+    b_trimmer.name = 'trimmer_side_b.' + tile_name
     c_trimmer = create_c_trimmer(dim)
-    c_trimmer.name = 'Side c Trimmer.' + tile_name
+    c_trimmer.name = 'trimmer_side_c.' + tile_name
 
     z_pos_trimmer = create_z_pos_tri_trimmer(dim)
-    z_pos_trimmer.name = 'Z Pos Trimmer.' + tile_name
+    z_pos_trimmer.name = 'trimmer_z_pos.' + tile_name
     z_neg_trimmer = create_z_neg_tri_trimmer(dim)
-    z_neg_trimmer.name = 'Z Neg Trimmer.' + tile_name
+    z_neg_trimmer.name = 'trimmer_z_neg.' + tile_name
 
     trimmers = [
         a_trimmer,
@@ -405,13 +405,13 @@ def create_corner_wall_tile_trimmers(tile_props, tile_empty, base):
     buffer = bpy.context.scene.mt_trim_buffer
 
     leg_1_trimmer = create_leg_1_corner_wall_trimmer(tile_props, buffer)
-    leg_1_trimmer.name = 'Leg 1 Trimmer.' + tile_name
+    leg_1_trimmer.name = 'trimmer_leg_1.' + tile_name
     leg_2_trimmer = create_leg_2_corner_wall_trimmer(tile_props, buffer)
-    leg_2_trimmer.name = 'Leg 2 Trimmer.' + tile_name
+    leg_2_trimmer.name = 'trimmer_leg_2.' + tile_name
     z_neg_trimmer = create_z_neg_trimmer(bound_box, dimensions, buffer)
-    z_neg_trimmer.name = 'Z Neg Trimmer.' + tile_name
+    z_neg_trimmer.name = 'trimmer_z_neg.' + tile_name
     z_pos_trimmer = create_z_pos_trimmer(bound_box, dimensions, buffer)
-    z_pos_trimmer.name = 'Z Pos Trimmer.' + tile_name
+    z_pos_trimmer.name = 'trimmer_z_pos.' + tile_name
 
     trimmers = [
         leg_1_trimmer,
@@ -490,15 +490,15 @@ def create_tri_floor_tile_trimmers(tile_props, dim, tile_empty):
     tile_name = tile_props.tile_name
 
     a_trimmer = create_a_trimmer(dim)
-    a_trimmer.name = 'Side a Trimmer.' + tile_name
+    a_trimmer.name = 'trimmer_side_a.' + tile_name
     b_trimmer = create_b_trimmer(dim)
-    b_trimmer.name = 'Side b Trimmer.' + tile_name
+    b_trimmer.name = 'trimmer_side_b.' + tile_name
     c_trimmer = create_c_trimmer(dim)
-    c_trimmer.name = 'Side c Trimmer.' + tile_name
+    c_trimmer.name = 'trimmer_side_c.' + tile_name
     z_pos_trimmer = create_z_pos_tri_trimmer(dim)
-    z_pos_trimmer.name = 'Z Pos Trimmer.' + tile_name
+    z_pos_trimmer.name = 'trimmer_z_pos.' + tile_name
     z_neg_trimmer = create_z_neg_tri_trimmer(dim)
-    z_neg_trimmer.name = 'Z Neg Trimmer.' + tile_name
+    z_neg_trimmer.name = 'trimmer_z_neg.' + tile_name
 
     trimmers = [
         b_trimmer,
@@ -657,6 +657,7 @@ def add_bool_modifier(obj, trimmer_name):
     boolean.operation = 'DIFFERENCE'
     boolean.object = trimmer
     return boolean
+
 
 def trim_side(obj, trimmer_name):
     trimmer = bpy.data.objects[trimmer_name]

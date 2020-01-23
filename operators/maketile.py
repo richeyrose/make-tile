@@ -444,7 +444,7 @@ def update_disp_subdivisions(self, context):
 
 def update_material_mapping(self, context):
     '''updates which mapping method to use for a material'''
-    material = bpy.data.materials[context.scene.mt_tile_material_1]
+    material = context.object.active_material
     tree = material.node_tree
     nodes = tree.nodes
 

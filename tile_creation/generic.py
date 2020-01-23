@@ -22,9 +22,11 @@ def finalise_tile(tile_meshes,
     # Parent our base to our tile empty
     base.parent = tile_empty
 
-    # Assign secondary material to our base
-    prefs = get_prefs()
-    base.data.materials.append(bpy.data.materials[prefs.secondary_material])
+    # Assign secondary material to our base if its a mesh
+    if base.type == 'MESH':
+        prefs = get_prefs()
+        
+        base.data.materials.append(bpy.data.materials[prefs.secondary_material])
 
     # Add subsurf modifier to our cores
     if preview_core is not None:

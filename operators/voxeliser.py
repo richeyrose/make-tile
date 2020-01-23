@@ -1,6 +1,7 @@
 import bpy
 from .. lib.utils.selection import select, deselect_all, select_all, activate
 from .. lib.utils.collections import add_object_to_collection, create_collection
+from . trim_tile import add_bool_modifier
 
 
 class MT_OT_Tile_Voxeliser(bpy.types.Operator):
@@ -32,29 +33,35 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
         if obj_props.is_mt_object is True:
             tile_name = obj_props.tile_name
             tile_collection = bpy.data.collections[tile_name]
+            tile_props = tile_collection.mt_tile_props
+            tile_trimmers = tile_props.trimmers_collection
 
             # save list of visible objects in active tile collection
             obs = []
+            copies = []
+
             for obj in tile_collection.all_objects:
                 if obj.type == 'MESH':
                     if obj.hide_viewport is False and obj.hide_get() is False:
                         obs.append(obj)
-                        select(obj.name)
 
-            # Apply all modifiers and create a copy of our meshes
-            bpy.ops.object.convert(target='MESH', keep_original=True)
+                        # Apply all none trimmer modifiers
+                        context.view_layer.objects.active = obj
+                        for mod in obj.modifiers:
+                            if mod.name.find('trimmer') == -1:
+                                bpy.ops.object.modifier_apply(modifier=mod.name)
+
+                        # clear remaining modifiers
+                        obj.modifiers.clear()
+
+                        # copy our object and make it single user
+                        copy = obj.copy()
+                        copy.data = obj.data.copy()
+                        copies.append(copy)
 
             # hide the original objects
             for obj in obs:
                 obj.hide_set(True)
-
-            # save a list of the copies
-            copies = []
-            for obj in tile_collection.all_objects:
-                if obj.type == 'MESH':
-                    if obj.hide_viewport is False and obj.hide_get() is False:
-                        obj.mt_object_props.tile_name = tile_name
-                        copies.append(obj)
 
             # if merge is true join meshes together
             if context.scene.mt_merge_and_voxelise is True:
@@ -63,7 +70,7 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
                     'active_object': copies[0],
                     'object': copies[0],
                     'selected_objects': copies,
-                    'selected_editable_objects':copies
+                    'selected_editable_objects': copies
                 }
 
                 bpy.ops.object.join(ctx)
@@ -79,11 +86,15 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
                     'object': merged_obj,
                     'active_obj': merged_obj
                 }
-                # add trimmers to voxelised object
-                bpy.ops.scene.add_trimmers(ctx)
+
+                # add trimmers back to voxelised object
+                for trimmer in tile_trimmers:
+                    mod = add_bool_modifier(merged_obj, trimmer.name)
+                    mod.show_viewport = trimmer.value
 
                 # select merged obj
                 select(merged_obj.name)
+
             # otherwise just voxelise displacement objects
             else:
                 for copy in copies:
@@ -94,7 +105,10 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
                             'object': copy,
                             'active_obj': copy
                         }
-                        bpy.ops.scene.add_trimmers(ctx)
+                        # add trimmers back to voxelised object
+                        for trimmer in tile_trimmers:
+                            mod = add_bool_modifier(merged_obj, trimmer.name)
+                            mod.show_viewport = trimmer.value
                 select(copies[-1].name)
 
         # just voxelise the active object and add it to our voxelised objects collection
@@ -155,4 +169,5 @@ def voxelise_and_triangulate(obj, triangulate=True):
     if triangulate is True:
         obj.modifiers.new('Triangulate', 'TRIANGULATE')
 
+    obj.mt_object_props.geometry_type = 'VOXELISED'
     return obj

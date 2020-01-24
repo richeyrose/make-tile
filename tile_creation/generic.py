@@ -16,8 +16,6 @@ def finalise_tile(tile_meshes,
     for obj in tile_meshes:
         for trimmer in trimmers:
             add_bool_modifier(obj, trimmer.name)
-            trimmer.display_type = 'WIRE'
-            trimmer.hide_viewport = True
 
     # Parent our base to our tile empty
     base.parent = tile_empty
@@ -25,7 +23,6 @@ def finalise_tile(tile_meshes,
     # Assign secondary material to our base if its a mesh
     if base.type == 'MESH':
         prefs = get_prefs()
-        
         base.data.materials.append(bpy.data.materials[prefs.secondary_material])
 
     # Add subsurf modifier to our cores

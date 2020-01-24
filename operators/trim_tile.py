@@ -5,7 +5,7 @@ from mathutils import Vector
 from .. lib.turtle.scripts.primitives import draw_cuboid, draw_tri_prism, draw_curved_slab
 from math import radians
 
-
+'''
 class MT_OT_Add_Trimmers(bpy.types.Operator):
     bl_idname = "scene.add_trimmers"
     bl_label = "Adds trimmers to active object"
@@ -29,9 +29,11 @@ class MT_OT_Add_Trimmers(bpy.types.Operator):
         for item in trimmers:
             trimmer = bpy.data.objects[item.name]
             bool_mod = add_bool_modifier(obj, trimmer.name)
+            trimmer.display_type = 'WIRE'
+            trimmer.hide_viewport = True
 
         return{'FINISHED'}
-
+'''
 
 # works for rectangular floors and straight walls
 def create_cuboid_tile_trimmers(
@@ -260,6 +262,7 @@ def save_trimmer_props(trimmers, tile_empty, tile_name):
 
     for trimmer in trimmers:
         trimmer.display_type = 'BOUNDS'
+        trimmer.hide_viewport = True
 
         trimmer.parent = tile_empty
 

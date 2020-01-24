@@ -8,10 +8,13 @@ from .. lib.utils.selection import deselect_all
 from .. utils.registration import get_prefs
 from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. lib.utils.utils import mode, view3d_find
-from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
+from .. lib.utils.vertex_groups import (
+    cuboid_sides_to_vert_groups,
+    straight_wall_to_vert_groups)
 from .. materials.materials import (
     assign_displacement_materials,
-    assign_preview_materials)
+    assign_preview_materials,
+    construct_displacement_mod_vert_group)
 from .. operators.trim_tile import (
     create_cuboid_tile_trimmers,
     add_bool_modifier)
@@ -319,7 +322,8 @@ def create_cores(base, tile_size, tile_name):
     textured_vertex_groups = ['Front', 'Back', 'Top']
     assign_displacement_materials(displacement_core, [image_size, image_size], primary_material, secondary_material)
     assign_preview_materials(preview_core, primary_material, secondary_material, textured_vertex_groups)
-
+    construct_displacement_mod_vert_group(displacement_core, textured_vertex_groups)
+    
     preview_core.mt_object_props.geometry_type = 'PREVIEW'
     displacement_core.mt_object_props.geometry_type = 'DISPLACEMENT'
 
@@ -356,7 +360,6 @@ def create_core(tile_size, base_size, tile_name):
 
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
 
-    '''
     # create loops at each side of tile which we'll use
     # to prevent materials projecting beyond edges
     mode('EDIT')
@@ -385,11 +388,10 @@ def create_core(tile_size, base_size, tile_name):
         plane_co=(0, 0, cursor_start_loc[2] + base_size[2] + 0.001),
         plane_no=(0, 0, 1))
     mode('OBJECT')
-    '''
 
     bpy.ops.uv.smart_project(ctx)
 
-    cuboid_sides_to_vert_groups(core)
+    straight_wall_to_vert_groups(core)
 
     obj_props = core.mt_object_props
     obj_props.is_mt_object = True

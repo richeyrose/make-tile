@@ -119,7 +119,8 @@ def bake_displacement_map(disp_obj, resolution):
     bpy.context.scene.render.tile_y = resolution
     bpy.context.scene.cycles.bake_type = 'EMIT'
 
-    disp_image = bpy.data.images.new(disp_obj.name + '.image', width=1024, height=1024)
+    image_resolution = bpy.context.scene.mt_tile_resolution
+    disp_image = bpy.data.images.new(disp_obj.name + '.image', width=image_resolution, height=image_resolution)
     disp_mat_coll = disp_obj.mt_object_props.disp_materials_collection
 
     for item in disp_mat_coll:
@@ -160,6 +161,7 @@ def bake_displacement_map(disp_obj, resolution):
     activate(disp_obj.name)
     bpy.context.scene.render.bake.use_selected_to_active = True
     bpy.context.scene.render.bake.cage_extrusion = 1
+    bpy.context.scene.render.bake.margin = 0
 
     # temporarily assign a displacement material so we can bake to an image
     for material in disp_obj.data.materials:

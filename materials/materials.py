@@ -103,7 +103,6 @@ def assign_displacement_materials(obj, image_size, primary_material, secondary_m
     primary_material - bpy.types.Material
     secondary_material - bpy.types.Material
     '''
-
     # create new displacement modifier
     obj_disp_mod = obj.modifiers.new('Displacement', 'DISPLACE')
     obj_disp_mod.strength = 0
@@ -124,6 +123,17 @@ def assign_displacement_materials(obj, image_size, primary_material, secondary_m
     item.material = primary_material
     item.disp_texture = obj_disp_texture
     item.disp_mod_name = obj_disp_mod.name
+
+
+def construct_displacement_mod_vert_group(obj, textured_vert_group_names):
+    disp_mod_vert_group = obj.vertex_groups.new(name='disp_mod_vert_group')
+    all_vert_groups = obj.vertex_groups
+
+    for group in all_vert_groups:
+        if group.name in textured_vert_group_names:
+            verts = get_verts_in_vert_group(group.name, obj)
+            indices = [i.index for i in verts]
+            disp_mod_vert_group.add(index=indices, weight=1, type='ADD')
 
 
 def assign_preview_materials(obj, primary_material, secondary_material, textured_vertex_groups):

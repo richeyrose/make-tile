@@ -25,7 +25,6 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
     def execute(self, context):
         obj = context.object
         self.convert_to_make_tile_obj(obj)
-
         return {'FINISHED'}
 
     def convert_to_make_tile_obj(self, obj):

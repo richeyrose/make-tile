@@ -4,9 +4,10 @@ from math import radians
 import bpy
 from mathutils import Vector
 from .. lib.utils.collections import add_object_to_collection
+from .. lib.utils.selection import deselect_all
 from .. utils.registration import get_prefs
 from .. lib.turtle.scripts.primitives import draw_cuboid
-from .. lib.utils.utils import mode
+from .. lib.utils.utils import mode, view3d_find
 from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
 from .. materials.materials import (
     assign_displacement_materials,
@@ -354,6 +355,38 @@ def create_core(tile_size, base_size, tile_name):
     }
 
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+
+    '''
+    # create loops at each side of tile which we'll use
+    # to prevent materials projecting beyond edges
+    mode('EDIT')
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.mesh.bisect(
+        plane_co=(tile_size[0] / 2 - 0.001, 0, 0),
+        plane_no=(1, 0, 0))
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.mesh.bisect(
+        plane_co=(cursor_start_loc[0] - tile_size[0] / 2 + 0.001, 0, 0),
+        plane_no=(1, 0, 0))
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.mesh.bisect(
+        plane_co=(0, tile_size[1] / 2 - 0.001, 0),
+        plane_no=(0, 1, 0))
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.mesh.bisect(
+        plane_co=(0, cursor_start_loc[1] - tile_size[1] / 2 + 0.001, 0),
+        plane_no=(0, 1, 0))
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.mesh.bisect(
+        plane_co=(0, 0, tile_size[2] - 0.001),
+        plane_no=(0, 0, 1))
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.mesh.bisect(
+        plane_co=(0, 0, cursor_start_loc[2] + base_size[2] + 0.001),
+        plane_no=(0, 0, 1))
+    mode('OBJECT')
+    '''
+
     bpy.ops.uv.smart_project(ctx)
 
     cuboid_sides_to_vert_groups(core)

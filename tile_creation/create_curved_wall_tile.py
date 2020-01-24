@@ -29,8 +29,6 @@ from .. enums.enums import geometry_types
 
 from . create_straight_wall_tile import (
     create_plain_base as create_plain_straight_wall_base,
-    create_cores as create_straight_wall_cores,
-    create_core,
     create_openlock_base_slot_cutter)
 
 from .. operators.trim_tile import (
@@ -38,6 +36,8 @@ from .. operators.trim_tile import (
     add_bool_modifier)
 
 from . generic import finalise_tile
+
+from . create_displacement_mesh import create_displacement_object
 
 
 # TODO: fix divide by zero error when have no base
@@ -152,7 +152,7 @@ def create_plain_base(base_radius, base_size, tile_name):
     obj_props.is_mt_object = True
     obj_props.geometry_type = 'BASE'
     obj_props.tile_name = tile_name
-    
+
     return base
 
 
@@ -277,11 +277,11 @@ def create_wall_cores(base):
         tile_props.tile_size[1],
         tile_props.tile_size[2]))
 
-    preview_core, displacement_core = create_straight_wall_cores(
+    preview_core, displacement_core = create_curved_wall_cores(
         base,
         tile_props.tile_size,
         tile_props.tile_name)
-
+    
     cores = [preview_core, displacement_core]
 
     for core in cores:
@@ -293,6 +293,72 @@ def create_wall_cores(base):
     displacement_core.hide_viewport = True
 
     return preview_core, displacement_core
+
+
+def create_curved_wall_cores(base, tile_size, tile_name):
+    scene = bpy.context.scene
+
+    preview_core = create_core(tile_size, base.dimensions, tile_name)
+    preview_core, displacement_core = create_displacement_object(preview_core)
+
+    preview_core.parent = base
+    displacement_core.parent = base
+
+    preferences = get_prefs()
+
+    primary_material = bpy.data.materials[scene.mt_tile_material_1]
+    secondary_material = bpy.data.materials[preferences.secondary_material]
+
+    image_size = bpy.context.scene.mt_tile_resolution
+
+    textured_vertex_groups = ['Front', 'Back', 'Top']
+    assign_displacement_materials(displacement_core, [image_size, image_size], primary_material, secondary_material)
+    assign_preview_materials(preview_core, primary_material, secondary_material, textured_vertex_groups)
+
+    preview_core.mt_object_props.geometry_type = 'PREVIEW'
+    displacement_core.mt_object_props.geometry_type = 'DISPLACEMENT'
+
+    return preview_core, displacement_core
+
+
+def create_core(tile_size, base_size, tile_name):
+    '''Returns the core (vertical) part of a wall tile
+    '''
+    cursor = bpy.context.scene.cursor
+    cursor_start_loc = cursor.location.copy()
+
+    # make our core
+    core = draw_cuboid([
+        tile_size[0],
+        tile_size[1],
+        tile_size[2] - base_size[2]])
+
+    core.name = tile_name + '.core'
+    add_object_to_collection(core, tile_name)
+
+    mode('OBJECT')
+    # move core so centred, move up so on top of base and set origin to world origin
+    core.location = (
+        cursor_start_loc[0] - tile_size[0] / 2,
+        cursor_start_loc[1] - tile_size[1] / 2,
+        cursor_start_loc[2] + base_size[2])
+
+    ctx = {
+        'object': core,
+        'active_object': core,
+        'selected_objects': [core]
+    }
+
+    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+    bpy.ops.uv.smart_project(ctx)
+
+    cuboid_sides_to_vert_groups(core)
+
+    obj_props = core.mt_object_props
+    obj_props.is_mt_object = True
+    obj_props.tile_name = tile_name
+
+    return core
 
 
 def create_openlock_cores(base):

@@ -9,7 +9,6 @@ from .. utils.registration import get_prefs
 from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. lib.utils.utils import mode, view3d_find
 from .. lib.utils.vertex_groups import (
-    #cuboid_sides_to_vert_groups,
     straight_wall_to_vert_groups,
     construct_displacement_mod_vert_group)
 from .. materials.materials import (
@@ -248,7 +247,6 @@ def create_openlock_base_clip_cutter(base):
 
     Keyword arguments:
     base -- bpy.types.Object, base the cutter will be used on
-    tile_properties -- DICT
     """
 
     mode('OBJECT')

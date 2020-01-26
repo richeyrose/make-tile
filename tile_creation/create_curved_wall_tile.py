@@ -19,7 +19,6 @@ from .. lib.utils.utils import (
     get_tile_props)
 
 from .. lib.utils.vertex_groups import (
-    #cuboid_sides_to_vert_groups,
     straight_wall_to_vert_groups,
     construct_displacement_mod_vert_group)
 
@@ -148,9 +147,10 @@ def create_plain_base(base_radius, base_size, tile_name):
     tile_props.base_size[0] = base_length
 
     base = create_plain_straight_wall_base(tile_name, base_size)
-    loopcut_and_add_deform_modifiers(base,
-                         scene.mt_segments,
-                         tile_props.degrees_of_arc)
+    loopcut_and_add_deform_modifiers(
+        base,
+        scene.mt_segments,
+        tile_props.degrees_of_arc)
 
     obj_props = base.mt_object_props
     obj_props.is_mt_object = True
@@ -286,14 +286,6 @@ def create_wall_cores(base):
         tile_props.tile_size,
         tile_props.tile_name)
 
-    #cores = [preview_core, displacement_core]
-    '''
-    for core in cores:
-        add_deform_modifiers(
-            core,
-            segments=tile_props.segments,
-            degrees_of_arc=tile_props.degrees_of_arc)
-    '''
     displacement_core.hide_viewport = True
 
     return preview_core, displacement_core
@@ -303,7 +295,7 @@ def create_curved_wall_cores(base, tile_size, tile_name):
     scene = bpy.context.scene
 
     preview_core = create_core(tile_size, base.dimensions, tile_name)
-    preview_core, displacement_core = create_dis    placement_object(preview_core)
+    preview_core, displacement_core = create_displacement_object(preview_core)
 
     preview_core.parent = base
     displacement_core.parent = base
@@ -412,7 +404,6 @@ def create_core(tile_size, base_size, tile_name):
 
     bpy.ops.uv.smart_project(ctx)
 
-    #cuboid_sides_to_vert_groups(core)
     straight_wall_to_vert_groups(core)
     curve_mod.show_viewport = True
     return core

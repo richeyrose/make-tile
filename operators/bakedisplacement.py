@@ -26,15 +26,20 @@ class MT_OT_Assign_Material_To_Vert_Group(bpy.types.Operator):
         vertex_group = obj.vertex_groups.active.name
         primary_material = context.object.active_material
         secondary_material = bpy.data.materials[prefs.secondary_material]
-        image_size = bpy.context.scene.mt_tile_resolution
 
         # check that material is on our object and add it if not
         assign_mat_to_vert_group(vertex_group, obj, primary_material)
 
         # create new displacement material item and save it on our displacement object
         disp_obj = object_props.linked_object
-        item = disp_obj.mt_object_props.disp_materials_collection.add()
-        item.material = primary_material
+        materials = []
+        for item in disp_obj.mt_object_props.disp_materials_collection:
+            materials.append(item.material)
+
+        if primary_material not in materials and primary_material != secondary_material:
+            item = disp_obj.mt_object_props.disp_materials_collection.add()
+            item.material = primary_material
+
         return {'FINISHED'}
 
 
@@ -128,6 +133,7 @@ def bake_displacement_map(disp_obj, resolution):
         # plug emission node into output for baking
         tree = material.node_tree
         mat_output_node = tree.nodes['Material Output']
+
         displacement_emission_node = tree.nodes['disp_emission']
         tree.links.new(
             displacement_emission_node.outputs['Emission'],

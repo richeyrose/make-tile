@@ -5,17 +5,22 @@ from . selection import select_by_loc, select_inverse_by_loc, deselect_all, sele
 from . utils import mode
 
 
+def clear_vert_group(vert_group, obj):
+    indexes = get_vert_indexes_in_vert_group(vert_group.name, obj)
+    vert_group.remove(indexes)
+
+
 def get_verts_with_material(obj, material_name):
     '''Returns a list of vert objects which belong to polys that have a material applied'''
     verts = set()
-    mat_index = bpy.data.materials.find(material_name)
+    mat_index = obj.material_slots.find(material_name)
     polys = obj.data.polygons
 
     for poly in polys:
         if poly.material_index == mat_index:
             verts = set(poly.vertices) | verts
 
-    return list(verts)
+    return verts
 
 
 def get_vert_indexes_in_vert_group(vert_group_name, obj):
@@ -470,7 +475,7 @@ def straight_wall_to_vert_groups(obj):
     # select Z- and assign to Z-
     select_by_loc(
         lbound=[-dim[0] + 0.001, -dim[1], -dim[2]],
-        ubound=[dim[0] - 0.001, dim[1], -dim[2]],
+        ubound=[dim[0] - 0.001, dim[1], -dim[2] + 0.01],
         select_mode='VERT',
         coords='LOCAL',
         buffer=0.0001,
@@ -482,7 +487,7 @@ def straight_wall_to_vert_groups(obj):
 
     # select Z+ and assign to Z+
     select_by_loc(
-        lbound=[-dim[0] + 0.001, -dim[1], dim[2]],
+        lbound=[-dim[0] + 0.001, -dim[1], dim[2] - 0.01],
         ubound=[dim[0] - 0.001, dim[1], dim[2]],
         select_mode='VERT',
         coords='LOCAL',

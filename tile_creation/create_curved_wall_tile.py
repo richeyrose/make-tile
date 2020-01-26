@@ -308,6 +308,7 @@ def create_curved_wall_cores(base, tile_size, tile_name):
     image_size = bpy.context.scene.mt_tile_resolution
 
     textured_vertex_groups = ['Front', 'Back']
+
     mod_vert_group_name = construct_displacement_mod_vert_group(
         displacement_core,
         textured_vertex_groups)

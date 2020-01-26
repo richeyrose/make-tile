@@ -1,9 +1,25 @@
 '''contains operator class for baking displacement maps to tiles'''
 import bpy
-from .. materials.materials import load_secondary_material, assign_mat_to_vert_group, assign_displacement_materials
-from .. lib.utils.selection import deselect_all, select_all, select, activate
+
+from .. materials.materials import (
+    load_secondary_material,
+    assign_mat_to_vert_group,
+    assign_displacement_materials)
+
+from .. lib.utils.selection import (
+    deselect_all,
+    select_all,
+    select,
+    activate)
+
 from .. lib.utils.utils import mode
-from .. lib.utils.vertex_groups import get_selected_face_indices, assign_material_to_faces
+
+from .. lib.utils.vertex_groups import (
+    get_selected_face_indices,
+    assign_material_to_faces,
+    get_verts_with_material,
+    clear_vert_group)
+
 from .. utils.registration import get_prefs
 
 
@@ -32,6 +48,7 @@ class MT_OT_Assign_Material_To_Vert_Group(bpy.types.Operator):
 
         # create new displacement material item and save it on our displacement object
         disp_obj = object_props.linked_object
+
         materials = []
         for item in disp_obj.mt_object_props.disp_materials_collection:
             materials.append(item.material)
@@ -39,6 +56,17 @@ class MT_OT_Assign_Material_To_Vert_Group(bpy.types.Operator):
         if primary_material not in materials and primary_material != secondary_material:
             item = disp_obj.mt_object_props.disp_materials_collection.add()
             item.material = primary_material
+            materials.append(primary_material)
+
+        textured_verts = set()
+
+        for material in materials:
+            verts = get_verts_with_material(obj, material.name)
+            textured_verts = verts | textured_verts
+
+        disp_vert_group = disp_obj.vertex_groups['disp_mod_vert_group']
+        clear_vert_group(disp_vert_group, disp_obj)
+        disp_vert_group.add(index=list(textured_verts), weight=1, type='ADD')
 
         return {'FINISHED'}
 

@@ -9,7 +9,7 @@ from .voxeliser import voxelise_and_triangulate
 
 
 class MT_OT_Export_Tile_Variants(bpy.types.Operator):
-    bl_idname = "scene.export_multiple_tile_variants"
+    bl_idname = "scene.mt_export_multiple_tile_variants"
     bl_label = "Export multiple tile variants"
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -147,7 +147,7 @@ class MT_OT_Export_Tile(bpy.types.Operator):
     joins everything together, voxelises and trims if necessary, creates
     Merged Objects group and moves copy to new group'''
 
-    bl_idname = "scene.export_tile"
+    bl_idname = "scene.mt_export_tile"
     bl_label = "Export tile"
     bl_options = {'REGISTER'}
 
@@ -160,7 +160,7 @@ class MT_OT_Export_Tile(bpy.types.Operator):
 
     def execute(self, context):
         if context.scene.mt_num_variants > 1:
-            bpy.ops.scene.export_multiple_tile_variants()
+            bpy.ops.scene.mt_export_multiple_tile_variants()
             return {'PASS_THROUGH'}
 
         deselect_all()

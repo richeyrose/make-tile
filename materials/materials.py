@@ -96,7 +96,7 @@ def update_preview_material_2(obj, primary_material_name):
             assign_mat_to_vert_group(key, obj, primary_material)
 
 
-def assign_displacement_materials(obj, image_size, primary_material, secondary_material):
+def assign_displacement_materials(obj, image_size, primary_material, secondary_material, vert_group='None'):
     '''Keyword Arguments:
     obj - bpy.types.Object
     image_isize = [float, float]
@@ -109,6 +109,9 @@ def assign_displacement_materials(obj, image_size, primary_material, secondary_m
     obj_disp_mod.texture_coords = 'UV'
     obj_disp_mod.direction = 'NORMAL'
     obj_disp_mod.mid_level = 0
+
+    if vert_group is not 'None':
+        obj_disp_mod.vertex_group = vert_group
 
     # Create texture for this displacement modifier
     obj_disp_texture = bpy.data.textures.new(obj.name + '.texture', 'IMAGE')
@@ -123,17 +126,6 @@ def assign_displacement_materials(obj, image_size, primary_material, secondary_m
     item.material = primary_material
     item.disp_texture = obj_disp_texture
     item.disp_mod_name = obj_disp_mod.name
-
-
-def construct_displacement_mod_vert_group(obj, textured_vert_group_names):
-    disp_mod_vert_group = obj.vertex_groups.new(name='disp_mod_vert_group')
-    all_vert_groups = obj.vertex_groups
-
-    for group in all_vert_groups:
-        if group.name in textured_vert_group_names:
-            verts = get_verts_in_vert_group(group.name, obj)
-            indices = [i.index for i in verts]
-            disp_mod_vert_group.add(index=indices, weight=1, type='ADD')
 
 
 def assign_preview_materials(obj, primary_material, secondary_material, textured_vertex_groups):

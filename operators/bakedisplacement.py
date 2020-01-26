@@ -9,7 +9,7 @@ from .. utils.registration import get_prefs
 
 class MT_OT_Assign_Material_To_Vert_Group(bpy.types.Operator):
     """Assigns the active material to the selected vertex group"""
-    bl_idname = "object.assign_mat_to_active_vert_group"
+    bl_idname = "object.mt_assign_mat_to_active_vert_group"
     bl_label = "Assign Material"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -41,7 +41,7 @@ class MT_OT_Assign_Material_To_Vert_Group(bpy.types.Operator):
 class MT_OT_Remove_Material_From_Vert_Group(bpy.types.Operator):
     """Removes primary material from the selected vertex group
     and assigns secondary material to it"""
-    bl_idname = "object.remove_mat_from_active_vert_group"
+    bl_idname = "object.mt_remove_mat_from_active_vert_group"
     bl_label = "Remove Material"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -67,7 +67,7 @@ class MT_OT_Remove_Material_From_Vert_Group(bpy.types.Operator):
 
 class MT_OT_Bake_Displacement(bpy.types.Operator):
     """Bakes the preview material to a displacement map so it becomes 3D"""
-    bl_idname = "scene.bake_displacement"
+    bl_idname = "scene.mt_bake_displacement"
     bl_label = "Bake a displacement map"
     bl_options = {'REGISTER', 'UNDO'}
 

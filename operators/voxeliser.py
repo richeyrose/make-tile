@@ -6,7 +6,7 @@ from . trim_tile import add_bool_modifier
 
 class MT_OT_Tile_Voxeliser(bpy.types.Operator):
     """Voxelises the visible objects in the active collection and adds a triangulate modifier"""
-    bl_idname = "scene.voxelise_tile"
+    bl_idname = "scene.mt_voxelise_tile"
     bl_label = "Voxelise tile"
     bl_options = {'REGISTER', 'UNDO'}
 

@@ -20,7 +20,7 @@ class MT_PT_Voxelise_Panel(Panel):
         scene = context.scene
         layout = self.layout
 
-        layout.operator('scene.voxelise_tile', text='Voxelise Tile')
+        layout.operator('scene.mt_voxelise_tile', text='Voxelise Tile')
         layout.prop(scene, 'mt_voxel_quality')
         layout.prop(scene, 'mt_voxel_adaptivity')
         layout.prop(scene, 'mt_merge_and_voxelise')
@@ -78,7 +78,7 @@ class MT_PT_Export_Panel(Panel):
         scene = context.scene
         layout = self.layout
 
-        layout.operator('scene.export_tile', text='Export Tile')
+        layout.operator('scene.mt_export_tile', text='Export Tile')
         layout.prop(scene, 'mt_export_path')
 
         row = layout.row()

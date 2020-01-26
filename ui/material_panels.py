@@ -17,7 +17,7 @@ class MT_PT_Material_Slots_Panel(Panel):
             mat = obj.active_material
             return mat is not None
         return False
-    
+
     def draw(self, context):
         layout = self.layout
 
@@ -184,5 +184,5 @@ class MT_PT_Vertex_Groups_Panel(bpy.types.Panel):
 
         if ob.vertex_groups and ob.mode == 'OBJECT' and ob.type == 'MESH':
             row = layout.row()
-            row.operator("object.assign_mat_to_active_vert_group", text="Assign Material")
-            row.operator("object.remove_mat_from_active_vert_group", text="Remove Material")
+            row.operator("object.mt_assign_mat_to_active_vert_group", text="Assign Material")
+            row.operator("object.mt_remove_mat_from_active_vert_group", text="Remove Material")

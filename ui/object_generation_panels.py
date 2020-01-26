@@ -31,10 +31,10 @@ class MT_PT_Tile_Generator_Panel(Panel):
 
         if bpy.context.object is not None:
             if bpy.context.object.mt_object_props.geometry_type == 'PREVIEW':
-                layout.operator('scene.bake_displacement', text='Make 3D')
+                layout.operator('scene.mt_bake_displacement', text='Make 3D')
             if bpy.context.object.mt_object_props.geometry_type == 'DISPLACEMENT':
                 layout.prop(scene, 'mt_subdivisions')
-                layout.operator('scene.return_to_preview', text='Return to Preview')
+                layout.operator('scene.mt_return_to_preview', text='Return to Preview')
 
     def draw_openlock_panel(self, context):
         scene = context.scene

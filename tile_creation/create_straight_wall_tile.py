@@ -10,11 +10,11 @@ from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. lib.utils.utils import mode, view3d_find
 from .. lib.utils.vertex_groups import (
     cuboid_sides_to_vert_groups,
-    straight_wall_to_vert_groups)
+    straight_wall_to_vert_groups,
+    construct_displacement_mod_vert_group)
 from .. materials.materials import (
     assign_displacement_materials,
-    assign_preview_materials,
-    construct_displacement_mod_vert_group)
+    assign_preview_materials)
 from .. operators.trim_tile import (
     create_cuboid_tile_trimmers,
     add_bool_modifier)
@@ -320,9 +320,9 @@ def create_cores(base, tile_size, tile_name):
     image_size = bpy.context.scene.mt_tile_resolution
 
     textured_vertex_groups = ['Front', 'Back', 'Top']
-    assign_displacement_materials(displacement_core, [image_size, image_size], primary_material, secondary_material)
+    mod_vert_group_name = construct_displacement_mod_vert_group(displacement_core, textured_vertex_groups)
+    assign_displacement_materials(displacement_core, [image_size, image_size], primary_material, secondary_material, vert_group=mod_vert_group_name)
     assign_preview_materials(preview_core, primary_material, secondary_material, textured_vertex_groups)
-    construct_displacement_mod_vert_group(displacement_core, textured_vertex_groups)
     
     preview_core.mt_object_props.geometry_type = 'PREVIEW'
     displacement_core.mt_object_props.geometry_type = 'DISPLACEMENT'

@@ -5,7 +5,7 @@ from .. lib.utils.selection import select, activate, deselect_all
 class MT_OT_Return_To_Preview(bpy.types.Operator):
     """Operator class that hides displacement meshes and resets them with appropriate material and
     makes preview meshes visible again"""
-    bl_idname = "scene.return_to_preview"
+    bl_idname = "scene.mt_return_to_preview"
     bl_label = "Return to preview mesh"
     bl_options = {'REGISTER', 'UNDO'}
 

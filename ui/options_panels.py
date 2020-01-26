@@ -13,7 +13,7 @@ class MT_PT_Display_Panel(Panel):
         scene = context.scene
         layout = self.layout
 
-        layout.operator('scene.create_lighting_setup', text="Create lighting Setup")
+        layout.operator('scene.mt_create_lighting_setup', text="Create lighting Setup")
         layout.prop(scene, 'mt_view_mode')
         if scene.mt_view_mode == 'CYCLES':
             layout.prop(scene, 'mt_use_gpu')

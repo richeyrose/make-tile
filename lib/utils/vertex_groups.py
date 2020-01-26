@@ -5,6 +5,19 @@ from . selection import select_by_loc, select_inverse_by_loc, deselect_all, sele
 from . utils import mode
 
 
+def get_verts_with_material(obj, material_name):
+    '''Returns a list of vert objects which belong to polys that have a material applied'''
+    verts = set()
+    mat_index = bpy.data.materials.find(material_name)
+    polys = obj.data.polygons
+
+    for poly in polys:
+        if poly.material_index == mat_index:
+            verts = set(poly.vertices) | verts
+
+    return list(verts)
+
+
 def get_vert_indexes_in_vert_group(vert_group_name, obj):
     '''returns a list of vert indexes in a vert group'''
     vg_index = obj.vertex_groups[vert_group_name].index
@@ -55,6 +68,21 @@ def assign_material_to_faces(obj, face_list, material_index):
 
         if poly_vertex_group_index == vertex_group_index:
             poly.material_index = material_index
+
+
+def construct_displacement_mod_vert_group(obj, textured_vert_group_names):
+    '''Constructs a vertex group from the passed in group names for use by displacement modifier.
+    This ensures that only correct vertices are being displaced.'''
+
+    disp_mod_vert_group = obj.vertex_groups.new(name='disp_mod_vert_group')
+    all_vert_groups = obj.vertex_groups
+
+    for group in all_vert_groups:
+        if group.name in textured_vert_group_names:
+            verts = get_verts_in_vert_group(group.name, obj)
+            indices = [i.index for i in verts]
+            disp_mod_vert_group.add(index=indices, weight=1, type='ADD')
+    return disp_mod_vert_group.name
 
 
 def corner_wall_to_vert_groups(obj, vert_locs):

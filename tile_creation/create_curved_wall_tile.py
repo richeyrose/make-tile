@@ -15,9 +15,13 @@ from .. lib.utils.utils import (
     mode,
     view3d_find,
     add_circle_array,
-    add_deform_modifiers)
+    loopcut_and_add_deform_modifiers,
+    get_tile_props)
 
-from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
+from .. lib.utils.vertex_groups import (
+    #cuboid_sides_to_vert_groups,
+    straight_wall_to_vert_groups,
+    construct_displacement_mod_vert_group)
 
 from .. materials.materials import (
     load_secondary_material,
@@ -52,7 +56,7 @@ def create_curved_wall(tile_empty):
     cursor.location = (0, 0, 0)
     tile_empty.location = (0, 0, 0)
 
-    tile_props = bpy.context.collection.mt_tile_props
+    tile_props = get_tile_props(tile_empty)
     tile_name = tile_props.tile_name
 
     # Get base and main part blueprints
@@ -136,7 +140,7 @@ def create_plain_base(base_radius, base_size, tile_name):
     prefs = get_prefs()
 
     scene = bpy.context.scene
-    tile_props = bpy.context.collection.mt_tile_props
+    tile_props = bpy.data.collections[tile_name].mt_tile_props
 
     tile_props.degrees_of_arc = scene.mt_degrees_of_arc
     circumference = 2 * pi * base_radius
@@ -144,7 +148,7 @@ def create_plain_base(base_radius, base_size, tile_name):
     tile_props.base_size[0] = base_length
 
     base = create_plain_straight_wall_base(tile_name, base_size)
-    add_deform_modifiers(base,
+    loopcut_and_add_deform_modifiers(base,
                          scene.mt_segments,
                          tile_props.degrees_of_arc)
 
@@ -166,7 +170,7 @@ def create_openlock_base(base_radius, base_size, tile_name):
     else:
         cutter_arc = scene.mt_degrees_of_arc + 12.5
 
-    add_deform_modifiers(
+    loopcut_and_add_deform_modifiers(
         slot_cutter,
         scene.mt_segments,
         cutter_arc)
@@ -281,15 +285,15 @@ def create_wall_cores(base):
         base,
         tile_props.tile_size,
         tile_props.tile_name)
-    
-    cores = [preview_core, displacement_core]
 
+    #cores = [preview_core, displacement_core]
+    '''
     for core in cores:
         add_deform_modifiers(
             core,
             segments=tile_props.segments,
             degrees_of_arc=tile_props.degrees_of_arc)
-
+    '''
     displacement_core.hide_viewport = True
 
     return preview_core, displacement_core
@@ -299,7 +303,7 @@ def create_curved_wall_cores(base, tile_size, tile_name):
     scene = bpy.context.scene
 
     preview_core = create_core(tile_size, base.dimensions, tile_name)
-    preview_core, displacement_core = create_displacement_object(preview_core)
+    preview_core, displacement_core = create_dis    placement_object(preview_core)
 
     preview_core.parent = base
     displacement_core.parent = base
@@ -311,9 +315,23 @@ def create_curved_wall_cores(base, tile_size, tile_name):
 
     image_size = bpy.context.scene.mt_tile_resolution
 
-    textured_vertex_groups = ['Front', 'Back', 'Top']
-    assign_displacement_materials(displacement_core, [image_size, image_size], primary_material, secondary_material)
-    assign_preview_materials(preview_core, primary_material, secondary_material, textured_vertex_groups)
+    textured_vertex_groups = ['Front', 'Back']
+    mod_vert_group_name = construct_displacement_mod_vert_group(
+        displacement_core,
+        textured_vertex_groups)
+
+    assign_displacement_materials(
+        displacement_core,
+        [image_size, image_size],
+        primary_material,
+        secondary_material,
+        vert_group=mod_vert_group_name)
+
+    assign_preview_materials(
+        preview_core,
+        primary_material,
+        secondary_material,
+        textured_vertex_groups)
 
     preview_core.mt_object_props.geometry_type = 'PREVIEW'
     displacement_core.mt_object_props.geometry_type = 'DISPLACEMENT'
@@ -350,14 +368,53 @@ def create_core(tile_size, base_size, tile_name):
     }
 
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-    bpy.ops.uv.smart_project(ctx)
-
-    cuboid_sides_to_vert_groups(core)
 
     obj_props = core.mt_object_props
     obj_props.is_mt_object = True
     obj_props.tile_name = tile_name
 
+    tile_props = get_tile_props(core)
+
+    curve_mod = loopcut_and_add_deform_modifiers(
+        core,
+        segments=tile_props.segments,
+        degrees_of_arc=tile_props.degrees_of_arc)
+    curve_mod.show_viewport = False
+
+    # create loops at each side of tile which we'll use
+    # to prevent materials projecting beyond edges
+    mode('EDIT')
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.mesh.bisect(
+        plane_co=(tile_size[0] / 2 - 0.001, 0, 0),
+        plane_no=(1, 0, 0))
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.mesh.bisect(
+        plane_co=(cursor_start_loc[0] - tile_size[0] / 2 + 0.001, 0, 0),
+        plane_no=(1, 0, 0))
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.mesh.bisect(
+        plane_co=(0, tile_size[1] / 2 - 0.001, 0),
+        plane_no=(0, 1, 0))
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.mesh.bisect(
+        plane_co=(0, cursor_start_loc[1] - tile_size[1] / 2 + 0.001, 0),
+        plane_no=(0, 1, 0))
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.mesh.bisect(
+        plane_co=(0, 0, tile_size[2] - 0.001),
+        plane_no=(0, 0, 1))
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.mesh.bisect(
+        plane_co=(0, 0, cursor_start_loc[2] + base_size[2] + 0.001),
+        plane_no=(0, 0, 1))
+    mode('OBJECT')
+
+    bpy.ops.uv.smart_project(ctx)
+
+    #cuboid_sides_to_vert_groups(core)
+    straight_wall_to_vert_groups(core)
+    curve_mod.show_viewport = True
     return core
 
 

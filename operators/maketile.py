@@ -117,7 +117,10 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         #####################
 
         tile_empty = bpy.data.objects.new(tile_name + ".empty", None)
-
+        obj_props = tile_empty.mt_object_props
+        obj_props.tile_name = tile_name
+        obj_props.is_mt_object = True
+        obj_props.geometry_type = 'EMPTY'
         bpy.context.layer_collection.collection.objects.link(tile_empty)
         tile_empty.location = context.scene.cursor.location
 

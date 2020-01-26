@@ -104,8 +104,14 @@ def apply_all_modifiers(obj):
             modifier=contxt['modifier'].name)
 
 
-# uses loopcut to subdivide a mesh and adds a deform modifier
-def add_deform_modifiers(obj, segments=8, degrees_of_arc=90, axis='Z', show_render=False):
+def get_tile_props(obj):
+    tile_name = obj.mt_object_props.tile_name
+    tile_props = bpy.data.collections[tile_name].mt_tile_props
+    return tile_props
+
+
+def loopcut_and_add_deform_modifiers(obj, segments=8, degrees_of_arc=90, axis='Z', show_render=False):
+    # uses loopcut to subdivide a mesh and adds a deform modifier
     deselect_all()
     select(obj.name)
     activate(obj.name)
@@ -131,7 +137,7 @@ def add_deform_modifiers(obj, segments=8, degrees_of_arc=90, axis='Z', show_rend
     curve_mod.show_render = show_render
     curve_mod.angle = radians(degrees_of_arc)
 
-    return curve_mod.name
+    return curve_mod
 
 
 def distance_between_two_verts(first, second):

@@ -1,6 +1,6 @@
 import bpy
 from .. lib.utils.selection import select, deselect_all, select_all, activate
-from .. lib.utils.utils import mode, add_deform_modifiers, calc_tri
+from .. lib.utils.utils import mode, loopcut_and_add_deform_modifiers, calc_tri
 from mathutils import Vector
 from .. lib.turtle.scripts.primitives import draw_cuboid, draw_tri_prism, draw_curved_slab
 from math import radians
@@ -233,7 +233,7 @@ def create_curved_wall_tile_trimmers(tile_size, base_size, tile_name, base_bluep
 
     for trimmer in z_trimmers:
         bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
-        add_deform_modifiers(trimmer, tile_props.segments, arc_adjusted)
+        loopcut_and_add_deform_modifiers(trimmer, tile_props.segments, arc_adjusted)
 
     trimmers = [
         x_neg_trimmer,

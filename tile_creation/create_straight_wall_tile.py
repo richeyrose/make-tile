@@ -4,7 +4,7 @@ from math import radians
 import bpy
 from mathutils import Vector
 from .. lib.utils.collections import add_object_to_collection
-from .. lib.utils.selection import deselect_all
+from .. lib.utils.selection import deselect_all, select_all
 from .. utils.registration import get_prefs
 from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. lib.utils.utils import mode, view3d_find
@@ -400,7 +400,7 @@ def create_core(tile_size, base_size, tile_name):
         plane_no=(0, 0, 1))
     mode('OBJECT')
 
-    bpy.ops.uv.smart_project(ctx)
+    bpy.ops.uv.smart_project(ctx, island_margin=1)
 
     straight_wall_to_vert_groups(core)
 
@@ -432,6 +432,7 @@ def create_openlock_cores(base, tile_size, tile_name):
             wall_cutter_bool = core.modifiers.new(wall_cutter.name + '.bool', 'BOOLEAN')
             wall_cutter_bool.operation = 'DIFFERENCE'
             wall_cutter_bool.object = wall_cutter
+            wall_cutter_bool.show_render = False
 
             # add cutters to object's mt_cutters_collection
             # so we can activate and deactivate them when necessary

@@ -421,8 +421,8 @@ def straight_wall_to_vert_groups(obj):
 
     # select X- and assign to X-
     select_by_loc(
-        lbound=-dim,
-        ubound=[-dim[0], dim[1], dim[2]],
+        lbound=[-dim[0] - 0.01, -dim[1], -dim[2] + 0.001],
+        ubound=[-dim[0] + 0.01, dim[1], dim[2] - 0.001],
         select_mode='VERT',
         coords='LOCAL',
         buffer=0.0001,
@@ -435,8 +435,8 @@ def straight_wall_to_vert_groups(obj):
 
     # select X+ and assign to X+
     select_by_loc(
-        lbound=[dim[0], -dim[1], -dim[2]],
-        ubound=[dim[0], dim[1], dim[2]],
+        lbound=[dim[0] - 0.01, -dim[1], -dim[2] + 0.001],
+        ubound=[dim[0] + 0.01, dim[1], dim[2] - 0.001],
         select_mode='VERT',
         coords='LOCAL',
         buffer=0.0001,

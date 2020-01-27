@@ -28,7 +28,7 @@ from .. materials.materials import (
     assign_texture_to_areas)
 
 from .. tile_creation.create_straight_wall_tile import create_straight_wall
-from .. tile_creation.create_floor_tile import create_rectangular_floor
+from .. tile_creation.create_rect_floor_tile import create_rectangular_floor
 from .. tile_creation.create_curved_wall_tile import create_curved_wall
 from .. tile_creation.create_corner_wall import create_corner_wall
 from .. tile_creation.create_triangular_floor import create_triangular_floor

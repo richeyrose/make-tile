@@ -119,7 +119,7 @@ def create_slabs(tile_props, base):
     for slab in slabs:
         deselect_all()
         select(slab.name)
-        bpy.ops.uv.smart_project()
+        bpy.ops.uv.smart_project(island_margin=1)
         slab.parent = base
     displacement_core.hide_viewport = True
 

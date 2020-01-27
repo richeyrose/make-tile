@@ -53,7 +53,7 @@ class MT_Cutter_Item(PropertyGroup):
             bool_mod.show_viewport = self.value
 
             if parent_obj.mt_object_props.linked_object is not None:
-                linked_obj = parenty_obj.mt_object_props.linked_object
+                linked_obj = parent_obj.mt_object_props.linked_object
                 bool_mod = linked_obj.modifiers[self.name + '.bool']
                 bool_mod.show_viewport = self.value
 

@@ -19,6 +19,7 @@ from .. operators.trim_tile import (
 from . create_displacement_mesh import create_displacement_object
 from . generic import finalise_tile
 
+
 def create_rectangular_floor(tile_empty):
     """"Creates a rectangular floor"""
     # hack to correct for parenting issues.
@@ -146,7 +147,7 @@ def create_core(base, tile_props):
     }
 
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-    bpy.ops.uv.smart_project(ctx)
+    bpy.ops.uv.smart_project(ctx, island_margin=1)
 
     cuboid_sides_to_vert_groups(core)
 

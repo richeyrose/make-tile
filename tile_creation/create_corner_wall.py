@@ -542,7 +542,7 @@ def create_plain_wall_core():
     t.up(d=wall_height - base_height)
     t.select_all()
     bpy.ops.mesh.normals_make_consistent()
-    bpy.ops.uv.smart_project()
+    bpy.ops.uv.smart_project(island_margin=1)
     bpy.ops.mesh.quads_convert_to_tris(quad_method='BEAUTY', ngon_method='BEAUTY')
     t.pu()
     t.deselect_all()

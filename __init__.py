@@ -93,7 +93,6 @@ classes = (
     MT_Object_Properties,
     MT_OT_Make_Tile,
     MT_OT_Export_Material,
-    # MT_OT_Add_Trimmers,
     MT_OT_Convert_To_MT_Obj,
     MT_OT_Bake_Displacement,
     MT_OT_Return_To_Preview,

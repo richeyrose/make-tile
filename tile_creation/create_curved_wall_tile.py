@@ -403,7 +403,7 @@ def create_core(tile_size, base_size, tile_name):
         plane_no=(0, 0, 1))
     mode('OBJECT')
 
-    bpy.ops.uv.smart_project(ctx)
+    bpy.ops.uv.smart_project(ctx, island_margin=1)
 
     straight_wall_to_vert_groups(core)
     curve_mod.show_viewport = True
@@ -432,6 +432,7 @@ def create_openlock_cores(base):
             cutter_bool = core.modifiers.new(cutter.name + '.bool', 'BOOLEAN')
             cutter_bool.operation = 'DIFFERENCE'
             cutter_bool.object = cutter
+            cutter_bool.show_render = False
 
             # add cutters to object's mt_cutters_collection
             # so we can activate and deactivate them when necessary

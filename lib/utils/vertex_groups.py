@@ -1,7 +1,7 @@
 from math import sqrt, radians, degrees, cos, acos
 import bpy
 import bmesh
-from . selection import select_by_loc, select_inverse_by_loc, deselect_all, select_all, select
+from . selection import select_by_loc, select_inverse_by_loc, deselect_all, select_all, select, activate
 from . utils import mode
 
 
@@ -306,6 +306,96 @@ def curved_floor_to_vert_groups(obj, height, side_length):
     bpy.ops.object.vertex_group_assign()
 
     mode('OBJECT')
+
+
+def tri_floor_to_vert_groups(obj, dim, height):
+    """Keyword arguments:
+    obj - bpy.types.Object
+    dim - DICT
+    height - float"""
+    # make vertex groups
+    obj.vertex_groups.new(name='Side b')
+    obj.vertex_groups.new(name='Side a')
+    obj.vertex_groups.new(name='Side c')
+    obj.vertex_groups.new(name='Bottom')
+    obj.vertex_groups.new(name='Top')
+
+    mode('EDIT')
+
+    deselect_all()
+    select_by_loc(
+        lbound=(
+            dim['loc_A'][0],
+            dim['loc_A'][1],
+            dim['loc_A'][2] + height),
+        ubound=(
+            dim['loc_B'][0] + dim['a'],
+            dim['loc_B'][1],
+            dim['loc_B'][2] + height),
+        select_mode='FACE'
+    )
+
+    bpy.ops.object.vertex_group_set_active(group='Top')
+    bpy.ops.object.vertex_group_assign()
+    bpy.ops.mesh.inset(thickness=0.001, depth=0)
+
+    deselect_all()
+    select_by_loc(
+        lbound=dim['loc_A'],
+        ubound=(
+            dim['loc_C'][0],
+            dim['loc_C'][1],
+            dim['loc_C'][2] + height)
+    )
+    bpy.ops.object.vertex_group_set_active(group='Side b')
+    bpy.ops.object.vertex_group_assign()
+
+    deselect_all()
+    select_by_loc(
+        lbound=dim['loc_A'],
+        ubound=(
+            dim['loc_B'][0],
+            dim['loc_B'][1],
+            dim['loc_B'][2] + height)
+    )
+    bpy.ops.object.vertex_group_set_active(group='Side c')
+    bpy.ops.object.vertex_group_assign()
+
+    deselect_all()
+
+    select_by_loc(
+        lbound=dim['loc_C'],
+        ubound=(
+            dim['loc_C'][0],
+            dim['loc_C'][1],
+            dim['loc_C'][2] + height)
+    )
+
+    select_by_loc(
+        lbound=dim['loc_B'],
+        ubound=(
+            dim['loc_B'][0],
+            dim['loc_B'][1],
+            dim['loc_B'][2] + height),
+        additive=True
+    )
+
+    bpy.ops.object.vertex_group_set_active(group='Side a')
+    bpy.ops.object.vertex_group_assign()
+
+    deselect_all()
+    select_by_loc(
+        lbound=(
+            dim['loc_A'][0],
+            dim['loc_A'][1],
+            dim['loc_A'][2]),
+        ubound=(
+            dim['loc_B'][0] + dim['a'],
+            dim['loc_B'][1],
+            dim['loc_B'][2]),
+    )
+    bpy.ops.object.vertex_group_set_active(group='Bottom')
+    bpy.ops.object.vertex_group_assign()
 
 
 def tri_prism_to_vert_groups(obj, dim, height):

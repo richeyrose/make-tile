@@ -11,7 +11,9 @@ from . create_displacement_mesh import create_displacement_object
 from .. materials.materials import (
     assign_displacement_materials,
     assign_preview_materials)
-from .. lib.utils.vertex_groups import tri_prism_to_vert_groups
+from .. lib.utils.vertex_groups import (
+    tri_floor_to_vert_groups,
+    construct_displacement_mod_vert_group)
 from .. operators.trim_tile import (
     create_tri_floor_tile_trimmers,
     add_bool_modifier)
@@ -71,7 +73,7 @@ def create_triangular_floor(tile_empty):
 
     else:
         # cores are the textured part of the tile
-        preview_core, displacement_core, dimensions = create_slabs(tile_props, base)
+        preview_core, displacement_core, dimensions = create_cores(tile_props, base)
         tile_meshes.extend([preview_core, displacement_core])
 
     trimmers = create_tri_floor_tile_trimmers(tile_props, dimensions, tile_empty)
@@ -84,7 +86,7 @@ def create_triangular_floor(tile_empty):
                   cursor_orig_loc)
 
 
-def create_slabs(tile_props, base):
+def create_cores(tile_props, base):
     turtle = bpy.context.scene.cursor
     t = bpy.ops.turtle
 
@@ -96,7 +98,8 @@ def create_slabs(tile_props, base):
         tile_props.leg_2_len,
         tile_props.angle,
         tile_props.tile_size[2] - tile_props.base_size[2])
-    tri_prism_to_vert_groups(bpy.context.object, dimensions, tile_props.tile_size[2] - tile_props.base_size[2])
+    tri_floor_to_vert_groups(bpy.context.object, dimensions, tile_props.tile_size[2] - tile_props.base_size[2])
+
     t.select_all()
     t.up(d=tile_props.base_size[2], m=True)
 
@@ -112,8 +115,27 @@ def create_slabs(tile_props, base):
 
     image_size = bpy.context.scene.mt_tile_resolution
 
-    assign_displacement_materials(displacement_core, [image_size, image_size], primary_material, secondary_material)
-    assign_preview_materials(preview_core, primary_material, secondary_material, ['Top'])
+    textured_vertex_groups = ['Top']
+
+    # create a vertex group for the displacement modifier
+    mod_vert_group_name = construct_displacement_mod_vert_group(displacement_core, textured_vertex_groups)
+    
+    assign_displacement_materials(
+        displacement_core,
+        [image_size, image_size],
+        primary_material,
+        secondary_material,
+        vert_group=mod_vert_group_name)
+    
+    assign_preview_materials(
+        preview_core,
+        primary_material,
+        secondary_material,
+        textured_vertex_groups)
+
+    preview_core.mt_object_props.geometry_type = 'PREVIEW'
+    displacement_core.mt_object_props.geometry_type = 'DISPLACEMENT'
+
     slabs = [preview_core, displacement_core]
 
     for slab in slabs:

@@ -163,6 +163,7 @@ def draw_base(b, c, height, start_loc, A):
     bpy.ops.object.mode_set(mode='EDIT')
     t.up(d=height)
     bpy.ops.mesh.edge_face_add()
+
     t.select_all()
     bpy.ops.mesh.normals_make_consistent()
 

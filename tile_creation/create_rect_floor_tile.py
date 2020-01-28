@@ -9,7 +9,9 @@ from .. utils.registration import get_prefs
 from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. lib.turtle.scripts.openlock_floor_base import draw_openlock_rect_floor_base
 from . create_straight_wall_tile import create_openlock_base
-from .. lib.utils.vertex_groups import cuboid_sides_to_vert_groups
+from .. lib.utils.vertex_groups import (
+    construct_displacement_mod_vert_group,
+    rect_floor_to_vert_groups)
 from .. materials.materials import (
     assign_displacement_materials,
     assign_preview_materials)
@@ -104,6 +106,7 @@ def create_rectangular_floor(tile_empty):
                   preview_core,
                   cursor_orig_loc)
 
+
 def create_plain_base(tile_props):
     '''Creates a plain cuboid base'''
     cursor_start_location = bpy.context.scene.cursor.location.copy()
@@ -126,19 +129,22 @@ def create_core(base, tile_props):
     cursor = bpy.context.scene.cursor
     cursor_start_loc = cursor.location.copy()
 
+    tile_size = tile_props.tile_size
+    base_size = tile_props.base_size
+
     core = draw_cuboid([
-        tile_props.tile_size[0],
-        tile_props.tile_size[1],
-        tile_props.tile_size[2] - tile_props.base_size[2]])
+        tile_size[0],
+        tile_size[1],
+        tile_size[2] - base_size[2]])
 
     core.name = tile_props.tile_name + '.core'
     add_object_to_collection(core, tile_props.tile_name)
     mode('OBJECT')
 
     core.location = (
-        core.location[0] - tile_props.tile_size[0] / 2,
-        core.location[1] - tile_props.tile_size[1] / 2,
-        core.location[2] + tile_props.base_size[2])
+        core.location[0] - tile_size[0] / 2,
+        core.location[1] - tile_size[1] / 2,
+        core.location[2] + base_size[2])
 
     ctx = {
         'object': core,
@@ -147,9 +153,39 @@ def create_core(base, tile_props):
     }
 
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+
+    # create loops at each side of tile which we'll use
+    # to prevent materials projecting beyond edges
+    mode('EDIT')
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.mesh.bisect(
+        plane_co=(tile_size[0] / 2 - 0.001, 0, 0),
+        plane_no=(1, 0, 0))
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.mesh.bisect(
+        plane_co=(cursor_start_loc[0] - tile_size[0] / 2 + 0.001, 0, 0),
+        plane_no=(1, 0, 0))
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.mesh.bisect(
+        plane_co=(0, tile_size[1] / 2 - 0.001, 0),
+        plane_no=(0, 1, 0))
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.mesh.bisect(
+        plane_co=(0, cursor_start_loc[1] - tile_size[1] / 2 + 0.001, 0),
+        plane_no=(0, 1, 0))
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.mesh.bisect(
+        plane_co=(0, 0, tile_size[2] - 0.001),
+        plane_no=(0, 0, 1))
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.mesh.bisect(
+        plane_co=(0, 0, cursor_start_loc[2] + base_size[2] + 0.001),
+        plane_no=(0, 0, 1))
+    mode('OBJECT')
+
     bpy.ops.uv.smart_project(ctx, island_margin=1)
 
-    cuboid_sides_to_vert_groups(core)
+    rect_floor_to_vert_groups(core)
 
     obj_props = core.mt_object_props
     obj_props.is_mt_object = True
@@ -175,7 +211,17 @@ def create_cores(base, tile_props):
     image_size = bpy.context.scene.mt_tile_resolution
 
     textured_vertex_groups = ['Top']
-    assign_displacement_materials(displacement_core, [image_size, image_size], primary_material, secondary_material)
+
+    # create a vertex group for the displacement modifier
+    mod_vert_group_name = construct_displacement_mod_vert_group(displacement_core, textured_vertex_groups)
+
+    assign_displacement_materials(
+        displacement_core,
+        [image_size, image_size],
+        primary_material,
+        secondary_material,
+        vert_group=mod_vert_group_name)
+
     assign_preview_materials(preview_core, primary_material, secondary_material, textured_vertex_groups)
 
     preview_core.mt_object_props.geometry_type = 'PREVIEW'
@@ -271,7 +317,7 @@ def create_openlock_base_clip_cutter(base, tile_props):
 
     clip_cutter2 = clip_cutter.copy()
     clip_cutter2.data = clip_cutter2.data.copy()
-    
+
     add_object_to_collection(clip_cutter2, tile_props.tile_name)
     clip_cutter2.rotation_euler = (0, 0, math.radians(90))
 

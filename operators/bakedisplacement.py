@@ -64,9 +64,13 @@ class MT_OT_Assign_Material_To_Vert_Group(bpy.types.Operator):
             verts = get_verts_with_material(obj, material.name)
             textured_verts = verts | textured_verts
 
-        disp_vert_group = disp_obj.vertex_groups['disp_mod_vert_group']
-        clear_vert_group(disp_vert_group, disp_obj)
-        disp_vert_group.add(index=list(textured_verts), weight=1, type='ADD')
+        if 'disp_mod_vert_group' in disp_obj.vertex_groups:
+            disp_vert_group = disp_obj.vertex_groups['disp_mod_vert_group']
+            clear_vert_group(disp_vert_group, disp_obj)
+            disp_vert_group.add(index=list(textured_verts), weight=1, type='ADD')
+        else:
+            disp_mod_vert_group = obj.vertex_groups.new(name='disp_mod_vert_group')
+            disp_vert_group.add(index=list(textured_verts), weight=1, type='ADD')
 
         return {'FINISHED'}
 

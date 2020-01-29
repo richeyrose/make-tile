@@ -63,6 +63,7 @@ def create_curved_floor(tile_empty):
         displacement_core.hide_viewport = True
     else:
         tile_props.tile_size = tile_props.base_size
+        preview_core = None
 
     trimmers = create_curved_floor_trimmers(tile_props, tile_empty)
 

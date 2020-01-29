@@ -88,6 +88,7 @@ def create_rectangular_floor(tile_empty):
 
     if main_part_blueprint == 'NONE':
         tile_props.tile_size = tile_props.base_size
+        preview_core = None
 
     # create tile trimmers. Used to ensure that displaced
     # textures don't extend beyond the original bounds of the tile.

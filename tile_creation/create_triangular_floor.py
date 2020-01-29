@@ -70,6 +70,7 @@ def create_triangular_floor(tile_empty):
 
     if main_part_blueprint == 'NONE':
         tile_props.tile_size = tile_props.base_size
+        preview_core = None
 
     else:
         # cores are the textured part of the tile
@@ -119,14 +120,14 @@ def create_cores(tile_props, base):
 
     # create a vertex group for the displacement modifier
     mod_vert_group_name = construct_displacement_mod_vert_group(displacement_core, textured_vertex_groups)
-    
+
     assign_displacement_materials(
         displacement_core,
         [image_size, image_size],
         primary_material,
         secondary_material,
         vert_group=mod_vert_group_name)
-    
+
     assign_preview_materials(
         preview_core,
         primary_material,

@@ -250,7 +250,7 @@ def draw_openlock_pos_curved_base(length, segments, angle, height):
     mode('OBJECT')
     base = bpy.context.object
     deselect_all()
-    
+
     return base
 
 
@@ -277,15 +277,17 @@ def draw_pos_curved_slab(length, segments, angle, height):
     bpy.ops.mesh.edge_face_add()
     t.pd()
     t.up(d=height)
+    bpy.ops.mesh.inset(thickness=0.001, depth=0)
     t.select_all()
     bpy.ops.mesh.normals_make_consistent()
     t.pu()
     t.home()
     t.select_all()
+    '''
     bpy.ops.mesh.quads_convert_to_tris(
         quad_method='BEAUTY',
         ngon_method='BEAUTY')
-
+    '''
     mode('OBJECT')
     slab = bpy.context.object
     deselect_all()
@@ -329,10 +331,12 @@ def draw_neg_curved_slab(length, segments, angle, height):
     bpy.ops.mesh.edge_face_add()
     t.pd()
     t.up(d=height)
+    bpy.ops.mesh.inset(thickness=0.001, depth=0)
     t.select_all()
     bpy.ops.mesh.normals_make_consistent()
     t.pu()
     t.home()
+
     bpy.ops.mesh.quads_convert_to_tris(
         quad_method='BEAUTY',
         ngon_method='BEAUTY')

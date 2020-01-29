@@ -95,6 +95,9 @@ def corner_wall_to_vert_groups(obj, vert_locs):
     Keyword Arguments:
     obj -- bpy.types.Object
     vert_locs -- DICT"""
+    mode('OBJECT')
+    deselect_all()
+    select(obj.name)
     cursor_orig_loc = bpy.context.scene.cursor.location.copy()
 
     # make vertex groups
@@ -109,12 +112,12 @@ def corner_wall_to_vert_groups(obj, vert_locs):
     deselect_all()
 
     # vert_locs keys
-    leg_1_verts = ['c', 'b']
-    leg_2_verts = ['e', 'f']
-    outer_verts = ['a', 'b', 'e']
-    inner_verts = ['c', 'd', 'f']
-    bottom_verts = ['a', 'b', 'c', 'd', 'e', 'f']
+    leg_1_verts = ['x_outer_1','x_outer_2', 'end_1_1', 'end_1_2', 'end_1_3', 'x_inner_1']
+    leg_2_verts = ['y_outer_1','y_outer_2', 'end_2_1', 'end_2_2', 'end_2_3', 'y_inner_1']
+    outer_verts = ['origin', 'x_outer_1', 'y_outer_1']
+    inner_verts = ['x_inner_1', 'x_inner_2', 'y_inner_1']
     # top verts are at bottom vert location + obj.dimensions[2]
+
 
     for key, value in vert_locs.items():
         if key in leg_1_verts:
@@ -123,15 +126,35 @@ def corner_wall_to_vert_groups(obj, vert_locs):
                 ubound=value,
                 select_mode='VERT',
                 coords='GLOBAL',
-                additive=True
+                additive=True,
+                buffer=0.0001
             )
+            select_by_loc(
+                lbound=(value[0], value[1], value[2] + 0.001),
+                ubound=(value[0], value[1], value[2] + 0.001),
+                select_mode='VERT',
+                coords='GLOBAL',
+                additive=True,
+                buffer=0.0001
+            )
+            select_by_loc(
+                lbound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.001),
+                ubound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.001),
+                select_mode='VERT',
+                coords='GLOBAL',
+                additive=True,
+                buffer=0.0001
+            )
+            '''
             select_by_loc(
                 lbound=(value[0], value[1], value[2] + obj.dimensions[2]),
                 ubound=(value[0], value[1], value[2] + obj.dimensions[2]),
                 select_mode='VERT',
                 coords='GLOBAL',
-                additive=True
+                additive=True,
+                buffer=0.0001
             )
+            '''
         bpy.ops.object.vertex_group_set_active(group='End 1')
         bpy.ops.object.vertex_group_assign()
         deselect_all()
@@ -143,60 +166,81 @@ def corner_wall_to_vert_groups(obj, vert_locs):
                 ubound=value,
                 select_mode='VERT',
                 coords='GLOBAL',
-                additive=True
+                additive=True,
+                buffer=0.0001
             )
+            select_by_loc(
+                lbound=(value[0], value[1], value[2] + 0.001),
+                ubound=(value[0], value[1], value[2] + 0.001),
+                select_mode='VERT',
+                coords='GLOBAL',
+                additive=True,
+                buffer=0.0001
+            )
+            select_by_loc(
+                lbound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.001),
+                ubound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.001),
+                select_mode='VERT',
+                coords='GLOBAL',
+                additive=True,
+                buffer=0.0001
+            )
+            '''
             select_by_loc(
                 lbound=(value[0], value[1], value[2] + obj.dimensions[2]),
                 ubound=(value[0], value[1], value[2] + obj.dimensions[2]),
                 select_mode='VERT',
                 coords='GLOBAL',
-                additive=True
+                additive=True,
+                buffer=0.0001
             )
+            '''
         bpy.ops.object.vertex_group_set_active(group='End 2')
         bpy.ops.object.vertex_group_assign()
         deselect_all()
 
-    for key, value in vert_locs.items():
-        if key in bottom_verts:
-            select_by_loc(
-                lbound=value,
-                ubound=value,
-                select_mode='VERT',
-                coords='GLOBAL',
-                additive=True
-            )
-        bpy.ops.object.vertex_group_set_active(group='Bottom')
-        bpy.ops.object.vertex_group_assign()
-        deselect_all()
+    origin = vert_locs['origin']
+    select_by_loc(
+        lbound=origin,
+        ubound=(vert_locs['x_outer_2'][0] + 1, vert_locs['end_2_1'][1], origin[2] + 0.001),
+        select_mode='VERT',
+        coords='GLOBAL',
+        additive=True,
+        buffer=0.0001
+    )
+    bpy.ops.object.vertex_group_set_active(group='Bottom')
+    bpy.ops.object.vertex_group_assign()
+    deselect_all()
 
-    for key, value in vert_locs.items():
-        if key in bottom_verts:
-            select_by_loc(
-                lbound=(value[0], value[1], value[2] + obj.dimensions[2]),
-                ubound=(value[0], value[1], value[2] + obj.dimensions[2]),
-                select_mode='VERT',
-                coords='GLOBAL',
-                additive=True
-            )
-        bpy.ops.object.vertex_group_set_active(group='Top')
-        bpy.ops.object.vertex_group_assign()
-        deselect_all()
+    select_by_loc(
+        lbound=(origin[0], origin[1], origin[2] + obj.dimensions[2] - 0.001),
+        ubound=(vert_locs['x_outer_2'][0] + 1, vert_locs['end_2_1'][1], origin[2] + obj.dimensions[2]),
+        select_mode='VERT',
+        coords='GLOBAL',
+        additive=True,
+        buffer=0.0001
+    )
+    bpy.ops.object.vertex_group_set_active(group='Top')
+    bpy.ops.object.vertex_group_assign()
+    deselect_all()
 
     for key, value in vert_locs.items():
         if key in outer_verts:
             select_by_loc(
-                lbound=value,
-                ubound=value,
+                lbound=(value[0], value[1], value[2] + 0.001),
+                ubound=(value[0], value[1], value[2] + 0.001),
                 select_mode='VERT',
                 coords='GLOBAL',
-                additive=True
+                additive=True,
+                buffer=0.0001
             )
             select_by_loc(
-                lbound=(value[0], value[1], value[2] + obj.dimensions[2]),
-                ubound=(value[0], value[1], value[2] + obj.dimensions[2]),
+                lbound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.001),
+                ubound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.001),
                 select_mode='VERT',
                 coords='GLOBAL',
-                additive=True
+                additive=True,
+                buffer=0.0001
             )
         bpy.ops.object.vertex_group_set_active(group='Outer')
         bpy.ops.object.vertex_group_assign()
@@ -205,18 +249,20 @@ def corner_wall_to_vert_groups(obj, vert_locs):
     for key, value in vert_locs.items():
         if key in inner_verts:
             select_by_loc(
-                lbound=value,
-                ubound=value,
+                lbound=(value[0], value[1], value[2] + 0.001),
+                ubound=(value[0], value[1], value[2] + 0.001),
                 select_mode='VERT',
                 coords='GLOBAL',
-                additive=True
+                additive=True,
+                buffer=0.0001
             )
             select_by_loc(
-                lbound=(value[0], value[1], value[2] + obj.dimensions[2]),
-                ubound=(value[0], value[1], value[2] + obj.dimensions[2]),
+                lbound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.001),
+                ubound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.001),
                 select_mode='VERT',
                 coords='GLOBAL',
-                additive=True
+                additive=True,
+                buffer=0.0001
             )
         bpy.ops.object.vertex_group_set_active(group='Inner')
         bpy.ops.object.vertex_group_assign()

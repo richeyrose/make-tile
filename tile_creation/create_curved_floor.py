@@ -2,7 +2,9 @@ import os
 import bpy
 from math import radians
 from .. lib.turtle.scripts.curved_floor import draw_neg_curved_slab, draw_pos_curved_slab, draw_openlock_pos_curved_base
-from .. lib.utils.vertex_groups import curved_floor_to_vert_groups
+from .. lib.utils.vertex_groups import (
+    curved_floor_to_vert_groups,
+    construct_displacement_mod_vert_group)
 from .. utils.registration import get_prefs
 from .. materials.materials import (
     assign_displacement_materials,
@@ -393,22 +395,26 @@ def create_cores(tile_props, base):
     secondary_material = bpy.data.materials[preferences.secondary_material]
 
     image_size = bpy.context.scene.mt_tile_resolution
-    deselect_all()
+
+    textured_vertex_groups = ['Top']
+
+    # create a vertex group for the displacement modifier
+    mod_vert_group_name = construct_displacement_mod_vert_group(displacement_core, textured_vertex_groups)
 
     assign_displacement_materials(
         displacement_core,
         [image_size, image_size],
         primary_material,
-        secondary_material)
+        secondary_material,
+        vert_group=mod_vert_group_name)
 
     assign_preview_materials(
         preview_core,
         primary_material,
         secondary_material,
-        ['Top'])
+        textured_vertex_groups)
 
-    slabs = [preview_core, displacement_core]
-
-    mode('OBJECT')
+    preview_core.mt_object_props.geometry_type = 'PREVIEW'
+    displacement_core.mt_object_props.geometry_type = 'DISPLACEMENT'
 
     return preview_core, displacement_core

@@ -3,7 +3,9 @@ import bpy
 from math import tan, radians
 from mathutils import Vector
 from .. lib.utils.collections import add_object_to_collection
-from .. lib.utils.vertex_groups import corner_wall_to_vert_groups
+from .. lib.utils.vertex_groups import (
+    corner_wall_to_vert_groups,
+    construct_displacement_mod_vert_group)
 from .. lib.utils.utils import mode
 from .. utils.registration import get_prefs
 
@@ -88,6 +90,7 @@ def create_corner_wall(tile_empty):
             scene.mt_tile_y,
             scene.mt_tile_z))
         preview_core, displacement_core = create_plain_cores(base)
+
         tile_meshes.extend([preview_core, displacement_core])
 
     if main_part_blueprint == 'NONE':
@@ -157,7 +160,7 @@ def create_openlock_base():
 
     # clip cutters - leg 1
     leg_len = base_triangles['b_adj']
-    corner_loc = vert_locs['d']
+    corner_loc = vert_locs['x_inner_2']
     clip_cutter_1 = create_openlock_base_clip_cutter(leg_len, corner_loc, -0.25)
     select(clip_cutter_1.name)
     bpy.ops.transform.mirror(constraint_axis=(False, True, False))
@@ -169,7 +172,7 @@ def create_openlock_base():
 
     # clip cutters - leg 2
     leg_len = base_triangles['d_adj']
-    corner_loc = vert_locs['d']
+    corner_loc = vert_locs['x_inner_2']
     clip_cutter_2 = create_openlock_base_clip_cutter(leg_len, corner_loc, 0.25)
     select(clip_cutter_2.name)
     bpy.ops.transform.rotate(
@@ -299,6 +302,7 @@ def create_plain_cores(base):
     tile_props = bpy.context.collection.mt_tile_props
 
     preview_core = create_plain_wall_core()
+
     preview_core, displacement_core = create_displacement_object(preview_core)
 
     preview_core.parent = base
@@ -311,8 +315,27 @@ def create_plain_cores(base):
 
     image_size = bpy.context.scene.mt_tile_resolution
 
-    assign_displacement_materials(displacement_core, [image_size, image_size], primary_material, secondary_material)
-    assign_preview_materials(preview_core, primary_material, secondary_material, textured_vertex_groups=['Outer', 'Inner', 'Top'])
+    textured_vertex_groups = ['Outer', 'Inner']
+
+    mod_vert_group_name = construct_displacement_mod_vert_group(
+        displacement_core,
+        textured_vertex_groups)
+
+    assign_displacement_materials(
+        displacement_core,
+        [image_size, image_size],
+        primary_material,
+        secondary_material,
+        vert_group=mod_vert_group_name)
+
+    assign_preview_materials(
+        preview_core,
+        primary_material,
+        secondary_material,
+        textured_vertex_groups)
+
+    preview_core.mt_object_props.geometry_type = 'PREVIEW'
+    displacement_core.mt_object_props.geometry_type = 'DISPLACEMENT'
 
     displacement_core.hide_viewport = True
 
@@ -449,37 +472,54 @@ def draw_corner_outline(triangles, angle, thickness):
     # We save the location of each vertex as it is drawn
     # to use for making vert groups & positioning cutters
     vert_loc = {
-        'a': orig_loc
+        'origin': orig_loc
     }
     t.pd()
     # draw X leg
     t.rt(d=angle)
-    t.fd(d=triangles['a_adj'])
-    vert_loc['b'] = turtle.location.copy()
+    t.fd(d=triangles['a_adj'] - 0.001)
+    vert_loc['x_outer_1'] = turtle.location.copy()
+    t.fd(d=0.001)
+    vert_loc['x_outer_2'] = turtle.location.copy()
     t.lt(d=90)
-    t.fd(d=thickness)
-    vert_loc['c'] = turtle.location.copy()
+    t.fd(d=0.001)
+    vert_loc['end_1_1'] = turtle.location.copy()
+    t.fd(d=thickness - 0.002)
+    vert_loc['end_1_2'] = turtle.location.copy()
+    t.fd(d=0.001)
+    vert_loc['end_1_3'] = turtle.location.copy()
     t.lt(d=90)
-    t.fd(d=triangles['b_adj'])
-    vert_loc['d'] = turtle.location.copy()
-
+    t.fd(d=0.001)
+    vert_loc['x_inner_1'] = turtle.location.copy()
+    t.fd(d=triangles['b_adj'] - 0.001)
+    vert_loc['x_inner_2'] = turtle.location.copy()
     # home
     t.pu()
     turtle.location = orig_loc
     turtle.rotation_euler = orig_rot
 
     t.deselect_all()
-    t.select_at_cursor()
+    t.select_at_cursor(buffer=0.0001)
     t.pd()  # vert loc same as a
 
     # draw Y leg
-    t.fd(d=triangles['c_adj'])
-    vert_loc['e'] = turtle.location.copy()
+    t.fd(d=triangles['c_adj'] - 0.001)
+    vert_loc['y_outer_1'] = turtle.location.copy()
+    t.fd(d=0.001)
+    vert_loc['y_outer_2'] = turtle.location.copy()
     t.rt(d=90)
-    t.fd(d=thickness)
-    vert_loc['f'] = turtle.location.copy()
+
+    t.fd(d=0.001)
+    vert_loc['end_2_1'] = turtle.location.copy()
+
+    t.fd(d=thickness - 0.002)
+    vert_loc['end_2_2'] = turtle.location.copy()
+    t.fd(d=0.001)
+    vert_loc['end_2_3'] = turtle.location.copy()
     t.rt(d=90)
-    t.fd(d=triangles['d_adj'])  # vert loc same as d
+    t.fd(d=0.001)
+    vert_loc['y_inner_1'] = turtle.location.copy()
+    t.fd(d=triangles['d_adj'] - 0.001)  # vert loc same as x_inner_2
 
     t.select_all()
     t.merge()
@@ -540,11 +580,17 @@ def create_plain_wall_core():
     t = bpy.ops.turtle
     bpy.ops.mesh.edge_face_add()
     t.pd()
-    t.up(d=wall_height - base_height)
+    t.up(d=0.001)
+    t.up(d=wall_height - base_height - 0.002)
+    t.up(d=0.001)
     t.select_all()
+
     bpy.ops.mesh.normals_make_consistent()
-    bpy.ops.uv.smart_project(island_margin=1)
-    bpy.ops.mesh.quads_convert_to_tris(quad_method='BEAUTY', ngon_method='BEAUTY')
+
+    bpy.ops.mesh.quads_convert_to_tris(
+        quad_method='BEAUTY',
+        ngon_method='BEAUTY')
+
     t.pu()
     t.deselect_all()
     t.home()
@@ -553,6 +599,7 @@ def create_plain_wall_core():
     corner_wall_to_vert_groups(bpy.context.object, vert_locs)
 
     mode('OBJECT')
+    bpy.ops.uv.smart_project(island_margin=1)
     core = bpy.context.object
     obj_props = core.mt_object_props
     obj_props.is_mt_object = True

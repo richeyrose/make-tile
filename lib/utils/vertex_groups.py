@@ -112,12 +112,10 @@ def corner_wall_to_vert_groups(obj, vert_locs):
     deselect_all()
 
     # vert_locs keys
-    leg_1_verts = ['x_outer_1','x_outer_2', 'end_1_1', 'end_1_2', 'end_1_3', 'x_inner_1']
-    leg_2_verts = ['y_outer_1','y_outer_2', 'end_2_1', 'end_2_2', 'end_2_3', 'y_inner_1']
+    leg_1_verts = ['x_outer_1', 'x_outer_2', 'end_1_1', 'end_1_2', 'end_1_3', 'x_inner_1']
+    leg_2_verts = ['y_outer_1', 'y_outer_2', 'end_2_1', 'end_2_2', 'end_2_3', 'y_inner_1']
     outer_verts = ['origin', 'x_outer_1', 'y_outer_1']
     inner_verts = ['x_inner_1', 'x_inner_2', 'y_inner_1']
-    # top verts are at bottom vert location + obj.dimensions[2]
-
 
     for key, value in vert_locs.items():
         if key in leg_1_verts:

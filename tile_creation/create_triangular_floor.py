@@ -52,7 +52,7 @@ def create_triangular_floor(tile_empty):
 
     if base_blueprint == 'OPENLOCK':
         tile_props.base_size[2] = .2756
-        tile_props.tile_size[2] = 0.374
+        tile_props.tile_size[2] = 0.3
         base, dimensions = create_openlock_base(tile_props)
         tile_meshes.append(base)
 

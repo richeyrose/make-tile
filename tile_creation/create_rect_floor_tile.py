@@ -49,7 +49,7 @@ def create_rectangular_floor(tile_empty):
         tile_props.tile_size = Vector((
             scene.mt_tile_x,
             scene.mt_tile_y,
-            0.374))
+            0.3))
 
         tile_props.base_size = Vector((
             tile_props.tile_size[0],
@@ -123,6 +123,11 @@ def create_plain_base(tile_props):
 
     base.location = cursor_start_location
     bpy.context.scene.cursor.location = cursor_start_location
+
+    obj_props = base.mt_object_props
+    obj_props.is_mt_object = True
+    obj_props.geometry_type = 'BASE'
+    obj_props.tile_name = tile_props.tile_name
     return base
 
 
@@ -259,7 +264,11 @@ def create_openlock_floor_base(tile_props):
             clip_cutter_bool.object = clip_cutter
 
     mode('OBJECT')
-    base.mt_object_props.geometry_type = 'BASE'
+
+    obj_props = base.mt_object_props
+    obj_props.is_mt_object = True
+    obj_props.geometry_type = 'BASE'
+    obj_props.tile_name = tile_props.tile_name
     return base
 
 

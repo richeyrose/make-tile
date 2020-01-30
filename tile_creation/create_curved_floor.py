@@ -46,7 +46,7 @@ def create_curved_floor(tile_empty):
 
     if base_blueprint == 'OPENLOCK':
         tile_props.base_size[2] = 0.2756
-        tile_props.tile_size[2] = 0.374
+        tile_props.tile_size[2] = 0.3
         base = create_openlock_base(tile_props)
         tile_meshes.append(base)
 

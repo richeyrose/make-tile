@@ -24,7 +24,7 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
 
     def execute(self, context):
         deselect_all()
-
+        '''
         # current_collection
         original_collection = bpy.context.scene.collection.copy()
 
@@ -33,8 +33,7 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
         lights_collection = create_collection('Lighting_setup', scene_collection)
         activate_collection(lights_collection.name)
 
-        # Get 3d view
-        region, rv3d, v3d, area = view3d_find(True)
+
 
         # delete existing lights
         v3d.overlay.show_extras = True
@@ -89,6 +88,10 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
 
         light_4_obj.location = (5, 5, -5)
         light_4_obj.rotation_euler = (2.5, 0.8, 3)
+        '''
+        
+        # Get 3d view
+        region, rv3d, v3d, area = view3d_find(True)
 
         if context.scene.mt_view_mode == 'CYCLES':
             v3d.shading.type = 'RENDERED'
@@ -108,12 +111,14 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
         if context.scene.mt_view_mode == 'PREVIEW':
             v3d.shading.type = 'MATERIAL'
 
+        '''
         # hide "extras" i.e lights and camera lines
         v3d.overlay.show_extras = False
 
         # switch back to original collection
         activate_collection(original_collection.name)
-
+        '''
+        
         return {'FINISHED'}
 
     @classmethod
@@ -161,7 +166,8 @@ def update_view_mode(self, context):
     if bpy.context.scene.mt_view_mode == 'CYCLES':
         v3d.shading.type = 'RENDERED'
         bpy.context.scene.render.engine = 'CYCLES'
-        bpy.context.space_data.shading.use_scene_world_render = True
+        bpy.context.space_data.shading.use_scene_world_render = False
+        bpy.context.space_data.shading.studio_light = 'city.exr'
         bpy.context.scene.cycles.feature_set = 'EXPERIMENTAL'
 
         if bpy.context.scene.mt_use_gpu is True:
@@ -171,7 +177,7 @@ def update_view_mode(self, context):
         v3d.shading.type = 'RENDERED'
         bpy.context.scene.render.engine = 'BLENDER_EEVEE'
         bpy.context.space_data.shading.use_scene_world_render = False
-        bpy.context.space_data.shading.studio_light = 'night.exr'
+        bpy.context.space_data.shading.studio_light = 'city.exr'
 
     if bpy.context.scene.mt_view_mode == 'PREVIEW':
         v3d.shading.type = 'MATERIAL'

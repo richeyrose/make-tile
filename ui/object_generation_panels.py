@@ -161,6 +161,26 @@ class MT_PT_Tile_Generator_Panel(Panel):
             row.prop(scene, 'mt_tile_x')
             row.prop(scene, 'mt_tile_y')
             row.prop(scene, 'mt_tile_z')
+            
+        elif scene.mt_tile_type == 'CURVED_FLOOR':
+            layout.label(text="Tile Height")
+            layout.prop(scene, 'mt_tile_z')
+
+            layout.label(text="Tile Properties")
+            layout.prop(scene, 'mt_base_radius', text="Straight edge length")
+            layout.prop(scene, 'mt_angle', text="Degrees of arc")
+            layout.prop(scene, 'mt_curve_type')
+            layout.prop(scene, 'mt_segments')
+
+        elif scene.mt_tile_type == 'TRIANGULAR_FLOOR':
+            layout.label(text="Tile Height")
+            row = layout.row()
+            row.prop(scene, 'mt_tile_z')
+
+            layout.label(text="Tile Properties")
+            layout.prop(scene, 'mt_leg_1_len')
+            layout.prop(scene, 'mt_leg_2_len')
+            layout.prop(scene, 'mt_angle')
 
         elif scene.mt_tile_type == 'CURVED_WALL':
             layout.label(text="Tile Properties")
@@ -222,3 +242,4 @@ class MT_PT_Converter_Panel(Panel):
         layout = self.layout
 
         layout.operator('object.convert_to_make_tile', text='Convert object')
+        layout.operator('object.convert', text="Flatten Selected Object")

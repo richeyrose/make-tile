@@ -109,7 +109,7 @@ def assign_displacement_materials(obj, image_size, primary_material, secondary_m
     obj_disp_mod.texture_coords = 'UV'
     obj_disp_mod.direction = 'NORMAL'
     obj_disp_mod.mid_level = 0
-
+    obj_disp_mod.show_render = False
     if vert_group is not 'None':
         obj_disp_mod.vertex_group = vert_group
 

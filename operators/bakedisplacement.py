@@ -193,6 +193,8 @@ def bake_displacement_map(disp_obj, resolution):
 
     # project from preview to displacement mesh when baking
     preview_mesh = disp_obj.mt_object_props.linked_object
+    preview_mesh.hide_viewport = False
+    disp_obj.hide_viewport = False
     deselect_all()
     select(preview_mesh.name)
     select(disp_obj.name)
@@ -200,6 +202,7 @@ def bake_displacement_map(disp_obj, resolution):
     bpy.context.scene.render.bake.use_selected_to_active = True
     bpy.context.scene.render.bake.cage_extrusion = 1
     bpy.context.scene.render.bake.margin = 4
+
 
     # temporarily assign a displacement material so we can bake to an image
     for material in disp_obj.data.materials:

@@ -47,17 +47,18 @@ class MT_PT_Trim_Panel(Panel):
         obj = context.object
         obj_props = obj.mt_object_props
         tile_name = obj_props.tile_name
-        tile_collection = bpy.data.collections[tile_name]
-        tile_props = tile_collection.mt_tile_props
 
-        if tile_props.is_mt_collection is True:
-            tile_name = tile_props.tile_name
+        if tile_name in bpy.data.collections:
+            tile_collection = bpy.data.collections[tile_name]
+            tile_props = tile_collection.mt_tile_props
 
-            for item in tile_props.trimmers_collection:
-                seperator = '.'
-                stripped_name = item.name.split(seperator, 1)[0]
-                layout.prop(item, "value", text=stripped_name)
-        layout.operator('object.convert', text="Flatten Selected Object")
+            if tile_props.is_mt_collection is True:
+                tile_name = tile_props.tile_name
+
+                for item in tile_props.trimmers_collection:
+                    seperator = '.'
+                    stripped_name = item.name.split(seperator, 1)[0]
+                    layout.prop(item, "value", text=stripped_name)
 
 
 class MT_PT_Export_Panel(Panel):

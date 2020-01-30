@@ -50,23 +50,20 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
             # create variants
             i = 0
             while i < context.scene.mt_num_variants:
-                for obj in preview_obs:
-                    obj.hide_viewport = False
-                    linked_obj = obj.mt_object_props.linked_object
+                for preview_obj in preview_obs:
+                    preview_obj.hide_viewport = False
+                    linked_obj = preview_obj.mt_object_props.linked_object
                     disp_mat_coll = linked_obj.mt_object_props.disp_materials_collection
 
-                    # generate a variant if this isn't the first time loop has run
                     for item in disp_mat_coll:
                         material = item.material
                         tree = material.node_tree
                         seed_node = tree.nodes['Seed']
                         rand_seed = random()
-
-                        if i != 0:
-                            seed_node.outputs[0].default_value = rand_seed
-                            # bake the displacement map
-                            activate(obj.name)
-                            bpy.ops.scene.bake_displacement()
+                        seed_node.outputs[0].default_value = rand_seed
+                        # bake the displacement map
+                        activate(preview_obj.name)
+                        bpy.ops.scene.mt_bake_displacement()
 
                 # save list of visible objects in tile collection
                 deselect_all()

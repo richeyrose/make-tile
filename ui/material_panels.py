@@ -13,10 +13,7 @@ class MT_PT_Material_Slots_Panel(Panel):
     @classmethod
     def poll(cls, context):
         obj = context.object
-        if obj is not None:
-            mat = obj.active_material
-            return mat is not None
-        return False
+        return (obj is not None)
 
     def draw(self, context):
         layout = self.layout
@@ -33,7 +30,13 @@ class MT_PT_Material_Slots_Panel(Panel):
             row = layout.row()
 
             row.template_list("MATERIAL_UL_matslots", "", obj, "material_slots", obj, "active_material_index", rows=rows)
+
+            col = row.column(align=True)
+            col.operator("object.material_slot_add", icon='ADD', text="")
+            col.operator("object.material_slot_remove", icon='REMOVE', text="")
+
             layout.template_ID(obj, "active_material")
+
             row = layout.row()
             row.operator('material.mt_copy')
             row.operator('material.mt_export_material', text='Save Material')
@@ -103,8 +106,7 @@ class MT_PT_Material_Mapping_Options_Panel(Panel):
     def poll(cls, context):
         obj = context.object
         if obj is not None:
-            mat = obj.active_material
-            return mat is not None
+            return obj
         return False
 
     @classmethod

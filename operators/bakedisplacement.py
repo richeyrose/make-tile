@@ -129,7 +129,7 @@ class MT_OT_Bake_Displacement(bpy.types.Operator):
         disp_mod = disp_obj.modifiers[disp_obj['disp_mod_name']]
         disp_mod.texture = disp_texture
         disp_mod.mid_level = 0
-        disp_mod.strength = 0.1
+        disp_mod.strength = context.scene.mt_displacement_strength
         subsurf_mod = disp_obj.modifiers[disp_obj['subsurf_mod_name']]
 
         subsurf_mod.levels = bpy.context.scene.mt_subdivisions
@@ -157,7 +157,7 @@ def bake_displacement_map(disp_obj, resolution):
     bpy.context.scene.cycles.bake_type = 'EMIT'
 
     image_resolution = bpy.context.scene.mt_tile_resolution
-    disp_image = bpy.data.images.new(disp_obj.name + '.image', width=image_resolution, height=image_resolution)
+    disp_image = bpy.data.images.new(disp_obj.name + '.image', width=image_resolution, height=image_resolution, float_buffer=True)
     disp_mat_coll = disp_obj.mt_object_props.disp_materials_collection
 
     for item in disp_mat_coll:

@@ -203,9 +203,20 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             default='OBJECT'
         )
 
+        bpy.types.Scene.mt_displacement_strength = bpy.props.FloatProperty(
+            name="Displacement Strength",
+            description="Overall Displacement Strength",
+            default=0.1,
+            min=0.0,
+            max=1,
+            step=1,
+            precision=3,
+            update=update_disp_strength
+        )
+
         bpy.types.Scene.mt_tile_resolution = bpy.props.IntProperty(
             name="Resolution",
-            description="Bake resolution of displacement maps. Higher = better quality but slower",
+            description="Bake resolution of displacement maps. Higher = better quality but slower. Also images are 32 bit so 4K and 8K images can be gigabytes in size",
             default=1024,
             min=1024,
             max=8192,
@@ -371,6 +382,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         del bpy.types.Scene.mt_tile_z
         del bpy.types.Scene.mt_base_blueprint
         del bpy.types.Scene.mt_tile_resolution
+        del bpy.types.Scene.mt_displacement_strength
         del bpy.types.Scene.mt_tile_material_1
         del bpy.types.Scene.mt_material_mapping_method
         del bpy.types.Scene.mt_subdivisions
@@ -422,6 +434,14 @@ def update_material_enums(self, context):
             enum_items.append(enum)
 
     return enum_items
+
+
+def update_disp_strength(self, context):
+    disp_obj = bpy.context.object
+
+    if 'Displacement' in disp_obj.modifiers:
+        mod = disp_obj.modifiers['Displacement']
+        mod.strength = context.scene.mt_displacement_strength
 
 
 def update_disp_subdivisions(self, context):

@@ -62,6 +62,7 @@ class MT_PT_Material_Options_Panel(Panel):
         scene = context.scene
         layout = self.layout
         layout.prop(scene, 'mt_tile_resolution')
+        layout.prop(scene, 'mt_displacement_strength')
         obj = context.object
         material = obj.active_material
         tree = material.node_tree

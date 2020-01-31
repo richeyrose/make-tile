@@ -21,12 +21,11 @@ from . generic import finalise_tile
 
 
 # TODO: Fix dimensioning disappearing when no base
-def create_curved_floor(tile_empty):
+def create_curved_floor():
     scene = bpy.context.scene
     cursor = scene.cursor
     cursor_orig_loc = cursor.location.copy()
     cursor.location = (0, 0, 0)
-    tile_empty.location = (0, 0, 0)
 
     tile_props = bpy.context.collection.mt_tile_props
     tile_name = tile_props.tile_name
@@ -73,11 +72,10 @@ def create_curved_floor(tile_empty):
         tile_props.tile_size = tile_props.base_size
         preview_core = None
 
-    trimmers = create_curved_floor_trimmers(tile_props, tile_empty)
+    trimmers = create_curved_floor_trimmers(tile_props, base)
 
     finalise_tile(tile_meshes,
                   trimmers,
-                  tile_empty,
                   base,
                   preview_core,
                   cursor_orig_loc)

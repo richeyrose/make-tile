@@ -21,7 +21,7 @@ from . create_displacement_mesh import create_displacement_object
 from . generic import finalise_tile
 
 
-def create_straight_wall(tile_empty):
+def create_straight_wall():
     """Creates a straight wall tile
     Keyword arguments:
     tile_empty -- EMPTY, empty which the tile is parented to.
@@ -34,7 +34,7 @@ def create_straight_wall(tile_empty):
     cursor = scene.cursor
     cursor_orig_loc = cursor.location.copy()
     cursor.location = (0, 0, 0)
-    tile_empty.location = (0, 0, 0)
+    #tile_empty.location = (0, 0, 0)
 
     # A "Tile" is actually a blender collection of loads of meshes. We save properties of our
     # tile in mt_tile_props, a property group on our collection, and a few properties
@@ -109,12 +109,11 @@ def create_straight_wall(tile_empty):
         tile_props.tile_size,
         tile_props.base_size,
         tile_name,
-        base_blueprint,
-        tile_empty)
+        base,
+        base_blueprint)
 
     finalise_tile(tile_meshes,
                   trimmers,
-                  tile_empty,
                   base,
                   preview_core,
                   cursor_orig_loc)

@@ -44,7 +44,7 @@ from . create_displacement_mesh import create_displacement_object
 
 
 # TODO: fix divide by zero error when have no base
-def create_curved_wall(tile_empty):
+def create_curved_wall():
     """Creates a curved wall tile"""
     # hack to correct for parenting issues.
     # moves cursor to origin and creates objects
@@ -53,9 +53,8 @@ def create_curved_wall(tile_empty):
     cursor = scene.cursor
     cursor_orig_loc = cursor.location.copy()
     cursor.location = (0, 0, 0)
-    tile_empty.location = (0, 0, 0)
 
-    tile_props = get_tile_props(tile_empty)
+    tile_props = bpy.context.collection.mt_tile_props
     tile_name = tile_props.tile_name
 
     # Get base and main part blueprints
@@ -127,11 +126,10 @@ def create_curved_wall(tile_empty):
         tile_props.base_size,
         tile_name,
         base_blueprint,
-        tile_empty)
+        base)
 
     finalise_tile(tile_meshes,
                   trimmers,
-                  tile_empty,
                   base,
                   preview_core,
                   cursor_orig_loc)

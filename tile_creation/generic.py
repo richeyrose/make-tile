@@ -6,7 +6,6 @@ from .. operators.trim_tile import add_bool_modifier
 
 def finalise_tile(tile_meshes,
                   trimmers,
-                  tile_empty,
                   base,
                   preview_core,
                   cursor_orig_loc):
@@ -16,9 +15,6 @@ def finalise_tile(tile_meshes,
     for obj in tile_meshes:
         for trimmer in trimmers:
             add_bool_modifier(obj, trimmer.name)
-
-    # Parent our base to our tile empty
-    base.parent = tile_empty
 
     # Assign secondary material to our base if its a mesh
     if base.type == 'MESH':
@@ -30,6 +26,6 @@ def finalise_tile(tile_meshes,
         add_preview_mesh_subsurf(preview_core)
 
     # Reset location
-    tile_empty.location = cursor_orig_loc
+    base.location = cursor_orig_loc
     cursor = bpy.context.scene.cursor
     cursor.location = cursor_orig_loc

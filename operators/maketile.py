@@ -112,39 +112,27 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         props.main_part_blueprint = context.scene.mt_main_part_blueprint
         props.base_blueprint = context.scene.mt_base_blueprint
 
-        #####################
-        # Create Tile Empty #
-        #####################
-        
-        tile_empty = bpy.data.objects.new(tile_name + ".empty", None)
-        obj_props = tile_empty.mt_object_props
-        obj_props.tile_name = tile_name
-        obj_props.is_mt_object = True
-        obj_props.geometry_type = 'EMPTY'
-        bpy.context.layer_collection.collection.objects.link(tile_empty)
-        tile_empty.location = context.scene.cursor.location
-
         ###############
         # Create Tile #
         ###############
 
         if tile_type == 'STRAIGHT_WALL':
-            create_straight_wall(tile_empty)
+            create_straight_wall()
 
         if tile_type == 'CURVED_WALL':
-            create_curved_wall(tile_empty)
+            create_curved_wall()
 
         if tile_type == 'CORNER_WALL':
-            create_corner_wall(tile_empty)
+            create_corner_wall()
 
         if tile_type == 'RECTANGULAR_FLOOR':
-            create_rectangular_floor(tile_empty)
+            create_rectangular_floor()
 
         if tile_type == 'TRIANGULAR_FLOOR':
-            create_triangular_floor(tile_empty)
+            create_triangular_floor()
 
         if tile_type == 'CURVED_FLOOR':
-            create_curved_floor(tile_empty)
+            create_curved_floor()
 
         return {'FINISHED'}
 

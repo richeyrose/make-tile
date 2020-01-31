@@ -21,7 +21,7 @@ from . generic import finalise_tile
 
 
 #TODO: fix dimensioning disappearing when no base
-def create_triangular_floor(tile_empty):
+def create_triangular_floor():
     """Creates a triangular floor"""
     # hack to correct for parenting issues.
     # moves cursor to origin and creates objects
@@ -31,7 +31,6 @@ def create_triangular_floor(tile_empty):
     cursor = scene.cursor
     cursor_orig_loc = cursor.location.copy()
     cursor.location = (0, 0, 0)
-    tile_empty.location = (0, 0, 0)
 
     tile_props = bpy.context.collection.mt_tile_props
     tile_name = tile_props.tile_name
@@ -77,11 +76,10 @@ def create_triangular_floor(tile_empty):
         preview_core, displacement_core, dimensions = create_cores(tile_props, base)
         tile_meshes.extend([preview_core, displacement_core])
 
-    trimmers = create_tri_floor_tile_trimmers(tile_props, dimensions, tile_empty)
+    trimmers = create_tri_floor_tile_trimmers(tile_props, dimensions, base)
 
     finalise_tile(tile_meshes,
                   trimmers,
-                  tile_empty,
                   base,
                   preview_core,
                   cursor_orig_loc)

@@ -5,43 +5,14 @@ from mathutils import Vector
 from .. lib.turtle.scripts.primitives import draw_cuboid, draw_tri_prism, draw_curved_slab
 from math import radians
 
-'''
-class MT_OT_Add_Trimmers(bpy.types.Operator):
-    bl_idname = "scene.add_trimmers"
-    bl_label = "Adds trimmers to active object"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    @classmethod
-    def poll(cls, context):
-        if bpy.context.object is not None:
-            return bpy.context.object.mode == 'OBJECT'
-        else:
-            return True
-
-    def execute(self, context):
-        obj = context.object
-        obj_props = obj.mt_object_props
-        tile_name = obj_props.tile_name
-        tile_collection = bpy.data.collections[tile_name]
-        tile_props = tile_collection.mt_tile_props
-        trimmers = tile_props.trimmers_collection
-
-        for item in trimmers:
-            trimmer = bpy.data.objects[item.name]
-            bool_mod = add_bool_modifier(obj, trimmer.name)
-            trimmer.display_type = 'WIRE'
-            trimmer.hide_viewport = True
-
-        return{'FINISHED'}
-'''
 
 # works for rectangular floors and straight walls
 def create_cuboid_tile_trimmers(
         tile_size,
         base_size,
         tile_name,
-        base_blueprint,
-        tile_empty):
+        base,
+        base_blueprint):
 
     cursor = bpy.context.scene.cursor
     cursor_orig_location = cursor.location.copy()
@@ -95,14 +66,19 @@ def create_cuboid_tile_trimmers(
 
     cursor.location = cursor_orig_location
 
-    save_trimmer_props(trimmers, tile_empty, tile_name)
+    save_trimmer_props(trimmers, base, tile_name)
 
     bpy.ops.object.delete({"selected_objects": [bbox_proxy]})
 
     return trimmers
 
 
-def create_curved_wall_tile_trimmers(tile_size, base_size, tile_name, base_blueprint, tile_empty):
+def create_curved_wall_tile_trimmers(
+        tile_size,
+        base_size,
+        tile_name,
+        base_blueprint,
+        base):
     deselect_all()
 
     cursor = bpy.context.scene.cursor
@@ -244,14 +220,14 @@ def create_curved_wall_tile_trimmers(tile_size, base_size, tile_name, base_bluep
 
     cursor.location = cursor_orig_location
 
-    save_trimmer_props(trimmers, tile_empty, tile_name)
+    save_trimmer_props(trimmers, base, tile_name)
 
     bpy.ops.object.delete({"selected_objects": [bbox_proxy]})
 
     return trimmers
 
 
-def save_trimmer_props(trimmers, tile_empty, tile_name):
+def save_trimmer_props(trimmers, base, tile_name):
     ctx = {
         'selected_objects': trimmers,
         'active_object': trimmers[0],
@@ -264,7 +240,7 @@ def save_trimmer_props(trimmers, tile_empty, tile_name):
         trimmer.display_type = 'BOUNDS'
         trimmer.hide_viewport = True
 
-        trimmer.parent = tile_empty
+        trimmer.parent = base
 
         obj_props = trimmer.mt_object_props
         obj_props.tile_name = tile_name
@@ -275,10 +251,10 @@ def save_trimmer_props(trimmers, tile_empty, tile_name):
         item = bpy.context.collection.mt_tile_props.trimmers_collection.add()
         item.name = trimmer.name
         item.value = False
-        item.parent = tile_empty.name
+        item.parent = tile_name + base.name
 
 
-def create_curved_floor_trimmers(tile_props, tile_empty):
+def create_curved_floor_trimmers(tile_props, base):
     mode('OBJECT')
     deselect_all
     tile_name = tile_props.tile_name
@@ -325,7 +301,7 @@ def create_curved_floor_trimmers(tile_props, tile_empty):
 
     cursor.location = cursor_orig_location
 
-    save_trimmer_props(trimmers, tile_empty, tile_name)
+    save_trimmer_props(trimmers, base, tile_name)
 
     return trimmers
 
@@ -368,7 +344,7 @@ def create_curved_trimmer(arc, radius, height, width, curve_type, segments, dim,
     return bpy.context.object
 
 
-def create_corner_wall_tile_trimmers(tile_props, tile_empty, base):
+def create_corner_wall_tile_trimmers(tile_props, base):
     deselect_all()
     tile_name = tile_props.tile_name
     cursor = bpy.context.scene.cursor
@@ -425,7 +401,7 @@ def create_corner_wall_tile_trimmers(tile_props, tile_empty, base):
 
     cursor.location = cursor_orig_location
 
-    save_trimmer_props(trimmers, tile_empty, tile_name)
+    save_trimmer_props(trimmers, base, tile_name)
 
     bpy.ops.object.delete({"selected_objects": [bbox_proxy]})
 
@@ -482,7 +458,7 @@ def create_leg_1_corner_wall_trimmer(tile_props, buffer):
     return trimmer
 
 
-def create_tri_floor_tile_trimmers(tile_props, dim, tile_empty):
+def create_tri_floor_tile_trimmers(tile_props, dim, base):
     mode('OBJECT')
     deselect_all()
 
@@ -512,7 +488,7 @@ def create_tri_floor_tile_trimmers(tile_props, dim, tile_empty):
 
     cursor.location = cursor_orig_location
 
-    save_trimmer_props(trimmers, tile_empty, tile_name)
+    save_trimmer_props(trimmers, base, tile_name)
 
     return trimmers
 

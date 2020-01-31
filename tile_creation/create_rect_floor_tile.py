@@ -22,7 +22,7 @@ from . create_displacement_mesh import create_displacement_object
 from . generic import finalise_tile
 
 
-def create_rectangular_floor(tile_empty):
+def create_rectangular_floor():
     """"Creates a rectangular floor"""
     # hack to correct for parenting issues.
     # moves cursor to origin and creates objects
@@ -31,7 +31,6 @@ def create_rectangular_floor(tile_empty):
     cursor = scene.cursor
     cursor_orig_loc = cursor.location.copy()
     cursor.location = (0, 0, 0)
-    tile_empty.location = (0, 0, 0)
 
     tile_props = bpy.context.collection.mt_tile_props
     tile_name = tile_props.tile_name
@@ -97,12 +96,11 @@ def create_rectangular_floor(tile_empty):
         tile_props.tile_size,
         tile_props.base_size,
         tile_name,
-        base_blueprint,
-        tile_empty)
+        base,
+        base_blueprint)
 
     finalise_tile(tile_meshes,
                   trimmers,
-                  tile_empty,
                   base,
                   preview_core,
                   cursor_orig_loc)

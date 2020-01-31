@@ -115,7 +115,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         #####################
         # Create Tile Empty #
         #####################
-
+        
         tile_empty = bpy.data.objects.new(tile_name + ".empty", None)
         obj_props = tile_empty.mt_object_props
         obj_props.tile_name = tile_name

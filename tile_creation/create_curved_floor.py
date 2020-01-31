@@ -46,7 +46,6 @@ def create_curved_floor(tile_empty):
 
     if base_blueprint == 'OPENLOCK':
         tile_props.base_size[2] = 0.2756
-        tile_props.tile_size[2] = 0.3
         base = create_openlock_base(tile_props)
         tile_meshes.append(base)
 
@@ -55,14 +54,21 @@ def create_curved_floor(tile_empty):
         tile_meshes.append(base)
 
     if base_blueprint == 'NONE':
-        tile_properties['base_size'] = (0, 0, 0)
+        tile_props['base_size'] = (0, 0, 0)
         base = bpy.data.objects.new(tile_props.tile_name + '.base', None)
         add_object_to_collection(base, tile_props.tile_name)
 
-    if main_part_blueprint != 'NONE':
+    if main_part_blueprint == 'OPENLOCK':
+        tile_props.tile_size[2] = 0.3
         preview_core, displacement_core = create_cores(tile_props, base)
         tile_meshes.extend([preview_core, displacement_core])
         displacement_core.hide_viewport = True
+
+    if main_part_blueprint == 'PLAIN':
+        preview_core, displacement_core = create_cores(tile_props, base)
+        tile_meshes.extend([preview_core, displacement_core])
+        displacement_core.hide_viewport = True
+
     else:
         tile_props.tile_size = tile_props.base_size
         preview_core = None

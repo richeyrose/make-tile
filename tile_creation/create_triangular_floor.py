@@ -14,13 +14,10 @@ from .. materials.materials import (
 from .. lib.utils.vertex_groups import (
     tri_floor_to_vert_groups,
     construct_displacement_mod_vert_group)
-from .. operators.trim_tile import (
-    create_tri_floor_tile_trimmers,
-    add_bool_modifier)
 from . generic import finalise_tile
 
 
-#TODO: fix dimensioning disappearing when no base
+# TODO: fix dimensioning disappearing when no base
 def create_triangular_floor():
     """Creates a triangular floor"""
     # hack to correct for parenting issues.
@@ -76,10 +73,7 @@ def create_triangular_floor():
         preview_core, displacement_core, dimensions = create_cores(tile_props, base)
         tile_meshes.extend([preview_core, displacement_core])
 
-    trimmers = create_tri_floor_tile_trimmers(tile_props, dimensions, base)
-
     finalise_tile(tile_meshes,
-                  trimmers,
                   base,
                   preview_core,
                   cursor_orig_loc)

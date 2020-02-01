@@ -1,20 +1,12 @@
 import bpy
 from .. utils.registration import get_prefs
 from .. materials.materials import add_preview_mesh_subsurf
-from .. operators.trim_tile import add_bool_modifier
 
 
 def finalise_tile(tile_meshes,
-                  trimmers,
                   base,
                   preview_core,
                   cursor_orig_loc):
-    '''add trimmer bools, parent to base etc.
-    '''
-
-    for obj in tile_meshes:
-        for trimmer in trimmers:
-            add_bool_modifier(obj, trimmer.name)
 
     # Assign secondary material to our base if its a mesh
     if base.type == 'MESH':

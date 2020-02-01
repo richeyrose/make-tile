@@ -49,9 +49,10 @@ class MT_PT_Tile_Generator_Panel(Panel):
 
         elif scene.mt_tile_type == 'CURVED_WALL':
             layout.label(text="Tile Properties:")
-            layout.prop(scene, 'mt_wall_radius')
+            layout.prop(scene, 'mt_base_radius')
             layout.prop(scene, 'mt_degrees_of_arc')
             layout.prop(scene, 'mt_segments')
+            layout.prop(scene, 'mt_base_socket_side')
             layout.label(text="Wall Height")
             layout.prop(scene, 'mt_tile_z')
 

@@ -47,7 +47,7 @@ def draw_openlock_pos_curved_base(length, segments, angle, height):
 
     bpy.ops.object.editmode_toggle()
 
-    # save outer loop vert inidices
+    # save outer loop vert indices
     outer_loop = []
     for vert in bpy.context.object.data.vertices:
         if vert.select is True:
@@ -209,7 +209,7 @@ def draw_openlock_pos_curved_base(length, segments, angle, height):
 
     bpy.ops.object.editmode_toggle()
 
-    # select loop 2 and extruse up
+    # select loop 2 and extrude up
     for vert in bpy.context.object.data.vertices:
         if vert.index in loop_2:
             vert.select = True

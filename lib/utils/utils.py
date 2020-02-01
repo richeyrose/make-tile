@@ -84,7 +84,7 @@ def add_circle_array(obj, circle_center, item_count, axis, degrees_of_arc):
     array_mod.offset_object = circle_origin_empty
 
     # rotate empty
-    angle = degrees_of_arc / item_count
+    angle = degrees_of_arc
     circle_origin_empty.rotation_euler.rotate_axis(axis, radians(angle))
 
     cursor.location = cursor_orig_location

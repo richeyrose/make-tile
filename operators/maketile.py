@@ -349,7 +349,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             step=45,
             precision=1,
             max=359.999,
-            min=-359.999
+            min=0
         )
 
         bpy.types.Scene.mt_segments = bpy.props.IntProperty(

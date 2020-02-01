@@ -15,10 +15,6 @@ from .. materials.materials import (
 
 from . create_straight_wall_tile import create_openlock_wall_cutters
 
-from .. operators.trim_tile import (
-    create_corner_wall_tile_trimmers,
-    add_bool_modifier)
-
 from .. lib.utils.selection import (
     deselect_all,
     select_all,
@@ -95,10 +91,7 @@ def create_corner_wall():
         tile_props.tile_size = tile_props.base_size
         preview_core = None
 
-    trimmers = create_corner_wall_tile_trimmers(tile_props, base)
-
     finalise_tile(tile_meshes,
-                  trimmers,
                   base,
                   preview_core,
                   cursor_orig_loc)

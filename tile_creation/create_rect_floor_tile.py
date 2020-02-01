@@ -15,9 +15,6 @@ from .. lib.utils.vertex_groups import (
 from .. materials.materials import (
     assign_displacement_materials,
     assign_preview_materials)
-from .. operators.trim_tile import (
-    create_cuboid_tile_trimmers,
-    add_bool_modifier)
 from . create_displacement_mesh import create_displacement_object
 from . generic import finalise_tile
 
@@ -89,18 +86,7 @@ def create_rectangular_floor():
         tile_props.tile_size = tile_props.base_size
         preview_core = None
 
-    # create tile trimmers. Used to ensure that displaced
-    # textures don't extend beyond the original bounds of the tile.
-    # We store per tile details of the trimmers on our tile empty
-    trimmers = create_cuboid_tile_trimmers(
-        tile_props.tile_size,
-        tile_props.base_size,
-        tile_name,
-        base,
-        base_blueprint)
-
     finalise_tile(tile_meshes,
-                  trimmers,
                   base,
                   preview_core,
                   cursor_orig_loc)

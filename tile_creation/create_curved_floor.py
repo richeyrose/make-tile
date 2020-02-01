@@ -14,9 +14,7 @@ from .. lib.utils.selection import select, activate, deselect_all, select_all, s
 from .. lib.utils.utils import mode
 from .. lib.utils.collections import add_object_to_collection
 from .create_corner_wall import calculate_corner_wall_triangles, move_cursor_to_wall_start, draw_corner_outline
-from ..operators.trim_tile import (
-    create_curved_floor_trimmers,
-    add_bool_modifier)
+
 from . generic import finalise_tile
 
 
@@ -68,14 +66,11 @@ def create_curved_floor():
         tile_meshes.extend([preview_core, displacement_core])
         displacement_core.hide_viewport = True
 
-    else:
+    if main_part_blueprint == 'NONE':
         tile_props.tile_size = tile_props.base_size
         preview_core = None
 
-    trimmers = create_curved_floor_trimmers(tile_props, base)
-
     finalise_tile(tile_meshes,
-                  trimmers,
                   base,
                   preview_core,
                   cursor_orig_loc)
@@ -185,7 +180,7 @@ def create_openlock_neg_curve_base_cutters(tile_props):
         face_dist,
         angle)
 
-    # reuse method we use to work out where to start our wall
+    # reuse method we use to work out where to start our corner wall
     move_cursor_to_wall_start(
         cutter_triangles_1,
         angle,

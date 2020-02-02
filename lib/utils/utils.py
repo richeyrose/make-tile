@@ -3,6 +3,7 @@ import bpy
 import bmesh
 from mathutils import Vector
 from . selection import select, activate, deselect_all, select_all
+from . collections import add_object_to_collection
 
 
 def mode(mode_name):
@@ -50,7 +51,7 @@ def view3d_find(return_area=False):
     return None, None
 
 
-def add_circle_array(obj, circle_center, item_count, axis, degrees_of_arc):
+def add_circle_array(obj, tile_name, circle_center, item_count, axis, degrees_of_arc):
     '''adds a circle array to an object and returns the array name
 
     Keyword arguments:
@@ -77,7 +78,7 @@ def add_circle_array(obj, circle_center, item_count, axis, degrees_of_arc):
 
     # create an empty
     circle_origin_empty = bpy.data.objects.new("circle_origin_empty", None)
-    bpy.context.scene.collection.objects.link(circle_origin_empty)
+    add_object_to_collection(circle_origin_empty, tile_name)
     circle_origin_empty.location = circle_center
 
     # use empty as offset object

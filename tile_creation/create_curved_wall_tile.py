@@ -188,82 +188,39 @@ def create_openlock_base_clip_cutter(base, tile_props, clip_side):
 
     clip_cutter.location[1] = radius
 
-    circle_center = cursor_orig_loc
-    rot_offset = (tile_props.degrees_of_arc / 2) - 22.5
-
-    bpy.ops.transform.rotate(
-        value=radians(rot_offset),
-        orient_axis='Z',
-        center_override=circle_center)
-    '''
-    bpy.ops.object.transform_apply(
-        location=False,
-        scale=False,
-        properties=False)
-    '''
+    if clip_side == 'OUTER':
+        clip_cutter.rotation_euler[2] = radians(180)
 
     num_cutters = modf((tile_props.degrees_of_arc - 22.5) / 22.5)
-    
-    array_name, empty = add_circle_array(
-        clip_cutter,
-        circle_center,
-        num_cutters[1],
-        'Z',
-        (tile_props.degrees_of_arc-45)*-1)
+    circle_center = cursor_orig_loc
 
-    '''
-    deselect_all()
-    select(clip_cutter.name)
+    if num_cutters[1] == 1:
+        initial_rot = (tile_props.degrees_of_arc / 2)
 
-    # TODO: Override context. Haven't worked out what we need for it yet
-    bpy.ops.transform.rotate(value=radians(180), orient_axis='Z')
-    bpy.ops.object.transform_apply(location=False, scale=False, properties=False)
-
-    loc = clip_cutter.location
-
-    if tile_props.degrees_of_arc > 0:
-        y_offset = loc[1] + tile_props.base_radius
     else:
-        y_offset = loc[1] - tile_props.base_radius
-
-    circle_center = Vector((
-        loc[0],
-        y_offset,
-        loc[2]))
-
-    if tile_props.degrees_of_arc > 0:
-        rot_offset = (tile_props.degrees_of_arc / 2) - 22.5
-    else:
-        rot_offset = (tile_props.degrees_of_arc / 2) + 22.5
+        initial_rot = 22.5
 
     bpy.ops.transform.rotate(
-        value=radians(rot_offset),
+        value=radians(initial_rot),
         orient_axis='Z',
         center_override=circle_center)
 
     bpy.ops.object.transform_apply(
         location=False,
         scale=False,
+        rotation=True,
         properties=False)
-
-    if tile_props.degrees_of_arc > 0:
-        num_cutters = modf((tile_props.degrees_of_arc - 22.5) / 22.5)
-    else:
-        num_cutters = modf((tile_props.degrees_of_arc * -1 - 22.5) / 22.5)
-
-    if tile_props.degrees_of_arc > 0:
-        rot_offset = tile_props.degrees_of_arc - 22.5
-    else:
-        rot_offset = tile_props.degrees_of_arc + 22.5
 
     array_name, empty = add_circle_array(
         clip_cutter,
+        tile_props.tile_name,
         circle_center,
         num_cutters[1],
         'Z',
-        rot_offset)
+        22.5 * -1)
 
     empty.parent = base
+
     empty.hide_viewport = True
 
     clip_cutter.parent = base
@@ -277,7 +234,7 @@ def create_openlock_base_clip_cutter(base, tile_props, clip_side):
     obj_props.is_mt_object = True
     obj_props.tile_name = tile_props.tile_name
     obj_props.geometry_type = 'CUTTER'
-    '''
+
     return clip_cutter
 
 

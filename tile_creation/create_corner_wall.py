@@ -25,7 +25,7 @@ from . create_displacement_mesh import create_displacement_object
 from . generic import finalise_tile
 
 
-def create_corner_wall():
+def create_corner_wall(tile_props):
     """Creates a corner wall tile
     Keyword arguments:
     """
@@ -37,29 +37,22 @@ def create_corner_wall():
     cursor_orig_loc = cursor.location.copy()
     cursor.location = (0, 0, 0)
 
-    tile_props = bpy.context.collection.mt_tile_props
     tile_name = tile_props.tile_name
 
     # Get base and main part blueprints
     base_blueprint = tile_props.base_blueprint
     main_part_blueprint = tile_props.main_part_blueprint
 
-    # store some tile props
-    tile_props.leg_1_len = scene.mt_leg_1_len
-    tile_props.leg_2_len = scene.mt_leg_2_len
-    tile_props.angle = scene.mt_angle
-
     # We store a list of meshes here because we're going to add
     # trimmer modifiers to all of them later but we don't yet
     # know the full dimensions of our tile
     tile_meshes = []
     if base_blueprint == 'OPENLOCK':
-        tile_props.base_size = Vector((1, 0.5, 0.2755))
-        base = create_openlock_base()
+        base = create_openlock_base(tile_props)
         tile_meshes.append(base)
 
     if base_blueprint == 'PLAIN':
-        base, base_triangles, vert_locs = create_plain_base()
+        base, base_triangles, vert_locs = create_plain_base(tile_props)
         tile_meshes.append(base)
 
     if base_blueprint == 'NONE':
@@ -70,21 +63,11 @@ def create_corner_wall():
         add_object_to_collection(base, tile_name)
 
     if tile_props.main_part_blueprint == 'OPENLOCK':
-        tile_props.tile_size = Vector((
-            scene.mt_tile_x,
-            0.3149,
-            scene.mt_tile_z))
-
-        preview_core, displacement_core = create_openlock_cores(base)
+        preview_core, displacement_core = create_openlock_cores(base, tile_props)
         tile_meshes.extend([preview_core, displacement_core])
 
     if tile_props.main_part_blueprint == 'PLAIN':
-        tile_props.tile_size = Vector((
-            scene.mt_tile_x,
-            scene.mt_tile_y,
-            scene.mt_tile_z))
-        preview_core, displacement_core = create_plain_cores(base)
-
+        preview_core, displacement_core = create_plain_cores(base, tile_props)
         tile_meshes.extend([preview_core, displacement_core])
 
     if main_part_blueprint == 'NONE':
@@ -97,9 +80,7 @@ def create_corner_wall():
                   cursor_orig_loc)
 
 
-def create_plain_base():
-    tile_props = bpy.context.collection.mt_tile_props
-
+def create_plain_base(tile_props):
     leg_1_len = tile_props.leg_1_len
     leg_2_len = tile_props.leg_2_len
     base_height = tile_props.base_size[2]
@@ -139,10 +120,10 @@ def create_plain_base():
     return base, base_triangles, vert_locs
 
 
-def create_openlock_base():
-    tile_props = bpy.context.collection.mt_tile_props
+def create_openlock_base(tile_props):
+    tile_props.base_size = Vector((1, 0.5, 0.2755))
 
-    base, base_triangles, vert_locs = create_plain_base()
+    base, base_triangles, vert_locs = create_plain_base(tile_props)
 
     slot_cutter = create_openlock_base_slot_cutter()
 
@@ -156,7 +137,7 @@ def create_openlock_base():
     # clip cutters - leg 1
     leg_len = base_triangles['b_adj']
     corner_loc = vert_locs['x_inner_2']
-    clip_cutter_1 = create_openlock_base_clip_cutter(leg_len, corner_loc, -0.25)
+    clip_cutter_1 = create_openlock_base_clip_cutter(leg_len, corner_loc, -0.25, tile_props)
     select(clip_cutter_1.name)
     bpy.ops.transform.mirror(constraint_axis=(False, True, False))
     bpy.ops.transform.rotate(
@@ -168,7 +149,7 @@ def create_openlock_base():
     # clip cutters - leg 2
     leg_len = base_triangles['d_adj']
     corner_loc = vert_locs['x_inner_2']
-    clip_cutter_2 = create_openlock_base_clip_cutter(leg_len, corner_loc, 0.25)
+    clip_cutter_2 = create_openlock_base_clip_cutter(leg_len, corner_loc, 0.25, tile_props)
     select(clip_cutter_2.name)
     bpy.ops.transform.rotate(
         value=radians(-90),
@@ -190,8 +171,7 @@ def create_openlock_base():
     return base
 
 
-def create_openlock_base_clip_cutter(leg_len, corner_loc, offset):
-    tile_props = bpy.context.collection.mt_tile_props
+def create_openlock_base_clip_cutter(leg_len, corner_loc, offset, tile_props):
     mode('OBJECT')
     # load cutter
     # Get cutter
@@ -230,14 +210,17 @@ def create_openlock_base_clip_cutter(leg_len, corner_loc, offset):
     return clip_cutter
 
 
-def create_openlock_cores(base):
-    tile_props = bpy.context.collection.mt_tile_props
+def create_openlock_cores(base, tile_props):
+    tile_props.tile_size = Vector((
+        tile_props.tile_size[0],
+        0.3149,
+        tile_props.tile_size[2]))
     cursor = bpy.context.scene.cursor
-    preview_core, displacement_core = create_plain_cores(base)
+    preview_core, displacement_core = create_plain_cores(base, tile_props)
 
     cores = [preview_core, displacement_core]
 
-    cutters = create_openlock_wall_cutters(preview_core)
+    cutters = create_openlock_wall_cutters(preview_core, tile_props)
     left_cutters = [cutters[0], cutters[1]]
     right_cutters = [cutters[2], cutters[3]]
 
@@ -299,10 +282,8 @@ def create_openlock_cores(base):
     return preview_core, displacement_core
 
 
-def create_plain_cores(base):
-    tile_props = bpy.context.collection.mt_tile_props
-
-    preview_core = create_plain_wall_core()
+def create_plain_cores(base, tile_props):
+    preview_core = create_plain_wall_core(tile_props)
 
     preview_core, displacement_core = create_displacement_object(preview_core)
 
@@ -531,8 +512,7 @@ def draw_corner_outline(triangles, angle, thickness):
     return vert_loc
 
 
-def create_plain_wall_core():
-    tile_props = bpy.context.collection.mt_tile_props
+def create_plain_wall_core(tile_props):
 
     base_thickness = tile_props.base_size[1]
     wall_thickness = tile_props.tile_size[1]

@@ -42,7 +42,7 @@ from . create_displacement_mesh import create_displacement_object
 
 
 # TODO: fix divide by zero error when have no base
-def create_curved_wall():
+def create_curved_wall(tile_props):
     """Creates a curved wall tile"""
     # hack to correct for parenting issues.
     # moves cursor to origin and creates objects
@@ -52,26 +52,11 @@ def create_curved_wall():
     cursor_orig_loc = cursor.location.copy()
     cursor.location = (0, 0, 0)
 
-    tile_props = bpy.context.collection.mt_tile_props
     tile_name = tile_props.tile_name
 
     # Get base and main part blueprints
     base_blueprint = tile_props.base_blueprint
     main_part_blueprint = tile_props.main_part_blueprint
-
-    # Get tile dimensions
-    tile_props.base_size = Vector((
-        scene.mt_base_x,
-        scene.mt_base_y,
-        scene.mt_base_z))
-    tile_props.tile_size = Vector((
-        scene.mt_tile_x,
-        scene.mt_tile_y,
-        scene.mt_tile_z)) 
-    tile_props.base_radius = scene.mt_base_radius
-    tile_props.wall_radius = scene.mt_wall_radius
-    tile_props.segments = scene.mt_segments
-    tile_props.degrees_of_arc = scene.mt_degrees_of_arc
 
     # We store a list of meshes here because we're going to add
     # trimmer modifiers to all of them later but we don't yet
@@ -374,6 +359,8 @@ def create_cores(base, tile_props):
     preview_core.mt_object_props.geometry_type = 'PREVIEW'
     displacement_core.mt_object_props.geometry_type = 'DISPLACEMENT'
 
+    displacement_core.hide_viewport = True
+
     return preview_core, displacement_core
 
 
@@ -409,7 +396,6 @@ def create_openlock_cores(base, tile_props):
             item.value = True
             item.parent = core.name
 
-    displacement_core.hide_viewport = True
     return preview_core, displacement_core
 
 

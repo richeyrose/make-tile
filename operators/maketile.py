@@ -453,7 +453,7 @@ def update_material_enums(self, context):
 def update_size_defaults(self, context):
     '''updates tile and base size defaults depending on whether we are generating a base or wall'''
     scene = context.scene
-    if scene.mt_tile_type == 'RECTANGULAR_FLOOR' or scene.mt_tile_type == 'TRIANGULAR_FLOOR' or scene.mt_tile_type == CURVED_FLOOR:
+    if scene.mt_tile_type == 'RECTANGULAR_FLOOR' or scene.mt_tile_type == 'TRIANGULAR_FLOOR' or scene.mt_tile_type == 'CURVED_FLOOR':
         scene.mt_tile_z = 0.3
         scene.mt_base_z = 0.2755
         scene.mt_tile_x = 2

@@ -19,30 +19,21 @@ from . generic import finalise_tile
 
 
 # TODO: Fix dimensioning disappearing when no base
-def create_curved_floor():
+def create_curved_floor(tile_props):
     scene = bpy.context.scene
     cursor = scene.cursor
     cursor_orig_loc = cursor.location.copy()
     cursor.location = (0, 0, 0)
 
-    tile_props = bpy.context.collection.mt_tile_props
     tile_name = tile_props.tile_name
 
     # Get base and main part blueprints
     base_blueprint = tile_props.base_blueprint
     main_part_blueprint = tile_props.main_part_blueprint
 
-    tile_props.base_radius = scene.mt_base_radius
-    tile_props.segments = scene.mt_segments
-    tile_props.angle = scene.mt_angle
-    tile_props.base_size[2] = scene.mt_base_z
-    tile_props.tile_size[2] = scene.mt_tile_z
-    tile_props.curve_type = scene.mt_curve_type
-
     tile_meshes = []
 
     if base_blueprint == 'OPENLOCK':
-        tile_props.base_size[2] = 0.2756
         base = create_openlock_base(tile_props)
         tile_meshes.append(base)
 
@@ -105,6 +96,8 @@ def create_plain_base(tile_props):
 
 
 def create_openlock_base(tile_props):
+    tile_props.base_size[2] = 0.2756
+
     length = tile_props.base_radius
     segments = tile_props.segments
     angle = tile_props.angle

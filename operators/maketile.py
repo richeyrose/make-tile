@@ -96,43 +96,52 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             tile_collection = bpy.data.collections.new(tile_name)
             bpy.data.collections['Floors'].children.link(tile_collection)
 
-        # make final tile name
-        tile_name = tile_collection.name
-
         # We store tile properties in the mt_tile_props property group of
         # the collection so we can access them from any object in this
         # collection.
 
-        activate_collection(tile_collection.name)
-        props = context.collection.mt_tile_props
-        props.tile_name = tile_name
+        scene = context.scene
+
+        props = tile_collection.mt_tile_props
+        props.tile_name = tile_collection.name
         props.is_mt_collection = True
         props.tile_blueprint = tile_blueprint
         props.tile_type = tile_type
-        props.main_part_blueprint = context.scene.mt_main_part_blueprint
-        props.base_blueprint = context.scene.mt_base_blueprint
+        props.main_part_blueprint = scene.mt_main_part_blueprint
+        props.base_blueprint = scene.mt_base_blueprint
+        props.tile_size = (scene.mt_tile_x, scene.mt_tile_y, scene.mt_tile_z)
+        props.base_size = (scene.mt_base_x, scene.mt_base_y, scene.mt_base_z)
+        props.base_radius = scene.mt_base_radius
+        props.base_socket_side = scene.mt_base_socket_side
+        props.wall_radius = scene.mt_wall_radius
+        props.degrees_of_arc = scene.mt_degrees_of_arc
+        props.angle = scene.mt_angle
+        props.segments = scene.mt_segments
+        props.leg_1_len = scene.mt_leg_1_len
+        props.leg_2_len = scene.mt_leg_2_len
+        props.curve_type = scene.mt_curve_type
 
         ###############
         # Create Tile #
         ###############
 
         if tile_type == 'STRAIGHT_WALL':
-            create_straight_wall()
+            create_straight_wall(props)
 
         if tile_type == 'CURVED_WALL':
-            create_curved_wall()
+            create_curved_wall(props)
 
         if tile_type == 'CORNER_WALL':
-            create_corner_wall()
+            create_corner_wall(props)
 
         if tile_type == 'RECTANGULAR_FLOOR':
-            create_rectangular_floor()
+            create_rectangular_floor(props)
 
         if tile_type == 'TRIANGULAR_FLOOR':
-            create_triangular_floor()
+            create_triangular_floor(props)
 
         if tile_type == 'CURVED_FLOOR':
-            create_curved_floor()
+            create_curved_floor(props)
 
         return {'FINISHED'}
 
@@ -357,16 +366,18 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             default=8,
         )
 
+        ''' Deprecated
         bpy.types.Scene.mt_trim_buffer = bpy.props.FloatProperty(
             name="Buffer",
             description="Buffer to use for creating tile trimmers. Helps Booleans work",
             default=-0.001,
             precision=4
-        )
+        )  
+        '''
 
     @classmethod
     def unregister(cls):
-        del bpy.types.Scene.mt_trim_buffer
+        #del bpy.types.Scene.mt_trim_buffer
         del bpy.types.Scene.mt_tile_name
         del bpy.types.Scene.mt_segments
         del bpy.types.Scene.mt_base_radius

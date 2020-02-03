@@ -18,7 +18,7 @@ from . create_displacement_mesh import create_displacement_object
 from . generic import finalise_tile
 
 
-def create_straight_wall():
+def create_straight_wall(tile_props):
     """Creates a straight wall tile
     Keyword arguments:
     tile_empty -- EMPTY, empty which the tile is parented to.
@@ -31,68 +31,39 @@ def create_straight_wall():
     cursor = scene.cursor
     cursor_orig_loc = cursor.location.copy()
     cursor.location = (0, 0, 0)
-    #tile_empty.location = (0, 0, 0)
 
     # A "Tile" is actually a blender collection of loads of meshes. We save properties of our
     # tile in mt_tile_props, a property group on our collection, and a few properties
     # in mt_object_props on each object created by MakeTile
-    tile_props = bpy.context.collection.mt_tile_props
     tile_name = tile_props.tile_name
 
     # Get base and main part blueprints
     base_blueprint = tile_props.base_blueprint
     main_part_blueprint = tile_props.main_part_blueprint
 
-    # We store a list of meshes here because we're going to add
-    # trimmer modifiers to all of them later but we don't yet
-    # know the full dimensions of our tile
     tile_meshes = []
-    preview_core = None
-    displacement_core = None
 
     if base_blueprint == 'PLAIN':
-        # get our base size props from menu and store in collection
-        tile_props.base_size = Vector((
-            scene.mt_base_x,
-            scene.mt_base_y,
-            scene.mt_base_z))
-
-        base = create_plain_base(tile_name, tile_props.base_size)
+        base = create_plain_base(tile_props)
         tile_meshes.append(base)
 
     if base_blueprint == 'OPENLOCK':
-        # For OpenLOCK tiles the width and height of the base are constants
-        tile_props.base_size = Vector((
-            scene.mt_tile_x,
-            0.5,
-            0.2755))
-        base = create_openlock_base(tile_name, tile_props.base_size)
+        base = create_openlock_base(tile_props)
         tile_meshes.append(base)
 
     if base_blueprint == 'NONE':
-        # If we have no base create an empty instead for storing details on
-        # and parenting
+        # If we have no base create an empty instead for parenting
         tile_props.base_size = (0, 0, 0)
         base = bpy.data.objects.new(tile_name + '.base', None)
         add_object_to_collection(base, tile_name)
 
-    # Get props of main part and store them
     if main_part_blueprint == 'PLAIN':
-        tile_props.tile_size = Vector((
-            scene.mt_tile_x,
-            scene.mt_tile_y,
-            scene.mt_tile_z))
-        preview_core, displacement_core = create_cores(base, tile_props.tile_size, tile_name)
+        preview_core, displacement_core = create_cores(base, tile_props)
         tile_meshes.extend([preview_core, displacement_core])
         displacement_core.hide_viewport = True
 
     if main_part_blueprint == 'OPENLOCK':
-        # Again width is a constant for OpenLOCK tiles
-        tile_props.tile_size = Vector((
-            scene.mt_tile_x,
-            0.3149,
-            scene.mt_tile_z))
-        preview_core, displacement_core = create_openlock_cores(base, tile_props.tile_size, tile_name)
+        preview_core, displacement_core = create_openlock_cores(base, tile_props)
         displacement_core.hide_viewport = True
         tile_meshes.extend([preview_core, displacement_core])
 
@@ -110,11 +81,14 @@ def create_straight_wall():
 #####################################
 
 
-def create_plain_base(tile_name, base_size):
+def create_plain_base(tile_props):
     """Returns a base for a wall tile
     """
     cursor = bpy.context.scene.cursor
     cursor_orig_loc = cursor.location.copy()
+
+    base_size = tile_props.base_size
+    tile_name = tile_props.tile_name
 
     # make base
     base = draw_cuboid(base_size)
@@ -148,18 +122,24 @@ def create_plain_base(tile_name, base_size):
     return base
 
 
-def create_openlock_base(tile_name, base_size):
-    """takes a straight wall base and makes it into an openlock style base"""
+def create_openlock_base(tile_props):
+    '''Returns an openlock style base with clip sockets'''
+    # For OpenLOCK tiles the width and height of the base are constants
+    tile_props.base_size = Vector((
+        tile_props.base_size[0],
+        0.5,
+        0.2755))
+
     # make base
-    base = create_plain_base(tile_name, base_size)
+    base = create_plain_base(tile_props)
 
     # create the slot cutter in the bottom of the base used for stacking tiles
-    slot_cutter = create_openlock_base_slot_cutter(base, offset=0.018)
+    slot_cutter = create_openlock_base_slot_cutter(base, tile_props, offset=0.018)
     slot_cutter.hide_viewport = True
 
     # create the clip cutters used for attaching walls to bases
     if base.dimensions[0] >= 1:
-        clip_cutter = create_openlock_base_clip_cutter(base)
+        clip_cutter = create_openlock_base_clip_cutter(base, tile_props)
         clip_boolean = base.modifiers.new(clip_cutter.name, 'BOOLEAN')
         clip_boolean.operation = 'DIFFERENCE'
         clip_boolean.object = clip_cutter
@@ -170,7 +150,7 @@ def create_openlock_base(tile_name, base_size):
     return base
 
 
-def create_openlock_base_slot_cutter(base, offset=0.18):
+def create_openlock_base_slot_cutter(base, tile_props, offset=0.18):
     """Makes a cutter for the openlock base slot
     based on the width of the base
 
@@ -178,7 +158,6 @@ def create_openlock_base_slot_cutter(base, offset=0.18):
     base -- OBJ, base the cutter will be used on
     """
     cursor = bpy.context.scene.cursor
-    tile_props = bpy.context.collection.mt_tile_props
 
     # get original location of object and cursor
     base_location = base.location.copy()
@@ -226,7 +205,7 @@ def create_openlock_base_slot_cutter(base, offset=0.18):
     return cutter
 
 
-def create_openlock_base_clip_cutter(base):
+def create_openlock_base_clip_cutter(base, tile_props):
     """Makes a cutter for the openlock base clip based
     on the width of the base and positions it correctly
 
@@ -235,7 +214,6 @@ def create_openlock_base_clip_cutter(base):
     """
 
     mode('OBJECT')
-    tile_props = bpy.context.collection.mt_tile_props
 
     # get original location of cursor
     cursor_original_location = bpy.context.scene.cursor.location.copy()
@@ -285,13 +263,16 @@ def create_openlock_base_clip_cutter(base):
 #####################################
 #              CORE                 #
 #####################################
-def create_cores(base, tile_size, tile_name):
-    '''Creates the preview and displacement cores'''
+def create_cores(base, tile_props):
+    '''Returns the preview and displacement cores'''
     scene = bpy.context.scene
+
+    tile_size = tile_props.tile_size
+    tile_name = tile_props.tile_name
 
     preview_core = create_core(tile_size, base.dimensions, tile_name)
     preview_core.parent = base
-    
+
     preview_core, displacement_core = create_displacement_object(preview_core)
 
     preferences = get_prefs()
@@ -395,12 +376,21 @@ def create_core(tile_size, base_size, tile_name):
     return core
 
 
-def create_openlock_cores(base, tile_size, tile_name):
+def create_openlock_cores(base, tile_props):
     '''Creates the preview and displacement cores and adds side cutters for
     openLOCK clips'''
-    preview_core, displacement_core = create_cores(base, tile_size, tile_name)
+    # Again width is a constant for OpenLOCK tiles
+    tile_props.tile_size = Vector((
+        tile_props.tile_size[0],
+        0.3149,
+        tile_props.tile_size[2]))
 
-    wall_cutters = create_openlock_wall_cutters(preview_core)
+    tile_size = tile_props.tile_size
+    tile_name = tile_props.tile_name
+
+    preview_core, displacement_core = create_cores(base, tile_props)
+
+    wall_cutters = create_openlock_wall_cutters(preview_core, tile_props)
     cores = [preview_core, displacement_core]
 
     for wall_cutter in wall_cutters:
@@ -428,14 +418,14 @@ def create_openlock_cores(base, tile_size, tile_name):
     return preview_core, displacement_core
 
 
-def create_openlock_wall_cutters(core):
+def create_openlock_wall_cutters(core, tile_props):
     """Creates the cutters for the wall and positions them correctly
 
     Keyword arguments:
     core -- OBJ, wall core object
     """
     preferences = get_prefs()
-    tile_props = bpy.context.collection.mt_tile_props
+
     tile_name = tile_props.tile_name
     tile_size = tile_props.tile_size
 

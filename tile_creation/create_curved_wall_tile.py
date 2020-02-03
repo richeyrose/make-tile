@@ -33,7 +33,7 @@ from .. materials.materials import (
 from .. enums.enums import geometry_types
 
 from . create_straight_wall_tile import (
-    create_plain_base as create_plain_straight_wall_base,
+    create_plain_base as create_base,
     create_openlock_base_slot_cutter)
 
 from . generic import finalise_tile

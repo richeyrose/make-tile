@@ -98,7 +98,6 @@ def create_corner_wall():
 
 
 def create_plain_base():
-
     tile_props = bpy.context.collection.mt_tile_props
 
     leg_1_len = tile_props.leg_1_len
@@ -130,6 +129,12 @@ def create_plain_base():
     t.home()
     bpy.ops.object.editmode_toggle()
     base = bpy.context.object
+
+    base.name = tile_props.tile_name + '.base'
+    obj_props = base.mt_object_props
+    obj_props.is_mt_object = True
+    obj_props.geometry_type = 'BASE'
+    obj_props.tile_name = tile_props.tile_name
 
     return base, base_triangles, vert_locs
 
@@ -284,6 +289,12 @@ def create_openlock_cores(base):
             item.name = cutter.name
             item.value = True
             item.parent = core.name
+
+    base.name = tile_props.tile_name + '.core'
+    obj_props = base.mt_object_props
+    obj_props.is_mt_object = True
+    obj_props.geometry_type = 'BASE'
+    obj_props.tile_name = tile_props.tile_name
 
     return preview_core, displacement_core
 

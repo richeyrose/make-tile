@@ -8,7 +8,7 @@ from .. lib.utils.selection import select, activate
 from .. utils.registration import get_prefs
 from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. lib.turtle.scripts.openlock_floor_base import draw_openlock_rect_floor_base
-from . create_straight_wall_tile import create_openlock_base
+from . create_straight_wall_tile import create_openlock_base as create_openlock_wall_base
 from .. lib.utils.vertex_groups import (
     construct_displacement_mod_vert_group,
     rect_floor_to_vert_groups)
@@ -19,7 +19,7 @@ from . create_displacement_mesh import create_displacement_object
 from . generic import finalise_tile
 
 
-def create_rectangular_floor():
+def create_rectangular_floor(tile_props):
     """"Creates a rectangular floor"""
     # hack to correct for parenting issues.
     # moves cursor to origin and creates objects
@@ -29,7 +29,6 @@ def create_rectangular_floor():
     cursor_orig_loc = cursor.location.copy()
     cursor.location = (0, 0, 0)
 
-    tile_props = bpy.context.collection.mt_tile_props
     tile_name = tile_props.tile_name
 
     # Get base and main part blueprints
@@ -41,26 +40,12 @@ def create_rectangular_floor():
     # know the full dimensions of our tile
     tile_meshes = []
 
-    if base_blueprint == 'OPENLOCK':
-        tile_props.tile_size = Vector((
-            scene.mt_tile_x,
-            scene.mt_tile_y,
-            0.3))
-
-        tile_props.base_size = Vector((
-            tile_props.tile_size[0],
-            tile_props.tile_size[1],
-            .2756))
-        base = create_openlock_floor_base(tile_props)
+    if base_blueprint == 'PLAIN':
+        base = create_plain_base(tile_props)
         tile_meshes.append(base)
 
-    if base_blueprint == 'PLAIN':
-        tile_props.base_size = Vector((
-            scene.mt_base_x,
-            scene.mt_base_y,
-            scene.mt_base_z))
-
-        base = create_plain_base(tile_props)
+    if base_blueprint == 'OPENLOCK':
+        base = create_openlock_base(tile_props)
         tile_meshes.append(base)
 
     if base_blueprint == 'NONE':
@@ -74,10 +59,6 @@ def create_rectangular_floor():
         tile_meshes.extend([preview_core, displacement_core])
 
     if main_part_blueprint == 'PLAIN':
-        tile_props.tile_size = Vector((
-            scene.mt_tile_x,
-            scene.mt_tile_y,
-            scene.mt_tile_z))
         preview_core, displacement_core = create_cores(base, tile_props)
         displacement_core.hide_viewport = True
         tile_meshes.extend([preview_core, displacement_core])
@@ -86,10 +67,11 @@ def create_rectangular_floor():
         tile_props.tile_size = tile_props.base_size
         preview_core = None
 
-    finalise_tile(tile_meshes,
-                  base,
-                  preview_core,
-                  cursor_orig_loc)
+    finalise_tile(
+        tile_meshes,
+        base,
+        preview_core,
+        cursor_orig_loc)
 
 
 def create_plain_base(tile_props):
@@ -220,17 +202,21 @@ def create_cores(base, tile_props):
     return preview_core, displacement_core
 
 
-def create_openlock_floor_base(tile_props):
+def create_openlock_base(tile_props):
     '''Creates an openlock style base'''
+    tile_props.tile_size = Vector((
+        tile_props.tile_size[0],
+        tile_props.tile_size[1],
+        0.3))
+
+    tile_props.base_size = Vector((
+        tile_props.tile_size[0],
+        tile_props.tile_size[1],
+        .2756))
+
     if tile_props.base_size[0] >= 1 and tile_props.base_size[1] < 1 and tile_props.base_size[1] > 0.496:
         # if base is less than an inch wide use a wall type base
-        base = create_openlock_base(tile_props)
-    elif tile_props.base_size[0] < 1 or tile_props.base_size[1] <= 0.496:
-        # TODO: Display message in viewport
-        print('Tile too small')
-        col = bpy.data.collections[tile_props.tile_name]
-        bpy.data.collections.remove(col)
-        return False
+        base = create_openlock_wall_base(tile_props)
     else:
         base = draw_openlock_rect_floor_base(tile_props.base_size)
         base.name = tile_props.tile_name + '.base'

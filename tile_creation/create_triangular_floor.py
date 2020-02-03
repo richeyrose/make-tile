@@ -18,7 +18,7 @@ from . generic import finalise_tile
 
 
 # TODO: fix dimensioning disappearing when no base
-def create_triangular_floor():
+def create_triangular_floor(tile_props):
     """Creates a triangular floor"""
     # hack to correct for parenting issues.
     # moves cursor to origin and creates objects
@@ -29,32 +29,19 @@ def create_triangular_floor():
     cursor_orig_loc = cursor.location.copy()
     cursor.location = (0, 0, 0)
 
-    tile_props = bpy.context.collection.mt_tile_props
     tile_name = tile_props.tile_name
 
     # Get base and main part blueprints
     base_blueprint = tile_props.base_blueprint
     main_part_blueprint = tile_props.main_part_blueprint
 
-    # store some tile props
-    tile_props.leg_1_len = scene.mt_leg_1_len
-    tile_props.leg_2_len = scene.mt_leg_2_len
-    tile_props.angle = scene.mt_angle
-
-    # We store a list of meshes here because we're going to add
-    # trimmer modifiers to all of them later but we don't yet
-    # know the full dimensions of our tile
     tile_meshes = []
 
     if base_blueprint == 'OPENLOCK':
-        tile_props.base_size[2] = .2756
-        tile_props.tile_size[2] = 0.3
         base, dimensions = create_openlock_base(tile_props)
         tile_meshes.append(base)
 
     if base_blueprint == 'PLAIN':
-        tile_props.base_size[2] = scene.mt_base_z
-        tile_props.tile_size[2] = scene.mt_tile_z
         base, dimensions = create_plain_base(tile_props)
         tile_meshes.append(base)
 
@@ -79,27 +66,45 @@ def create_triangular_floor():
                   cursor_orig_loc)
 
 
-def create_cores(tile_props, base):
+def create_core(tile_props):
     turtle = bpy.context.scene.cursor
     t = bpy.ops.turtle
 
     t.add_turtle()
     t.add_vert()
     t.pd()
-    floor, dimensions = draw_tri_prism(
+    core, dimensions = draw_tri_prism(
         tile_props.leg_1_len,
         tile_props.leg_2_len,
         tile_props.angle,
         tile_props.tile_size[2] - tile_props.base_size[2])
-    tri_floor_to_vert_groups(bpy.context.object, dimensions, tile_props.tile_size[2] - tile_props.base_size[2])
+    tri_floor_to_vert_groups(core, dimensions, tile_props.tile_size[2] - tile_props.base_size[2])
 
     t.select_all()
     t.up(d=tile_props.base_size[2], m=True)
 
     mode('OBJECT')
-    obj = bpy.context.object
 
-    preview_core, displacement_core = create_displacement_object(obj)
+    ctx = {
+        'object': core,
+        'active_object': core,
+        'selected_objects': [core]
+    }
+
+    core.name = tile_props.name + '.core'
+    bpy.ops.uv.smart_project(ctx, island_margin=1)
+
+    obj_props = core.mt_object_props
+    obj_props.is_mt_object = True
+    obj_props.tile_name = tile_props.tile_name
+
+    return core, dimensions
+
+
+def create_cores(tile_props, base):
+
+    core, dimensions = create_core(tile_props)
+    preview_core, displacement_core = create_displacement_object(core)
 
     preferences = get_prefs()
 
@@ -129,27 +134,41 @@ def create_cores(tile_props, base):
     preview_core.mt_object_props.geometry_type = 'PREVIEW'
     displacement_core.mt_object_props.geometry_type = 'DISPLACEMENT'
 
-    slabs = [preview_core, displacement_core]
+    cores = [preview_core, displacement_core]
 
-    for slab in slabs:
-        deselect_all()
-        select(slab.name)
-        bpy.ops.uv.smart_project(island_margin=1)
-        slab.parent = base
+    for core in cores:
+        core.parent = base
+
     displacement_core.hide_viewport = True
 
     return preview_core, displacement_core, dimensions
 
 
 def create_openlock_base(tile_props):
+    tile_props.base_size[2] = .2756
+    tile_props.tile_size[2] = 0.3
+
     base, dimensions = draw_openlock_tri_floor_base(
         tile_props.leg_1_len,
         tile_props.leg_2_len,
         tile_props.base_size[2],
         tile_props.angle)
-    base.name = tile_props.tile_name + '.base'
+
     add_object_to_collection(base, tile_props.tile_name)
     base.mt_object_props.geometry_type = 'BASE'
+
+    base.name = tile_props.name + '.core'
+
+    ctx = {
+        'object': base,
+        'active_object': base,
+        'selected_objects': [base]
+    }
+    bpy.ops.uv.smart_project(ctx, island_margin=1)
+
+    obj_props = base.mt_object_props
+    obj_props.is_mt_object = True
+    obj_props.tile_name = tile_props.tile_name
 
     clip_cutters = create_openlock_base_clip_cutters(base, dimensions, tile_props)
 
@@ -331,4 +350,18 @@ def create_plain_base(tile_props):
     t.pu()
     t.home()
     mode('OBJECT')
+
+    base.name = tile_props.name + '.base'
+
+    ctx = {
+        'object': base,
+        'active_object': base,
+        'selected_objects': [base]
+    }
+    bpy.ops.uv.smart_project(ctx, island_margin=1)
+
+    obj_props = base.mt_object_props
+    obj_props.is_mt_object = True
+    obj_props.tile_name = tile_props.tile_name
+
     return base, dimensions

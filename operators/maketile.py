@@ -96,12 +96,14 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             tile_collection = bpy.data.collections.new(tile_name)
             bpy.data.collections['Floors'].children.link(tile_collection)
 
+        # activate collection so objects are added to it
+        activate_collection(tile_collection.name)
+
         # We store tile properties in the mt_tile_props property group of
         # the collection so we can access them from any object in this
         # collection.
 
         scene = context.scene
-
         props = tile_collection.mt_tile_props
         props.tile_name = tile_collection.name
         props.is_mt_collection = True
@@ -190,6 +192,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             items=tile_types,
             name="Type",
             default="STRAIGHT_WALL",
+            update=update_size_defaults
         )
 
         bpy.types.Scene.mt_base_blueprint = bpy.props.EnumProperty(
@@ -372,12 +375,12 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             description="Buffer to use for creating tile trimmers. Helps Booleans work",
             default=-0.001,
             precision=4
-        )  
+        )
         '''
 
     @classmethod
     def unregister(cls):
-        #del bpy.types.Scene.mt_trim_buffer
+        # del bpy.types.Scene.mt_trim_buffer
         del bpy.types.Scene.mt_tile_name
         del bpy.types.Scene.mt_segments
         del bpy.types.Scene.mt_base_radius
@@ -445,6 +448,23 @@ def update_material_enums(self, context):
             enum_items.append(enum)
 
     return enum_items
+
+
+def update_size_defaults(self, context):
+    '''updates tile and base size defaults depending on whether we are generating a base or wall'''
+    scene = context.scene
+    if scene.mt_tile_type == 'RECTANGULAR_FLOOR' or scene.mt_tile_type == 'TRIANGULAR_FLOOR' or scene.mt_tile_type == CURVED_FLOOR:
+        scene.mt_tile_z = 0.3
+        scene.mt_base_z = 0.2755
+        scene.mt_tile_x = 2
+        scene.mt_tile_y = 2
+        scene.mt_base_x = 2
+        scene.mt_base_y = 2
+    else:
+        scene.mt_tile_z = 2
+        scene.mt_base_z = 0.2755
+        scene.mt_base_y = 0.5
+        scene.mt_tile_y = 0.3149
 
 
 def update_disp_strength(self, context):

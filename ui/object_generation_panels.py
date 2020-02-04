@@ -133,7 +133,7 @@ class MT_PT_Tile_Generator_Panel(Panel):
             layout.prop(scene, 'mt_tile_z')
 
             layout.label(text="Tile Properties")
-            layout.prop(scene, 'mt_base_radius', text="Straight edge length")
+            layout.prop(scene, 'mt_base_radius', text="Base Radius")
             layout.prop(scene, 'mt_angle', text="Degrees of arc")
             layout.prop(scene, 'mt_curve_type')
             layout.prop(scene, 'mt_segments')
@@ -168,7 +168,7 @@ class MT_PT_Tile_Generator_Panel(Panel):
             layout.prop(scene, 'mt_tile_z')
 
             layout.label(text="Tile Properties")
-            layout.prop(scene, 'mt_base_radius', text="Straight edge length")
+            layout.prop(scene, 'mt_base_radius', text="Base Radius")
             layout.prop(scene, 'mt_angle', text="Degrees of arc")
             layout.prop(scene, 'mt_curve_type')
             layout.prop(scene, 'mt_segments')

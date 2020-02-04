@@ -48,6 +48,8 @@ def create_straight_wall(tile_props):
         tile_meshes.append(base)
 
     if base_blueprint == 'OPENLOCK':
+        if main_part_blueprint == 'OPENLOCK':
+            tile_props.base_size[0] = tile_props.tile_size[0]
         base = create_openlock_base(tile_props)
         tile_meshes.append(base)
 

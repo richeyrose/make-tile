@@ -54,6 +54,7 @@ def create_rectangular_floor(tile_props):
         add_object_to_collection(base, tile_props.tile_name)
 
     if main_part_blueprint == 'OPENLOCK':
+        tile_props.tile_size[2] = 0.3
         preview_core, displacement_core = create_cores(base, tile_props)
         displacement_core.hide_viewport = True
         tile_meshes.extend([preview_core, displacement_core])
@@ -204,11 +205,6 @@ def create_cores(base, tile_props):
 
 def create_openlock_base(tile_props):
     '''Creates an openlock style base'''
-    tile_props.tile_size = Vector((
-        tile_props.tile_size[0],
-        tile_props.tile_size[1],
-        0.3))
-
     tile_props.base_size = Vector((
         tile_props.tile_size[0],
         tile_props.tile_size[1],

@@ -122,6 +122,10 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         props.leg_1_len = scene.mt_leg_1_len
         props.leg_2_len = scene.mt_leg_2_len
         props.curve_type = scene.mt_curve_type
+        props.tile_units = scene.mt_tile_units
+        props.displacement_strength = scene.mt_displacement_strength
+        props.tile_resolution = scene.mt_tile_resolution
+        props.subdivisions = scene.mt_subdivisions
 
         ###############
         # Create Tile #
@@ -164,6 +168,11 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         # Property group that contains properties of an object stored on the object
         bpy.types.Object.mt_object_props = bpy.props.PointerProperty(
             type=MT_Object_Properties
+        )
+
+        bpy.types.Scene.mt_last_selected = bpy.props.PointerProperty(
+            name="Last Selected Object",
+            type=bpy.types.Object
         )
 
         bpy.types.Scene.mt_tile_name = bpy.props.StringProperty(
@@ -383,6 +392,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         # del bpy.types.Scene.mt_trim_buffer
         del bpy.types.Scene.mt_tile_name
         del bpy.types.Scene.mt_segments
+        del bpy.types.Scene.mt_last_selected
         del bpy.types.Scene.mt_base_radius
         del bpy.types.Scene.mt_wall_radius
         del bpy.types.Scene.mt_curve_type

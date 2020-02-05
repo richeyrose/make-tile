@@ -8,7 +8,8 @@ from .. enums.enums import (
     tile_blueprints,
     curve_types,
     geometry_types,
-    base_socket_side)
+    base_socket_side,
+    units)
 
 
 # Radio buttons used in menus
@@ -174,7 +175,7 @@ class MT_Tile_Properties(PropertyGroup):
     wall_radius: bpy.props.FloatProperty(
         name="Wall Radius"
     )
-    
+
     base_socket_side: bpy.props.EnumProperty(
         name="Socket Side",
         items=base_socket_side
@@ -204,6 +205,24 @@ class MT_Tile_Properties(PropertyGroup):
         name="Curve Type",
         items=curve_types
     )
+    
+    tile_units: bpy.props.EnumProperty(
+        name="Tile Units",
+        items=units
+    )
+
+    displacement_strength: bpy.props.FloatProperty(
+        name="Displacement Strength"
+    )
+
+    tile_resolution: bpy.props.IntProperty(
+        name="Tile Resolution"
+    )
+
+    subdivisions: bpy.props.IntProperty(
+        name="Subdivisions"
+    )
+
     # Collection of trimmers that can be turned on or off
     # by MakeTile. Deprecated
     trimmers_collection: bpy.props.CollectionProperty(

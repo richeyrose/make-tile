@@ -69,7 +69,7 @@ from . lib.turtle.operators.selection import *
 from . lib.turtle.operators.vertex_group import *
 from . lib.turtle.operators.aliases import *
 
-from . lib.utils import test_handler
+from . lib.utils import update_scene_props
 bl_info = {
     "name": "MakeTile",
     "author": "Richard Rose",

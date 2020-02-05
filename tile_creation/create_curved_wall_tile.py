@@ -139,7 +139,7 @@ def create_openlock_base(tile_props):
     segments = tile_props.segments
     angle = tile_props.degrees_of_arc
     tile_props.base_size[2] = 0.2755
-    clip_side = scene.mt_base_socket_side
+    clip_side = scene.mt_scene_props.mt_base_socket_side
 
     base = draw_openlock_curved_base(radius, segments, angle, tile_props.base_size[2], clip_side)
     base_cutter = create_openlock_base_clip_cutter(base, tile_props, clip_side)
@@ -332,10 +332,10 @@ def create_cores(base, tile_props):
 
     preferences = get_prefs()
 
-    primary_material = bpy.data.materials[scene.mt_tile_material_1]
+    primary_material = bpy.data.materials[scene.mt_scene_props.mt_tile_material_1]
     secondary_material = bpy.data.materials[preferences.secondary_material]
 
-    image_size = bpy.context.scene.mt_tile_resolution
+    image_size = bpy.context.scene.mt_scene_props.mt_tile_resolution
 
     textured_vertex_groups = ['Front', 'Back']
 

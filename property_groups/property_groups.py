@@ -1,6 +1,7 @@
+import os
 import bpy
 from bpy.types import PropertyGroup
-from .. utils.registration import get_path, get_prefs
+from .. utils.registration import get_prefs
 
 from .. enums.enums import (
     tile_main_systems,
@@ -13,12 +14,16 @@ from .. enums.enums import (
     units,
     material_mapping)
 
+from .. materials.materials import (
+    get_blend_filenames,
+    load_materials)
+
 
 # Radio buttons used in menus
 class MT_Radio_Buttons(PropertyGroup):
     def update_mapping_axis(self, context):
         axis = context.window_manager.mt_radio_buttons.mapping_axis
-        material = bpy.data.materials[context.scene.mt_tile_material_1]
+        material = bpy.data.materials[context.scene.mt_scene_props.mt_tile_material_1]
         tree = material.node_tree
         nodes = tree.nodes
         axis_node = nodes['Wrap Around Axis']
@@ -103,6 +108,13 @@ class MT_Scene_Properties(PropertyGroup):
         if context is None:
             return enum_items
 
+        enum_collections = {}
+        material_enum_collection = bpy.utils.previews.new()
+        material_enum_collection.directory = ''
+        material_enum_collection.enums = ()
+        enum_collections["materials"] = material_enum_collection
+        bpy.utils.previews.remove(material_enum_collection)
+
         materials_path = os.path.join(prefs.assets_path, "materials")
         blend_filenames = get_blend_filenames(materials_path)
         enum_collection = enum_collections['materials']
@@ -134,34 +146,36 @@ class MT_Scene_Properties(PropertyGroup):
 
     def update_size_defaults(self, context):
         '''updates tile and base size defaults depending on whether we are generating a base or wall'''
-        scene = context.scene
-        if scene.mt_tile_type == 'RECTANGULAR_FLOOR' or scene.mt_tile_type == 'TRIANGULAR_FLOOR' or scene.mt_tile_type == 'CURVED_FLOOR':
-            scene.mt_tile_z = 0.3
-            scene.mt_base_z = 0.2755
-            scene.mt_tile_x = 2
-            scene.mt_tile_y = 2
-            scene.mt_base_x = 2
-            scene.mt_base_y = 2
+        scene_props = context.scene.mt_scene_props
+        if scene_props.mt_tile_type == 'RECTANGULAR_FLOOR' or scene_props.mt_tile_type == 'TRIANGULAR_FLOOR' or scene_props.mt_tile_type == 'CURVED_FLOOR':
+            scene_props.mt_tile_z = 0.3
+            scene_props.mt_base_z = 0.2755
+            scene_props.mt_tile_x = 2
+            scene_props.mt_tile_y = 2
+            scene_props.mt_base_x = 2
+            scene_props.mt_base_y = 2
         else:
-            scene.mt_tile_z = 2
-            scene.mt_base_z = 0.2755
-            scene.mt_base_y = 0.5
-            scene.mt_tile_y = 0.3149
+            scene_props.mt_tile_z = 2
+            scene_props.mt_base_z = 0.2755
+            scene_props.mt_base_y = 0.5
+            scene_props.mt_tile_y = 0.3149
 
     def update_disp_strength(self, context):
-        disp_obj = bpy.context.object
-
-        if 'Displacement' in disp_obj.modifiers:
-            mod = disp_obj.modifiers['Displacement']
-            mod.strength = context.scene.mt_displacement_strength
+        obj = bpy.context.object
+        obj_props = obj.mt_object_props
+        if obj_props.geometry_type == 'DISPLACEMENT':
+            if 'Displacement' in obj.modifiers:
+                mod = obj.modifiers['Displacement']
+                mod.strength = context.scene.mt_scene_props.mt_displacement_strength
 
     def update_disp_subdivisions(self, context):
         '''Updates the numnber of subdivisions used by the displacement material modifier'''
-        disp_obj = bpy.context.object
-
-        if 'Subsurf' in disp_obj.modifiers:
-            modifier = disp_obj.modifiers['Subsurf']
-            modifier.levels = context.scene.mt_subdivisions
+        obj = bpy.context.object
+        obj_props = obj.mt_object_props
+        if obj_props.geometry_type == 'DISPLACEMENT':
+            if 'Subsurf' in obj.modifiers:
+                modifier = obj.modifiers['Subsurf']
+                modifier.levels = context.scene.mt_scene_props.mt_subdivisions
 
     def update_material_mapping(self, context):
         '''updates which mapping method to use for a material'''
@@ -169,7 +183,7 @@ class MT_Scene_Properties(PropertyGroup):
         tree = material.node_tree
         nodes = tree.nodes
 
-        map_meth = context.scene.mt_material_mapping_method
+        map_meth = context.scene.mt_scene_props.mt_material_mapping_method
 
         if 'master_mapping' in nodes:
             mapping_node = nodes['master_mapping']
@@ -199,7 +213,7 @@ class MT_Scene_Properties(PropertyGroup):
                     map_type_node.outputs['Color'],
                     mapping_node.inputs['Vector'])
 
-    #TODO: See why we get warning if we use this
+    # TODO: See why we get warning if we use this
 
     def get_default_units(self, context):
         prefs = get_prefs()
@@ -434,6 +448,7 @@ class MT_Scene_Properties(PropertyGroup):
         enum_collections.clear()
     '''
 
+
 class MT_Object_Properties(PropertyGroup):
     is_mt_object: bpy.props.BoolProperty(
         name="Is MakeTile Object",
@@ -466,7 +481,6 @@ class MT_Object_Properties(PropertyGroup):
         name="Displacement materials collection",
         type=MT_Disp_Mat_Item
     )
-
 
 
 class MT_Tile_Properties(PropertyGroup):
@@ -547,7 +561,7 @@ class MT_Tile_Properties(PropertyGroup):
         name="Curve Type",
         items=curve_types
     )
-    
+
     tile_units: bpy.props.EnumProperty(
         name="Tile Units",
         items=units
@@ -570,4 +584,3 @@ class MT_Tile_Properties(PropertyGroup):
     trimmers_collection: bpy.props.CollectionProperty(
         type=MT_Trimmer_Item
     )
-

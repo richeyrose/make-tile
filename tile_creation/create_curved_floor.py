@@ -383,10 +383,10 @@ def create_cores(tile_props, base):
 
     preferences = get_prefs()
 
-    primary_material = bpy.data.materials[bpy.context.scene.mt_tile_material_1]
+    primary_material = bpy.data.materials[bpy.context.scene.mt_scene_props.mt_tile_material_1]
     secondary_material = bpy.data.materials[preferences.secondary_material]
 
-    image_size = bpy.context.scene.mt_tile_resolution
+    image_size = bpy.context.scene.mt_scene_props.mt_tile_resolution
 
     textured_vertex_groups = ['Top']
 

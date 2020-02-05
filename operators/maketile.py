@@ -19,14 +19,6 @@ from .. enums.enums import (
     curve_types,
     material_mapping)
 
-from .. materials.materials import (
-    load_materials,
-    get_blend_filenames,
-    update_displacement_material_2,
-    update_preview_material_2,
-    assign_mat_to_vert_group,
-    assign_texture_to_areas)
-
 from .. tile_creation.create_straight_wall_tile import create_straight_wall
 from .. tile_creation.create_rect_floor_tile import create_rectangular_floor
 from .. tile_creation.create_curved_wall_tile import create_curved_wall
@@ -54,20 +46,22 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             return True
 
     def execute(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
 
         ############################################
         # Set defaults for different tile systems #
         ############################################
-        tile_blueprint = context.scene.mt_tile_blueprint
-        tile_type = context.scene.mt_tile_type
+        tile_blueprint = scene_props.mt_tile_blueprint
+        tile_type = scene_props.mt_tile_type
 
         if tile_blueprint == 'OPENLOCK':
-            context.scene.mt_main_part_blueprint = 'OPENLOCK'
-            context.scene.mt_base_blueprint = 'OPENLOCK'
+            scene_props.mt_main_part_blueprint = 'OPENLOCK'
+            scene_props.mt_base_blueprint = 'OPENLOCK'
 
         if tile_blueprint == 'PLAIN':
-            context.scene.mt_main_part_blueprint = 'PLAIN'
-            context.scene.mt_base_blueprint = 'PLAIN'
+            scene_props.mt_main_part_blueprint = 'PLAIN'
+            scene_props.mt_base_blueprint = 'PLAIN'
 
         #######################################
         # Create our collection and tile name #
@@ -75,7 +69,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         # parented to an empty                #
         #######################################
 
-        scene_collection = bpy.context.scene.collection
+        scene_collection = scene.collection
 
         # Check to see if tile collection exist and create if not
         tiles_collection = create_collection('Tiles', scene_collection)
@@ -106,8 +100,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         # the collection so we can access them from any object in this
         # collection.
 
-        scene = context.scene
-        scene_props = scene.mt_scene_props
+
         tile_props = tile_collection.mt_tile_props
         tile_props.tile_name = tile_collection.name
         tile_props.is_mt_collection = True
@@ -157,6 +150,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
 
     @classmethod
     def register(cls):
+
         # Property group that contains properties relating to a tile on the tile collection
         bpy.types.Collection.mt_tile_props = bpy.props.PointerProperty(
             type=MT_Tile_Properties

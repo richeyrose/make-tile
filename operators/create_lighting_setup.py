@@ -24,73 +24,7 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
 
     def execute(self, context):
         deselect_all()
-        '''
-        # current_collection
-        original_collection = bpy.context.scene.collection.copy()
-
-        # check to see if lighting collection exists and create if not
-        scene_collection = bpy.context.scene.collection
-        lights_collection = create_collection('Lighting_setup', scene_collection)
-        activate_collection(lights_collection.name)
-
-
-
-        # delete existing lights
-        v3d.overlay.show_extras = True
-        bpy.ops.object.select_by_type(type='LIGHT')
-        bpy.ops.object.delete()
-
-        # add lights
-        light_1 = bpy.data.lights.new(name="light_1", type='AREA')
-        light_obj = bpy.data.objects.new("front_light_1", light_1)
-        bpy.context.layer_collection.collection.objects.link(light_obj)
-
-        light_1.shape = 'RECTANGLE'
-        light_1.size = 1
-        light_1.size_y = 2
-        light_1.energy = 300
-
-        light_obj.location = (-5, -5, 5)
-        light_obj.rotation_euler = (1, 0, -0.8)
-
-        light_2 = bpy.data.lights.new(name="light_2", type='AREA')
-        light_2_obj = bpy.data.objects.new("front_light_2", light_2)
-        bpy.context.layer_collection.collection.objects.link(light_2_obj)
-
-        light_2.shape = 'RECTANGLE'
-        light_2.size = 1
-        light_2.size_y = 2
-        light_2.energy = 50
-
-        light_2_obj.location = (5, -5, -5)
-        light_2_obj.rotation_euler = (2.5, 0.8, 1.5)
-
-        light_3 = bpy.data.lights.new(name="light_3", type='AREA')
-        light_3_obj = bpy.data.objects.new("back_light_1", light_3)
-        bpy.context.layer_collection.collection.objects.link(light_3_obj)
-
-        light_3.shape = 'RECTANGLE'
-        light_3.size = 1
-        light_3.size_y = 2
-        light_3.energy = 300
-
-        light_3_obj.location = (-5, 5, 5)
-        light_3_obj.rotation_euler = (1, 0, -2.3)
-
-        light_4 = bpy.data.lights.new(name="light_4", type='AREA')
-        light_4_obj = bpy.data.objects.new("back_light_2", light_4)
-        bpy.context.layer_collection.collection.objects.link(light_4_obj)
-
-        light_4.shape = 'RECTANGLE'
-        light_4.size = 1
-        light_4.size_y = 2
-        light_4.energy = 50
-
-        light_4_obj.location = (5, 5, -5)
-        light_4_obj.rotation_euler = (2.5, 0.8, 3)
-        '''
-        
-        # Get 3d view
+         # Get 3d view
         region, rv3d, v3d, area = view3d_find(True)
 
         if context.scene.mt_view_mode == 'CYCLES':
@@ -111,14 +45,6 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
         if context.scene.mt_view_mode == 'PREVIEW':
             v3d.shading.type = 'MATERIAL'
 
-        '''
-        # hide "extras" i.e lights and camera lines
-        v3d.overlay.show_extras = False
-
-        # switch back to original collection
-        activate_collection(original_collection.name)
-        '''
-        
         return {'FINISHED'}
 
     @classmethod

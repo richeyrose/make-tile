@@ -59,10 +59,10 @@ class MT_PT_Material_Options_Panel(Panel):
         return False
 
     def draw(self, context):
-        scene = context.scene
+        scene_props = context.scene.mt_scene_props
         layout = self.layout
-        layout.prop(scene, 'mt_tile_resolution')
-        layout.prop(scene, 'mt_displacement_strength')
+        layout.prop(scene_props, 'mt_tile_resolution')
+        layout.prop(scene_props, 'mt_displacement_strength')
         obj = context.object
         material = obj.active_material
         tree = material.node_tree
@@ -118,11 +118,11 @@ class MT_PT_Material_Mapping_Options_Panel(Panel):
         )
 
     def draw(self, context):
-        scene = context.scene
+        scene_props = context.scene.mt_scene_props
         layout = self.layout
 
-        layout.prop(scene, 'mt_material_mapping_method')
-        if scene.mt_material_mapping_method == 'WRAP_AROUND':
+        layout.prop(scene_props, 'mt_material_mapping_method')
+        if scene_props.mt_material_mapping_method == 'WRAP_AROUND':
             layout.prop(context.window_manager.mt_radio_buttons, 'mapping_axis', expand=True)
 
     @classmethod

@@ -42,13 +42,17 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
             # reload assets
             reload_asset_libraries()
 
-
     assets_path: StringProperty(
         name="Assets Libraries",
         description="Path to Assets Libraries",
         subtype='DIR_PATH',
         default=os.path.join(path, "assets"),
         update=update_assetspath
+    )
+
+    secondary_material: StringProperty(
+        name="Secondary Material",
+        default="Plastic"
     )
 
     default_export_path: StringProperty(

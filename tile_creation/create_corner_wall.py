@@ -292,10 +292,10 @@ def create_plain_cores(base, tile_props):
 
     preferences = get_prefs()
 
-    primary_material = bpy.data.materials[bpy.context.scene.mt_tile_material_1]
+    primary_material = bpy.data.materials[bpy.context.scene.mt_scene_props.mt_tile_material_1]
     secondary_material = bpy.data.materials[preferences.secondary_material]
 
-    image_size = bpy.context.scene.mt_tile_resolution
+    image_size = bpy.context.scene.mt_scene_props.mt_tile_resolution
 
     textured_vertex_groups = ['Outer', 'Inner']
 
@@ -334,7 +334,7 @@ def create_openlock_base_slot_cutter():
     leg_2_len = tile_props.leg_2_len
     angle = tile_props.angle
 
-    if bpy.context.scene.mt_base_socket_side == 'INNER':
+    if bpy.context.scene.mt_scene_props.mt_base_socket_side == 'INNER':
         face_dist = 0.07
     else:
         face_dist = 0.233  # distance from outer face our slot should start

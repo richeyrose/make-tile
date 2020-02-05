@@ -42,10 +42,9 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
 
         # Get prefs from scene
         prefs = get_prefs()
-        material_1 = bpy.data.materials[bpy.context.scene.mt_tile_material_1]
-        material_2 = bpy.data.materials[bpy.context.scene.mt_tile_material_2]
+        material_1 = bpy.data.materials[bpy.context.scene.mt_scene_props.mt_tile_material_1]
         secondary_material = bpy.data.materials[prefs.secondary_material]
-        image_size = bpy.context.scene.mt_tile_resolution
+        image_size = bpy.context.scene.mt_scene_props.mt_tile_resolution
 
         # Check to see if we have any vertex groups already. If not assume we want to
         # add texture to entire object and so create an "All" vertex group and set it

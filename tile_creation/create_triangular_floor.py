@@ -48,7 +48,7 @@ def create_triangular_floor(tile_props):
     if base_blueprint == 'NONE':
         tile_props.base_size = (0, 0, 0)
         base = bpy.data.objects.new(tile_props.tile_name + '.base', None)
-        tile_props.tile_size[2] = scene.mt_tile_z
+        tile_props.tile_size[2] = scene.mt_scene_props.mt_tile_z
         add_object_to_collection(base, tile_props.tile_name)
 
     if main_part_blueprint == 'NONE':
@@ -108,10 +108,10 @@ def create_cores(tile_props, base):
 
     preferences = get_prefs()
 
-    primary_material = bpy.data.materials[bpy.context.scene.mt_tile_material_1]
+    primary_material = bpy.data.materials[bpy.context.scene.mt_scene_props.mt_tile_material_1]
     secondary_material = bpy.data.materials[preferences.secondary_material]
 
-    image_size = bpy.context.scene.mt_tile_resolution
+    image_size = bpy.context.scene.mt_scene_props.mt_tile_resolution
 
     textured_vertex_groups = ['Top']
 

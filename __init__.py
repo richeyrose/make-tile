@@ -47,6 +47,7 @@ from . property_groups.property_groups import (
     MT_Disp_Mat_Item,
     MT_Tile_Properties,
     MT_Object_Properties,
+    MT_Scene_Properties,
     MT_Radio_Buttons)
 
 from . operators.maketile import MT_OT_Make_Tile
@@ -91,6 +92,7 @@ classes = (
     MT_Disp_Mat_Item,
     MT_Tile_Properties,
     MT_Object_Properties,
+    MT_Scene_Properties,
     MT_OT_Make_Tile,
     MT_OT_Export_Material,
     MT_OT_Convert_To_MT_Obj,

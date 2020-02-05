@@ -42,9 +42,6 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
             # reload assets
             reload_asset_libraries()
 
-    # TODO: Stub - update_secondary_material
-    def update_secondary_material(self, context):
-        print('update_secondary_material')
 
     assets_path: StringProperty(
         name="Assets Libraries",
@@ -65,13 +62,6 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
         name="Old Path",
         subtype='DIR_PATH',
         default=os.path.join(path, "assets")
-    )
-
-    secondary_material: StringProperty(
-        name="Secondary Material",
-        description="Material to use for none textured bits of tiles",
-        default="Plastic",
-        update=update_secondary_material
     )
 
     default_units: EnumProperty(

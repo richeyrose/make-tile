@@ -34,7 +34,10 @@ from .. tile_creation.create_corner_wall import create_corner_wall
 from .. tile_creation.create_triangular_floor import create_triangular_floor
 from .. tile_creation.create_curved_floor import create_curved_floor
 
-from .. property_groups.property_groups import MT_Tile_Properties, MT_Object_Properties
+from .. property_groups.property_groups import (
+    MT_Tile_Properties,
+    MT_Object_Properties,
+    MT_Scene_Properties)
 
 
 class MT_OT_Make_Tile(bpy.types.Operator):
@@ -104,62 +107,56 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         # collection.
 
         scene = context.scene
-        props = tile_collection.mt_tile_props
-        props.tile_name = tile_collection.name
-        props.is_mt_collection = True
-        props.tile_blueprint = tile_blueprint
-        props.tile_type = tile_type
-        props.main_part_blueprint = scene.mt_main_part_blueprint
-        props.base_blueprint = scene.mt_base_blueprint
-        props.tile_size = (scene.mt_tile_x, scene.mt_tile_y, scene.mt_tile_z)
-        props.base_size = (scene.mt_base_x, scene.mt_base_y, scene.mt_base_z)
-        props.base_radius = scene.mt_base_radius
-        props.base_socket_side = scene.mt_base_socket_side
-        props.wall_radius = scene.mt_wall_radius
-        props.degrees_of_arc = scene.mt_degrees_of_arc
-        props.angle = scene.mt_angle
-        props.segments = scene.mt_segments
-        props.leg_1_len = scene.mt_leg_1_len
-        props.leg_2_len = scene.mt_leg_2_len
-        props.curve_type = scene.mt_curve_type
-        props.tile_units = scene.mt_tile_units
-        props.displacement_strength = scene.mt_displacement_strength
-        props.tile_resolution = scene.mt_tile_resolution
-        props.subdivisions = scene.mt_subdivisions
+        scene_props = scene.mt_scene_props
+        tile_props = tile_collection.mt_tile_props
+        tile_props.tile_name = tile_collection.name
+        tile_props.is_mt_collection = True
+        tile_props.tile_blueprint = tile_blueprint
+        tile_props.tile_type = tile_type
+        tile_props.main_part_blueprint = scene_props.mt_main_part_blueprint
+        tile_props.base_blueprint = scene_props.mt_base_blueprint
+        tile_props.tile_size = (scene_props.mt_tile_x, scene_props.mt_tile_y, scene_props.mt_tile_z)
+        tile_props.base_size = (scene_props.mt_base_x, scene_props.mt_base_y, scene_props.mt_base_z)
+        tile_props.base_radius = scene_props.mt_base_radius
+        tile_props.base_socket_side = scene_props.mt_base_socket_side
+        tile_props.wall_radius = scene_props.mt_wall_radius
+        tile_props.degrees_of_arc = scene_props.mt_degrees_of_arc
+        tile_props.angle = scene_props.mt_angle
+        tile_props.segments = scene_props.mt_segments
+        tile_props.leg_1_len = scene_props.mt_leg_1_len
+        tile_props.leg_2_len = scene_props.mt_leg_2_len
+        tile_props.curve_type = scene_props.mt_curve_type
+        tile_props.tile_units = scene_props.mt_tile_units
+        tile_props.displacement_strength = scene_props.mt_displacement_strength
+        tile_props.tile_resolution = scene_props.mt_tile_resolution
+        tile_props.subdivisions = scene_props.mt_subdivisions
 
         ###############
         # Create Tile #
         ###############
 
         if tile_type == 'STRAIGHT_WALL':
-            create_straight_wall(props)
+            create_straight_wall(tile_props)
 
         if tile_type == 'CURVED_WALL':
-            create_curved_wall(props)
+            create_curved_wall(tile_props)
 
         if tile_type == 'CORNER_WALL':
-            create_corner_wall(props)
+            create_corner_wall(tile_props)
 
         if tile_type == 'RECTANGULAR_FLOOR':
-            create_rectangular_floor(props)
+            create_rectangular_floor(tile_props)
 
         if tile_type == 'TRIANGULAR_FLOOR':
-            create_triangular_floor(props)
+            create_triangular_floor(tile_props)
 
         if tile_type == 'CURVED_FLOOR':
-            create_curved_floor(props)
+            create_curved_floor(tile_props)
 
         return {'FINISHED'}
 
     @classmethod
     def register(cls):
-
-        preferences = get_prefs()
-        material_enum_collection = bpy.utils.previews.new()
-        material_enum_collection.directory = ''
-        material_enum_collection.enums = ()
-        enum_collections["materials"] = material_enum_collection
-
         # Property group that contains properties relating to a tile on the tile collection
         bpy.types.Collection.mt_tile_props = bpy.props.PointerProperty(
             type=MT_Tile_Properties
@@ -170,212 +167,9 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             type=MT_Object_Properties
         )
 
-        bpy.types.Scene.mt_last_selected = bpy.props.PointerProperty(
-            name="Last Selected Object",
-            type=bpy.types.Object
-        )
-
-        bpy.types.Scene.mt_tile_name = bpy.props.StringProperty(
-            name="Tile Name",
-            default="Tile"
-        )
-
-        bpy.types.Scene.mt_tile_units = bpy.props.EnumProperty(
-            items=units,
-            name="Units",
-            default=preferences.default_units,
-        )
-
-        bpy.types.Scene.mt_tile_blueprint = bpy.props.EnumProperty(
-            items=tile_blueprints,
-            name="Blueprint",
-            default=preferences.default_tile_blueprint,
-        )
-
-        bpy.types.Scene.mt_main_part_blueprint = bpy.props.EnumProperty(
-            items=tile_main_systems,
-            name="Main System",
-            default=preferences.default_tile_main_system,
-        )
-        bpy.types.Scene.mt_tile_type = bpy.props.EnumProperty(
-            items=tile_types,
-            name="Type",
-            default="STRAIGHT_WALL",
-            update=update_size_defaults
-        )
-
-        bpy.types.Scene.mt_base_blueprint = bpy.props.EnumProperty(
-            items=base_systems,
-            name="Base Type",
-            default=preferences.default_base_system,
-        )
-
-        bpy.types.Scene.mt_tile_material_1 = bpy.props.EnumProperty(
-            items=load_material_enums,
-            name="Material 1",
-            update=update_material_enums
-        )
-
-        bpy.types.Scene.mt_material_mapping_method = bpy.props.EnumProperty(
-            items=material_mapping,
-            description="How to map the active material onto an object",
-            name="Material Mapping Method",
-            update=update_material_mapping,
-            default='OBJECT'
-        )
-
-        bpy.types.Scene.mt_displacement_strength = bpy.props.FloatProperty(
-            name="Displacement Strength",
-            description="Overall Displacement Strength",
-            default=0.1,
-            min=0.0,
-            max=1,
-            step=1,
-            precision=3,
-            update=update_disp_strength
-        )
-
-        bpy.types.Scene.mt_tile_resolution = bpy.props.IntProperty(
-            name="Resolution",
-            description="Bake resolution of displacement maps. Higher = better quality but slower. Also images are 32 bit so 4K and 8K images can be gigabytes in size",
-            default=1024,
-            min=1024,
-            max=8192,
-            step=1024,
-        )
-
-        bpy.types.Scene.mt_subdivisions = bpy.props.IntProperty(
-            name="Subdivisions",
-            description="How many times to subdivide the displacement mesh. Higher = better but slower. \
-            Going above 8 is really not recommended and may cause Blender to freeze up for a loooooong time!",
-            default=6,
-            soft_max=8,
-            update=update_disp_subdivisions
-        )
-
-        # Tile and base size. We use seperate floats so that we can only show
-        # customisable ones where appropriate. These are wrapped up
-        # in a vector and passed on as tile_size and base_size
-
-        # Tile size
-        bpy.types.Scene.mt_tile_x = bpy.props.FloatProperty(
-            name="X",
-            default=2.0,
-            step=0.5,
-            precision=3,
-            min=0
-        )
-
-        bpy.types.Scene.mt_tile_y = bpy.props.FloatProperty(
-            name="Y",
-            default=2,
-            step=0.5,
-            precision=3,
-            min=0
-        )
-
-        bpy.types.Scene.mt_tile_z = bpy.props.FloatProperty(
-            name="Z",
-            default=2.0,
-            step=0.1,
-            precision=3,
-            min=0
-        )
-
-        # Base size
-        bpy.types.Scene.mt_base_x = bpy.props.FloatProperty(
-            name="X",
-            default=2.0,
-            step=0.5,
-            precision=3,
-            min=0
-        )
-
-        bpy.types.Scene.mt_base_y = bpy.props.FloatProperty(
-            name="Y",
-            default=0.5,
-            step=0.5,
-            precision=3,
-            min=0
-        )
-
-        bpy.types.Scene.mt_base_z = bpy.props.FloatProperty(
-            name="Z",
-            default=0.3,
-            step=0.1,
-            precision=3,
-            min=0
-        )
-
-        # Corner wall and triangular base specific
-        bpy.types.Scene.mt_angle = bpy.props.FloatProperty(
-            name="Base Angle",
-            default=90,
-            step=5,
-            precision=1
-        )
-
-        bpy.types.Scene.mt_leg_1_len = bpy.props.FloatProperty(
-            name="Leg 1 Length",
-            description="Length of leg",
-            default=2,
-            step=0.5,
-            precision=2
-        )
-
-        bpy.types.Scene.mt_leg_2_len = bpy.props.FloatProperty(
-            name="Leg 2 Length",
-            description="Length of leg",
-            default=2,
-            step=0.5,
-            precision=2
-        )
-
-        # Openlock curved wall specific
-        bpy.types.Scene.mt_base_socket_side = bpy.props.EnumProperty(
-            items=base_socket_side,
-            name="Socket Side",
-            default="INNER",
-        )
-
-        # Used for curved wall tiles
-        bpy.types.Scene.mt_base_radius = bpy.props.FloatProperty(
-            name="Base inner radius",
-            default=2.0,
-            step=0.5,
-            precision=3,
-            min=0,
-        )
-
-        bpy.types.Scene.mt_wall_radius = bpy.props.FloatProperty(
-            name="Wall inner radius",
-            default=2.0,
-            step=0.5,
-            precision=3,
-            min=0
-        )
-
-        # used for curved floors
-        bpy.types.Scene.mt_curve_type = bpy.props.EnumProperty(
-            items=curve_types,
-            name="Curve type",
-            default="POS",
-            description="Whether the tile has a positive or negative curvature"
-        )
-
-        # TODO: Fix hack to make 360 curved wall work. Ideally this should merge everything
-        bpy.types.Scene.mt_degrees_of_arc = bpy.props.FloatProperty(
-            name="Degrees of arc",
-            default=90,
-            step=45,
-            precision=1,
-            max=359.999,
-            min=0
-        )
-
-        bpy.types.Scene.mt_segments = bpy.props.IntProperty(
-            name="Number of segments",
-            default=8,
+        # Property group that contains properties set in UI
+        bpy.types.Scene.mt_scene_props = bpy.props.PointerProperty(
+            type=MT_Scene_Properties
         )
 
         ''' Deprecated
@@ -389,146 +183,6 @@ class MT_OT_Make_Tile(bpy.types.Operator):
 
     @classmethod
     def unregister(cls):
-        # del bpy.types.Scene.mt_trim_buffer
-        del bpy.types.Scene.mt_tile_name
-        del bpy.types.Scene.mt_segments
-        del bpy.types.Scene.mt_last_selected
-        del bpy.types.Scene.mt_base_radius
-        del bpy.types.Scene.mt_wall_radius
-        del bpy.types.Scene.mt_curve_type
-        del bpy.types.Scene.mt_degrees_of_arc
-        del bpy.types.Scene.mt_base_socket_side
-        del bpy.types.Scene.mt_base_x
-        del bpy.types.Scene.mt_base_y
-        del bpy.types.Scene.mt_base_z
-        del bpy.types.Scene.mt_tile_x
-        del bpy.types.Scene.mt_tile_y
-        del bpy.types.Scene.mt_tile_z
-        del bpy.types.Scene.mt_base_blueprint
-        del bpy.types.Scene.mt_tile_resolution
-        del bpy.types.Scene.mt_displacement_strength
-        del bpy.types.Scene.mt_tile_material_1
-        del bpy.types.Scene.mt_material_mapping_method
-        del bpy.types.Scene.mt_subdivisions
-        del bpy.types.Scene.mt_tile_type
-        del bpy.types.Scene.mt_tile_blueprint
-        del bpy.types.Scene.mt_main_part_blueprint
-        del bpy.types.Scene.mt_tile_units
+        del bpy.types.Scene.mt_scene_props
         del bpy.types.Collection.mt_tile_props
         del bpy.types.Object.mt_object_props
-
-        for pcoll in enum_collections.values():
-            bpy.utils.previews.remove(pcoll)
-        enum_collections.clear()
-
-
-def load_material_enums(self, context):
-    '''Constructs a material Enum from materials found in the materials asset folder'''
-    enum_items = []
-    prefs = get_prefs()
-    if context is None:
-        return enum_items
-
-    materials_path = os.path.join(prefs.assets_path, "materials")
-    blend_filenames = get_blend_filenames(materials_path)
-    enum_collection = enum_collections['materials']
-    if materials_path == enum_collection.directory:
-        return enum_collection.enums
-
-    load_materials(materials_path, blend_filenames)
-    materials = bpy.data.materials
-    for material in materials:
-        # prevent make-tile adding the default material to the list
-        if material.name != prefs.secondary_material and material.name != 'Material':
-            enum = (material.name, material.name, "")
-            enum_items.append(enum)
-
-    return enum_items
-
-
-def update_material_enums(self, context):
-    enum_items = []
-    materials = bpy.data.materials
-    prefs = get_prefs()
-
-    for material in materials:
-        # prevent make-tile adding the default material to the list
-        if material.name != prefs.secondary_material and material.name != 'Material':
-            enum = (material.name, material.name, "")
-            enum_items.append(enum)
-
-    return enum_items
-
-
-def update_size_defaults(self, context):
-    '''updates tile and base size defaults depending on whether we are generating a base or wall'''
-    scene = context.scene
-    if scene.mt_tile_type == 'RECTANGULAR_FLOOR' or scene.mt_tile_type == 'TRIANGULAR_FLOOR' or scene.mt_tile_type == 'CURVED_FLOOR':
-        scene.mt_tile_z = 0.3
-        scene.mt_base_z = 0.2755
-        scene.mt_tile_x = 2
-        scene.mt_tile_y = 2
-        scene.mt_base_x = 2
-        scene.mt_base_y = 2
-    else:
-        scene.mt_tile_z = 2
-        scene.mt_base_z = 0.2755
-        scene.mt_base_y = 0.5
-        scene.mt_tile_y = 0.3149
-
-
-def update_disp_strength(self, context):
-    disp_obj = bpy.context.object
-
-    if 'Displacement' in disp_obj.modifiers:
-        mod = disp_obj.modifiers['Displacement']
-        mod.strength = context.scene.mt_displacement_strength
-
-
-def update_disp_subdivisions(self, context):
-    '''Updates the numnber of subdivisions used by the displacement material modifier'''
-    disp_obj = bpy.context.object
-
-    if 'Subsurf' in disp_obj.modifiers:
-        modifier = disp_obj.modifiers['Subsurf']
-        modifier.levels = context.scene.mt_subdivisions
-
-
-def update_material_mapping(self, context):
-    '''updates which mapping method to use for a material'''
-    material = context.object.active_material
-    tree = material.node_tree
-    nodes = tree.nodes
-
-    map_meth = context.scene.mt_material_mapping_method
-
-    if 'master_mapping' in nodes:
-        mapping_node = nodes['master_mapping']
-        if map_meth == 'WRAP_AROUND':
-            map_type_node = nodes['wrap_around_map']
-            tree.links.new(
-                map_type_node.outputs['Vector'],
-                mapping_node.inputs['Vector'])
-        elif map_meth == 'TRIPLANAR':
-            map_type_node = nodes['triplanar_map']
-            tree.links.new(
-                map_type_node.outputs['Vector'],
-                mapping_node.inputs['Vector'])
-        elif map_meth == 'OBJECT':
-            map_type_node = nodes['object_map']
-            tree.links.new(
-                map_type_node.outputs['Color'],
-                mapping_node.inputs['Vector'])
-        elif map_meth == 'GENERATED':
-            map_type_node = nodes['generated_map']
-            tree.links.new(
-                map_type_node.outputs['Color'],
-                mapping_node.inputs['Vector'])
-        elif map_meth == 'UV':
-            map_type_node = nodes['UV_map']
-            tree.links.new(
-                map_type_node.outputs['Color'],
-                mapping_node.inputs['Vector'])
-
-
-enum_collections = {}

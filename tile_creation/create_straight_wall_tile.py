@@ -4,10 +4,9 @@ from math import radians
 import bpy
 from mathutils import Vector
 from .. lib.utils.collections import add_object_to_collection
-from .. lib.utils.selection import deselect_all, select_all
 from .. utils.registration import get_prefs
 from .. lib.turtle.scripts.primitives import draw_cuboid
-from .. lib.utils.utils import mode, view3d_find
+from .. lib.utils.utils import mode
 from .. lib.utils.vertex_groups import (
     straight_wall_to_vert_groups,
     construct_displacement_mod_vert_group)
@@ -72,8 +71,7 @@ def create_straight_wall(tile_props):
     if main_part_blueprint == 'NONE':
         tile_props.tile_size = tile_props.base_size
 
-    finalise_tile(tile_meshes,
-                  base,
+    finalise_tile(base,
                   preview_core,
                   cursor_orig_loc)
 
@@ -159,11 +157,8 @@ def create_openlock_base_slot_cutter(base, tile_props, offset=0.18):
     Keyword arguments:
     base -- OBJ, base the cutter will be used on
     """
-    cursor = bpy.context.scene.cursor
-
     # get original location of object and cursor
     base_location = base.location.copy()
-    cursor_original_location = cursor.location.copy()
 
     # work out bool size X from base size, y and z are constants.
     # Correct for negative base dimensions when making curved walls
@@ -218,7 +213,6 @@ def create_openlock_base_clip_cutter(base, tile_props):
     mode('OBJECT')
 
     # get original location of cursor
-    cursor_original_location = bpy.context.scene.cursor.location.copy()
     base_location = base.location.copy()
     # Get cutter
     preferences = get_prefs()
@@ -387,7 +381,6 @@ def create_openlock_cores(base, tile_props):
         0.3149,
         tile_props.tile_size[2]))
 
-    tile_size = tile_props.tile_size
     tile_name = tile_props.tile_name
 
     preview_core, displacement_core = create_cores(base, tile_props)

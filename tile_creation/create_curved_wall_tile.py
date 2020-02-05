@@ -1,40 +1,27 @@
 import os
 import bpy
 from mathutils import Vector
-from math import degrees, radians, pi, modf
+from math import radians, pi, modf
 from .. lib.utils.collections import add_object_to_collection
-from .. utils.registration import get_path, get_prefs
-from .. lib.turtle.scripts.primitives import draw_cuboid
+from .. utils.registration import get_prefs
 from .. lib.turtle.scripts.openlock_curved_wall_base import draw_openlock_curved_base
 
 from .. lib.utils.selection import (
     deselect_all,
-    select_all,
     select,
     activate)
 
 from .. lib.utils.utils import (
     mode,
-    view3d_find,
-    add_circle_array,
-    loopcut_and_add_deform_modifiers,
-    get_tile_props)
+    add_circle_array)
 
 from .. lib.utils.vertex_groups import (
     straight_wall_to_vert_groups,
     construct_displacement_mod_vert_group)
 
 from .. materials.materials import (
-    load_secondary_material,
-    assign_mat_to_vert_group,
     assign_displacement_materials,
     assign_preview_materials)
-
-from .. enums.enums import geometry_types
-
-from . create_straight_wall_tile import (
-    create_plain_base as create_base,
-    create_openlock_base_slot_cutter)
 
 from . generic import finalise_tile
 
@@ -90,24 +77,19 @@ def create_curved_wall(tile_props):
         tile_props.tile_size = tile_props.base_size
         preview_core = None
 
-    finalise_tile(tile_meshes,
-                  base,
+    finalise_tile(base,
                   preview_core,
                   cursor_orig_loc)
 
 
 def create_plain_base(tile_props):
-    scene = bpy.context.scene
     radius = tile_props.base_radius
     segments = tile_props.segments
     angle = tile_props.degrees_of_arc
     height = tile_props.base_size[2]
     width = tile_props.base_size[1]
-    inner_circumference = 2 * pi * radius
-    base_length = inner_circumference / (360 / angle)
 
     t = bpy.ops.turtle
-    turtle = bpy.context.scene.cursor
 
     t.add_turtle()
     t.pd()
@@ -142,7 +124,7 @@ def create_openlock_base(tile_props):
     clip_side = scene.mt_scene_props.mt_base_socket_side
 
     base = draw_openlock_curved_base(radius, segments, angle, tile_props.base_size[2], clip_side)
-    base_cutter = create_openlock_base_clip_cutter(base, tile_props, clip_side)
+    create_openlock_base_clip_cutter(base, tile_props, clip_side)
 
     base.name = tile_props.tile_name + '.base'
     obj_props = base.mt_object_props
@@ -242,7 +224,6 @@ def create_core(tile_props):
     # displacement texture by disabling it in render and thus being able to use
     # standard projections
 
-    turtle = scene.cursor
     t = bpy.ops.turtle
 
     t.add_turtle()
@@ -365,7 +346,6 @@ def create_cores(base, tile_props):
 
 
 def create_openlock_cores(base, tile_props):
-    scene = bpy.context.scene
     tile_props.tile_size[1] = 0.3149
 
     preview_core, displacement_core = create_cores(base, tile_props)

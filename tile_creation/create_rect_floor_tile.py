@@ -29,8 +29,6 @@ def create_rectangular_floor(tile_props):
     cursor_orig_loc = cursor.location.copy()
     cursor.location = (0, 0, 0)
 
-    tile_name = tile_props.tile_name
-
     # Get base and main part blueprints
     base_blueprint = tile_props.base_blueprint
     main_part_blueprint = tile_props.main_part_blueprint
@@ -69,7 +67,6 @@ def create_rectangular_floor(tile_props):
         preview_core = None
 
     finalise_tile(
-        tile_meshes,
         base,
         preview_core,
         cursor_orig_loc)
@@ -98,7 +95,7 @@ def create_plain_base(tile_props):
     return base
 
 
-def create_core(base, tile_props):
+def create_core(tile_props):
     cursor = bpy.context.scene.cursor
     cursor_start_loc = cursor.location.copy()
 
@@ -170,7 +167,7 @@ def create_core(base, tile_props):
 def create_cores(base, tile_props):
     scene = bpy.context.scene
 
-    preview_core = create_core(base, tile_props)
+    preview_core = create_core(tile_props)
     preview_core, displacement_core = create_displacement_object(preview_core)
 
     preview_core.parent = base

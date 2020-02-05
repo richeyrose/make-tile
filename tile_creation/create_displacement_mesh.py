@@ -2,8 +2,6 @@
 import bpy
 from .. lib.utils.collections import add_object_to_collection
 
-from . generic import finalise_tile
-
 
 def create_displacement_object(obj):
     '''Takes a mesh object and returns a displacement and preview object'''
@@ -21,7 +19,7 @@ def create_displacement_object(obj):
     displacement_obj['subsurf_mod_name'] = displacement_obj_subsurf.name
 
     # add triangulate modifier
-    displacement_obj_triangulate_mod = displacement_obj.modifiers.new('Triangulate', 'TRIANGULATE')
+    displacement_obj.modifiers.new('Triangulate', 'TRIANGULATE')
 
     # add a geometry_type custom property so MakeTile knows that these objects
     # are preview / displacement objects

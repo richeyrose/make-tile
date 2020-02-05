@@ -17,9 +17,7 @@ from . create_straight_wall_tile import create_openlock_wall_cutters
 
 from .. lib.utils.selection import (
     deselect_all,
-    select_all,
-    select,
-    activate)
+    select)
 
 from . create_displacement_mesh import create_displacement_object
 from . generic import finalise_tile
@@ -74,8 +72,7 @@ def create_corner_wall(tile_props):
         tile_props.tile_size = tile_props.base_size
         preview_core = None
 
-    finalise_tile(tile_meshes,
-                  base,
+    finalise_tile(base,
                   preview_core,
                   cursor_orig_loc)
 
@@ -87,7 +84,6 @@ def create_plain_base(tile_props):
     angle = tile_props.angle
     base_thickness = tile_props.base_size[1]
 
-    turtle = bpy.context.scene.cursor
     t = bpy.ops.turtle
     t.add_turtle()
 
@@ -273,10 +269,9 @@ def create_openlock_cores(base, tile_props):
             item.value = True
             item.parent = core.name
 
-    base.name = tile_props.tile_name + '.core'
-    obj_props = base.mt_object_props
+    core.name = tile_props.tile_name + '.core'
+    obj_props = core.mt_object_props
     obj_props.is_mt_object = True
-    obj_props.geometry_type = 'BASE'
     obj_props.tile_name = tile_props.tile_name
 
     return preview_core, displacement_core
@@ -326,10 +321,6 @@ def create_plain_cores(base, tile_props):
 
 def create_openlock_base_slot_cutter():
     tile_props = bpy.context.collection.mt_tile_props
-    base_thickness = tile_props.base_size[1]
-    wall_thickness = tile_props.tile_size[1]
-    base_height = tile_props.base_size[2]
-    wall_height = tile_props.tile_size[2]
     leg_1_len = tile_props.leg_1_len
     leg_2_len = tile_props.leg_2_len
     angle = tile_props.angle
@@ -374,7 +365,6 @@ def create_openlock_base_slot_cutter():
     )
 
     # fill face and extrude cutter
-    turtle = bpy.context.scene.cursor
     t = bpy.ops.turtle
     bpy.ops.mesh.edge_face_add()
     t.pd()
@@ -557,7 +547,6 @@ def create_plain_wall_core(tile_props):
         wall_thickness)
 
     # fill face and extrude wall
-    turtle = bpy.context.scene.cursor
     t = bpy.ops.turtle
     bpy.ops.mesh.edge_face_add()
     t.pd()
@@ -581,7 +570,9 @@ def create_plain_wall_core(tile_props):
 
     mode('OBJECT')
     bpy.ops.uv.smart_project(island_margin=1)
+    
     core = bpy.context.object
+    core.name = tile_props.tile_name + '.core'
     obj_props = core.mt_object_props
     obj_props.is_mt_object = True
     obj_props.tile_name = tile_props.tile_name

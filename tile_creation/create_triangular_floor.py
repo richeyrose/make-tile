@@ -6,7 +6,7 @@ from .. lib.turtle.scripts.openlock_floor_tri_base import draw_openlock_tri_floo
 from .. lib.turtle.scripts.primitives import draw_tri_prism
 from .. lib.utils.collections import add_object_to_collection
 from .. lib.utils.utils import mode
-from .. lib.utils.selection import select, activate, deselect_all, select_all, select_by_loc
+from .. lib.utils.selection import select, deselect_all
 from . create_displacement_mesh import create_displacement_object
 from .. materials.materials import (
     assign_displacement_materials,
@@ -29,21 +29,15 @@ def create_triangular_floor(tile_props):
     cursor_orig_loc = cursor.location.copy()
     cursor.location = (0, 0, 0)
 
-    tile_name = tile_props.tile_name
-
     # Get base and main part blueprints
     base_blueprint = tile_props.base_blueprint
     main_part_blueprint = tile_props.main_part_blueprint
 
-    tile_meshes = []
-
     if base_blueprint == 'OPENLOCK':
         base, dimensions = create_openlock_base(tile_props)
-        tile_meshes.append(base)
 
     if base_blueprint == 'PLAIN':
         base, dimensions = create_plain_base(tile_props)
-        tile_meshes.append(base)
 
     if base_blueprint == 'NONE':
         tile_props.base_size = (0, 0, 0)
@@ -58,16 +52,13 @@ def create_triangular_floor(tile_props):
     else:
         # cores are the textured part of the tile
         preview_core, displacement_core, dimensions = create_cores(tile_props, base)
-        tile_meshes.extend([preview_core, displacement_core])
 
-    finalise_tile(tile_meshes,
-                  base,
+    finalise_tile(base,
                   preview_core,
                   cursor_orig_loc)
 
 
 def create_core(tile_props):
-    turtle = bpy.context.scene.cursor
     t = bpy.ops.turtle
 
     t.add_turtle()
@@ -91,7 +82,7 @@ def create_core(tile_props):
         'selected_objects': [core]
     }
 
-    core.name = tile_props.name + '.core'
+    core.name = tile_props.tile_name + '.core'
     bpy.ops.uv.smart_project(ctx, island_margin=1)
 
     obj_props = core.mt_object_props
@@ -145,6 +136,8 @@ def create_cores(tile_props, base):
 
 
 def create_openlock_base(tile_props):
+    deselect_all()
+
     tile_props.base_size[2] = .2756
     tile_props.tile_size[2] = 0.3
 
@@ -157,7 +150,7 @@ def create_openlock_base(tile_props):
     add_object_to_collection(base, tile_props.tile_name)
     base.mt_object_props.geometry_type = 'BASE'
 
-    base.name = tile_props.name + '.core'
+    base.name = tile_props.tile_name + '.base'
 
     ctx = {
         'object': base,
@@ -170,7 +163,7 @@ def create_openlock_base(tile_props):
     obj_props.is_mt_object = True
     obj_props.tile_name = tile_props.tile_name
 
-    clip_cutters = create_openlock_base_clip_cutters(base, dimensions, tile_props)
+    clip_cutters = create_openlock_base_clip_cutters(dimensions, tile_props)
 
     for clip_cutter in clip_cutters:
         matrixcopy = clip_cutter.matrix_world.copy()
@@ -184,12 +177,11 @@ def create_openlock_base(tile_props):
     return base, dimensions
 
 
-def create_openlock_base_clip_cutters(base, dimensions, tile_props):
+def create_openlock_base_clip_cutters(dimensions, tile_props):
 
     if dimensions['a'] or dimensions['b'] or dimensions['c'] >= 2:
         mode('OBJECT')
         deselect_all()
-        base_location = base.location.copy()
         preferences = get_prefs()
         booleans_path = os.path.join(preferences.assets_path, "meshes", "booleans", "openlock.blend")
 
@@ -334,9 +326,8 @@ def create_openlock_base_clip_cutters(base, dimensions, tile_props):
 
         return None
 
-
 def create_plain_base(tile_props):
-    turtle = bpy.context.scene.cursor
+    deselect_all()
     t = bpy.ops.turtle
 
     t.add_turtle()
@@ -351,7 +342,7 @@ def create_plain_base(tile_props):
     t.home()
     mode('OBJECT')
 
-    base.name = tile_props.name + '.base'
+    base.name = tile_props.tile_name + '.base'
 
     ctx = {
         'object': base,

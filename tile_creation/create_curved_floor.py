@@ -10,7 +10,7 @@ from .. materials.materials import (
     assign_displacement_materials,
     assign_preview_materials)
 from . create_displacement_mesh import create_displacement_object
-from .. lib.utils.selection import select, activate, deselect_all, select_all, select_by_loc
+from .. lib.utils.selection import select, deselect_all
 from .. lib.utils.utils import mode
 from .. lib.utils.collections import add_object_to_collection
 from .create_corner_wall import calculate_corner_wall_triangles, move_cursor_to_wall_start, draw_corner_outline
@@ -24,8 +24,6 @@ def create_curved_floor(tile_props):
     cursor = scene.cursor
     cursor_orig_loc = cursor.location.copy()
     cursor.location = (0, 0, 0)
-
-    tile_name = tile_props.tile_name
 
     # Get base and main part blueprints
     base_blueprint = tile_props.base_blueprint
@@ -61,8 +59,7 @@ def create_curved_floor(tile_props):
         tile_props.tile_size = tile_props.base_size
         preview_core = None
 
-    finalise_tile(tile_meshes,
-                  base,
+    finalise_tile(base,
                   preview_core,
                   cursor_orig_loc)
 
@@ -132,7 +129,7 @@ def create_openlock_base(tile_props):
             cutter_bool.operation = 'DIFFERENCE'
             cutter_bool.object = slot_cutter
 
-    cutters = create_openlock_base_clip_cutters(base, tile_props)
+    cutters = create_openlock_base_clip_cutters(tile_props)
 
     for clip_cutter in cutters:
         matrixcopy = clip_cutter.matrix_world.copy()
@@ -154,14 +151,8 @@ def create_openlock_base(tile_props):
 
 
 def create_openlock_neg_curve_base_cutters(tile_props):
-    cursor = bpy.context.scene.cursor
-    cursor_orig_loc = cursor.location.copy()
-
     length = tile_props.base_radius / 2
-    segments = tile_props.segments
     angle = tile_props.angle
-    height = tile_props.base_size[2]
-    curve_type = tile_props.curve_type
     face_dist = 0.233
     slot_width = 0.197
     slot_height = 0.25
@@ -198,7 +189,6 @@ def create_openlock_neg_curve_base_cutters(tile_props):
     )
 
     # fill face and extrude cutter
-    turtle = bpy.context.scene.cursor
     t = bpy.ops.turtle
     bpy.ops.mesh.edge_face_add()
     t.pd()
@@ -221,18 +211,15 @@ def create_openlock_neg_curve_base_cutters(tile_props):
     return cutter
 
 
-def create_openlock_base_clip_cutters(base, tile_props):
+def create_openlock_base_clip_cutters(tile_props):
 
     mode('OBJECT')
-    deselect_all
 
     cursor = bpy.context.scene.cursor
     cursor_orig_loc = cursor.location.copy()
 
     radius = tile_props.base_radius
-    segments = tile_props.segments
     angle = tile_props.angle
-    height = tile_props.base_size[2]
     curve_type = tile_props.curve_type
     cutters = []
     if curve_type == 'NEG':

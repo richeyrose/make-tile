@@ -1,12 +1,13 @@
 import bpy
 from .. utils.registration import get_prefs
 from .. materials.materials import add_preview_mesh_subsurf
+from .. lib.utils.selection import select, deselect_all, activate
 
 
-def finalise_tile(tile_meshes,
-                  base,
-                  preview_core,
-                  cursor_orig_loc):
+def finalise_tile(
+        base,
+        preview_core,
+        cursor_orig_loc):
 
     # Assign secondary material to our base if its a mesh
     if base.type == 'MESH':
@@ -21,3 +22,7 @@ def finalise_tile(tile_meshes,
     base.location = cursor_orig_loc
     cursor = bpy.context.scene.cursor
     cursor.location = cursor_orig_loc
+
+    deselect_all()
+    select(base.name)
+    activate(base.name)

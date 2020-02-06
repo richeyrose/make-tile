@@ -1,23 +1,16 @@
 """Contains operator class to make tiles"""
 import os
+from .. materials.materials import load_materials, get_blend_filenames
+
 import bpy
 import bpy.utils.previews
-from mathutils import Vector
+
+from .. utils.registration import get_prefs
+
 from .. lib.utils.selection import deselect_all
-from .. utils.registration import get_path, get_prefs
 from .. lib.utils.collections import (
     create_collection,
     activate_collection)
-
-from .. enums.enums import (
-    tile_main_systems,
-    tile_types,
-    units,
-    base_systems,
-    tile_blueprints,
-    base_socket_side,
-    curve_types,
-    material_mapping)
 
 from .. tile_creation.create_straight_wall_tile import create_straight_wall
 from .. tile_creation.create_rect_floor_tile import create_rectangular_floor
@@ -46,6 +39,8 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             return True
 
     def execute(self, context):
+        deselect_all()
+
         scene = context.scene
         scene_props = scene.mt_scene_props
 
@@ -80,7 +75,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
 
         if tile_type == 'STRAIGHT_WALL' or tile_type == 'CURVED_WALL' or tile_type == 'CORNER_WALL':
             # create walls collection if it doesn't already exist
-            walls_collection = create_collection('Walls', tiles_collection)
+            create_collection('Walls', tiles_collection)
 
             # create new collection that operates as our "tile" and activate it
             tile_collection = bpy.data.collections.new(tile_name)
@@ -88,7 +83,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
 
         elif tile_type == 'RECTANGULAR_FLOOR' or tile_type == 'TRIANGULAR_FLOOR' or tile_type == 'CURVED_FLOOR':
             # create floor collection if one doesn't already exist
-            floors_collection = create_collection('Floors', tiles_collection)
+            create_collection('Floors', tiles_collection)
             # create new collection that operates as our "tile" and activate it
             tile_collection = bpy.data.collections.new(tile_name)
             bpy.data.collections['Floors'].children.link(tile_collection)
@@ -150,6 +145,15 @@ class MT_OT_Make_Tile(bpy.types.Operator):
 
     @classmethod
     def register(cls):
+        '''
+        material_enum_collection = bpy.utils.previews.new()
+        material_enum_collection.directory = ''
+        material_enum_collection.enums = ()
+        enum_collections["materials"] = material_enum_collection
+        enum_collections["materials"] = load_material_enums
+        #bpy.utils.previews.remove(material_enum_collection)'''
+        # materials = load_material_enums
+        
 
         # Property group that contains properties relating to a tile on the tile collection
         bpy.types.Collection.mt_tile_props = bpy.props.PointerProperty(
@@ -166,14 +170,6 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             type=MT_Scene_Properties
         )
 
-        ''' Deprecated
-        bpy.types.Scene.mt_trim_buffer = bpy.props.FloatProperty(
-            name="Buffer",
-            description="Buffer to use for creating tile trimmers. Helps Booleans work",
-            default=-0.001,
-            precision=4
-        )
-        '''
 
     @classmethod
     def unregister(cls):

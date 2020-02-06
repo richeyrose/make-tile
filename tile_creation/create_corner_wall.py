@@ -131,11 +131,11 @@ def create_openlock_base(tile_props):
     slot_cutter.hide_viewport = True
 
     # clip cutters - leg 1
-    leg_len = base_triangles['b_adj']
-    corner_loc = vert_locs['x_inner_2']
-    clip_cutter_1 = create_openlock_base_clip_cutter(leg_len, corner_loc, -0.25, tile_props)
+    leg_len = base_triangles['a_adj']
+    corner_loc = base.location
+    clip_cutter_1 = create_openlock_base_clip_cutter(leg_len, corner_loc, 0.25, tile_props)
     select(clip_cutter_1.name)
-    bpy.ops.transform.mirror(constraint_axis=(False, True, False))
+    #bpy.ops.transform.mirror(constraint_axis=(False, False, False))
     bpy.ops.transform.rotate(
         value=radians(tile_props.angle - 90),
         orient_axis='Z',
@@ -143,10 +143,11 @@ def create_openlock_base(tile_props):
         center_override=corner_loc)
 
     # clip cutters - leg 2
-    leg_len = base_triangles['d_adj']
-    corner_loc = vert_locs['x_inner_2']
-    clip_cutter_2 = create_openlock_base_clip_cutter(leg_len, corner_loc, 0.25, tile_props)
+    leg_len = base_triangles['c_adj']
+    corner_loc = base.location
+    clip_cutter_2 = create_openlock_base_clip_cutter(leg_len, corner_loc, -0.25, tile_props)
     select(clip_cutter_2.name)
+    bpy.ops.transform.mirror(constraint_axis=(False, True, False))
     bpy.ops.transform.rotate(
         value=radians(-90),
         orient_axis='Z',
@@ -159,8 +160,8 @@ def create_openlock_base(tile_props):
         cutter_boolean.operation = 'DIFFERENCE'
         cutter_boolean.object = cutter
         cutter.parent = base
-        cutter.display_type = 'BOUNDS'
-        cutter.hide_viewport = True
+        cutter.display_type = 'WIRE'
+        #cutter.hide_viewport = True
 
     deselect_all()
 
@@ -325,11 +326,14 @@ def create_openlock_base_slot_cutter():
     leg_2_len = tile_props.leg_2_len
     angle = tile_props.angle
 
+    '''
     if bpy.context.scene.mt_scene_props.mt_base_socket_side == 'INNER':
         face_dist = 0.07
     else:
         face_dist = 0.233  # distance from outer face our slot should start
+    '''
 
+    face_dist = 0.233
     slot_width = 0.197
     slot_height = 0.25
     end_dist = 0.236  # distance of slot from base end

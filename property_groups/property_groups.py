@@ -101,49 +101,6 @@ class MT_Disp_Mat_Item(PropertyGroup):
 
 
 class MT_Scene_Properties(PropertyGroup):
-    def load_material_enums(self, context):
-        '''Constructs a material Enum from materials found in the materials asset folder'''
-        enum_items = []
-        prefs = get_prefs()
-        if context is None:
-            return enum_items
-
-        enum_collections = {}
-        material_enum_collection = bpy.utils.previews.new()
-        material_enum_collection.directory = ''
-        material_enum_collection.enums = ()
-        enum_collections["materials"] = material_enum_collection
-        bpy.utils.previews.remove(material_enum_collection)
-
-        materials_path = os.path.join(prefs.assets_path, "materials")
-        blend_filenames = get_blend_filenames(materials_path)
-        enum_collection = enum_collections['materials']
-        if materials_path == enum_collection.directory:
-            return enum_collection.enums
-
-        load_materials(materials_path, blend_filenames)
-        materials = bpy.data.materials
-        for material in materials:
-            # prevent make-tile adding the default material to the list
-            if material.name != prefs.secondary_material and material.name != 'Material':
-                enum = (material.name, material.name, "")
-                enum_items.append(enum)
-
-        return enum_items
-
-    def update_material_enums(self, context):
-        enum_items = []
-        materials = bpy.data.materials
-        prefs = get_prefs()
-
-        for material in materials:
-            # prevent make-tile adding the default material to the list
-            if material.name != prefs.secondary_material and material.name != 'Material':
-                enum = (material.name, material.name, "")
-                enum_items.append(enum)
-
-        return enum_items
-
     def update_size_defaults(self, context):
         '''updates tile and base size defaults depending on whether we are generating a base or wall'''
         scene_props = context.scene.mt_scene_props
@@ -213,8 +170,42 @@ class MT_Scene_Properties(PropertyGroup):
                     map_type_node.outputs['Color'],
                     mapping_node.inputs['Vector'])
 
-    # TODO: See why we get warning if we use this
 
+    def update_material_enums(self, context):
+        enum_items = []
+        materials = bpy.data.materials
+        prefs = get_prefs()
+
+        for material in materials:
+            # prevent make-tile adding the default material to the list
+            if material.name != prefs.secondary_material and material.name != 'Material':
+                enum = (material.name, material.name, "")
+                enum_items.append(enum)
+
+        return None
+
+    def load_material_enums(self, context):
+        '''Constructs a material Enum from materials found in the materials asset folder'''
+        enum_items = []    
+        if context is None:
+            return enum_items
+
+        if len(bpy.data.materials) != 0:
+            prefs = get_prefs()
+            materials_path = os.path.join(prefs.assets_path, "materials")
+            blend_filenames = get_blend_filenames(materials_path)
+            load_materials(materials_path, blend_filenames)
+            materials = bpy.data.materials
+            for material in materials:
+                # prevent make-tile adding the default material to the list
+                if material.name != prefs.secondary_material and material.name != 'Material':
+                    enum = (material.name, material.name, "")
+                    enum_items.append(enum)
+            return enum_items
+        else:
+            return False
+
+    # TODO: See why we get warning if we use this
     def get_default_units(self, context):
         prefs = get_prefs()
         return prefs.default_units
@@ -272,12 +263,6 @@ class MT_Scene_Properties(PropertyGroup):
         default='OPENLOCK'
     )
 
-    mt_tile_material_1: bpy.props.EnumProperty(
-        items=load_material_enums,
-        name="Material 1",
-        update=update_material_enums
-    )
-
     mt_material_mapping_method: bpy.props.EnumProperty(
         items=material_mapping,
         description="How to map the active material onto an object",
@@ -295,6 +280,12 @@ class MT_Scene_Properties(PropertyGroup):
         step=1,
         precision=3,
         update=update_disp_strength
+    )
+
+    mt_tile_material_1: bpy.props.EnumProperty(
+        items=load_material_enums,
+        name="Material 1",
+        update=update_material_enums
     )
 
     mt_tile_resolution: bpy.props.IntProperty(

@@ -45,3 +45,4 @@ def update_mt_scene_props_handler(dummy):
 
 
 bpy.app.handlers.depsgraph_update_post.append(update_mt_scene_props_handler)
+

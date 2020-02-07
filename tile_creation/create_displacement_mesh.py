@@ -5,7 +5,6 @@ from .. lib.utils.collections import add_object_to_collection
 
 def create_displacement_object(obj):
     '''Takes a mesh object and returns a displacement and preview object'''
-
     preview_obj = obj
 
     # duplicate preview_obj and make it single user
@@ -30,6 +29,8 @@ def create_displacement_object(obj):
     preview_obj.mt_object_props.linked_object = displacement_obj
     displacement_obj.mt_object_props.linked_object = preview_obj
 
-    add_object_to_collection(displacement_obj, bpy.context.collection.name)
+    tile_name = preview_obj.mt_object_props.tile_name
+
+    add_object_to_collection(displacement_obj, tile_name)
 
     return preview_obj, displacement_obj

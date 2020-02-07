@@ -161,7 +161,7 @@ def create_openlock_base(tile_props):
         cutter_boolean.object = cutter
         cutter.parent = base
         cutter.display_type = 'WIRE'
-        #cutter.hide_viewport = True
+        cutter.hide_viewport = True
 
     deselect_all()
 

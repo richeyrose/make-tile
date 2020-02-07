@@ -39,3 +39,14 @@ def activate_collection(collection_name):
     collection = get_collection(bpy.context.view_layer.layer_collection, collection_name)
     bpy.context.view_layer.active_layer_collection = collection
     return collection
+
+
+def get_objects_owning_collections(obj):
+    '''returns a list of collections the object is a member of'''
+    collections = []
+
+    for coll in bpy.data.collections:
+        if obj in coll.objects:
+            collections.append(coll)
+
+    return collections

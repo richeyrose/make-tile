@@ -1,11 +1,6 @@
 """Contains operator class to make tiles"""
-import os
-from .. materials.materials import load_materials, get_blend_filenames
-
 import bpy
 import bpy.utils.previews
-
-from .. utils.registration import get_prefs
 
 from .. lib.utils.selection import deselect_all
 from .. lib.utils.collections import (
@@ -95,7 +90,6 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         # the collection so we can access them from any object in this
         # collection.
 
-
         tile_props = tile_collection.mt_tile_props
         tile_props.tile_name = tile_collection.name
         tile_props.is_mt_collection = True
@@ -145,16 +139,6 @@ class MT_OT_Make_Tile(bpy.types.Operator):
 
     @classmethod
     def register(cls):
-        '''
-        material_enum_collection = bpy.utils.previews.new()
-        material_enum_collection.directory = ''
-        material_enum_collection.enums = ()
-        enum_collections["materials"] = material_enum_collection
-        enum_collections["materials"] = load_material_enums
-        #bpy.utils.previews.remove(material_enum_collection)'''
-        # materials = load_material_enums
-        
-
         # Property group that contains properties relating to a tile on the tile collection
         bpy.types.Collection.mt_tile_props = bpy.props.PointerProperty(
             type=MT_Tile_Properties

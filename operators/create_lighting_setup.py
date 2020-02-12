@@ -58,12 +58,6 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
             update=update_render_device
         )
 
-        bpy.types.Scene.mt_cycles_subdivision_quality = bpy.props.IntProperty(
-            name="Subdivision",
-            description="Cycles subdivision - higher = higher quality.",
-            default=1,
-        )
-
         bpy.types.Scene.mt_view_mode = bpy.props.EnumProperty(
             items=view_mode,
             name="Render Engine",
@@ -75,7 +69,6 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
     def unregister(cls):
         print("Unregistered class: %s" % cls.bl_label)
         del bpy.types.Scene.mt_view_mode
-        del bpy.types.Scene.mt_cycles_subdivision_quality
         del bpy.types.Scene.mt_use_gpu
 
 

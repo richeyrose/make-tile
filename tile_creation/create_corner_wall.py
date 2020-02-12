@@ -573,7 +573,7 @@ def create_plain_wall_core(tile_props):
     corner_wall_to_vert_groups(bpy.context.object, vert_locs)
 
     mode('OBJECT')
-    bpy.ops.uv.smart_project(island_margin=1)
+    bpy.ops.uv.smart_project()
     
     core = bpy.context.object
     core.name = tile_props.tile_name + '.core'

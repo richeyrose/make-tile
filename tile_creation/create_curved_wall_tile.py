@@ -279,7 +279,7 @@ def create_core(tile_props):
         'selected_objects': [core]
     }
 
-    bpy.ops.uv.smart_project(ctx, island_margin=1)
+    bpy.ops.uv.smart_project(ctx)
 
     straight_wall_to_vert_groups(core)
 
@@ -301,9 +301,6 @@ def create_core(tile_props):
 
 def create_cores(base, tile_props):
     scene = bpy.context.scene
-
-    offset = (tile_props.base_size[1] - tile_props.tile_size[1]) / 2
-    tile_props.wall_radius = tile_props.base_radius + offset
 
     preview_core = create_core(tile_props)
     preview_core, displacement_core = create_displacement_object(preview_core)
@@ -347,7 +344,9 @@ def create_cores(base, tile_props):
 
 def create_openlock_cores(base, tile_props):
     tile_props.tile_size[1] = 0.3149
-
+    offset = (tile_props.base_size[1] - tile_props.tile_size[1]) / 2
+    tile_props.wall_radius = tile_props.base_radius + offset
+    
     preview_core, displacement_core = create_cores(base, tile_props)
 
     cores = [preview_core, displacement_core]

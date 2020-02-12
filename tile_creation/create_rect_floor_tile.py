@@ -153,7 +153,7 @@ def create_core(tile_props):
         plane_no=(0, 0, 1))
     mode('OBJECT')
 
-    bpy.ops.uv.smart_project(ctx, island_margin=1)
+    bpy.ops.uv.smart_project(ctx)
 
     rect_floor_to_vert_groups(core)
 

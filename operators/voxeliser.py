@@ -126,14 +126,14 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
             name="Quality",
             description="Quality of the voxelisation. Smaller = Better",
             soft_min=0.005,
-            default=0.005,
+            default=0.01,
             precision=3,
         )
 
         bpy.types.Scene.mt_voxel_adaptivity = bpy.props.FloatProperty(
             name="Adaptivity",
             description="Amount by which to simplify mesh",
-            default=0.01,
+            default=0.05,
             precision=3,
         )
 

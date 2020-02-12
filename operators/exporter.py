@@ -54,7 +54,8 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                     preview_obj.hide_viewport = False
                     linked_obj = preview_obj.mt_object_props.linked_object
                     disp_mat_coll = linked_obj.mt_object_props.disp_materials_collection
-
+                    #disp_mod = linked_obj.modifiers['Displacement']
+                    
                     for item in disp_mat_coll:
                         material = item.material
                         tree = material.node_tree

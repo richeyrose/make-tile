@@ -67,7 +67,7 @@ def add_preview_mesh_subsurf(obj):
 
     obj_subsurf = obj.modifiers.new('Subsurf', 'SUBSURF')
     obj_subsurf.subdivision_type = 'SIMPLE'
-    obj_subsurf.levels = bpy.context.scene.mt_cycles_subdivision_quality
+    obj_subsurf.levels = 1
     obj.cycles.use_adaptive_subdivision = True
     bpy.context.scene.cycles.preview_dicing_rate = 1
 

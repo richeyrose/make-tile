@@ -7,7 +7,6 @@ def update_mt_scene_props_handler(dummy):
     scene_props = bpy.context.scene.mt_scene_props
     obj = bpy.context.object
 
-
     if obj is not None and obj != scene_props.mt_last_selected and obj.mt_object_props.is_mt_object is True and obj in bpy.context.selected_objects:
         obj_props = obj.mt_object_props
         tile_name = obj_props.tile_name
@@ -16,14 +15,10 @@ def update_mt_scene_props_handler(dummy):
         scene_props.mt_last_selected = obj
 
         scene_props.mt_tile_name = tile_props.tile_name
-        scene_props.mt_tile_units = tile_props.tile_units
         scene_props.mt_tile_blueprint = tile_props.tile_blueprint
         scene_props.mt_main_part_blueprint = tile_props.main_part_blueprint
         scene_props.mt_tile_type = tile_props.tile_type
         scene_props.mt_base_blueprint = tile_props.base_blueprint
-        scene_props.mt_displacement_strength = tile_props.displacement_strength
-        scene_props.mt_tile_resolution = tile_props.tile_resolution
-        scene_props.mt_subdivisions = tile_props.subdivisions
 
         scene_props.mt_tile_x = tile_props.tile_size[0]
         scene_props.mt_tile_y = tile_props.tile_size[1]
@@ -45,4 +40,3 @@ def update_mt_scene_props_handler(dummy):
 
 
 bpy.app.handlers.depsgraph_update_post.append(update_mt_scene_props_handler)
-

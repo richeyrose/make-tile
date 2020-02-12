@@ -120,6 +120,8 @@ class MT_Scene_Properties(PropertyGroup):
     def update_disp_strength(self, context):
         obj = bpy.context.object
         obj_props = obj.mt_object_props
+        tile = bpy.data.collections[obj_props.tile_name]
+        tile.mt_tile_props.displacement_strength = context.scene.mt_scene_props.mt_displacement_strength
         if obj_props.geometry_type == 'DISPLACEMENT':
             if 'Displacement' in obj.modifiers:
                 mod = obj.modifiers['Displacement']
@@ -275,8 +277,6 @@ class MT_Scene_Properties(PropertyGroup):
         name="Displacement Strength",
         description="Overall Displacement Strength",
         default=0.1,
-        min=0.0,
-        max=1,
         step=1,
         precision=3,
         update=update_disp_strength

@@ -117,8 +117,12 @@ class MT_OT_Bake_Displacement(bpy.types.Operator):
 
     def execute(self, context):
         preview_obj = bpy.context.object
-        disp_obj = preview_obj.mt_object_props.linked_object
+        obj_props = preview_obj.mt_object_props
+        tile = bpy.data.collections[obj_props.tile_name]
+
+        disp_obj = obj_props.linked_object
         disp_mat_coll = disp_obj.mt_object_props.disp_materials_collection
+        disp_strength = tile.mt_tile_props.displacement_strength
 
         resolution = context.scene.mt_scene_props.mt_tile_resolution
         disp_obj.hide_viewport = False
@@ -129,7 +133,7 @@ class MT_OT_Bake_Displacement(bpy.types.Operator):
         disp_mod = disp_obj.modifiers[disp_obj['disp_mod_name']]
         disp_mod.texture = disp_texture
         disp_mod.mid_level = 0
-        disp_mod.strength = context.scene.mt_scene_props.mt_displacement_strength
+        disp_mod.strength = disp_strength
         subsurf_mod = disp_obj.modifiers[disp_obj['subsurf_mod_name']]
 
         subsurf_mod.levels = bpy.context.scene.mt_scene_props.mt_subdivisions

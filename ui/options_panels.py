@@ -17,4 +17,3 @@ class MT_PT_Display_Panel(Panel):
         layout.prop(scene, 'mt_view_mode')
         if scene.mt_view_mode == 'CYCLES':
             layout.prop(scene, 'mt_use_gpu')
-            layout.prop(scene, 'mt_cycles_subdivision_quality')

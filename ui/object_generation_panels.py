@@ -222,6 +222,8 @@ class MT_PT_Tile_Generator_Panel(Panel):
 
         if scene_props.mt_base_blueprint == 'PLAIN':
             self.draw_plain_base_panel(context)
+        if scene_props.mt_base_blueprint == 'OPENLOCK':
+            self.draw_openlock_panel(context)
         if scene_props.mt_main_part_blueprint == 'PLAIN':
             self.draw_plain_main_part_panel(context)
         if scene_props.mt_main_part_blueprint == 'OPENLOCK':

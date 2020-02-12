@@ -70,6 +70,7 @@ def create_straight_wall(tile_props):
 
     if main_part_blueprint == 'NONE':
         tile_props.tile_size = tile_props.base_size
+        preview_core = None
 
     finalise_tile(base,
                   preview_core,
@@ -360,8 +361,8 @@ def create_core(tile_size, base_size, tile_name):
         plane_co=(0, 0, cursor_start_loc[2] + base_size[2] + 0.001),
         plane_no=(0, 0, 1))
     mode('OBJECT')
-
-    bpy.ops.uv.smart_project(ctx, island_margin=1)
+    
+    bpy.ops.uv.smart_project(ctx)
 
     straight_wall_to_vert_groups(core)
 

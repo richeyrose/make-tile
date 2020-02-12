@@ -83,7 +83,7 @@ def create_core(tile_props):
     }
 
     core.name = tile_props.tile_name + '.core'
-    bpy.ops.uv.smart_project(ctx, island_margin=1)
+    bpy.ops.uv.smart_project(ctx)
 
     obj_props = core.mt_object_props
     obj_props.is_mt_object = True
@@ -157,7 +157,7 @@ def create_openlock_base(tile_props):
         'active_object': base,
         'selected_objects': [base]
     }
-    bpy.ops.uv.smart_project(ctx, island_margin=1)
+    bpy.ops.uv.smart_project(ctx)
 
     obj_props = base.mt_object_props
     obj_props.is_mt_object = True
@@ -349,7 +349,7 @@ def create_plain_base(tile_props):
         'active_object': base,
         'selected_objects': [base]
     }
-    bpy.ops.uv.smart_project(ctx, island_margin=1)
+    bpy.ops.uv.smart_project(ctx)
 
     obj_props = base.mt_object_props
     obj_props.is_mt_object = True

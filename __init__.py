@@ -61,7 +61,7 @@ from . operators.return_to_preview import MT_OT_Return_To_Preview
 from . operators.create_lighting_setup import MT_OT_Create_Lighting_Setup
 from . operators.exporter import MT_OT_Export_Tile, MT_OT_Export_Tile_Variants
 from . operators.voxeliser import MT_OT_Tile_Voxeliser
-# from . operators.trim_tile import MT_OT_Add_Trimmers
+
 from . lib.turtle.operators.basic_commands import *
 from . lib.turtle.operators.curve import *
 from . lib.turtle.operators.helpers import *
@@ -78,10 +78,11 @@ bl_info = {
     "author": "Richard Rose",
     "description": "Add on for creating 3d printable tiles",
     "blender": (2, 80, 1),
-    "version": (0, 0, 5),
+    "version": (0, 0, 8),
     "location": "View3D > UI > MakeTile",
     "warning": "",
-    "category": "3D View"
+    "tracker_url": "https://github.com/richeyrose/make-tile",
+    "category": "Object"
 }
 
 
@@ -120,7 +121,6 @@ classes = (
     MT_PT_Material_Options_Panel,
     MT_PT_Material_Mapping_Options_Panel,
     MT_PT_Voxelise_Panel,
-    # MT_PT_Trim_Panel,
     MT_PT_Converter_Panel,
     MT_PT_Export_Panel,
     TURTLE_OT_add_turtle,

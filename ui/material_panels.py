@@ -68,6 +68,12 @@ class MT_PT_Material_Options_Panel(Panel):
         tree = material.node_tree
         nodes = tree.nodes
 
+        # search for a custom image node and add a load image section if one is foind:
+        if 'mt_custom_image' in nodes:
+            layout.label(text="Custom Image")
+            image_node = nodes['mt_custom_image']
+            layout.template_ID(image_node, "image", new="image.new", open="image.open")
+
         # get all frame nodes in material that are within the 'editable_inputs' frame
         frame_names = []
         if 'editable_inputs' in nodes:
@@ -93,12 +99,6 @@ class MT_PT_Material_Options_Panel(Panel):
                 for name in node_names:
                     node = nodes[name]
                     layout.prop(node.outputs['Value'], 'default_value', text=node.label)
-
-        # search for a custom image node and add a load image section if one is foind:
-        if 'mt_custom_image' in nodes:
-            layout.label(text="Custom Image")
-            image_node = nodes['mt_custom_image']
-            layout.template_ID(image_node, "image", new="image.new", open="image.open")
 
 
 class MT_PT_Material_Mapping_Options_Panel(Panel):

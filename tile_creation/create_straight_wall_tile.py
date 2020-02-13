@@ -361,7 +361,7 @@ def create_core(tile_size, base_size, tile_name):
         plane_co=(0, 0, cursor_start_loc[2] + base_size[2] + 0.001),
         plane_no=(0, 0, 1))
     mode('OBJECT')
-    
+
     bpy.ops.uv.smart_project(ctx)
 
     straight_wall_to_vert_groups(core)

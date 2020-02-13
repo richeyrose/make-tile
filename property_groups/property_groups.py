@@ -172,28 +172,15 @@ class MT_Scene_Properties(PropertyGroup):
                     map_type_node.outputs['Color'],
                     mapping_node.inputs['Vector'])
 
-
-    def update_material_enums(self, context):
-        enum_items = []
-        materials = bpy.data.materials
-        prefs = get_prefs()
-
-        for material in materials:
-            # prevent make-tile adding the default material to the list
-            if material.name != prefs.secondary_material and material.name != 'Material':
-                enum = (material.name, material.name, "")
-                enum_items.append(enum)
-
-        return None
-
     def load_material_enums(self, context):
         '''Constructs a material Enum from materials found in the materials asset folder'''
         enum_items = []    
         if context is None:
             return enum_items
 
-        if len(bpy.data.materials) != 0:
-            prefs = get_prefs()
+        prefs = get_prefs()
+
+        if len(bpy.data.materials) <= 1:
             materials_path = os.path.join(prefs.assets_path, "materials")
             blend_filenames = get_blend_filenames(materials_path)
             load_materials(materials_path, blend_filenames)
@@ -205,7 +192,13 @@ class MT_Scene_Properties(PropertyGroup):
                     enum_items.append(enum)
             return enum_items
         else:
-            return False
+            materials = bpy.data.materials
+            for material in materials:
+                # prevent make-tile adding the default material to the list
+                if material.name != prefs.secondary_material and material.name != 'Material':
+                    enum = (material.name, material.name, "")
+                    enum_items.append(enum)
+            return enum_items
 
     # TODO: See why we get warning if we use this
     def get_default_units(self, context):
@@ -284,8 +277,7 @@ class MT_Scene_Properties(PropertyGroup):
 
     mt_tile_material_1: bpy.props.EnumProperty(
         items=load_material_enums,
-        name="Material 1",
-        update=update_material_enums
+        name="Material",
     )
 
     mt_tile_resolution: bpy.props.IntProperty(

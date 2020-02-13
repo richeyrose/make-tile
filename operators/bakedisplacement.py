@@ -50,13 +50,6 @@ class MT_OT_Assign_Material_To_Vert_Group(bpy.types.Operator):
         disp_obj = object_props.linked_object
 
         materials = []
-        for item in disp_obj.mt_object_props.disp_materials_collection:
-            materials.append(item.material)
-
-        if primary_material not in materials and primary_material != secondary_material:
-            item = disp_obj.mt_object_props.disp_materials_collection.add()
-            item.material = primary_material
-            materials.append(primary_material)
 
         textured_verts = set()
 
@@ -121,7 +114,6 @@ class MT_OT_Bake_Displacement(bpy.types.Operator):
         tile = bpy.data.collections[obj_props.tile_name]
 
         disp_obj = obj_props.linked_object
-        #disp_mat_coll = disp_obj.mt_object_props.disp_materials_collection
         disp_strength = tile.mt_tile_props.displacement_strength
 
         resolution = context.scene.mt_scene_props.mt_tile_resolution
@@ -163,15 +155,14 @@ def bake_displacement_map(preview_obj, disp_obj, resolution):
 
     image_resolution = bpy.context.scene.mt_scene_props.mt_tile_resolution
     disp_image = bpy.data.images.new(disp_obj.name + '.image', width=image_resolution, height=image_resolution, float_buffer=True)
-    
-    #disp_mat_coll = disp_obj.mt_object_props.disp_materials_collection
+
     disp_materials = []
-    
+
     for item in preview_obj.material_slots.items():
         material = bpy.data.materials[item[0]]
-        # plug emission node into output for baking
         tree = material.node_tree
         if 'disp_emission' in tree.nodes:
+            # plug emission node into output for baking
             disp_materials.append(material)
             displacement_emission_node = tree.nodes['disp_emission']
             mat_output_node = tree.nodes['Material Output']

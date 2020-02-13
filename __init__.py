@@ -44,7 +44,6 @@ from . lib.utils.tinycad.XALL import MT_OT_IntersectAllEdges
 from . property_groups.property_groups import (
     MT_Cutter_Item,
     MT_Trimmer_Item,
-    MT_Disp_Mat_Item,
     MT_Tile_Properties,
     MT_Object_Properties,
     MT_Scene_Properties,
@@ -92,7 +91,6 @@ classes = (
     MT_Radio_Buttons,
     MT_Cutter_Item,
     MT_Trimmer_Item,
-    MT_Disp_Mat_Item,
     MT_Tile_Properties,
     MT_Object_Properties,
     MT_Scene_Properties,

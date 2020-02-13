@@ -93,13 +93,6 @@ class MT_Trimmer_Item(PropertyGroup):
         name="")
 
 
-class MT_Disp_Mat_Item(PropertyGroup):
-    material: bpy.props.PointerProperty(
-        name="Displacement Material",
-        type=bpy.types.Material
-    )
-
-
 class MT_Scene_Properties(PropertyGroup):
     def update_size_defaults(self, context):
         '''updates tile and base size defaults depending on whether we are generating a base or wall'''
@@ -179,8 +172,6 @@ class MT_Scene_Properties(PropertyGroup):
             return enum_items
 
         prefs = get_prefs()
-
-        #if len(bpy.data.materials) <= 1:
         materials_path = os.path.join(prefs.assets_path, "materials")
         blend_filenames = get_blend_filenames(materials_path)
         load_materials(materials_path, blend_filenames)
@@ -191,16 +182,6 @@ class MT_Scene_Properties(PropertyGroup):
                 enum = (material.name, material.name, "")
                 enum_items.append(enum)
         return enum_items
-        '''
-        else:
-            materials = bpy.data.materials
-            for material in materials:
-                # prevent make-tile adding the default material to the list
-                if material.name != prefs.secondary_material and material.name != 'Material':
-                    enum = (material.name, material.name, "")
-                    enum_items.append(enum)
-            return enum_items
-        '''
 
     # TODO: See why we get warning if we use this
     def get_default_units(self, context):
@@ -461,12 +442,6 @@ class MT_Object_Properties(PropertyGroup):
         type=bpy.types.Object,
         description="Used for storing a reference from a preview object to a displacement object and vice versa"
     )
-
-    disp_materials_collection: bpy.props.CollectionProperty(
-        name="Displacement materials collection",
-        type=MT_Disp_Mat_Item
-    )
-
 
 class MT_Tile_Properties(PropertyGroup):
     is_mt_collection: bpy.props.BoolProperty(

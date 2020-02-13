@@ -121,12 +121,6 @@ def assign_displacement_materials(obj, image_size, primary_material, secondary_m
     obj.data.materials.append(secondary_material)
     obj.data.materials.append(primary_material)
 
-    # create new displacement material item and save it on our displacement object
-    item = obj.mt_object_props.disp_materials_collection.add()
-    item.material = primary_material
-    item.disp_texture = obj_disp_texture
-    item.disp_mod_name = obj_disp_mod.name
-
 
 def assign_preview_materials(obj, primary_material, secondary_material, textured_vertex_groups):
     '''Keyword Arguments:

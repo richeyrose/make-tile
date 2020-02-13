@@ -121,12 +121,12 @@ class MT_OT_Bake_Displacement(bpy.types.Operator):
         tile = bpy.data.collections[obj_props.tile_name]
 
         disp_obj = obj_props.linked_object
-        disp_mat_coll = disp_obj.mt_object_props.disp_materials_collection
+        #disp_mat_coll = disp_obj.mt_object_props.disp_materials_collection
         disp_strength = tile.mt_tile_props.displacement_strength
 
         resolution = context.scene.mt_scene_props.mt_tile_resolution
         disp_obj.hide_viewport = False
-        disp_image = bake_displacement_map(disp_obj, resolution)
+        disp_image = bake_displacement_map(preview_obj, disp_obj, resolution)
 
         disp_texture = disp_obj['disp_texture']
         disp_texture.image = disp_image
@@ -143,7 +143,8 @@ class MT_OT_Bake_Displacement(bpy.types.Operator):
         return {'FINISHED'}
 
 
-def bake_displacement_map(disp_obj, resolution):
+def bake_displacement_map(preview_obj, disp_obj, resolution):
+    context = bpy.context
     prefs = get_prefs()
     # save original settings
     orig_engine = bpy.context.scene.render.engine
@@ -162,38 +163,42 @@ def bake_displacement_map(disp_obj, resolution):
 
     image_resolution = bpy.context.scene.mt_scene_props.mt_tile_resolution
     disp_image = bpy.data.images.new(disp_obj.name + '.image', width=image_resolution, height=image_resolution, float_buffer=True)
-    disp_mat_coll = disp_obj.mt_object_props.disp_materials_collection
-
-    for item in disp_mat_coll:
-        material = item.material
+    
+    #disp_mat_coll = disp_obj.mt_object_props.disp_materials_collection
+    disp_materials = []
+    
+    for item in preview_obj.material_slots.items():
+        material = bpy.data.materials[item[0]]
         # plug emission node into output for baking
         tree = material.node_tree
-        mat_output_node = tree.nodes['Material Output']
+        if 'disp_emission' in tree.nodes:
+            disp_materials.append(material)
+            displacement_emission_node = tree.nodes['disp_emission']
+            mat_output_node = tree.nodes['Material Output']
 
-        displacement_emission_node = tree.nodes['disp_emission']
-        tree.links.new(
-            displacement_emission_node.outputs['Emission'],
-            mat_output_node.inputs['Surface'])
+            tree.links.new(
+                displacement_emission_node.outputs['Emission'],
+                mat_output_node.inputs['Surface'])
 
-        # sever displacement node link because otherwise it screws up baking
-        displacement_node = tree.nodes['final_disp']
-        link = displacement_node.outputs[0].links[0]
-        tree.links.remove(link)
+            # sever displacement node link because otherwise it screws up baking
+            displacement_node = tree.nodes['final_disp']
+            link = displacement_node.outputs[0].links[0]
+            tree.links.remove(link)
 
-        # save displacement strength
-        strength_node = tree.nodes['Strength']
+            # save displacement strength
+            strength_node = tree.nodes['Strength']
 
-        if 'disp_dir' in disp_obj:
-            if disp_obj['disp_dir'] == 'neg':
-                disp_obj['disp_strength'] = -strength_node.outputs[0].default_value
+            if 'disp_dir' in disp_obj:
+                if disp_obj['disp_dir'] == 'neg':
+                    disp_obj['disp_strength'] = -strength_node.outputs[0].default_value
+                else:
+                    disp_obj['disp_strength'] = strength_node.outputs[0].default_value
             else:
                 disp_obj['disp_strength'] = strength_node.outputs[0].default_value
-        else:
-            disp_obj['disp_strength'] = strength_node.outputs[0].default_value
 
-        # assign image to image node
-        texture_node = tree.nodes['disp_texture_node']
-        texture_node.image = disp_image
+            # assign image to image node
+            texture_node = tree.nodes['disp_texture_node']
+            texture_node.image = disp_image
 
     # project from preview to displacement mesh when baking
     preview_mesh = disp_obj.mt_object_props.linked_object
@@ -207,11 +212,10 @@ def bake_displacement_map(disp_obj, resolution):
     bpy.context.scene.render.bake.cage_extrusion = 1
     bpy.context.scene.render.bake.margin = 4
 
-
     # temporarily assign a displacement material so we can bake to an image
     for material in disp_obj.data.materials:
         disp_obj.data.materials.pop(index=0)
-    disp_obj.data.materials.append(disp_mat_coll[0].material)
+    disp_obj.data.materials.append(disp_materials[0])
 
     # bake
     bpy.ops.object.bake(type='EMIT')
@@ -220,8 +224,7 @@ def bake_displacement_map(disp_obj, resolution):
     disp_image.pack()
 
     # reset shaders
-    for item in disp_mat_coll:
-        material = item.material
+    for material in disp_materials:
         tree = material.node_tree
         surface_shader_node = tree.nodes['surface_shader']
         displacement_node = tree.nodes['final_disp']

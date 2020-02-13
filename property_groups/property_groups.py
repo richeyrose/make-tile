@@ -180,17 +180,18 @@ class MT_Scene_Properties(PropertyGroup):
 
         prefs = get_prefs()
 
-        if len(bpy.data.materials) <= 1:
-            materials_path = os.path.join(prefs.assets_path, "materials")
-            blend_filenames = get_blend_filenames(materials_path)
-            load_materials(materials_path, blend_filenames)
-            materials = bpy.data.materials
-            for material in materials:
-                # prevent make-tile adding the default material to the list
-                if material.name != prefs.secondary_material and material.name != 'Material':
-                    enum = (material.name, material.name, "")
-                    enum_items.append(enum)
-            return enum_items
+        #if len(bpy.data.materials) <= 1:
+        materials_path = os.path.join(prefs.assets_path, "materials")
+        blend_filenames = get_blend_filenames(materials_path)
+        load_materials(materials_path, blend_filenames)
+        materials = bpy.data.materials
+        for material in materials:
+            # prevent make-tile adding the default material to the list
+            if material.name != prefs.secondary_material and material.name != 'Material':
+                enum = (material.name, material.name, "")
+                enum_items.append(enum)
+        return enum_items
+        '''
         else:
             materials = bpy.data.materials
             for material in materials:
@@ -199,6 +200,7 @@ class MT_Scene_Properties(PropertyGroup):
                     enum = (material.name, material.name, "")
                     enum_items.append(enum)
             return enum_items
+        '''
 
     # TODO: See why we get warning if we use this
     def get_default_units(self, context):

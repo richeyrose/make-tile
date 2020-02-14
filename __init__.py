@@ -13,6 +13,9 @@
 
 import os
 import bpy
+
+
+
 from . preferences import MT_MakeTilePreferences
 
 from . ui.object_generation_panels import (
@@ -55,7 +58,11 @@ from . operators.copy_material import MT_OT_Copy_Material
 from . operators.save_material import MT_OT_Export_Material
 
 from . operators.object_converter import MT_OT_Convert_To_MT_Obj
-from . operators.bakedisplacement import MT_OT_Bake_Displacement, MT_OT_Assign_Material_To_Vert_Group, MT_OT_Remove_Material_From_Vert_Group
+from . operators.bakedisplacement import (
+    MT_OT_Bake_Displacement,
+    MT_OT_Assign_Material_To_Vert_Group,
+    MT_OT_Remove_Material_From_Vert_Group)
+
 from . operators.return_to_preview import MT_OT_Return_To_Preview
 from . operators.create_lighting_setup import MT_OT_Create_Lighting_Setup
 from . operators.exporter import MT_OT_Export_Tile, MT_OT_Export_Tile_Variants
@@ -68,8 +75,6 @@ from . lib.turtle.operators.path import *
 from . lib.turtle.operators.selection import *
 from . lib.turtle.operators.vertex_group import *
 from . lib.turtle.operators.aliases import *
-
-from . lib.utils import update_scene_props
 
 
 bl_info = {
@@ -193,3 +198,6 @@ classes = (
     TURTLE_OT_remove_from_vert_group_alias)
 
 register, unregister = bpy.utils.register_classes_factory(classes)
+
+if __name__ == "__main__":
+    register()

@@ -18,6 +18,7 @@ from .. materials.materials import (
     get_blend_filenames,
     load_materials)
 
+from .. lib.utils.update_scene_props import load_material_libraries
 
 # Radio buttons used in menus
 class MT_Radio_Buttons(PropertyGroup):
@@ -171,10 +172,12 @@ class MT_Scene_Properties(PropertyGroup):
         if context is None:
             return enum_items
 
+        if context.scene.mt_scene_props.mt_is_just_activated is True:
+            load_material_libraries(dummy=None)
+            #context.scene.mt_scene_props.mt_is_just_activated = False
+
         prefs = get_prefs()
-        materials_path = os.path.join(prefs.assets_path, "materials")
-        blend_filenames = get_blend_filenames(materials_path)
-        load_materials(materials_path, blend_filenames)
+
         materials = bpy.data.materials
         for material in materials:
             # prevent make-tile adding the default material to the list
@@ -199,6 +202,11 @@ class MT_Scene_Properties(PropertyGroup):
     def get_default_base_system(self, context):
         prefs = get_prefs()
         return prefs.default_base_system
+
+    mt_is_just_activated: bpy.props.BoolProperty(
+        description="Has the add-on just been activated. Used to populate materials list first time round",
+        default=True
+    )
 
     mt_last_selected: bpy.props.PointerProperty(
         name="Last Selected Object",
@@ -260,7 +268,7 @@ class MT_Scene_Properties(PropertyGroup):
 
     mt_tile_material_1: bpy.props.EnumProperty(
         items=load_material_enums,
-        name="Material",
+        name="Material"
     )
 
     mt_tile_resolution: bpy.props.IntProperty(

@@ -52,7 +52,8 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
             while i < context.scene.mt_num_variants:
                 for preview_obj in preview_obs:
                     preview_obj.hide_viewport = False
-                    linked_obj = preview_obj.mt_object_props.linked_object
+                    select(preview_obj.name)
+                    activate(preview_obj.name)
 
                     for item in preview_obj.material_slots.items():
                         material = bpy.data.materials[item[0]]
@@ -62,7 +63,6 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                             rand_seed = random()
                             seed_node.outputs[0].default_value = rand_seed
                             # bake the displacement map
-                            activate(preview_obj.name)
                             bpy.ops.scene.mt_bake_displacement()
 
                 # save list of visible objects in tile collection
@@ -76,7 +76,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                             activate(obj.name)
 
                 # Apply all modifiers and create a copy of our meshes
-                bpy.ops.object.convert(target='MESH', keep_original=True)
+                bpy.ops.object.convert(target='MESH', keep_original=False)
 
                 # hide the original objects
                 for obj in obs:
@@ -150,7 +150,7 @@ class MT_OT_Export_Tile(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        if bpy.context.object is not None:
+        if context.object is not None:
             return bpy.context.object.mode == 'OBJECT'
         else:
             return True
@@ -230,7 +230,7 @@ class MT_OT_Export_Tile(bpy.types.Operator):
             merged_obj = context.active_object
             merged_obj.name = tile_name + '.merged'
             merged_obj.mt_object_props.tile_name = tile_name
-
+            
             # voxelise if necessary
             if context.scene.mt_voxelise_on_export is True:
                 merged_obj = voxelise_and_triangulate(merged_obj)

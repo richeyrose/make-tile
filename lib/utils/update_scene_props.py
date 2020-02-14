@@ -1,6 +1,19 @@
+import os
 import bpy
 from bpy.app.handlers import persistent
+from ... utils.registration import get_prefs
+from ... materials.materials import (
+    get_blend_filenames,
+    load_materials)
 
+@persistent
+def load_material_libraries(dummy):
+    scene_props = bpy.context.scene.mt_scene_props
+    scene_props.mt_is_just_activated = False
+    prefs = get_prefs()
+    materials_path = os.path.join(prefs.assets_path, "materials")
+    blend_filenames = get_blend_filenames(materials_path)
+    load_materials(materials_path, blend_filenames)
 
 @persistent
 def update_mt_scene_props_handler(dummy):
@@ -40,3 +53,4 @@ def update_mt_scene_props_handler(dummy):
 
 
 bpy.app.handlers.depsgraph_update_post.append(update_mt_scene_props_handler)
+bpy.app.handlers.load_post.append(load_material_libraries)

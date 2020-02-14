@@ -5,11 +5,11 @@ from bpy.props import StringProperty, EnumProperty, BoolProperty
 from . utils.registration import get_path
 from . utils.system import makedir, abspath
 from . enums.enums import tile_main_systems, base_systems, tile_blueprints, units
+from . materials.materials import get_blend_filenames
 
 
 class MT_MakeTilePreferences(bpy.types.AddonPreferences):
     '''contains methods and properties for setting addon preferences'''
-
     bl_idname = __package__
     path = get_path()
     user_path = os.path.expanduser('~')
@@ -111,3 +111,4 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
 # TODO: Stub - reload_asset_libraries
 def reload_asset_libraries():
     print('reload_asset_libraries')
+

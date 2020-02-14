@@ -241,7 +241,6 @@ class MT_PT_Converter_Panel(Panel):
 
     @classmethod
     def poll(cls, context):
-        engine = context.engine
         obj = context.object
         return (obj and obj.type in {'MESH'})
 

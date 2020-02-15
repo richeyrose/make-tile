@@ -49,13 +49,12 @@ class MT_OT_Assign_Material_To_Vert_Group(bpy.types.Operator):
         # create new displacement material item and save it on our displacement object
         disp_obj = object_props.linked_object
 
-        materials = []
-
         textured_verts = set()
-
-        for material in materials:
-            verts = get_verts_with_material(obj, material.name)
-            textured_verts = verts | textured_verts
+    
+        for key, value in obj.material_slots.items():
+            if key != secondary_material.name:
+                verts = get_verts_with_material(obj, key)
+                textured_verts = verts | textured_verts
 
         if 'disp_mod_vert_group' in disp_obj.vertex_groups:
             disp_vert_group = disp_obj.vertex_groups['disp_mod_vert_group']

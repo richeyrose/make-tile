@@ -1,7 +1,7 @@
 import os
 from random import random
 import bpy
-from .. lib.utils.selection import select, activate, deselect_all, select_all
+from .. lib.utils.selection import select, activate, deselect_all
 from .. utils.registration import get_prefs
 from .. lib.utils.collections import create_collection, add_object_to_collection
 from .. enums.enums import units
@@ -20,10 +20,10 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
         obj_props = obj.mt_object_props
 
         # set up exporter options
-        units = bpy.context.scene.mt_units
+        blend_units = bpy.context.scene.mt_units
         export_path = context.scene.mt_export_path
 
-        if units == 'CM':
+        if blend_units == 'CM':
             unit_multiplier = 10
         else:
             unit_multiplier = 25.4
@@ -76,7 +76,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                             activate(obj.name)
 
                 # Apply all modifiers and create a copy of our meshes
-                bpy.ops.object.convert(target='MESH', keep_original=False)
+                bpy.ops.object.convert(target='MESH', keep_original=True)
 
                 # hide the original objects
                 for obj in obs:

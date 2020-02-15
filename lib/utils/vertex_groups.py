@@ -353,10 +353,6 @@ def curved_floor_to_vert_groups(obj, height, side_length):
 
 
 def tri_floor_to_vert_groups(obj, dim, height):
-    """Keyword arguments:
-    obj - bpy.types.Object
-    dim - DICT
-    height - float"""
     # make vertex groups
     obj.vertex_groups.new(name='Side b')
     obj.vertex_groups.new(name='Side a')
@@ -380,8 +376,9 @@ def tri_floor_to_vert_groups(obj, dim, height):
     )
 
     bpy.ops.object.vertex_group_set_active(group='Top')
-    bpy.ops.object.vertex_group_assign()
     bpy.ops.mesh.inset(thickness=0.001, depth=0)
+    bpy.ops.object.vertex_group_assign()
+    
 
     deselect_all()
     select_by_loc(

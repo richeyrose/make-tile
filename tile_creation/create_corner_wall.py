@@ -563,7 +563,7 @@ def create_plain_wall_core(tile_props):
     obj_props.tile_name = tile_props.tile_name
     
     # create vert groups
-    corner_wall_to_vert_groups(core, vert_locs)
+    corner_wall_to_vert_groups(core, vert_locs, angle)
     
     ctx = {
         'object': core,

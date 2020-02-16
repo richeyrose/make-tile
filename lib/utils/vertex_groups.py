@@ -97,7 +97,7 @@ def construct_displacement_mod_vert_group(obj, textured_vert_group_names):
     return disp_mod_vert_group.name
 
 
-def corner_wall_to_vert_groups(obj, vert_locs):
+def corner_wall_to_vert_groups(obj, vert_locs, base_angle):
     """Creates vertex groups out of passed in corner wall and locations of bottom verts
     Keyword Arguments:
     obj -- bpy.types.Object
@@ -210,30 +210,29 @@ def corner_wall_to_vert_groups(obj, vert_locs):
         deselect_all()
 
     ### BOTTOM ###
-
-    origin = vert_locs['origin']
-    select_by_loc(
-        lbound=origin,
-        ubound=(vert_locs['x_outer_2'][0] + 1, vert_locs['end_2_1'][1], origin[2] + 0.001),
-        select_mode='VERT',
-        coords='GLOBAL',
-        additive=True,
-        buffer=0.0001
-    )
+    for key, value in vert_locs.items():
+        select_by_loc(
+            lbound=value,
+            ubound=value,
+            select_mode='VERT',
+            coords='GLOBAL',
+            additive=True,
+            buffer=0.0001
+        )
     bpy.ops.object.vertex_group_set_active(group='Bottom')
     bpy.ops.object.vertex_group_assign()
     deselect_all()
 
     ### TOP ###
-
-    select_by_loc(
-        lbound=(origin[0], origin[1], origin[2] + obj.dimensions[2] - 0.001),
-        ubound=(vert_locs['x_outer_2'][0] + 1, vert_locs['end_2_1'][1], origin[2] + obj.dimensions[2]),
-        select_mode='VERT',
-        coords='GLOBAL',
-        additive=True,
-        buffer=0.0001
-    )
+    for key, value in vert_locs.items():
+        select_by_loc(
+            lbound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.001),
+            ubound=(value[0], value[1], value[2] + obj.dimensions[2]),
+            select_mode='VERT',
+            coords='GLOBAL',
+            additive=True,
+            buffer=0.0001
+        )
     bpy.ops.object.vertex_group_set_active(group='Top')
     bpy.ops.object.vertex_group_assign()
     deselect_all()

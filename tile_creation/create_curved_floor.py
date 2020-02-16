@@ -350,16 +350,15 @@ def create_core(base, tile_props):
     preview_core.name = tile_props.tile_name + '.core'
     deselect_all()
     select(preview_core.name)
-    '''
+
     ctx = {
-        'selected_editable_objects': [preview_core],
         'selected_objects': [preview_core],
         'object': preview_core,
         'active_object': preview_core
     }
-    '''
+
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
-    bpy.ops.uv.smart_project()
+    bpy.ops.uv.smart_project(ctx, island_margin=0.05)
     preview_core.parent = base
 
     obj_props = preview_core.mt_object_props

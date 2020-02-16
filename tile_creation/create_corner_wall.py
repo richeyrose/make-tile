@@ -225,8 +225,8 @@ def create_openlock_cores(base, tile_props):
 
     for cutter in right_cutters:
         cutter.location = (
-            cutter.location[0] + tile_props.leg_1_len - 1,
-            cutter.location[1] + (tile_props.base_size[1] / 2),
+            cutter.location[0] + tile_props.leg_1_len - 2,
+            cutter.location[1],
             cutter.location[2])
         select(cutter.name)
     bpy.ops.transform.rotate(
@@ -238,20 +238,14 @@ def create_openlock_cores(base, tile_props):
 
     for cutter in left_cutters:
         cutter.location = (
-            cutter.location[0] - tile_props.leg_2_len + 1,
-            cutter.location[1] + (tile_props.base_size[1] / 2),
+            cutter.location[0] + 0.25,
+            cutter.location[1] + tile_props.leg_2_len - 0.25,
             cutter.location[2])
-        select(cutter.name)
-    bpy.ops.transform.rotate(
-        value=-radians(-90),
-        orient_axis='Z',
-        center_override=cursor.location)
-
-    deselect_all()
+        cutter.rotation_euler = (0, 0, radians(-90))
 
     for cutter in cutters:
         cutter.parent = base
-        cutter.display_type = 'BOUNDS'
+        cutter.display_type = 'WIRE'
         cutter.hide_viewport = True
         obj_props = cutter.mt_object_props
         obj_props.is_mt_object = True
@@ -325,13 +319,6 @@ def create_openlock_base_slot_cutter():
     leg_1_len = tile_props.leg_1_len
     leg_2_len = tile_props.leg_2_len
     angle = tile_props.angle
-
-    '''
-    if bpy.context.scene.mt_scene_props.mt_base_socket_side == 'INNER':
-        face_dist = 0.07
-    else:
-        face_dist = 0.233  # distance from outer face our slot should start
-    '''
 
     face_dist = 0.233
     slot_width = 0.197
@@ -568,17 +555,23 @@ def create_plain_wall_core(tile_props):
     t.pu()
     t.deselect_all()
     t.home()
-
-    # create vert groups
-    corner_wall_to_vert_groups(bpy.context.object, vert_locs)
-
-    mode('OBJECT')
-    bpy.ops.uv.smart_project()
-    
+   
     core = bpy.context.object
     core.name = tile_props.tile_name + '.core'
     obj_props = core.mt_object_props
     obj_props.is_mt_object = True
     obj_props.tile_name = tile_props.tile_name
+    
+    # create vert groups
+    corner_wall_to_vert_groups(core, vert_locs)
+    
+    ctx = {
+        'object': core,
+        'active_object': core,
+        'selected_objects': [core]
+    }
+        
+    mode('OBJECT')
+    bpy.ops.uv.smart_project(ctx, island_margin=0.05)
 
     return core

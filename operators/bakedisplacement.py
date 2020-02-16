@@ -200,7 +200,7 @@ def bake_displacement_map(preview_obj, disp_obj, resolution):
     activate(disp_obj.name)
     bpy.context.scene.render.bake.use_selected_to_active = True
     bpy.context.scene.render.bake.cage_extrusion = 1
-    bpy.context.scene.render.bake.margin = 4
+    bpy.context.scene.render.bake.margin = 0
 
     # temporarily assign a displacement material so we can bake to an image
     for material in disp_obj.data.materials:

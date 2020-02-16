@@ -279,7 +279,7 @@ def create_core(tile_props):
         'selected_objects': [core]
     }
 
-    bpy.ops.uv.smart_project(ctx)
+    bpy.ops.uv.smart_project(ctx, island_margin=0.05)
 
     straight_wall_to_vert_groups(core)
 

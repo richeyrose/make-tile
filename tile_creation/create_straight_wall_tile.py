@@ -97,11 +97,12 @@ def create_plain_base(tile_props):
     add_object_to_collection(base, tile_name)
 
     # reposition base and set origin
+    '''
     base.location = (
         cursor_orig_loc[0] - base_size[0] / 2,
         cursor_orig_loc[1] - base_size[1] / 2,
         cursor_orig_loc[2])
-
+    '''
     # Where possible we use the native python API rather than operators.
     # If we do use iperators we override the context as this is faster
     # than selecting and deselecting objects and also lets us ignore what
@@ -135,8 +136,8 @@ def create_openlock_base(tile_props):
     base = create_plain_base(tile_props)
 
     # create the slot cutter in the bottom of the base used for stacking tiles
-    slot_cutter = create_openlock_base_slot_cutter(base, tile_props, offset=0.018)
-    slot_cutter.hide_viewport = True
+    slot_cutter = create_openlock_base_slot_cutter(base, tile_props, offset=0.236)
+    slot_cutter.hide_viewport = False
 
     # create the clip cutters used for attaching walls to bases
     if base.dimensions[0] >= 1:
@@ -151,7 +152,7 @@ def create_openlock_base(tile_props):
     return base
 
 
-def create_openlock_base_slot_cutter(base, tile_props, offset=0.18):
+def create_openlock_base_slot_cutter(base, tile_props, offset=0.236):
     """Makes a cutter for the openlock base slot
     based on the width of the base
 
@@ -160,26 +161,29 @@ def create_openlock_base_slot_cutter(base, tile_props, offset=0.18):
     """
     # get original location of object and cursor
     base_location = base.location.copy()
-
+    base_size = tile_props.base_size
+    
     # work out bool size X from base size, y and z are constants.
     # Correct for negative base dimensions when making curved walls
-    if tile_props.base_size[0] > 0:
+    if base_size[0] > 0:
         bool_size = [
-            tile_props.base_size[0] - (0.236 * 2),
+            base_size[0] - (0.236 * 2),
             0.197,
             0.25]
     else:
         bool_size = [
-            tile_props.base_size[0] + (0.236 * 2),
+            base_size[0] + (0.236 * 2),
             0.197,
             0.25]
 
     cutter = draw_cuboid(bool_size)
     cutter.name = tile_props.tile_name + ".slot_cutter"
 
+    diff = base_size[0] - bool_size[0]
+    
     cutter.location = (
-        base_location[0] - bool_size[0] / 2,
-        base_location[1] - offset,
+        base_location[0] + diff / 2,
+        base_location[1] + offset,
         base_location[2] - 0.001)
 
     ctx = {
@@ -237,8 +241,8 @@ def create_openlock_base_clip_cutter(base, tile_props):
     cutter_end_cap.hide_viewport = True
 
     clip_cutter.location = Vector((
-        base_location[0] - (tile_props.base_size[0] / 2) + 0.5,
-        base_location[1] - (tile_props.base_size[1] / 2) + 0.25,
+        base_location[0] + 0.5,
+        base_location[1] + 0.25,
         base_location[2]))
 
     array_mod = clip_cutter.modifiers.new('Array', 'ARRAY')
@@ -321,10 +325,11 @@ def create_core(tile_size, base_size, tile_name):
 
     # move core so centred, move up so on top of base and set origin to world origin
     core.location = (
-        cursor_start_loc[0] - tile_size[0] / 2,
-        cursor_start_loc[1] - tile_size[1] / 2,
+        core.location[0],
+        core.location[1] + (base_size[1] - tile_size[1]) / 2,
         cursor_start_loc[2] + base_size[2])
 
+    
     ctx = {
         'object': core,
         'active_object': core,
@@ -337,20 +342,23 @@ def create_core(tile_size, base_size, tile_name):
     # to prevent materials projecting beyond edges
     mode('EDIT')
     bpy.ops.mesh.select_all(action='SELECT')
+
+    diff = base_size[1] - tile_size[1]
+
     bpy.ops.mesh.bisect(
-        plane_co=(tile_size[0] / 2 - 0.001, 0, 0),
+        plane_co=(tile_size[0] - 0.001, 0, 0),
         plane_no=(1, 0, 0))
     bpy.ops.mesh.select_all(action='SELECT')
     bpy.ops.mesh.bisect(
-        plane_co=(cursor_start_loc[0] - tile_size[0] / 2 + 0.001, 0, 0),
+        plane_co=(cursor_start_loc[0] + 0.001, 0, 0),
         plane_no=(1, 0, 0))
     bpy.ops.mesh.select_all(action='SELECT')
     bpy.ops.mesh.bisect(
-        plane_co=(0, tile_size[1] / 2 - 0.001, 0),
+        plane_co=(0, tile_size[1] + (diff / 2) - 0.001, 0),
         plane_no=(0, 1, 0))
     bpy.ops.mesh.select_all(action='SELECT')
     bpy.ops.mesh.bisect(
-        plane_co=(0, cursor_start_loc[1] - tile_size[1] / 2 + 0.001, 0),
+        plane_co=(0, cursor_start_loc[1] + (diff / 2) + 0.001, 0),
         plane_no=(0, 1, 0))
     bpy.ops.mesh.select_all(action='SELECT')
     bpy.ops.mesh.bisect(
@@ -362,7 +370,7 @@ def create_core(tile_size, base_size, tile_name):
         plane_no=(0, 0, 1))
     mode('OBJECT')
 
-    bpy.ops.uv.smart_project(ctx)
+    bpy.ops.uv.smart_project(ctx, island_margin=0.05)
 
     straight_wall_to_vert_groups(core)
 
@@ -424,6 +432,7 @@ def create_openlock_wall_cutters(core, tile_props):
 
     tile_name = tile_props.tile_name
     tile_size = tile_props.tile_size
+    base_size = tile_props.base_size
 
     booleans_path = os.path.join(preferences.assets_path, "meshes", "booleans", "openlock.blend")
 
@@ -440,14 +449,12 @@ def create_openlock_wall_cutters(core, tile_props):
 
     add_object_to_collection(left_cutter_bottom, tile_name)
     # get location of bottom front left corner of tile
-    front_left = [
-        core_location[0] - (tile_size[0] / 2),
-        core_location[1] - (tile_size[1] / 2),
-        core_location[2]]
+    front_left = core_location
+
     # move cutter to bottom front left corner then up by 0.63 inches
     left_cutter_bottom.location = [
         front_left[0],
-        front_left[1] + (tile_size[1] / 2),
+        front_left[1] + (base_size[1] / 2),
         front_left[2] + 0.63]
 
     array_mod = left_cutter_bottom.modifiers.new('Array', 'ARRAY')
@@ -479,13 +486,13 @@ def create_openlock_wall_cutters(core, tile_props):
     add_object_to_collection(right_cutter_bottom, tile_name)
     # get location of bottom front right corner of tile
     front_right = [
-        core_location[0] + (tile_size[0] / 2),
-        core_location[1] - (tile_size[1] / 2),
+        core_location[0] + (tile_size[0]),
+        core_location[1],
         core_location[2]]
-    # move cutter to bottom front left corner then up by 0.63 inches
+    # move cutter to bottom front right corner then up by 0.63 inches
     right_cutter_bottom.location = [
         front_right[0],
-        front_right[1] + (tile_size[1] / 2),
+        front_right[1] + (base_size[1] / 2),
         front_right[2] + 0.63]
     # rotate cutter 180 degrees around Z
     right_cutter_bottom.rotation_euler[2] = radians(180)

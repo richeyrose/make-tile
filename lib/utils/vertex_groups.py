@@ -26,8 +26,8 @@ def get_verts_with_material(obj, material_name):
 def get_vert_indexes_in_vert_group(vert_group_name, obj):
     '''returns a list of vert indexes in a vert group'''
     vg_index = obj.vertex_groups[vert_group_name].index
-    verts = [v.index for v in obj.data.vertices if vg_index in [vg.group for vg in v.groups]]
-    return verts
+    vert_indices = [v.index for v in obj.data.vertices if vg_index in [vg.group for vg in v.groups]]
+    return vert_indices
 
 
 def get_verts_in_vert_group(vert_group_name, obj):
@@ -36,6 +36,13 @@ def get_verts_in_vert_group(vert_group_name, obj):
     verts = [v for v in obj.data.vertices if vg_index in [vg.group for vg in v.groups]]
     return verts
 
+def remove_verts_from_group(vert_group_name, obj, vert_indices):
+    '''object mode only'''
+    obj.vertex_groups[vert_group_name].remove(vert_indices)
+    
+def add_verts_to_group(vert_group_name, obj, vert_indices):
+    '''object mode only'''
+    obj.vertex_groups[vert_group_name].add(vert_indices)
 
 def get_selected_face_indices(obj):
     mesh = obj.data
@@ -69,7 +76,7 @@ def assign_material_to_faces(obj, face_list, material_index):
 
     # iterate over all polys and change their material
     for poly in obj.data.polygons:
-        poly_vertex_group_index = find_vertex_group_of_polygon(poly)
+        poly_vertex_group_index = find_vertex_group_of_polygon(poly, obj)
 
         if poly_vertex_group_index == vertex_group_index:
             poly.material_index = material_index
@@ -116,6 +123,9 @@ def corner_wall_to_vert_groups(obj, vert_locs):
     leg_2_verts = ['y_outer_1', 'y_outer_2', 'end_2_1', 'end_2_2', 'end_2_3', 'y_inner_1']
     outer_verts = ['origin', 'x_outer_1', 'y_outer_1']
     inner_verts = ['x_inner_1', 'x_inner_2', 'y_inner_1']
+    verts_to_remove_from_top = ['x_outer_2', 'end_1_1', 'end_1_2', 'end_1_3', 'end_2_1', 'end_2_2', 'end_2_3', 'y_outer_2']
+
+    ### END 1 ###
 
     for key, value in vert_locs.items():
         if key in leg_1_verts:
@@ -157,6 +167,8 @@ def corner_wall_to_vert_groups(obj, vert_locs):
         bpy.ops.object.vertex_group_assign()
         deselect_all()
 
+    ### END 2 ###
+
     for key, value in vert_locs.items():
         if key in leg_2_verts:
             select_by_loc(
@@ -197,6 +209,8 @@ def corner_wall_to_vert_groups(obj, vert_locs):
         bpy.ops.object.vertex_group_assign()
         deselect_all()
 
+    ### BOTTOM ###
+
     origin = vert_locs['origin']
     select_by_loc(
         lbound=origin,
@@ -210,6 +224,8 @@ def corner_wall_to_vert_groups(obj, vert_locs):
     bpy.ops.object.vertex_group_assign()
     deselect_all()
 
+    ### TOP ###
+
     select_by_loc(
         lbound=(origin[0], origin[1], origin[2] + obj.dimensions[2] - 0.001),
         ubound=(vert_locs['x_outer_2'][0] + 1, vert_locs['end_2_1'][1], origin[2] + obj.dimensions[2]),
@@ -221,6 +237,69 @@ def corner_wall_to_vert_groups(obj, vert_locs):
     bpy.ops.object.vertex_group_set_active(group='Top')
     bpy.ops.object.vertex_group_assign()
     deselect_all()
+    
+    mode('OBJECT')
+    end_1_verts = get_vert_indexes_in_vert_group('End 1', obj)
+    end_2_verts = get_vert_indexes_in_vert_group('End 2', obj)
+    
+    remove_verts_from_group('Top', obj, end_1_verts)
+    remove_verts_from_group('Top', obj, end_2_verts)
+    mode('EDIT')
+    deselect_all()
+    
+    for key, value in vert_locs.items():
+        if key in verts_to_remove_from_top:
+            select_by_loc(
+                lbound=(value[0], value[1], value[2] + obj.dimensions[2]),
+                ubound=(value[0], value[1], value[2] + obj.dimensions[2]),
+                select_mode='VERT',
+                coords='GLOBAL',
+                additive=True,
+                buffer=0.0001
+            )
+    bpy.ops.object.vertex_group_remove_from()
+    deselect_all()
+    
+    select_by_loc(
+        lbound=(vert_locs['x_outer_1'][0], vert_locs['x_outer_1'][1], vert_locs['x_outer_1'][2] + obj.dimensions[2] - 0.001),
+        ubound=(vert_locs['x_outer_1'][0], vert_locs['x_outer_1'][1], vert_locs['x_outer_1'][2] + obj.dimensions[2] - 0.001),
+        select_mode='VERT',
+        coords='GLOBAL',
+        additive=True,
+        buffer=0.0001
+    )
+    
+    select_by_loc(
+        lbound=(vert_locs['x_inner_1'][0], vert_locs['x_inner_1'][1], vert_locs['x_inner_1'][2] + obj.dimensions[2] - 0.001),
+        ubound=(vert_locs['x_inner_1'][0], vert_locs['x_inner_1'][1], vert_locs['x_inner_1'][2] + obj.dimensions[2] - 0.001),
+        select_mode='VERT',
+        coords='GLOBAL',
+        additive=True,
+        buffer=0.0001
+    )
+    
+    select_by_loc(
+        lbound=(vert_locs['y_outer_1'][0], vert_locs['y_outer_1'][1], vert_locs['y_outer_1'][2] + obj.dimensions[2] - 0.001),
+        ubound=(vert_locs['y_outer_1'][0], vert_locs['y_outer_1'][1], vert_locs['y_outer_1'][2] + obj.dimensions[2] - 0.001),
+        select_mode='VERT',
+        coords='GLOBAL',
+        additive=True,
+        buffer=0.0001
+    )
+    
+    select_by_loc(
+        lbound=(vert_locs['y_inner_1'][0], vert_locs['y_inner_1'][1], vert_locs['y_inner_1'][2] + obj.dimensions[2] - 0.001),
+        ubound=(vert_locs['y_inner_1'][0], vert_locs['y_inner_1'][1], vert_locs['y_inner_1'][2] + obj.dimensions[2] - 0.001),
+        select_mode='VERT',
+        coords='GLOBAL',
+        additive=True,
+        buffer=0.0001
+    )
+    
+    bpy.ops.object.vertex_group_assign()
+    deselect_all()
+
+    ### OUTER ###
 
     for key, value in vert_locs.items():
         if key in outer_verts:
@@ -243,6 +322,8 @@ def corner_wall_to_vert_groups(obj, vert_locs):
         bpy.ops.object.vertex_group_set_active(group='Outer')
         bpy.ops.object.vertex_group_assign()
         deselect_all()
+
+    ### INNER ###
 
     for key, value in vert_locs.items():
         if key in inner_verts:

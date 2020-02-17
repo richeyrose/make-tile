@@ -146,8 +146,8 @@ def corner_wall_to_vert_groups(obj, vert_locs, base_angle):
                 buffer=0.0001
             )
             select_by_loc(
-                lbound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.001),
-                ubound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.001),
+                lbound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.01),
+                ubound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.01),
                 select_mode='VERT',
                 coords='GLOBAL',
                 additive=True,
@@ -188,8 +188,8 @@ def corner_wall_to_vert_groups(obj, vert_locs, base_angle):
                 buffer=0.0001
             )
             select_by_loc(
-                lbound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.001),
-                ubound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.001),
+                lbound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.01),
+                ubound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.01),
                 select_mode='VERT',
                 coords='GLOBAL',
                 additive=True,
@@ -226,7 +226,7 @@ def corner_wall_to_vert_groups(obj, vert_locs, base_angle):
     ### TOP ###
     for key, value in vert_locs.items():
         select_by_loc(
-            lbound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.001),
+            lbound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.01),
             ubound=(value[0], value[1], value[2] + obj.dimensions[2]),
             select_mode='VERT',
             coords='GLOBAL',
@@ -260,8 +260,8 @@ def corner_wall_to_vert_groups(obj, vert_locs, base_angle):
     deselect_all()
     
     select_by_loc(
-        lbound=(vert_locs['x_outer_1'][0], vert_locs['x_outer_1'][1], vert_locs['x_outer_1'][2] + obj.dimensions[2] - 0.001),
-        ubound=(vert_locs['x_outer_1'][0], vert_locs['x_outer_1'][1], vert_locs['x_outer_1'][2] + obj.dimensions[2] - 0.001),
+        lbound=(vert_locs['x_outer_1'][0], vert_locs['x_outer_1'][1], vert_locs['x_outer_1'][2] + obj.dimensions[2] - 0.01),
+        ubound=(vert_locs['x_outer_1'][0], vert_locs['x_outer_1'][1], vert_locs['x_outer_1'][2] + obj.dimensions[2] - 0.01),
         select_mode='VERT',
         coords='GLOBAL',
         additive=True,
@@ -269,8 +269,8 @@ def corner_wall_to_vert_groups(obj, vert_locs, base_angle):
     )
     
     select_by_loc(
-        lbound=(vert_locs['x_inner_1'][0], vert_locs['x_inner_1'][1], vert_locs['x_inner_1'][2] + obj.dimensions[2] - 0.001),
-        ubound=(vert_locs['x_inner_1'][0], vert_locs['x_inner_1'][1], vert_locs['x_inner_1'][2] + obj.dimensions[2] - 0.001),
+        lbound=(vert_locs['x_inner_1'][0], vert_locs['x_inner_1'][1], vert_locs['x_inner_1'][2] + obj.dimensions[2] - 0.01),
+        ubound=(vert_locs['x_inner_1'][0], vert_locs['x_inner_1'][1], vert_locs['x_inner_1'][2] + obj.dimensions[2] - 0.01),
         select_mode='VERT',
         coords='GLOBAL',
         additive=True,
@@ -278,8 +278,8 @@ def corner_wall_to_vert_groups(obj, vert_locs, base_angle):
     )
     
     select_by_loc(
-        lbound=(vert_locs['y_outer_1'][0], vert_locs['y_outer_1'][1], vert_locs['y_outer_1'][2] + obj.dimensions[2] - 0.001),
-        ubound=(vert_locs['y_outer_1'][0], vert_locs['y_outer_1'][1], vert_locs['y_outer_1'][2] + obj.dimensions[2] - 0.001),
+        lbound=(vert_locs['y_outer_1'][0], vert_locs['y_outer_1'][1], vert_locs['y_outer_1'][2] + obj.dimensions[2] - 0.01),
+        ubound=(vert_locs['y_outer_1'][0], vert_locs['y_outer_1'][1], vert_locs['y_outer_1'][2] + obj.dimensions[2] - 0.01),
         select_mode='VERT',
         coords='GLOBAL',
         additive=True,
@@ -287,8 +287,8 @@ def corner_wall_to_vert_groups(obj, vert_locs, base_angle):
     )
     
     select_by_loc(
-        lbound=(vert_locs['y_inner_1'][0], vert_locs['y_inner_1'][1], vert_locs['y_inner_1'][2] + obj.dimensions[2] - 0.001),
-        ubound=(vert_locs['y_inner_1'][0], vert_locs['y_inner_1'][1], vert_locs['y_inner_1'][2] + obj.dimensions[2] - 0.001),
+        lbound=(vert_locs['y_inner_1'][0], vert_locs['y_inner_1'][1], vert_locs['y_inner_1'][2] + obj.dimensions[2] - 0.01),
+        ubound=(vert_locs['y_inner_1'][0], vert_locs['y_inner_1'][1], vert_locs['y_inner_1'][2] + obj.dimensions[2] - 0.01),
         select_mode='VERT',
         coords='GLOBAL',
         additive=True,
@@ -311,8 +311,8 @@ def corner_wall_to_vert_groups(obj, vert_locs, base_angle):
                 buffer=0.0001
             )
             select_by_loc(
-                lbound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.001),
-                ubound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.001),
+                lbound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.01),
+                ubound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.01),
                 select_mode='VERT',
                 coords='GLOBAL',
                 additive=True,
@@ -335,8 +335,8 @@ def corner_wall_to_vert_groups(obj, vert_locs, base_angle):
                 buffer=0.0001
             )
             select_by_loc(
-                lbound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.001),
-                ubound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.001),
+                lbound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.01),
+                ubound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.01),
                 select_mode='VERT',
                 coords='GLOBAL',
                 additive=True,
@@ -809,7 +809,7 @@ def straight_wall_to_vert_groups(obj):
 
     # select Z+ and assign to Z+
     select_by_loc(
-        lbound=[-dim[0] + 0.001, -dim[1], dim[2] - 0.01],
+        lbound=[-dim[0] + 0.001, -dim[1], dim[2] - 0.012],
         ubound=[dim[0] - 0.001, dim[1], dim[2]],
         select_mode='VERT',
         coords='LOCAL',

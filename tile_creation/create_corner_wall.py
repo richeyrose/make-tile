@@ -542,8 +542,8 @@ def create_plain_wall_core(tile_props):
     bpy.ops.mesh.edge_face_add()
     t.pd()
     t.up(d=0.001)
-    t.up(d=wall_height - base_height - 0.002)
-    t.up(d=0.001)
+    t.up(d=wall_height - base_height - 0.011)
+    t.up(d=0.01)
     t.select_all()
 
     bpy.ops.mesh.normals_make_consistent()

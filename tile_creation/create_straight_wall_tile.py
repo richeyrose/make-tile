@@ -362,7 +362,7 @@ def create_core(tile_size, base_size, tile_name):
         plane_no=(0, 1, 0))
     bpy.ops.mesh.select_all(action='SELECT')
     bpy.ops.mesh.bisect(
-        plane_co=(0, 0, tile_size[2] - 0.001),
+        plane_co=(0, 0, tile_size[2] - 0.01),
         plane_no=(0, 0, 1))
     bpy.ops.mesh.select_all(action='SELECT')
     bpy.ops.mesh.bisect(

@@ -1,6 +1,6 @@
 """Contains operator class to make tiles"""
 import bpy
-import bpy.utils.previews
+#import bpy.utils.previews
 
 from .. lib.utils.selection import deselect_all
 from .. lib.utils.collections import (

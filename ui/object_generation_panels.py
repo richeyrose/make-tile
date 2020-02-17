@@ -16,6 +16,8 @@ class MT_PT_Tile_Generator_Panel(Panel):
         layout = self.layout
 
         layout.operator('scene.make_tile', text="Make Tile")
+        
+
         layout.prop(scene_props, 'mt_tile_blueprint')
         layout.prop(scene_props, 'mt_tile_type')
         layout.prop(scene_props, 'mt_tile_material_1', text="Main Material")
@@ -36,6 +38,8 @@ class MT_PT_Tile_Generator_Panel(Panel):
             if bpy.context.object.mt_object_props.geometry_type == 'DISPLACEMENT':
                 layout.operator('scene.mt_return_to_preview', text='Return to Preview')
             layout.prop(scene_props, 'mt_subdivisions')
+
+        layout.operator('scene.delete_tile', text="Delete Tile")
 
     def draw_openlock_panel(self, context):
         scene = context.scene

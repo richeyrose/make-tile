@@ -67,6 +67,7 @@ from . operators.return_to_preview import MT_OT_Return_To_Preview
 from . operators.create_lighting_setup import MT_OT_Create_Lighting_Setup
 from . operators.exporter import MT_OT_Export_Tile, MT_OT_Export_Tile_Variants
 from . operators.voxeliser import MT_OT_Tile_Voxeliser
+from . operators.delete_tile import MT_OT_Delete_Tile
 
 from . lib.turtle.operators.basic_commands import *
 from . lib.turtle.operators.curve import *
@@ -100,6 +101,7 @@ classes = (
     MT_Object_Properties,
     MT_Scene_Properties,
     MT_OT_Make_Tile,
+    MT_OT_Delete_Tile,
     MT_OT_Export_Material,
     MT_OT_Convert_To_MT_Obj,
     MT_OT_Bake_Displacement,

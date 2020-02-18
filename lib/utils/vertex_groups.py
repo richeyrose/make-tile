@@ -109,8 +109,8 @@ def corner_wall_to_vert_groups(obj, vert_locs):
     }
 
     # make vertex groups
-    obj.vertex_groups.new(name='End 1')  # leg 2 end
-    obj.vertex_groups.new(name='End 2')  # leg 1 end
+    obj.vertex_groups.new(name='X End')
+    obj.vertex_groups.new(name='Y End')
     obj.vertex_groups.new(name='X Neg')
     obj.vertex_groups.new(name='Y Neg')
     obj.vertex_groups.new(name='X Pos')
@@ -124,16 +124,16 @@ def corner_wall_to_vert_groups(obj, vert_locs):
     # deselect_all()
 
     # vert_locs keys
-    leg_1_verts = ['x_outer_1', 'x_outer_2', 'end_1_1', 'end_1_2', 'end_1_3', 'x_inner_1']
-    leg_2_verts = ['y_outer_1', 'y_outer_2', 'end_2_1', 'end_2_2', 'end_2_3', 'y_inner_1']
-    x_outer_verts = ['origin', 'x_outer_1']
-    y_outer_verts = ['origin', 'y_outer_1']
-    x_inner_verts = ['x_inner_1', 'x_inner_2']
-    y_inner_verts = ['x_inner_2', 'y_inner_1']
+    x_end_verts = ['x_outer_1', 'x_outer_2', 'end_1_1', 'end_1_2', 'end_1_3', 'x_inner_1']
+    y_end_verts = ['y_outer_1', 'y_outer_2', 'end_2_1', 'end_2_2', 'end_2_3', 'y_inner_1']
+    y_neg_verts = ['origin', 'x_outer_1']
+    x_neg_verts = ['origin', 'y_outer_1']
+    y_pos_verts = ['x_inner_1', 'x_inner_2']
+    x_pos_verts = ['x_inner_2', 'y_inner_1']
 
-    ### END 1 ###
+    ### X END ###
     for key, value in vert_locs.items():
-        if key in leg_1_verts:
+        if key in x_end_verts:
             select_by_loc(
                 lbound=value,
                 ubound=value,
@@ -159,14 +159,14 @@ def corner_wall_to_vert_groups(obj, vert_locs):
                 buffer=0.0001
             )
 
-        bpy.ops.object.vertex_group_set_active(ctx, group='End 1')
+        bpy.ops.object.vertex_group_set_active(ctx, group='X End')
         bpy.ops.object.vertex_group_assign(ctx)
-        deselect_all()
+        bpy.ops.mesh.select_all(ctx, action="DESELECT")
 
-    ### END 2 ###
+    ### Y END ###
 
     for key, value in vert_locs.items():
-        if key in leg_2_verts:
+        if key in y_end_verts:
             select_by_loc(
                 lbound=value,
                 ubound=value,
@@ -192,13 +192,13 @@ def corner_wall_to_vert_groups(obj, vert_locs):
                 buffer=0.0001
             )
 
-        bpy.ops.object.vertex_group_set_active(ctx, group='End 2')
+        bpy.ops.object.vertex_group_set_active(ctx, group='Y End')
         bpy.ops.object.vertex_group_assign(ctx)
-        deselect_all()
+        bpy.ops.mesh.select_all(ctx, action="DESELECT")
 
     ### X BOTTOM ###
     for key, value in vert_locs.items():
-        if key in x_outer_verts or key in x_inner_verts:
+        if key in y_neg_verts or key in y_pos_verts:
             select_by_loc(
                 lbound=value,
                 ubound=value,
@@ -209,11 +209,11 @@ def corner_wall_to_vert_groups(obj, vert_locs):
             )
     bpy.ops.object.vertex_group_set_active(group='X Bottom')
     bpy.ops.object.vertex_group_assign()
-    deselect_all()
-    
+    bpy.ops.mesh.select_all(ctx, action="DESELECT")
+
     ### Y BOTTOM ###
     for key, value in vert_locs.items():
-        if key in y_outer_verts or key in y_inner_verts:
+        if key in x_neg_verts or key in x_pos_verts:
             select_by_loc(
                 lbound=value,
                 ubound=value,
@@ -224,11 +224,11 @@ def corner_wall_to_vert_groups(obj, vert_locs):
             )
     bpy.ops.object.vertex_group_set_active(ctx, group='Y Bottom')
     bpy.ops.object.vertex_group_assign(ctx)
-    deselect_all()
+    bpy.ops.mesh.select_all(ctx, action="DESELECT")
 
     ### X TOP ###
     for key, value in vert_locs.items():
-        if key in x_outer_verts or key in x_inner_verts:
+        if key in y_neg_verts or key in y_pos_verts:
             select_by_loc(
                 lbound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.01),
                 ubound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.01),
@@ -247,11 +247,11 @@ def corner_wall_to_vert_groups(obj, vert_locs):
             )
         bpy.ops.object.vertex_group_set_active(ctx, group='X Top')
         bpy.ops.object.vertex_group_assign(ctx)
-        deselect_all()
-        
+        bpy.ops.mesh.select_all(ctx, action="DESELECT")
+
     ### Y TOP ###
     for key, value in vert_locs.items():
-        if key in y_outer_verts or key in y_inner_verts:
+        if key in x_neg_verts or key in x_pos_verts:
             select_by_loc(
                 lbound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.01),
                 ubound=(value[0], value[1], value[2] + obj.dimensions[2] - 0.01),
@@ -270,12 +270,11 @@ def corner_wall_to_vert_groups(obj, vert_locs):
             )
         bpy.ops.object.vertex_group_set_active(ctx, group='Y Top')
         bpy.ops.object.vertex_group_assign(ctx)
-        deselect_all()
+        bpy.ops.mesh.select_all(ctx, action="DESELECT")
 
     ### X POS ###
-
     for key, value in vert_locs.items():
-        if key in x_outer_verts:
+        if key in y_neg_verts:
             select_by_loc(
                 lbound=(value[0], value[1], value[2] + 0.001),
                 ubound=(value[0], value[1], value[2] + 0.001),
@@ -294,12 +293,11 @@ def corner_wall_to_vert_groups(obj, vert_locs):
             )
         bpy.ops.object.vertex_group_set_active(ctx, group='Y Neg')
         bpy.ops.object.vertex_group_assign(ctx)
-        deselect_all()
-        
-    ### Y POS ###
+        bpy.ops.mesh.select_all(ctx, action="DESELECT")
 
+    ### Y POS ###
     for key, value in vert_locs.items():
-        if key in y_outer_verts:
+        if key in x_neg_verts:
             select_by_loc(
                 lbound=(value[0], value[1], value[2] + 0.001),
                 ubound=(value[0], value[1], value[2] + 0.001),
@@ -318,12 +316,11 @@ def corner_wall_to_vert_groups(obj, vert_locs):
             )
         bpy.ops.object.vertex_group_set_active(ctx, group='X Neg')
         bpy.ops.object.vertex_group_assign(ctx)
-        deselect_all()
+        bpy.ops.mesh.select_all(ctx, action="DESELECT")
 
     ### Y POS ###
-
     for key, value in vert_locs.items():
-        if key in x_inner_verts:
+        if key in y_pos_verts:
             select_by_loc(
                 lbound=(value[0], value[1], value[2] + 0.001),
                 ubound=(value[0], value[1], value[2] + 0.001),
@@ -342,12 +339,11 @@ def corner_wall_to_vert_groups(obj, vert_locs):
             )
         bpy.ops.object.vertex_group_set_active(ctx, group='Y Pos')
         bpy.ops.object.vertex_group_assign(ctx)
-        deselect_all()
-        
-    ### X POS ###
+        bpy.ops.mesh.select_all(ctx, action="DESELECT")
 
+    ### X POS ###
     for key, value in vert_locs.items():
-        if key in y_inner_verts:
+        if key in x_pos_verts:
             select_by_loc(
                 lbound=(value[0], value[1], value[2] + 0.001),
                 ubound=(value[0], value[1], value[2] + 0.001),
@@ -366,8 +362,7 @@ def corner_wall_to_vert_groups(obj, vert_locs):
             )
         bpy.ops.object.vertex_group_set_active(ctx, group='X Pos')
         bpy.ops.object.vertex_group_assign(ctx)
-        deselect_all()
-
+        bpy.ops.mesh.select_all(ctx, action="DESELECT")
 
 def curved_floor_to_vert_groups(obj, height, side_length):
 

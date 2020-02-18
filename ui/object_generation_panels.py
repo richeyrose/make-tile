@@ -16,7 +16,6 @@ class MT_PT_Tile_Generator_Panel(Panel):
         layout = self.layout
 
         layout.operator('scene.make_tile', text="Make Tile")
-        
 
         layout.prop(scene_props, 'mt_tile_blueprint')
         layout.prop(scene_props, 'mt_tile_type')

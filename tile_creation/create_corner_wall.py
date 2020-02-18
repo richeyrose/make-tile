@@ -287,7 +287,7 @@ def create_plain_cores(base, tile_props):
 
     image_size = bpy.context.scene.mt_scene_props.mt_tile_resolution
 
-    textured_vertex_groups = ['Outer', 'Inner']
+    textured_vertex_groups = ['X Pos', 'Y Pos', 'X Neg', 'Y Neg']
 
     mod_vert_group_name = construct_displacement_mod_vert_group(
         displacement_core,
@@ -563,7 +563,7 @@ def create_plain_wall_core(tile_props):
     obj_props.tile_name = tile_props.tile_name
     
     # create vert groups
-    corner_wall_to_vert_groups(core, vert_locs, angle)
+    corner_wall_to_vert_groups(core, vert_locs)
     
     ctx = {
         'object': core,

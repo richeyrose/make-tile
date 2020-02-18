@@ -121,7 +121,6 @@ def corner_wall_to_vert_groups(obj, vert_locs):
     obj.vertex_groups.new(name='Y Bottom')
 
     mode('EDIT')
-    # deselect_all()
 
     # vert_locs keys
     x_end_verts = ['x_outer_1', 'x_outer_2', 'end_1_1', 'end_1_2', 'end_1_3', 'x_inner_1']
@@ -164,7 +163,6 @@ def corner_wall_to_vert_groups(obj, vert_locs):
         bpy.ops.mesh.select_all(ctx, action="DESELECT")
 
     ### Y END ###
-
     for key, value in vert_locs.items():
         if key in y_end_verts:
             select_by_loc(
@@ -365,7 +363,6 @@ def corner_wall_to_vert_groups(obj, vert_locs):
         bpy.ops.mesh.select_all(ctx, action="DESELECT")
 
 def curved_floor_to_vert_groups(obj, height, side_length):
-
     obj.vertex_groups.new(name='Side a')
     obj.vertex_groups.new(name='Side b')
     obj.vertex_groups.new(name='Side c')

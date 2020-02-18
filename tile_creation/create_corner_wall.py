@@ -50,7 +50,7 @@ def create_corner_wall(tile_props):
         tile_meshes.append(base)
 
     if base_blueprint == 'PLAIN':
-        base, base_triangles, vert_locs = create_plain_base(tile_props)
+        base = create_plain_base(tile_props)
         tile_meshes.append(base)
 
     if base_blueprint == 'NONE':
@@ -72,9 +72,10 @@ def create_corner_wall(tile_props):
         tile_props.tile_size = tile_props.base_size
         preview_core = None
 
-    finalise_tile(base,
-                  preview_core,
-                  cursor_orig_loc)
+    finalise_tile(
+        base,
+        preview_core,
+        cursor_orig_loc)
 
 
 def create_plain_base(tile_props):

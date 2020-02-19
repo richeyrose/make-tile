@@ -207,9 +207,11 @@ def create_openlock_base(tile_props):
         tile_props.tile_size[1],
         .2756))
 
+
     if tile_props.base_size[0] >= 1 and tile_props.base_size[1] < 1 and tile_props.base_size[1] > 0.496:
         # if base is less than an inch wide use a wall type base
         base = create_openlock_wall_base(tile_props)
+
     else:
         base = draw_openlock_rect_floor_base(tile_props.base_size)
         base.name = tile_props.tile_name + '.base'

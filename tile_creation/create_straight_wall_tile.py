@@ -40,17 +40,13 @@ def create_straight_wall(tile_props):
     base_blueprint = tile_props.base_blueprint
     main_part_blueprint = tile_props.main_part_blueprint
 
-    tile_meshes = []
-
     if base_blueprint == 'PLAIN':
         base = create_plain_base(tile_props)
-        tile_meshes.append(base)
 
     if base_blueprint == 'OPENLOCK':
         if main_part_blueprint == 'OPENLOCK':
             tile_props.base_size[0] = tile_props.tile_size[0]
         base = create_openlock_base(tile_props)
-        tile_meshes.append(base)
 
     if base_blueprint == 'NONE':
         # If we have no base create an empty instead for parenting
@@ -60,13 +56,11 @@ def create_straight_wall(tile_props):
 
     if main_part_blueprint == 'PLAIN':
         preview_core, displacement_core = create_cores(base, tile_props)
-        tile_meshes.extend([preview_core, displacement_core])
         displacement_core.hide_viewport = True
 
     if main_part_blueprint == 'OPENLOCK':
         preview_core, displacement_core = create_openlock_cores(base, tile_props)
         displacement_core.hide_viewport = True
-        tile_meshes.extend([preview_core, displacement_core])
 
     if main_part_blueprint == 'NONE':
         tile_props.tile_size = tile_props.base_size
@@ -155,9 +149,6 @@ def create_openlock_base(tile_props):
 def create_openlock_base_slot_cutter(base, tile_props, offset=0.236):
     """Makes a cutter for the openlock base slot
     based on the width of the base
-
-    Keyword arguments:
-    base -- OBJ, base the cutter will be used on
     """
     # get original location of object and cursor
     base_location = base.location.copy()

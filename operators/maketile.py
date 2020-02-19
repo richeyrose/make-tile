@@ -1,5 +1,6 @@
 """Contains operator class to make tiles"""
 import bpy
+
 #import bpy.utils.previews
 
 from .. lib.utils.selection import deselect_all
@@ -8,6 +9,7 @@ from .. lib.utils.collections import (
     activate_collection)
 
 from .. tile_creation.create_straight_wall_tile import create_straight_wall
+from .. tile_creation.create_straight_wall_tile_copy import MT_Straight_Wall_Tile
 from .. tile_creation.create_rect_floor_tile import create_rectangular_floor
 from .. tile_creation.create_curved_wall_tile import create_curved_wall
 from .. tile_creation.create_corner_wall import create_corner_wall
@@ -118,7 +120,8 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         ###############
 
         if tile_type == 'STRAIGHT_WALL':
-            create_straight_wall(tile_props)
+            # create_straight_wall(tile_props)
+            tile = MT_Straight_Wall_Tile(tile_props)
 
         if tile_type == 'CURVED_WALL':
             create_curved_wall(tile_props)

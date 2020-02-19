@@ -3,7 +3,6 @@ from .. utils.registration import get_prefs
 from .. materials.materials import add_preview_mesh_subsurf
 from .. lib.utils.selection import select, deselect_all, activate
 
-
 def finalise_tile(
         base,
         preview_core,

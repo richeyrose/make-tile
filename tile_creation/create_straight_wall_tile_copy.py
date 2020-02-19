@@ -110,156 +110,6 @@ class MT_Straight_Tile:
 
         return core
 
-
-class MT_Straight_Wall_Tile(MT_Straight_Tile, MT_Tile):
-    def __init__(self, tile_props):
-        MT_Tile.__init__(self, tile_props)
-
-    def create_plain_base(self, tile_props):
-        """Returns a plain base for a straight wall tile
-        """
-        base = MT_Straight_Tile.create_plain_base(self, tile_props)
-        return base
-
-    def create_openlock_base(self, tile_props):
-        '''Returns an openlock style base with clip sockets'''
-        base = MT_Straight_Tile.create_openlock_base(self, tile_props)
-        return base
-
-    def create_plain_cores(self, base, tile_props):
-        textured_vertex_groups = ['Front', 'Back']
-        preview_core, displacement_core = self.create_cores(
-            base,
-            tile_props,
-            textured_vertex_groups)
-        displacement_core.hide_viewport = True
-        return preview_core
-
-    def create_openlock_cores(self, base, tile_props):
-        # Again width is a constant for OpenLOCK tiles
-        tile_props.tile_size = Vector((
-            tile_props.tile_size[0],
-            0.3149,
-            tile_props.tile_size[2]))
-
-        textured_vertex_groups = ['Front', 'Back']
-        tile_name = tile_props.tile_name
-
-        preview_core, displacement_core = self.create_cores(
-            base,
-            tile_props,
-            textured_vertex_groups)
-
-        wall_cutters = self.create_openlock_wall_cutters(
-            preview_core,
-            tile_props)
-
-        cores = [preview_core, displacement_core]
-
-        for wall_cutter in wall_cutters:
-            wall_cutter.parent = base
-            wall_cutter.display_type = 'BOUNDS'
-            wall_cutter.hide_viewport = True
-            obj_props = wall_cutter.mt_object_props
-            obj_props.is_mt_object = True
-            obj_props.tile_name = tile_name
-            obj_props.geometry_type = 'CUTTER'
-
-            for core in cores:
-                wall_cutter_bool = core.modifiers.new(wall_cutter.name + '.bool', 'BOOLEAN')
-                wall_cutter_bool.operation = 'DIFFERENCE'
-                wall_cutter_bool.object = wall_cutter
-                wall_cutter_bool.show_render = False
-
-                # add cutters to object's mt_cutters_collection
-                # so we can activate and deactivate them when necessary
-                item = core.mt_object_props.cutters_collection.add()
-                item.name = wall_cutter.name
-                item.value = True
-                item.parent = core.name
-
-        displacement_core.hide_viewport = True
-
-        return preview_core
-
-    def create_core(self, tile_props):
-        '''Returns the core (vertical) part of a wall tile
-        '''
-        cursor = bpy.context.scene.cursor
-        cursor_start_loc = cursor.location.copy()
-
-        core = MT_Straight_Tile.create_core(self, tile_props)
-
-        self.create_core_loops(core, tile_props, cursor_start_loc)
-
-        ctx = {
-            'object': core,
-            'active_object': core,
-            'selected_objects': [core]
-        }
-
-        bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-        bpy.ops.uv.smart_project(ctx, island_margin=0.05)
-
-        straight_wall_to_vert_groups(core)
-
-        obj_props = core.mt_object_props
-        obj_props.is_mt_object = True
-        obj_props.tile_name = tile_props.tile_name
-
-        return core
-
-    def create_core_loops(self, core, tile_props, cursor_start_loc):
-        # create loops at each side of tile which we'll use
-        # to prevent materials projecting beyond edges
-        base_size = tile_props.base_size
-        tile_size = tile_props.tile_size
-
-        mode('OBJECT')
-        select(core.name)
-        mode('EDIT')
-
-        diff = base_size[1] - tile_size[1]
-        region, rv3d, v3d, area = view3d_find(True)
-        ctx = {
-            'scene': bpy.context.scene,
-            'region': region,
-            'area': area,
-            'space': v3d
-        }
-
-        bpy.ops.mesh.select_all(ctx, action='SELECT')
-        bpy.ops.mesh.bisect(
-            ctx,
-            plane_co=(tile_size[0] - 0.001, 0, 0),
-            plane_no=(1, 0, 0))
-        bpy.ops.mesh.select_all(ctx, action='SELECT')
-        bpy.ops.mesh.bisect(
-            ctx,
-            plane_co=(cursor_start_loc[0] + 0.001, 0, 0),
-            plane_no=(1, 0, 0))
-        bpy.ops.mesh.select_all(ctx, action='SELECT')
-        bpy.ops.mesh.bisect(
-            ctx,
-            plane_co=(0, tile_size[1] + (diff / 2) - 0.001, 0),
-            plane_no=(0, 1, 0))
-        bpy.ops.mesh.select_all(ctx, action='SELECT')
-        bpy.ops.mesh.bisect(
-            ctx,
-            plane_co=(0, cursor_start_loc[1] + (diff / 2) + 0.001, 0),
-            plane_no=(0, 1, 0))
-        bpy.ops.mesh.select_all(ctx, action='SELECT')
-        bpy.ops.mesh.bisect(
-            ctx,
-            plane_co=(0, 0, tile_size[2] - 0.01),
-            plane_no=(0, 0, 1))
-        bpy.ops.mesh.select_all(ctx, action='SELECT')
-        bpy.ops.mesh.bisect(
-            ctx,
-            plane_co=(0, 0, cursor_start_loc[2] + base_size[2] + 0.001),
-            plane_no=(0, 0, 1))
-        mode('OBJECT')
-
     def create_openlock_base_slot_cutter(self, base, tile_props, offset=0.236):
         """Makes a cutter for the openlock base slot
         based on the width of the base
@@ -367,6 +217,157 @@ class MT_Straight_Wall_Tile(MT_Straight_Tile, MT_Tile):
 
         return clip_cutter
 
+
+class MT_Straight_Wall_Tile(MT_Straight_Tile, MT_Tile):
+
+    def __init__(self, tile_props):
+        MT_Tile.__init__(self, tile_props)
+
+    def create_plain_base(self, tile_props):
+        """Returns a plain base for a straight wall tile
+        """
+        base = MT_Straight_Tile.create_plain_base(self, tile_props)
+        return base
+
+    def create_openlock_base(self, tile_props):
+        '''Returns an openlock style base with clip sockets'''
+        base = MT_Straight_Tile.create_openlock_base(self, tile_props)
+        return base
+
+    def create_plain_cores(self, base, tile_props):
+        textured_vertex_groups = ['Front', 'Back']
+        preview_core, displacement_core = self.create_cores(
+            base,
+            tile_props,
+            textured_vertex_groups)
+        displacement_core.hide_viewport = True
+        return preview_core
+
+    def create_openlock_cores(self, base, tile_props):
+        # Again width is a constant for OpenLOCK tiles
+        tile_props.tile_size = Vector((
+            tile_props.tile_size[0],
+            0.3149,
+            tile_props.tile_size[2]))
+
+        textured_vertex_groups = ['Front', 'Back']
+
+        preview_core, displacement_core = self.create_cores(
+            base,
+            tile_props,
+            textured_vertex_groups)
+
+        wall_cutters = self.create_openlock_wall_cutters(
+            preview_core,
+            tile_props)
+
+        cores = [preview_core, displacement_core]
+        tile_name = tile_props.tile_name
+
+        for wall_cutter in wall_cutters:
+            wall_cutter.parent = base
+            wall_cutter.display_type = 'BOUNDS'
+            wall_cutter.hide_viewport = True
+            obj_props = wall_cutter.mt_object_props
+            obj_props.is_mt_object = True
+            obj_props.tile_name = tile_name
+            obj_props.geometry_type = 'CUTTER'
+
+            for core in cores:
+                wall_cutter_bool = core.modifiers.new(wall_cutter.name + '.bool', 'BOOLEAN')
+                wall_cutter_bool.operation = 'DIFFERENCE'
+                wall_cutter_bool.object = wall_cutter
+                wall_cutter_bool.show_render = False
+
+                # add cutters to object's mt_cutters_collection
+                # so we can activate and deactivate them when necessary
+                item = core.mt_object_props.cutters_collection.add()
+                item.name = wall_cutter.name
+                item.value = True
+                item.parent = core.name
+
+        displacement_core.hide_viewport = True
+
+        return preview_core
+
+    def create_core(self, tile_props):
+        '''Returns the core (vertical) part of a wall tile
+        '''
+        cursor = bpy.context.scene.cursor
+        cursor_start_loc = cursor.location.copy()
+
+        core = MT_Straight_Tile.create_core(self, tile_props)
+
+        self.create_core_loops(core, tile_props, cursor_start_loc)
+
+        ctx = {
+            'object': core,
+            'active_object': core,
+            'selected_objects': [core]
+        }
+
+        bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+        bpy.ops.uv.smart_project(ctx, island_margin=0.05)
+
+        straight_wall_to_vert_groups(core)
+
+        obj_props = core.mt_object_props
+        obj_props.is_mt_object = True
+        obj_props.tile_name = tile_props.tile_name
+
+        return core
+
+    def create_core_loops(self, core, tile_props, cursor_start_loc):
+        # create loops at each side of tile which we'll use
+        # to prevent materials projecting beyond edges
+        base_size = tile_props.base_size
+        tile_size = tile_props.tile_size
+
+        mode('OBJECT')
+        select(core.name)
+        mode('EDIT')
+
+        diff = base_size[1] - tile_size[1]
+        region, rv3d, v3d, area = view3d_find(True)
+        ctx = {
+            'scene': bpy.context.scene,
+            'region': region,
+            'area': area,
+            'space': v3d
+        }
+
+        bpy.ops.mesh.select_all(ctx, action='SELECT')
+        bpy.ops.mesh.bisect(
+            ctx,
+            plane_co=(tile_size[0] - 0.001, 0, 0),
+            plane_no=(1, 0, 0))
+        bpy.ops.mesh.select_all(ctx, action='SELECT')
+        bpy.ops.mesh.bisect(
+            ctx,
+            plane_co=(cursor_start_loc[0] + 0.001, 0, 0),
+            plane_no=(1, 0, 0))
+        bpy.ops.mesh.select_all(ctx, action='SELECT')
+        bpy.ops.mesh.bisect(
+            ctx,
+            plane_co=(0, tile_size[1] + (diff / 2) - 0.001, 0),
+            plane_no=(0, 1, 0))
+        bpy.ops.mesh.select_all(ctx, action='SELECT')
+        bpy.ops.mesh.bisect(
+            ctx,
+            plane_co=(0, cursor_start_loc[1] + (diff / 2) + 0.001, 0),
+            plane_no=(0, 1, 0))
+        bpy.ops.mesh.select_all(ctx, action='SELECT')
+        bpy.ops.mesh.bisect(
+            ctx,
+            plane_co=(0, 0, tile_size[2] - 0.01),
+            plane_no=(0, 0, 1))
+        bpy.ops.mesh.select_all(ctx, action='SELECT')
+        bpy.ops.mesh.bisect(
+            ctx,
+            plane_co=(0, 0, cursor_start_loc[2] + base_size[2] + 0.001),
+            plane_no=(0, 0, 1))
+        mode('OBJECT')
+
     def create_openlock_wall_cutters(self, core, tile_props):
         """Creates the cutters for the wall and positions them correctly
         """
@@ -376,7 +377,11 @@ class MT_Straight_Wall_Tile(MT_Straight_Tile, MT_Tile):
         tile_size = tile_props.tile_size
         base_size = tile_props.base_size
 
-        booleans_path = os.path.join(preferences.assets_path, "meshes", "booleans", "openlock.blend")
+        booleans_path = os.path.join(
+            preferences.assets_path,
+            "meshes",
+            "booleans",
+            "openlock.blend")
 
         # load side cutter
         with bpy.data.libraries.load(booleans_path) as (data_from, data_to):

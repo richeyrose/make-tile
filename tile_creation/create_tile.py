@@ -9,6 +9,7 @@ from .. materials.materials import (
     assign_preview_materials,
     add_preview_mesh_subsurf)
 
+
 class MT_Tile:
     def __init__(self, tile_props):
         self.tile_props = tile_props

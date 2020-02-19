@@ -51,7 +51,7 @@ class MT_Tile:
         tile_props.base_size = (0, 0, 0)
         base = bpy.data.objects.new(tile_props.tile_name + '.base', None)
         add_object_to_collection(base, tile_props.tile_name)
-        return False
+        return base
 
     def create_plain_cores(self, base, tile_props):
         return False

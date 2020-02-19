@@ -78,7 +78,10 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             tile_collection = bpy.data.collections.new(tile_name)
             bpy.data.collections['Walls'].children.link(tile_collection)
 
-        elif tile_type == 'RECTANGULAR_FLOOR' or tile_type == 'TRIANGULAR_FLOOR' or tile_type == 'CURVED_FLOOR':
+        elif tile_type == 'RECTANGULAR_FLOOR' or \
+                tile_type == 'TRIANGULAR_FLOOR' or \
+                tile_type == 'CURVED_FLOOR':
+
             # create floor collection if one doesn't already exist
             create_collection('Floors', tiles_collection)
             # create new collection that operates as our "tile" and activate it
@@ -121,7 +124,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
 
         if tile_type == 'STRAIGHT_WALL':
             # create_straight_wall(tile_props)
-            tile = MT_Straight_Wall_Tile(tile_props)
+            MT_Straight_Wall_Tile(tile_props)
 
         if tile_type == 'CURVED_WALL':
             create_curved_wall(tile_props)

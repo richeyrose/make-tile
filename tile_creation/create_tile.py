@@ -16,8 +16,10 @@ class MT_Tile:
         scene = bpy.context.scene
         cursor = scene.cursor
         cursor_orig_loc = cursor.location.copy()
+        cursor_orig_rot = cursor.rotation_euler.copy()
 
         cursor.location = (0, 0, 0)
+        cursor.rotation_euler = (0, 0, 0)
 
         base_blueprint = tile_props.base_blueprint
         main_part_blueprint = tile_props.main_part_blueprint
@@ -40,7 +42,7 @@ class MT_Tile:
         if main_part_blueprint == 'NONE':
             preview_core = None
 
-        self.finalise_tile(base, preview_core, cursor_orig_loc)
+        self.finalise_tile(base, preview_core, cursor_orig_loc, cursor_orig_rot)
 
     def create_plain_base(self, tile_props):
         return False
@@ -99,7 +101,7 @@ class MT_Tile:
 
         return preview_core, displacement_core
 
-    def finalise_tile(self, base, preview_core, cursor_orig_loc):
+    def finalise_tile(self, base, preview_core, cursor_orig_loc, cursor_orig_rot):
         # Assign secondary material to our base if its a mesh
         if base.type == 'MESH':
             prefs = get_prefs()
@@ -113,6 +115,7 @@ class MT_Tile:
         base.location = cursor_orig_loc
         cursor = bpy.context.scene.cursor
         cursor.location = cursor_orig_loc
+        cursor.rotation_euler = cursor_orig_rot
 
         deselect_all()
         select(base.name)

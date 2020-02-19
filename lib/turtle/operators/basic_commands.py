@@ -3,7 +3,7 @@ import bpy
 from bpy.props import StringProperty, FloatProperty, FloatVectorProperty, IntProperty, EnumProperty, BoolProperty
 import bmesh
 from mathutils import Vector
-from ...utils.selection import select_by_loc, select, activate
+from ...utils.selection import select_by_loc, select, activate, deselect_all
 from bpy.types import Operator
 from bpy_extras.object_utils import AddObjectHelper
 
@@ -45,8 +45,8 @@ class TURTLE_OT_add_turtle(Operator, AddObjectHelper):
             return True
 
     def execute(self, context):
-
-        obj = bpy.context.active_object
+        # make sure we have nothing selected
+        deselect_all()
 
         # create new empty turtle world
         world_mesh = bpy.data.meshes.new("world_mesh")

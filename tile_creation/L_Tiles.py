@@ -1,6 +1,6 @@
 import os
+from math import radians
 import bpy
-from math import tan, radians
 from mathutils import Vector
 from .. lib.utils.collections import add_object_to_collection
 from .. lib.utils.vertex_groups import (
@@ -10,6 +10,11 @@ from .. utils.registration import get_prefs
 from .. lib.utils.selection import (
     deselect_all,
     select)
+from .. lib.turtle.scripts.L_Tile import (
+    draw_corner_3D,
+    draw_corner_wall,
+    calculate_corner_wall_triangles,
+    move_cursor_to_wall_start)
 from . create_tile import MT_Tile
 
 
@@ -18,34 +23,17 @@ class MT_L_Tile:
     def create_plain_base(self, tile_props):
         leg_1_len = tile_props.leg_1_len
         leg_2_len = tile_props.leg_2_len
-        base_height = tile_props.base_size[2]
         angle = tile_props.angle
-        base_thickness = tile_props.base_size[1]
+        thickness = tile_props.base_size[1]
+        height = tile_props.base_size[2]
 
-        t = bpy.ops.turtle
-        t.add_turtle()
-
-        base_triangles = calculate_corner_wall_triangles(
+        triangles = calculate_corner_wall_triangles(
             leg_1_len,
             leg_2_len,
-            base_thickness,
+            thickness,
             angle)
 
-        vert_locs = draw_corner_outline(base_triangles, angle, base_thickness)
-        t.select_all()
-        bpy.ops.mesh.edge_face_add()
-        t.pd()
-        t.up(d=base_height)
-        t.select_all()
-        bpy.ops.mesh.normals_make_consistent()
-        bpy.ops.mesh.quads_convert_to_tris(
-            quad_method='BEAUTY',
-            ngon_method='BEAUTY')
-        t.pu()
-        t.deselect_all()
-        t.home()
-        bpy.ops.object.editmode_toggle()
-        base = bpy.context.object
+        base = draw_corner_3D(triangles, angle, thickness, height)
 
         base.name = tile_props.tile_name + '.base'
         obj_props = base.mt_object_props
@@ -53,12 +41,12 @@ class MT_L_Tile:
         obj_props.geometry_type = 'BASE'
         obj_props.tile_name = tile_props.tile_name
 
-        return base, base_triangles, vert_locs
+        return base, triangles
 
     def create_openlock_base(self, tile_props):
         tile_props.base_size = Vector((1, 0.5, 0.2755))
 
-        base, base_triangles, vert_locs = self.create_plain_base(tile_props)
+        base, base_triangles = self.create_plain_base(tile_props)
 
         slot_cutter = self.create_openlock_base_slot_cutter(tile_props)
 
@@ -102,6 +90,9 @@ class MT_L_Tile:
             cutter.hide_viewport = True
 
         deselect_all()
+
+        bpy.context.scene.cursor.location = (0, 0, 0)
+
         return base
 
     def create_core(self, tile_props):
@@ -142,31 +133,13 @@ class MT_L_Tile:
 
         # store the vertex locations for turning
         # into vert groups as we draw outline
-        vert_locs = draw_corner_outline(
+        core, vert_locs = draw_corner_wall(
             core_triangles_2,
             angle,
-            wall_thickness)
+            wall_thickness,
+            wall_height,
+            base_height)
 
-        # fill face and extrude wall
-        t = bpy.ops.turtle
-        bpy.ops.mesh.edge_face_add()
-        t.pd()
-        t.up(d=0.001)
-        t.up(d=wall_height - base_height - 0.011)
-        t.up(d=0.01)
-        t.select_all()
-
-        bpy.ops.mesh.normals_make_consistent()
-
-        bpy.ops.mesh.quads_convert_to_tris(
-            quad_method='BEAUTY',
-            ngon_method='BEAUTY')
-
-        t.pu()
-        t.deselect_all()
-        t.home()
-    
-        core = bpy.context.object
         core.name = tile_props.tile_name + '.core'
         obj_props = core.mt_object_props
         obj_props.is_mt_object = True
@@ -183,7 +156,8 @@ class MT_L_Tile:
 
         mode('OBJECT')
         bpy.ops.uv.smart_project(ctx, island_margin=0.05)
-
+        bpy.context.scene.cursor.location = (0, 0, 0)
+        bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
         return core
 
     def create_openlock_base_clip_cutter(
@@ -264,26 +238,12 @@ class MT_L_Tile:
             angle
         )
 
-        draw_corner_outline(
+        cutter = draw_corner_3D(
             cutter_triangles_2,
             angle,
-            slot_width
-        )
+            slot_width,
+            slot_height)
 
-        # fill face and extrude cutter
-        t = bpy.ops.turtle
-        bpy.ops.mesh.edge_face_add()
-        t.pd()
-        t.up(d=slot_height)
-        t.select_all()
-        bpy.ops.mesh.normals_make_consistent()
-        bpy.ops.mesh.quads_convert_to_tris(quad_method='BEAUTY', ngon_method='BEAUTY')
-        t.pu()
-        t.deselect_all()
-        t.home()
-
-        mode('OBJECT')
-        cutter = bpy.context.object
         cutter.name = tile_props.tile_name + '.base.cutter'
 
         return cutter
@@ -379,6 +339,7 @@ class MT_L_Wall(MT_L_Tile, MT_Tile):
         obj_props.tile_name = tile_props.tile_name
 
         displacement_core.hide_viewport = True
+        bpy.context.scene.cursor.location = (0, 0, 0)
 
         return preview_core
 
@@ -477,122 +438,3 @@ class MT_L_Wall(MT_L_Tile, MT_Tile):
         cutters.extend([right_cutter_bottom, right_cutter_top])
 
         return cutters
-
-
-def calculate_corner_wall_triangles(
-        leg_1_len,
-        leg_2_len,
-        thickness,
-        angle):
-    # X leg
-    # right triangle
-    tri_a_angle = angle / 2
-    tri_a_adj = leg_1_len
-    tri_a_opp = tri_a_adj * tan(radians(tri_a_angle))
-
-    # right triangle
-    tri_b_angle = 180 - tri_a_angle - 90
-    tri_b_opp = tri_a_opp - thickness
-    tri_b_adj = tri_b_opp * tan(radians(tri_b_angle))
-
-    # Y leg
-    # right triangle
-    tri_c_angle = angle / 2
-    tri_c_adj = leg_2_len
-    tri_c_opp = tri_c_adj * tan(radians(tri_c_angle))
-
-    tri_d_angle = 180 - tri_c_angle - 90
-    tri_d_opp = tri_c_opp - thickness
-    tri_d_adj = tri_d_opp * tan(radians(tri_d_angle))
-
-    triangles = {
-        'a_adj': tri_a_adj,  # leg 1 outer leg length
-        'b_adj': tri_b_adj,  # leg 1 inner leg length
-        'c_adj': tri_c_adj,  # leg 2 outer leg length
-        'd_adj': tri_d_adj}  # leg 2 inner leg length
-
-    return triangles
-
-
-def move_cursor_to_wall_start(triangles, angle, thickness, base_height):
-    turtle = bpy.context.scene.cursor
-    t = bpy.ops.turtle
-    t.add_turtle()
-    orig_rot = turtle.rotation_euler.copy()
-    t.pu()
-    t.up(d=base_height, m=True)
-    t.rt(d=angle)
-    t.fd(d=triangles['a_adj'])
-    t.lt(d=90)
-    t.fd(d=thickness)
-    t.lt(d=90)
-    t.fd(d=triangles['b_adj'])
-    turtle.rotation_euler = orig_rot
-
-
-def draw_corner_outline(triangles, angle, thickness):
-    turtle = bpy.context.scene.cursor
-    t = bpy.ops.turtle
-
-    orig_loc = turtle.location.copy()
-    orig_rot = turtle.rotation_euler.copy()
-
-    # We save the location of each vertex as it is drawn
-    # to use for making vert groups & positioning cutters
-    vert_loc = {
-        'origin': orig_loc
-    }
-    t.pd()
-    # draw X leg
-    t.rt(d=angle)
-    t.fd(d=triangles['a_adj'] - 0.001)
-    vert_loc['x_outer_1'] = turtle.location.copy()
-    t.fd(d=0.001)
-    vert_loc['x_outer_2'] = turtle.location.copy()
-    t.lt(d=90)
-    t.fd(d=0.001)
-    vert_loc['end_1_1'] = turtle.location.copy()
-    t.fd(d=thickness - 0.002)
-    vert_loc['end_1_2'] = turtle.location.copy()
-    t.fd(d=0.001)
-    vert_loc['end_1_3'] = turtle.location.copy()
-    t.lt(d=90)
-    t.fd(d=0.001)
-    vert_loc['x_inner_1'] = turtle.location.copy()
-    t.fd(d=triangles['b_adj'] - 0.001)
-    vert_loc['x_inner_2'] = turtle.location.copy()
-    # home
-    t.pu()
-    turtle.location = orig_loc
-    turtle.rotation_euler = orig_rot
-
-    t.deselect_all()
-    t.select_at_cursor(buffer=0.0001)
-    t.pd()  # vert loc same as a
-
-    # draw Y leg
-    t.fd(d=triangles['c_adj'] - 0.001)
-    vert_loc['y_outer_1'] = turtle.location.copy()
-    t.fd(d=0.001)
-    vert_loc['y_outer_2'] = turtle.location.copy()
-    t.rt(d=90)
-
-    t.fd(d=0.001)
-    vert_loc['end_2_1'] = turtle.location.copy()
-
-    t.fd(d=thickness - 0.002)
-    vert_loc['end_2_2'] = turtle.location.copy()
-    t.fd(d=0.001)
-    vert_loc['end_2_3'] = turtle.location.copy()
-    t.rt(d=90)
-    t.fd(d=0.001)
-    vert_loc['y_inner_1'] = turtle.location.copy()
-    t.fd(d=triangles['d_adj'] - 0.001)  # vert loc same as x_inner_2
-
-    t.select_all()
-    t.merge()
-    t.pu()
-    turtle.location = orig_loc
-    turtle.rotation_euler = orig_rot
-
-    return vert_loc

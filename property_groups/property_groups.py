@@ -102,7 +102,8 @@ class MT_Scene_Properties(PropertyGroup):
                 'RECTANGULAR_FLOOR', 
                 'TRIANGULAR_FLOOR',
                 'CURVED_FLOOR',
-                'CORNER_FLOOR'):
+                'CORNER_FLOOR',
+                'STRAIGHT_FLOOR'):
             scene_props.mt_tile_z = 0.3
             scene_props.mt_base_z = 0.2755
             scene_props.mt_tile_x = 2

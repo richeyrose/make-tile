@@ -9,12 +9,12 @@ from .. lib.utils.collections import add_object_to_collection
 from .. lib.utils.selection import select
 from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. lib.utils.utils import mode, view3d_find
-from .. lib.utils.vertex_groups import straight_wall_to_vert_groups
-
+from .. lib.utils.vertex_groups import straight_wall_to_vert_groups, straight_floor_to_vert_groups
 
 # MIXIN
 class MT_Straight_Tile:
     def create_plain_base(self, tile_props):
+
         base_size = tile_props.base_size
         tile_name = tile_props.tile_name
 
@@ -216,6 +216,59 @@ class MT_Straight_Tile:
         obj_props.geometry_type = 'CUTTER'
 
         return clip_cutter
+
+
+class MT_Straight_Floor_Tile(MT_Straight_Tile, MT_Tile):
+    def __init__(self, tile_props):
+        MT_Tile.__init__(self, tile_props)
+
+    def create_plain_base(self, tile_props):
+        """Returns a plain base for a straight wall tile
+        """
+        base = MT_Straight_Tile.create_plain_base(self, tile_props)
+        return base
+
+    def create_openlock_base(self, tile_props):
+        '''Returns an openlock style base with clip sockets'''
+        base = MT_Straight_Tile.create_openlock_base(self, tile_props)
+        return base
+
+    def create_plain_cores(self, base, tile_props):
+        textured_vertex_groups = ['Top']
+
+        preview_core, displacement_core = self.create_cores(
+            base,
+            tile_props,
+            textured_vertex_groups)
+        displacement_core.hide_viewport = True
+        return preview_core
+
+    def create_openlock_cores(self, base, tile_props):
+        tile_props.tile_size[1] = tile_props.base_size[1]
+        preview_core = self.create_plain_cores(base, tile_props)
+        return preview_core
+
+    def create_core(self, tile_props):
+        '''Returns the core (top) part of a floor tile
+        '''
+        core = MT_Straight_Tile.create_core(self, tile_props)
+
+        ctx = {
+            'object': core,
+            'active_object': core,
+            'selected_objects': [core]
+        }
+
+        bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+        bpy.ops.uv.smart_project(ctx, island_margin=0.05)
+
+        straight_floor_to_vert_groups(core, tile_props)
+
+        obj_props = core.mt_object_props
+        obj_props.is_mt_object = True
+        obj_props.tile_name = tile_props.tile_name
+
+        return core
 
 
 class MT_Straight_Wall_Tile(MT_Straight_Tile, MT_Tile):

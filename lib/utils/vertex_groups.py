@@ -804,6 +804,90 @@ def rect_floor_to_vert_groups(obj):
     bpy.context.scene.cursor.location = cursor_original_loc
 
 
+def straight_floor_to_vert_groups(obj, tile_props):
+    origin = obj.location.copy()
+
+    # make vertex groups
+    obj.vertex_groups.new(name='Top')
+    obj.vertex_groups.new(name='Bottom')
+    obj.vertex_groups.new(name='Sides')
+
+    ctx = {
+        'object': obj,
+        'active_object': obj,
+        'selected_objects': [obj]
+    }
+
+    region, rv3d, v3d, area = view3d_find(True)
+
+    override = {
+        'scene': bpy.context.scene,
+        'region': region,
+        'area': area,
+        'space': v3d
+    }
+
+    bpy.ops.object.mode_set(ctx, mode='EDIT')
+    bpy.ops.mesh.select_all(override, action="DESELECT")
+    select_by_loc(
+        lbound=(
+            origin[0],
+            origin[1],
+            origin[2] + tile_props.tile_size[2]),
+        ubound=(
+            origin[0] + tile_props.tile_size[0],
+            origin[1] + tile_props.tile_size[1],
+            origin[2] + tile_props.tile_size[2]),
+        select_mode='VERT',
+        coords='GLOBAL',
+        buffer=0.0001
+    )
+
+    bpy.ops.object.mode_set(ctx, mode='OBJECT')
+    bpy.ops.object.mode_set(ctx, mode='EDIT')
+
+
+
+    bpy.ops.object.vertex_group_set_active(ctx, group='Top')
+    bpy.ops.mesh.inset(override, thickness=0.001, depth=0)
+    bpy.ops.object.vertex_group_assign(ctx)
+    bpy.ops.mesh.select_all(override, action="DESELECT")
+
+    select_by_loc(
+        lbound=(origin),
+        ubound=(
+            origin[0] + tile_props.base_size[0],
+            origin[1] + tile_props.base_size[1],
+            origin[2] + tile_props.base_size[2]),
+        select_mode='VERT',
+        coords='GLOBAL',
+        buffer=0.01
+    )
+
+    bpy.ops.object.vertex_group_set_active(ctx, group='Bottom')
+    bpy.ops.object.vertex_group_assign(ctx)
+    bpy.ops.mesh.select_all(override, action="DESELECT")
+
+    select_by_loc(
+        lbound=(origin),
+        ubound=(
+            origin[0] + tile_props.tile_size[0],
+            origin[1] + tile_props.tile_size[1],
+            origin[2] + tile_props.tile_size[2]),
+        select_mode='VERT',
+        coords='GLOBAL',
+        buffer=0.001
+    )
+
+    bpy.ops.object.vertex_group_set_active(ctx, group='Sides')
+    bpy.ops.object.vertex_group_assign(ctx)
+    bpy.ops.mesh.select_all(override, action="DESELECT")
+    bpy.ops.object.mode_set(ctx, mode='OBJECT')
+
+    verts = get_vert_indexes_in_vert_group('Top', obj)
+    remove_verts_from_group('Sides', obj, verts)
+
+
 def straight_wall_to_vert_groups(obj):
     """makes a vertex group for each side of wall
     and assigns vertices to it. Corrects for displacement map distortion"""

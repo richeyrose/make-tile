@@ -51,6 +51,12 @@ class MT_PT_Tile_Generator_Panel(Panel):
             row = layout.row()
             row.prop(scene_props, 'mt_tile_x')
             row.prop(scene_props, 'mt_tile_z')
+            
+        if scene_props.mt_tile_type == 'STRAIGHT_FLOOR':
+            layout.label(text="Tile Size:")
+            row = layout.row()
+            row.prop(scene_props, 'mt_tile_x')
+            row.prop(scene_props, 'mt_tile_z')
 
         elif scene_props.mt_tile_type == 'CURVED_WALL':
             layout.label(text="Tile Properties:")
@@ -114,7 +120,10 @@ class MT_PT_Tile_Generator_Panel(Panel):
         scene_props = scene.mt_scene_props
         layout = self.layout
 
-        if scene_props.mt_tile_type == 'STRAIGHT_WALL' or scene_props.mt_tile_type == 'RECTANGULAR_FLOOR':
+        if scene_props.mt_tile_type in (
+                'STRAIGHT_WALL',
+                'RECTANGULAR_FLOOR',
+                'STRAIGHT_FLOOR'):
             layout.label(text="Base Size")
             row = layout.row()
             row.prop(scene_props, 'mt_base_x')
@@ -166,14 +175,10 @@ class MT_PT_Tile_Generator_Panel(Panel):
         scene_props = scene.mt_scene_props
         layout = self.layout
 
-        if scene_props.mt_tile_type == 'STRAIGHT_WALL':
-            layout.label(text="Tile Size")
-            row = layout.row()
-            row.prop(scene_props, 'mt_tile_x')
-            row.prop(scene_props, 'mt_tile_y')
-            row.prop(scene_props, 'mt_tile_z')
-
-        elif scene_props.mt_tile_type == 'RECTANGULAR_FLOOR':
+        if scene_props.mt_tile_type in (
+                'STRAIGHT_WALL',
+                'STRAIGHT_FLOOR',
+                'RECTANGULAR_FLOOR'):
             layout.label(text="Tile Size")
             row = layout.row()
             row.prop(scene_props, 'mt_tile_x')
@@ -222,7 +227,7 @@ class MT_PT_Tile_Generator_Panel(Panel):
             layout.prop(scene_props, 'mt_leg_1_len')
             layout.prop(scene_props, 'mt_leg_2_len')
             layout.prop(scene_props, 'mt_angle')
-            
+  
         elif scene_props.mt_tile_type == 'CORNER_FLOOR':
 
             layout.label(text="Floor thickness and height")

@@ -8,7 +8,7 @@ from .. lib.utils.collections import (
 
 from .. tile_creation.L_Tiles import MT_L_Wall, MT_L_Floor
 from .. tile_creation.Straight_Tiles import MT_Straight_Wall_Tile, MT_Straight_Floor_Tile
-from .. tile_creation.Curved_Tiles import MT_Curved_Wall
+from .. tile_creation.Curved_Tiles import MT_Curved_Wall_Tile, MT_Curved_Floor_Tile
 
 from .. tile_creation.create_rect_floor_tile import create_rectangular_floor
 from .. tile_creation.create_triangular_floor import create_triangular_floor
@@ -84,7 +84,8 @@ class MT_OT_Make_Tile(bpy.types.Operator):
                 'TRIANGULAR_FLOOR',
                 'CURVED_FLOOR',
                 'CORNER_FLOOR',
-                'STRAIGHT_FLOOR'):
+                'STRAIGHT_FLOOR',
+                'SEMI_CIRC_FLOOR'):
 
             # create floor collection if one doesn't already exist
             create_collection('Floors', tiles_collection)
@@ -133,7 +134,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             MT_Straight_Floor_Tile(tile_props)
 
         if tile_type == 'CURVED_WALL':
-            MT_Curved_Wall(tile_props)
+            MT_Curved_Wall_Tile(tile_props)
 
         if tile_type == 'CORNER_WALL':
             MT_L_Wall(tile_props)
@@ -147,8 +148,11 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         if tile_type == 'TRIANGULAR_FLOOR':
             create_triangular_floor(tile_props)
 
-        if tile_type == 'CURVED_FLOOR':
+        if tile_type == 'SEMI_CIRC_FLOOR':
             create_curved_floor(tile_props)
+
+        if tile_type == 'CURVED_FLOOR':
+            MT_Curved_Floor_Tile(tile_props)
 
         return {'FINISHED'}
 

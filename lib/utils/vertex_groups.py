@@ -846,8 +846,6 @@ def straight_floor_to_vert_groups(obj, tile_props):
     bpy.ops.object.mode_set(ctx, mode='OBJECT')
     bpy.ops.object.mode_set(ctx, mode='EDIT')
 
-
-
     bpy.ops.object.vertex_group_set_active(ctx, group='Top')
     bpy.ops.mesh.inset(override, thickness=0.001, depth=0)
     bpy.ops.object.vertex_group_assign(ctx)
@@ -856,8 +854,8 @@ def straight_floor_to_vert_groups(obj, tile_props):
     select_by_loc(
         lbound=(origin),
         ubound=(
-            origin[0] + tile_props.base_size[0],
-            origin[1] + tile_props.base_size[1],
+            origin[0] + tile_props.tile_size[0],
+            origin[1] + tile_props.tile_size[1],
             origin[2] + tile_props.base_size[2]),
         select_mode='VERT',
         coords='GLOBAL',

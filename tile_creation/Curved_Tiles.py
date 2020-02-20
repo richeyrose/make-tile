@@ -16,6 +16,7 @@ from .. lib.utils.utils import (
     add_circle_array)
 
 from .. lib.utils.vertex_groups import (
+    straight_floor_to_vert_groups,
     straight_wall_to_vert_groups)
 
 from . create_tile import MT_Tile
@@ -61,6 +62,7 @@ class MT_Curved_Tile:
         segments = tile_props.segments
         angle = tile_props.degrees_of_arc
         tile_props.base_size[2] = 0.2755
+        tile_props.base_size[1] = 0.5
         clip_side = scene.mt_scene_props.mt_base_socket_side
 
         base = draw_openlock_curved_base(radius, segments, angle, tile_props.base_size[2], clip_side)
@@ -144,7 +146,96 @@ class MT_Curved_Tile:
         return clip_cutter
 
 
-class MT_Curved_Wall(MT_Curved_Tile, MT_Tile):
+class MT_Curved_Floor_Tile(MT_Curved_Tile, MT_Tile):
+    def __init__(self, tile_props):
+        MT_Tile.__init__(self, tile_props)
+
+    def create_plain_base(self, tile_props):
+        base = MT_Curved_Tile.create_plain_base(self, tile_props)
+        return base
+
+    def create_openlock_base(self, tile_props):
+        base = MT_Curved_Tile.create_openlock_base(self, tile_props)
+        return base
+
+    def create_plain_cores(self, base, tile_props):
+        textured_vertex_groups = ['Top']
+        preview_core, displacement_core = self.create_cores(
+            base,
+            tile_props,
+            textured_vertex_groups)
+        displacement_core.hide_viewport = True
+        return preview_core
+
+    def create_openlock_cores(self, base, tile_props):
+        tile_props.tile_size[1] = 0.5
+        return self.create_plain_cores(base, tile_props)
+
+    def create_core(self, tile_props):
+        segments = tile_props.segments
+        angle = tile_props.degrees_of_arc
+        radius = tile_props.wall_radius
+        width = tile_props.tile_size[1]
+        height = tile_props.tile_size[2] - tile_props.base_size[2]
+        base_height = tile_props.base_size[2]
+        inner_circumference = 2 * pi * radius
+        wall_length = inner_circumference / (360 / angle)
+
+        # Rather than creating our cores as curved objects we create them as straight cuboids
+        # and then add a deform modifier. This allows us to not use the modifier when baking the
+        # displacement texture by disabling it in render and thus being able to use
+        # standard projections
+
+        t = bpy.ops.turtle
+
+        t.add_turtle()
+        t.pu()
+        t.rt(d=90)
+        t.pd()
+        i = 0
+        while i < segments:
+            t.fd(d=wall_length / segments)
+            i += 1
+        t.select_all()
+        t.lf(d=width)
+        t.select_all()
+        t.up(d=height)
+        t.select_all()
+        t.up(d=base_height, m=True)
+        t.home()
+        t.select_all()
+
+        core = bpy.context.object
+
+        add_object_to_collection(core, tile_props.tile_name)
+
+        ctx = {
+            'object': core,
+            'active_object': core,
+            'selected_objects': [core]
+        }
+
+        bpy.ops.uv.smart_project(ctx, island_margin=0.05)
+
+        tile_props.tile_size[0] = wall_length
+        straight_floor_to_vert_groups(core, tile_props)
+
+        core.location[1] = core.location[1] + radius
+
+        mod = core.modifiers.new('Simple_Deform', type='SIMPLE_DEFORM')
+        mod.deform_method = 'BEND'
+        mod.deform_axis = 'Z'
+        mod.angle = radians(-angle)
+        mod.show_render = False
+        core.name = tile_props.tile_name + '.core'
+
+        obj_props = core.mt_object_props
+        obj_props.is_mt_object = True
+        obj_props.tile_name = tile_props.tile_name
+
+        return core    
+
+class MT_Curved_Wall_Tile(MT_Curved_Tile, MT_Tile):
     def __init__(self, tile_props):
         MT_Tile.__init__(self, tile_props)
 

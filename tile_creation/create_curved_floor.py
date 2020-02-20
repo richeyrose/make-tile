@@ -2,6 +2,7 @@ import os
 import bpy
 from math import radians
 from .. lib.turtle.scripts.curved_floor import draw_neg_curved_slab, draw_pos_curved_slab, draw_openlock_pos_curved_base
+from .. lib.turtle.scripts.L_Tile import calculate_corner_wall_triangles, move_cursor_to_wall_start, draw_corner_3D
 from .. lib.utils.vertex_groups import (
     curved_floor_to_vert_groups,
     construct_displacement_mod_vert_group)
@@ -13,7 +14,6 @@ from . create_displacement_mesh import create_displacement_object
 from .. lib.utils.selection import select, deselect_all
 from .. lib.utils.utils import mode
 from .. lib.utils.collections import add_object_to_collection
-from .create_corner_wall import calculate_corner_wall_triangles, move_cursor_to_wall_start, draw_corner_outline
 
 from . generic import finalise_tile
 
@@ -182,26 +182,13 @@ def create_openlock_neg_curve_base_cutters(tile_props):
         angle
     )
 
-    draw_corner_outline(
+    cutter = draw_corner_3D(
         cutter_triangles_2,
         angle,
-        slot_width
+        slot_width,
+        slot_height
     )
 
-    # fill face and extrude cutter
-    t = bpy.ops.turtle
-    bpy.ops.mesh.edge_face_add()
-    t.pd()
-    t.up(d=slot_height)
-    t.select_all()
-    bpy.ops.mesh.normals_make_consistent()
-    bpy.ops.mesh.quads_convert_to_tris(quad_method='BEAUTY', ngon_method='BEAUTY')
-    t.pu()
-    t.deselect_all()
-    t.home()
-
-    mode('OBJECT')
-    cutter = bpy.context.object
     cutter.name = tile_props.tile_name + '.base.cutter'
 
     props = cutter.mt_object_props

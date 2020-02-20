@@ -14,8 +14,6 @@
 import os
 import bpy
 
-
-
 from . preferences import MT_MakeTilePreferences
 
 from . ui.object_generation_panels import (

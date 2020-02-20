@@ -6,11 +6,10 @@ from .. lib.utils.collections import (
     create_collection,
     activate_collection)
 
-from .. tile_creation.L_Tiles import MT_L_Wall
-from .. tile_creation.create_straight_wall_tile_copy import MT_Straight_Wall_Tile
+from .. tile_creation.L_Tiles import MT_L_Wall, MT_L_Floor
+from .. tile_creation.Straight_Tiles import MT_Straight_Wall_Tile
 from .. tile_creation.create_rect_floor_tile import create_rectangular_floor
 from .. tile_creation.create_curved_wall_tile import create_curved_wall
-from .. tile_creation.create_corner_wall import create_corner_wall
 from .. tile_creation.create_triangular_floor import create_triangular_floor
 from .. tile_creation.create_curved_floor import create_curved_floor
 
@@ -68,7 +67,10 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         tile_name = tile_blueprint.lower() + "." + tile_type.lower()
         # deselect_all()
 
-        if tile_type == 'STRAIGHT_WALL' or tile_type == 'CURVED_WALL' or tile_type == 'CORNER_WALL':
+        if tile_type in (
+                'STRAIGHT_WALL',
+                'CURVED_WALL',
+                'CORNER_WALL'):
             # create walls collection if it doesn't already exist
             create_collection('Walls', tiles_collection)
 
@@ -76,9 +78,11 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             tile_collection = bpy.data.collections.new(tile_name)
             bpy.data.collections['Walls'].children.link(tile_collection)
 
-        elif tile_type == 'RECTANGULAR_FLOOR' or \
-                tile_type == 'TRIANGULAR_FLOOR' or \
-                tile_type == 'CURVED_FLOOR':
+        elif tile_type in (
+                'RECTANGULAR_FLOOR',
+                'TRIANGULAR_FLOOR',
+                'CURVED_FLOOR',
+                'CORNER_FLOOR'):
 
             # create floor collection if one doesn't already exist
             create_collection('Floors', tiles_collection)
@@ -129,6 +133,9 @@ class MT_OT_Make_Tile(bpy.types.Operator):
 
         if tile_type == 'CORNER_WALL':
             MT_L_Wall(tile_props)
+
+        if tile_type == 'CORNER_FLOOR':
+            MT_L_Floor(tile_props)
 
         if tile_type == 'RECTANGULAR_FLOOR':
             create_rectangular_floor(tile_props)

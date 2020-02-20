@@ -1,8 +1,11 @@
-from math import sqrt, radians, degrees, cos, acos
 import bpy
 import bmesh
-from . selection import select_by_loc, select_inverse_by_loc, deselect_all, select_all, select, activate
-from . utils import mode
+from . selection import (
+    select_by_loc,
+    select_inverse_by_loc,
+    deselect_all,
+    select)
+from . utils import mode, view3d_find
 
 
 def clear_vert_group(vert_group, obj):
@@ -36,13 +39,16 @@ def get_verts_in_vert_group(vert_group_name, obj):
     verts = [v for v in obj.data.vertices if vg_index in [vg.group for vg in v.groups]]
     return verts
 
+
 def remove_verts_from_group(vert_group_name, obj, vert_indices):
     '''object mode only'''
     obj.vertex_groups[vert_group_name].remove(vert_indices)
-    
+
+
 def add_verts_to_group(vert_group_name, obj, vert_indices):
     '''object mode only'''
     obj.vertex_groups[vert_group_name].add(vert_indices)
+
 
 def get_selected_face_indices(obj):
     mesh = obj.data
@@ -97,9 +103,76 @@ def construct_displacement_mod_vert_group(obj, textured_vert_group_names):
     return disp_mod_vert_group.name
 
 
+def corner_floor_to_vert_groups(obj, vert_locs):
+    """
+    Creates vertex groups out of passed in corner floor and locations of bottom verts
+    """
+    select(obj.name)
+
+    # make vertex groups
+    obj.vertex_groups.new(name='Top')
+    obj.vertex_groups.new(name='Bottom')
+    obj.vertex_groups.new(name='Sides')
+
+    # Verts that we are going to select on top to then inset to create a group we
+    # will use for the top of our tile
+    floor_group_verts = ['origin', 'x_outer_1', 'x_inner_1', 'x_inner_2', 'y_outer_1', 'y_inner_1']
+
+    mode('EDIT')
+    deselect_all()
+
+    # Top
+    for key, value in vert_locs.items():
+        if key in floor_group_verts:
+            select_by_loc(
+                lbound=(value[0], value[1], value[2] + obj.dimensions[2]),
+                ubound=(value[0], value[1], value[2] + obj.dimensions[2]),
+                select_mode='VERT',
+                coords='GLOBAL',
+                additive=True,
+                buffer=0.0001
+            )
+
+    bpy.ops.object.mode_set(mode='OBJECT')
+    bpy.ops.object.mode_set(mode='EDIT')
+
+    bpy.ops.object.vertex_group_set_active(group='Top')
+    bpy.ops.mesh.inset(thickness=0.001, depth=0)
+    bpy.ops.object.vertex_group_assign()
+    bpy.ops.mesh.select_all(action="DESELECT")
+
+    # Bottom
+    for key, value in vert_locs.items():
+        select_by_loc(
+            lbound=value,
+            ubound=value,
+            select_mode='VERT',
+            coords='GLOBAL',
+            additive=True,
+            buffer=0.0001
+        )
+    bpy.ops.object.vertex_group_set_active(group='Bottom')
+    bpy.ops.object.vertex_group_assign()
+
+    # Sides
+    for key, value in vert_locs.items():
+        select_by_loc(
+            lbound=(value[0], value[1], value[2] + obj.dimensions[2]),
+            ubound=(value[0], value[1], value[2] + obj.dimensions[2]),
+            select_mode='VERT',
+            coords='GLOBAL',
+            additive=True,
+            buffer=0.0001
+        )
+    bpy.ops.object.vertex_group_set_active(group='Sides')
+    bpy.ops.object.vertex_group_assign()
+    bpy.ops.mesh.select_all(action="DESELECT")
+
+
 def corner_wall_to_vert_groups(obj, vert_locs):
     """
-    Creates vertex groups out of passed in corner wall and locations of bottom verts
+    Creates vertex groups out of passed in corner wall
+    and locations of bottom verts
     """
 
     ctx = {
@@ -120,8 +193,6 @@ def corner_wall_to_vert_groups(obj, vert_locs):
     obj.vertex_groups.new(name='X Bottom')
     obj.vertex_groups.new(name='Y Bottom')
 
-    mode('EDIT')
-
     # vert_locs keys
     x_end_verts = ['x_outer_1', 'x_outer_2', 'end_1_1', 'end_1_2', 'end_1_3', 'x_inner_1']
     y_end_verts = ['y_outer_1', 'y_outer_2', 'end_2_1', 'end_2_2', 'end_2_3', 'y_inner_1']
@@ -130,7 +201,9 @@ def corner_wall_to_vert_groups(obj, vert_locs):
     y_pos_verts = ['x_inner_1', 'x_inner_2']
     x_pos_verts = ['x_inner_2', 'y_inner_1']
 
-    ### X END ###
+    mode('EDIT')
+
+    # X END #
     for key, value in vert_locs.items():
         if key in x_end_verts:
             select_by_loc(
@@ -162,7 +235,7 @@ def corner_wall_to_vert_groups(obj, vert_locs):
         bpy.ops.object.vertex_group_assign(ctx)
         bpy.ops.mesh.select_all(ctx, action="DESELECT")
 
-    ### Y END ###
+    # Y END #
     for key, value in vert_locs.items():
         if key in y_end_verts:
             select_by_loc(
@@ -194,7 +267,7 @@ def corner_wall_to_vert_groups(obj, vert_locs):
         bpy.ops.object.vertex_group_assign(ctx)
         bpy.ops.mesh.select_all(ctx, action="DESELECT")
 
-    ### X BOTTOM ###
+    # X BOTTOM #
     for key, value in vert_locs.items():
         if key in y_neg_verts or key in y_pos_verts:
             select_by_loc(
@@ -209,7 +282,7 @@ def corner_wall_to_vert_groups(obj, vert_locs):
     bpy.ops.object.vertex_group_assign()
     bpy.ops.mesh.select_all(ctx, action="DESELECT")
 
-    ### Y BOTTOM ###
+    # Y BOTTOM#
     for key, value in vert_locs.items():
         if key in x_neg_verts or key in x_pos_verts:
             select_by_loc(
@@ -224,7 +297,7 @@ def corner_wall_to_vert_groups(obj, vert_locs):
     bpy.ops.object.vertex_group_assign(ctx)
     bpy.ops.mesh.select_all(ctx, action="DESELECT")
 
-    ### X TOP ###
+    # X TOP #
     for key, value in vert_locs.items():
         if key in y_neg_verts or key in y_pos_verts:
             select_by_loc(
@@ -247,7 +320,7 @@ def corner_wall_to_vert_groups(obj, vert_locs):
         bpy.ops.object.vertex_group_assign(ctx)
         bpy.ops.mesh.select_all(ctx, action="DESELECT")
 
-    ### Y TOP ###
+    # Y TOP #
     for key, value in vert_locs.items():
         if key in x_neg_verts or key in x_pos_verts:
             select_by_loc(
@@ -270,7 +343,7 @@ def corner_wall_to_vert_groups(obj, vert_locs):
         bpy.ops.object.vertex_group_assign(ctx)
         bpy.ops.mesh.select_all(ctx, action="DESELECT")
 
-    ### X POS ###
+    # X POS #
     for key, value in vert_locs.items():
         if key in y_neg_verts:
             select_by_loc(
@@ -293,7 +366,7 @@ def corner_wall_to_vert_groups(obj, vert_locs):
         bpy.ops.object.vertex_group_assign(ctx)
         bpy.ops.mesh.select_all(ctx, action="DESELECT")
 
-    ### Y POS ###
+    # Y POS #
     for key, value in vert_locs.items():
         if key in x_neg_verts:
             select_by_loc(
@@ -316,7 +389,7 @@ def corner_wall_to_vert_groups(obj, vert_locs):
         bpy.ops.object.vertex_group_assign(ctx)
         bpy.ops.mesh.select_all(ctx, action="DESELECT")
 
-    ### Y POS ###
+    # Y POS #
     for key, value in vert_locs.items():
         if key in y_pos_verts:
             select_by_loc(
@@ -339,7 +412,7 @@ def corner_wall_to_vert_groups(obj, vert_locs):
         bpy.ops.object.vertex_group_assign(ctx)
         bpy.ops.mesh.select_all(ctx, action="DESELECT")
 
-    ### X POS ###
+    # X POS #
     for key, value in vert_locs.items():
         if key in x_pos_verts:
             select_by_loc(
@@ -361,6 +434,7 @@ def corner_wall_to_vert_groups(obj, vert_locs):
         bpy.ops.object.vertex_group_set_active(ctx, group='X Pos')
         bpy.ops.object.vertex_group_assign(ctx)
         bpy.ops.mesh.select_all(ctx, action="DESELECT")
+
 
 def curved_floor_to_vert_groups(obj, height, side_length):
     obj.vertex_groups.new(name='Side a')
@@ -472,7 +546,6 @@ def tri_floor_to_vert_groups(obj, dim, height):
     bpy.ops.object.vertex_group_set_active(group='Top')
     bpy.ops.mesh.inset(thickness=0.001, depth=0)
     bpy.ops.object.vertex_group_assign()
-    
 
     deselect_all()
     select_by_loc(

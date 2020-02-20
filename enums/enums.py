@@ -35,7 +35,8 @@ tile_types = [
     ("CORNER_WALL", "Corner Wall", "", 3),
     ("RECTANGULAR_FLOOR", "Rectangular Floor", "", 4),
     ("TRIANGULAR_FLOOR", "Triangular Floor", "", 5),
-    ("CURVED_FLOOR", "Curved Floor", "", 6)
+    ("CURVED_FLOOR", "Curved Floor", "", 6),
+    ("CORNER_FLOOR", "Corner Floor", "", 7)
 ]
 
 geometry_types = [

@@ -4,6 +4,30 @@ from ... utils.selection import select_by_loc
 from ... utils.utils import mode
 
 
+def draw_corner_floor(triangles, angle, thickness, floor_height, base_height, inc_vert_locs=True):
+    '''Returns a corner floor and optionally locations of bottom verts'''
+    vert_locs, floor = draw_corner_2D(triangles, angle, thickness, return_object=True)
+
+    mode('EDIT')
+    t = bpy.ops.turtle
+    t.select_all()
+    t.pd()
+    t.up(d=floor_height - base_height)
+    t.select_all()
+    bpy.ops.mesh.normals_make_consistent()
+
+    t.deselect_all()
+    t.set_position(v=(0, 0, 0))
+    t.set_rotation(v=(0, 0, 0))
+
+    mode('OBJECT')
+
+    if inc_vert_locs is False:
+        return floor
+    else:
+        return floor, vert_locs
+
+
 def draw_corner_wall(triangles, angle, thickness, wall_height, base_height, inc_vert_locs=True):
     '''Returns a corner wall and optionally locations of bottom verts'''
     vert_locs = draw_corner_2D(triangles, angle, thickness)
@@ -57,10 +81,10 @@ def draw_corner_3D(triangles, angle, thickness, height, inc_vert_locs=False):
         return obj, vert_loc
 
 
-def draw_corner_2D(triangles, angle, thickness):
+def draw_corner_2D(triangles, angle, thickness, return_object=False):
     '''Draws a 2D corner mesh in which is an "L" shape when the base angle is 90
     and returns a dict containing the location of the verts for making vert
-    groups later.'''
+    groups later and optionally the object.'''
     mode('OBJECT')
 
     turtle = bpy.context.scene.cursor
@@ -171,7 +195,11 @@ def draw_corner_2D(triangles, angle, thickness):
 
     mode('OBJECT')
 
-    return vert_loc
+    if return_object is False:
+        return vert_loc
+    else:
+        return vert_loc, bpy.context.object
+
 
 def calculate_corner_wall_triangles(
         leg_1_len,

@@ -98,7 +98,11 @@ class MT_Scene_Properties(PropertyGroup):
     def update_size_defaults(self, context):
         '''updates tile and base size defaults depending on whether we are generating a base or wall'''
         scene_props = context.scene.mt_scene_props
-        if scene_props.mt_tile_type == 'RECTANGULAR_FLOOR' or scene_props.mt_tile_type == 'TRIANGULAR_FLOOR' or scene_props.mt_tile_type == 'CURVED_FLOOR':
+        if scene_props.mt_tile_type in (
+                'RECTANGULAR_FLOOR', 
+                'TRIANGULAR_FLOOR',
+                'CURVED_FLOOR',
+                'CORNER_FLOOR'):
             scene_props.mt_tile_z = 0.3
             scene_props.mt_base_z = 0.2755
             scene_props.mt_tile_x = 2

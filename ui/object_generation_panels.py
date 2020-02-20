@@ -70,6 +70,16 @@ class MT_PT_Tile_Generator_Panel(Panel):
             layout.prop(scene_props, 'mt_leg_1_len')
             layout.prop(scene_props, 'mt_leg_2_len')
             layout.prop(scene_props, 'mt_angle')
+            
+        elif scene_props.mt_tile_type == 'CORNER_FLOOR':
+            layout.label(text="Floor Height")
+            row = layout.row()
+            row.prop(scene_props, 'mt_tile_z')
+
+            layout.label(text="Corner Properties")
+            layout.prop(scene_props, 'mt_leg_1_len')
+            layout.prop(scene_props, 'mt_leg_2_len')
+            layout.prop(scene_props, 'mt_angle')
 
         elif scene_props.mt_tile_type == 'RECTANGULAR_FLOOR':
             layout.label(text="Tile Size")
@@ -111,7 +121,7 @@ class MT_PT_Tile_Generator_Panel(Panel):
             row.prop(scene_props, 'mt_base_y')
             row.prop(scene_props, 'mt_base_z')
 
-        if scene_props.mt_tile_type == 'CORNER_WALL':
+        if scene_props.mt_tile_type == 'CORNER_WALL' or scene_props.mt_tile_type == 'CORNER_FLOOR':
             layout.label(text="Base Thickness and Height")
             row = layout.row()
             row.prop(scene_props, 'mt_base_y')
@@ -193,7 +203,7 @@ class MT_PT_Tile_Generator_Panel(Panel):
         elif scene_props.mt_tile_type == 'CURVED_WALL':
             layout.label(text="Tile Properties")
             layout.prop(scene_props, 'mt_wall_radius')
-            layout.prop(scene_props, 'mt_degrees_of_arc')
+            layout.prop(scene_props,     'mt_degrees_of_arc')
             layout.prop(scene_props, 'mt_segments')
 
             layout.label(text="Wall Thickness and Height")
@@ -204,6 +214,18 @@ class MT_PT_Tile_Generator_Panel(Panel):
         elif scene_props.mt_tile_type == 'CORNER_WALL':
 
             layout.label(text="Wall thickness and height")
+            row = layout.row()
+            row.prop(scene_props, 'mt_tile_y')
+            row.prop(scene_props, 'mt_tile_z')
+
+            layout.label(text="Corner Properties")
+            layout.prop(scene_props, 'mt_leg_1_len')
+            layout.prop(scene_props, 'mt_leg_2_len')
+            layout.prop(scene_props, 'mt_angle')
+            
+        elif scene_props.mt_tile_type == 'CORNER_FLOOR':
+
+            layout.label(text="Floor thickness and height")
             row = layout.row()
             row.prop(scene_props, 'mt_tile_y')
             row.prop(scene_props, 'mt_tile_z')

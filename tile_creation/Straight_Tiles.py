@@ -1,4 +1,4 @@
-""" Contains functions for creating wall tiles """
+" Contains functions for creating wall tiles """
 import os
 from math import radians
 from mathutils import Vector

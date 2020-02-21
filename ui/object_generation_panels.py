@@ -38,7 +38,7 @@ class MT_PT_Tile_Generator_Panel(Panel):
                 layout.operator('scene.mt_return_to_preview', text='Return to Preview')
             layout.prop(scene_props, 'mt_subdivisions')
 
-        layout.operator('scene.delete_tile', text="Delete Tile")
+        layout.operator('scene.delete_tiles', text="Delete Tiles")
 
     def draw_openlock_panel(self, context):
         scene = context.scene

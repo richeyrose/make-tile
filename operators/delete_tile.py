@@ -1,9 +1,11 @@
 import bpy
+from .. lib.utils.collections import get_objects_owning_collections
 
-class MT_OT_Delete_Tile(bpy.types.Operator):
-    """Delete the selected Tile"""
-    bl_idname = "scene.delete_tile"
-    bl_label = "Delete a tile"
+
+class MT_OT_Delete_Tiles(bpy.types.Operator):
+    """Delete the selected Tiles - Warning!!! THis will delete both the selected object and any collections that object belongs to"""
+    bl_idname = "scene.delete_tiles"
+    bl_label = "Delete Tiles"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -16,14 +18,19 @@ class MT_OT_Delete_Tile(bpy.types.Operator):
 
     def execute(self, context):
         objects = bpy.data.objects
-        obj = context.object
-        obj_props = obj.mt_object_props
         collections = bpy.data.collections
-        tile_collection = collections[obj_props.tile_name]
+        selected_objects = context.selected_objects
+        tile_collections = []
 
-        for ob in tile_collection.objects:
-            objects.remove(objects[ob.name], do_unlink=True)
+        for obj in selected_objects:
+            obj_collections = get_objects_owning_collections(obj.name)
+            for collection in obj_collections:
+                tile_collections.append(collection.name)
 
-        collections.remove(tile_collection, do_unlink=True)
+        for collection in tile_collections:
+            if collection in bpy.data.collections:
+                for obj in bpy.data.collections[collection].objects:
+                    objects.remove(objects[obj.name], do_unlink=True)
 
+                collections.remove(bpy.data.collections[collection], do_unlink=True)
         return {'FINISHED'}

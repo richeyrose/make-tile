@@ -288,5 +288,5 @@ class MT_PT_Converter_Panel(Panel):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator('object.convert_to_make_tile', text='Convert object')
-        layout.operator('object.convert', text="Flatten Selected Object")
+        layout.operator('object.convert_to_make_tile', text='Convert to MakeTile Object')
+        layout.operator('object.flatten_tiles', text="Flatten Selected Tiles")

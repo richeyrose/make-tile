@@ -56,7 +56,7 @@ class MT_Straight_Tile:
 
         # create the slot cutter in the bottom of the base used for stacking tiles
         slot_cutter = self.create_openlock_base_slot_cutter(base, tile_props, offset=0.236)
-        slot_cutter.hide_viewport = False
+        slot_cutter.hide_viewport = True
 
         # create the clip cutters used for attaching walls to bases
         if base.dimensions[0] >= 1:

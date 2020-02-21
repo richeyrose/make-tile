@@ -93,18 +93,6 @@ def add_circle_array(obj, tile_name, circle_center, item_count, axis, degrees_of
     return array_mod.name, circle_origin_empty
 
 
-def apply_all_modifiers(obj):
-    """Applies all modifiers in obj"""
-    contxt = bpy.context.copy()
-    contxt['object'] = obj
-
-    for mod in obj.modifiers[:]:
-        contxt['modifier'] = mod
-        bpy.ops.object.modifier_apply(
-            contxt, apply_as='DATA',
-            modifier=contxt['modifier'].name)
-
-
 def get_tile_props(obj):
     tile_name = obj.mt_object_props.tile_name
     tile_props = bpy.data.collections[tile_name].mt_tile_props

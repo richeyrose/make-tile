@@ -2,121 +2,89 @@ import bpy
 from .. lib.utils.selection import select, deselect_all, select_all, activate
 from .. lib.utils.collections import add_object_to_collection, create_collection
 from . trim_tile import add_bool_modifier
-
+from .. lib.utils.collections import get_objects_owning_collections
 
 class MT_OT_Tile_Voxeliser(bpy.types.Operator):
-    """Voxelises the visible objects in the active collection and adds a triangulate modifier"""
+    """Applies all modifiers to the selected objects and then deletes any
+    meshes in the objects' owning collection(s) that are not visible 
+    then Voxelises displacement objects."""
+
     bl_idname = "scene.mt_voxelise_tile"
     bl_label = "Voxelise tile"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(cls, context):
-        if bpy.context.object is not None:
-            return bpy.context.object.mode == 'OBJECT'
-        else:
-            return True
+        obj = context.object
+        return (obj is not None and obj.mode == 'OBJECT')
 
     def execute(self, context):
-        deselect_all()
+        objects = bpy.data.objects
+        collections = bpy.data.collections
+        selected_objects = context.selected_objects
+        tile_collections = set()
 
-        obj = context.active_object
-        obj_props = obj.mt_object_props
+        ctx = {
+            'selected_objects': selected_objects
+        }
 
-        # create a collection called Voxelised Objects if one doesn't already exist
-        new_collection = create_collection(
-            "Voxelised Objects",
-            bpy.context.scene.collection)
+        for obj in selected_objects:
+            ctx['object'] = obj
+            ctx['active_object'] = obj
+            bpy.ops.object.convert(ctx, target='MESH', keep_original=False)
 
-        # check if active object is a MT object and if so we voxelise all objects
-        # in the collection corresponding to the objects mt_object_props.tile_name property
-        if obj_props.is_mt_object is True:
-            tile_name = obj_props.tile_name
-            tile_collection = bpy.data.collections[tile_name]
-            tile_props = tile_collection.mt_tile_props
-            tile_trimmers = tile_props.trimmers_collection
+            obj_collections = get_objects_owning_collections(obj.name)
 
-            # save list of visible objects in active tile collection
-            obs = []
-            copies = []
+            for collection in obj_collections:
+                tile_collections.add(collection.name)
 
-            for obj in tile_collection.all_objects:
-                if obj.type == 'MESH':
-                    if obj.hide_viewport is False and obj.hide_get() is False:
-                        obs.append(obj)
-
-                        # Apply all none trimmer modifiers
-                        context.view_layer.objects.active = obj
-                        for mod in obj.modifiers:
-                            if mod.name.find('trimmer') == -1:
-                                bpy.ops.object.modifier_apply(modifier=mod.name)
-
-                        # clear remaining modifiers
-                        obj.modifiers.clear()
-
-                        # copy our object and make it single user
-                        copy = obj.copy()
-                        copy.data = obj.data.copy()
-                        copies.append(copy)
-
-            # hide the original objects
-            for obj in obs:
-                obj.hide_set(True)
-
-            # if merge is true join meshes together
-            if context.scene.mt_merge_and_voxelise is True:
-
+        for collection in tile_collections:
+            for obj in collections[collection].objects:
                 ctx = {
-                    'active_object': copies[0],
-                    'object': copies[0],
-                    'selected_objects': copies,
-                    'selected_editable_objects': copies
+                    'selected_objects': collections[collection].objects
                 }
+                if obj.hide_viewport is False and obj.hide_get() is False:
+                    ctx['object'] = obj
+                    ctx['active_object'] = obj
+                    obj.select_set(True)
+                    bpy.ops.object.convert(ctx, target='MESH', keep_original=False)
+                    obj.select_set(False)
+                else:
+                    ctx['object'] = obj
+                    ctx['active_object'] = obj
+                    objects.remove(objects[obj.name], do_unlink=True)
+
+            ctx = {
+                'selected_objects': collections[collection].objects
+            }
+
+            for obj in collections[collection].objects:
+                ctx['selected_objects'] = collections[collection].objects
+                ctx['object'] = obj
+                ctx['active_object'] = obj
+                
+                if obj.mt_object_props.geometry_type == 'DISPLACEMENT':
+                    ctx['selected_objects'] = [obj]
+                    obj.data.remesh_voxel_size = context.scene.mt_voxel_quality
+                    obj.data.remesh_voxel_adaptivity = context.scene.mt_voxel_adaptivity
+                    bpy.ops.object.voxel_remesh(ctx)
+        
+        if context.scene.mt_merge_and_voxelise is True:
+            for collection in tile_collections:
+                ctx['selected_objects'] = collections[collection].objects
+                ctx['object'] = collections[collection].objects[0]
+                ctx['active_object'] = collections[collection].objects[0]
+
+                for obj in collections[collection].objects:
+                    obj.select_set(True)
 
                 bpy.ops.object.join(ctx)
 
-                # Rename merged tile
-                merged_obj = copies[0]
-                merged_obj.name = tile_name + '.merged'
-                merged_obj = voxelise_and_triangulate(merged_obj)
+                for obj in collections[collection].objects:
+                    obj.select_set(False)
 
-                add_object_to_collection(merged_obj, new_collection.name)
-
-                ctx = {
-                    'object': merged_obj,
-                    'active_obj': merged_obj
-                }
-
-                # add trimmers back to voxelised object
-                for trimmer in tile_trimmers:
-                    mod = add_bool_modifier(merged_obj, trimmer.name)
-                    mod.show_viewport = trimmer.value
-
-                # select merged obj
-                select(merged_obj.name)
-
-            # otherwise just voxelise displacement objects
-            else:
-                for copy in copies:
-                    if copy.mt_object_props.geometry_type == 'DISPLACEMENT':
-                        voxelise_and_triangulate(copy)
-                        add_object_to_collection(copy, new_collection.name)
-                        ctx = {
-                            'object': copy,
-                            'active_obj': copy
-                        }
-                        # add trimmers back to voxelised object
-                        for trimmer in tile_trimmers:
-                            mod = add_bool_modifier(merged_obj, trimmer.name)
-                            mod.show_viewport = trimmer.value
-                select(copies[-1].name)
-
-        # just voxelise the active object and add it to our voxelised objects collection
-        else:
-            obj = context.active_object
-            voxelise_and_triangulate(obj)
-            add_object_to_collection(obj, new_collection.name)
-            select(obj.name)
+                obj = collections[collection].objects[0]
+                obj.name = collection
 
         return {'FINISHED'}
 

@@ -28,7 +28,6 @@ from . ui.material_panels import (
 
 from . ui.export_panels import (
     MT_PT_Export_Panel,
-    MT_PT_Trim_Panel,
     MT_PT_Voxelise_Panel)
 
 from . ui.options_panels import (
@@ -56,6 +55,9 @@ from . operators.copy_material import MT_OT_Copy_Material
 from . operators.save_material import MT_OT_Export_Material
 
 from . operators.object_converter import MT_OT_Convert_To_MT_Obj
+
+from . operators.flatten_tile import MT_OT_Flatten_Tile
+
 from . operators.bakedisplacement import (
     MT_OT_Bake_Displacement,
     MT_OT_Assign_Material_To_Vert_Group,
@@ -101,6 +103,7 @@ classes = (
     MT_OT_Make_Tile,
     MT_OT_Delete_Tiles,
     MT_OT_Export_Material,
+    MT_OT_Flatten_Tile,
     MT_OT_Convert_To_MT_Obj,
     MT_OT_Bake_Displacement,
     MT_OT_Return_To_Preview,

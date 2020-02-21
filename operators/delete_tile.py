@@ -3,7 +3,8 @@ from .. lib.utils.collections import get_objects_owning_collections
 
 
 class MT_OT_Delete_Tiles(bpy.types.Operator):
-    """Delete the selected Tiles - Warning!!! THis will delete both the selected object and any collections that object belongs to"""
+    """Delete the selected Tiles - Warning!!!
+    This will delete both the selected object and any collections that object belongs to"""
     bl_idname = "scene.delete_tiles"
     bl_label = "Delete Tiles"
     bl_options = {'REGISTER', 'UNDO'}
@@ -11,10 +12,9 @@ class MT_OT_Delete_Tiles(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         obj = context.object
-        if obj is not None and obj.mode == 'OBJECT' and obj.mt_object_props.is_mt_object is True:
-            return True
-        else:
-            return False
+        return (obj is not None
+                and obj.mode == 'OBJECT'
+                and obj.mt_object_props.is_mt_object is True)
 
     def execute(self, context):
         objects = bpy.data.objects

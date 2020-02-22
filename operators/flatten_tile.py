@@ -3,7 +3,7 @@ from .. lib.utils.collections import get_objects_owning_collections
 
 
 class MT_OT_Flatten_Tile(bpy.types.Operator):
-    """Applies all modifiers to the selected objects and 
+    """Applies all modifiers to the selected objects and
     any other objects in the same collection then deletes any
     meshes in the objects' owning collection(s) that are not visible"""
 

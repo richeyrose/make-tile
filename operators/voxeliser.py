@@ -62,13 +62,13 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
                 ctx['selected_objects'] = collections[collection].objects
                 ctx['object'] = obj
                 ctx['active_object'] = obj
-                
+
                 if obj.mt_object_props.geometry_type == 'DISPLACEMENT':
                     ctx['selected_objects'] = [obj]
                     obj.data.remesh_voxel_size = context.scene.mt_voxel_quality
                     obj.data.remesh_voxel_adaptivity = context.scene.mt_voxel_adaptivity
                     bpy.ops.object.voxel_remesh(ctx)
-        
+
         if context.scene.mt_merge_and_voxelise is True:
             for collection in tile_collections:
                 ctx['selected_objects'] = collections[collection].objects

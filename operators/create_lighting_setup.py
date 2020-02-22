@@ -17,10 +17,10 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        if bpy.context.object is not None:
-            return bpy.context.object.mode == 'OBJECT'
-        else:
-            return True
+        if context.object is not None:
+            return context.object.mode == 'OBJECT'
+
+        return True
 
     def execute(self, context):
         deselect_all()
@@ -49,8 +49,6 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
 
     @classmethod
     def register(cls):
-        print("Registered class: %s " % cls.bl_label)
-
         bpy.types.Scene.mt_use_gpu = bpy.props.BoolProperty(
             name="Use GPU",
             description="Use GPU for Cycles render",
@@ -67,36 +65,35 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
 
     @classmethod
     def unregister(cls):
-        print("Unregistered class: %s" % cls.bl_label)
         del bpy.types.Scene.mt_view_mode
         del bpy.types.Scene.mt_use_gpu
 
 
 def update_render_device(self, context):
-    if bpy.context.scene.mt_use_gpu is True:
-        bpy.context.scene.cycles.device = 'GPU'
+    if context.scene.mt_use_gpu is True:
+        context.scene.cycles.device = 'GPU'
     else:
-        bpy.context.scene.cycles.device = 'CPU'
+        context.scene.cycles.device = 'CPU'
 
 
 def update_view_mode(self, context):
     region, rv3d, v3d, area = view3d_find(True)
 
-    if bpy.context.scene.mt_view_mode == 'CYCLES':
+    if context.scene.mt_view_mode == 'CYCLES':
         v3d.shading.type = 'RENDERED'
-        bpy.context.scene.render.engine = 'CYCLES'
-        bpy.context.space_data.shading.use_scene_world_render = False
-        bpy.context.space_data.shading.studio_light = 'city.exr'
-        bpy.context.scene.cycles.feature_set = 'EXPERIMENTAL'
+        context.scene.render.engine = 'CYCLES'
+        context.space_data.shading.use_scene_world_render = False
+        context.space_data.shading.studio_light = 'city.exr'
+        context.scene.cycles.feature_set = 'EXPERIMENTAL'
 
-        if bpy.context.scene.mt_use_gpu is True:
-            bpy.context.scene.cycles.device = 'GPU'
+        if context.scene.mt_use_gpu is True:
+            context.scene.cycles.device = 'GPU'
 
-    if bpy.context.scene.mt_view_mode == 'EEVEE':
+    if context.scene.mt_view_mode == 'EEVEE':
         v3d.shading.type = 'RENDERED'
-        bpy.context.scene.render.engine = 'BLENDER_EEVEE'
-        bpy.context.space_data.shading.use_scene_world_render = False
-        bpy.context.space_data.shading.studio_light = 'city.exr'
+        context.scene.render.engine = 'BLENDER_EEVEE'
+        context.space_data.shading.use_scene_world_render = False
+        context.space_data.shading.studio_light = 'city.exr'
 
-    if bpy.context.scene.mt_view_mode == 'PREVIEW':
+    if context.scene.mt_view_mode == 'PREVIEW':
         v3d.shading.type = 'MATERIAL'

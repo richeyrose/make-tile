@@ -22,12 +22,13 @@ class MT_OT_Flatten_Tile(bpy.types.Operator):
         objects = bpy.data.objects
         collections = bpy.data.collections
         selected_objects = context.selected_objects
-        tile_collections = []
+        tile_collections = set()
 
         ctx = {
             'selected_objects': selected_objects
         }
 
+        # Save name of selected object's owning collection(s)
         for obj in selected_objects:
             ctx['object'] = obj
             ctx['active_object'] = obj
@@ -36,8 +37,9 @@ class MT_OT_Flatten_Tile(bpy.types.Operator):
             obj_collections = get_objects_owning_collections(obj.name)
 
             for collection in obj_collections:
-                tile_collections.append(collection.name)
+                tile_collections.add(collection.name)
 
+        # Flatten visible objects in collection
         for collection in tile_collections:
             for obj in collections[collection].objects:
                 ctx = {

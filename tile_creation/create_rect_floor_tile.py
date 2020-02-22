@@ -207,24 +207,20 @@ def create_openlock_base(tile_props):
         tile_props.tile_size[1],
         .2756))
 
-    if tile_props.base_size[0] >= 1 and tile_props.base_size[1] < 1 and tile_props.base_size[1] > 0.496:
-        # if base is less than an inch wide use a wall type base
-        base = create_openlock_wall_base(tile_props)
-    else:
-        base = draw_openlock_rect_floor_base(tile_props.base_size)
-        base.name = tile_props.tile_name + '.base'
-        add_object_to_collection(base, tile_props.tile_name)
-        clip_cutters = create_openlock_base_clip_cutter(base, tile_props)
+    base = draw_openlock_rect_floor_base(tile_props.base_size)
+    base.name = tile_props.tile_name + '.base'
+    add_object_to_collection(base, tile_props.tile_name)
+    clip_cutters = create_openlock_base_clip_cutter(base, tile_props)
 
-        for clip_cutter in clip_cutters:
-            matrixcopy = clip_cutter.matrix_world.copy()
-            clip_cutter.parent = base
-            clip_cutter.matrix_world = matrixcopy
-            clip_cutter.display_type = 'BOUNDS'
-            clip_cutter.hide_viewport = True
-            clip_cutter_bool = base.modifiers.new('Clip Cutter', 'BOOLEAN')
-            clip_cutter_bool.operation = 'DIFFERENCE'
-            clip_cutter_bool.object = clip_cutter
+    for clip_cutter in clip_cutters:
+        matrixcopy = clip_cutter.matrix_world.copy()
+        clip_cutter.parent = base
+        clip_cutter.matrix_world = matrixcopy
+        clip_cutter.display_type = 'BOUNDS'
+        clip_cutter.hide_viewport = True
+        clip_cutter_bool = base.modifiers.new('Clip Cutter', 'BOOLEAN')
+        clip_cutter_bool.operation = 'DIFFERENCE'
+        clip_cutter_bool.object = clip_cutter
 
     mode('OBJECT')
 

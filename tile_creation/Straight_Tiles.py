@@ -230,6 +230,9 @@ class MT_Straight_Floor_Tile(MT_Straight_Tile, MT_Tile):
 
     def create_openlock_base(self, tile_props):
         '''Returns an openlock style base with clip sockets'''
+        if bpy.context.scene.mt_scene_props.mt_main_part_blueprint == 'OPENLOCK':
+            tile_props.base_size[0] = tile_props.tile_size[0]
+            tile_props.base_size[1] = tile_props.tile_size[1]
         base = MT_Straight_Tile.create_openlock_base(self, tile_props)
         return base
 
@@ -244,7 +247,6 @@ class MT_Straight_Floor_Tile(MT_Straight_Tile, MT_Tile):
         return preview_core
 
     def create_openlock_cores(self, base, tile_props):
-        tile_props.tile_size[1] = tile_props.base_size[1]
         preview_core = self.create_plain_cores(base, tile_props)
         return preview_core
 
@@ -284,6 +286,8 @@ class MT_Straight_Wall_Tile(MT_Straight_Tile, MT_Tile):
 
     def create_openlock_base(self, tile_props):
         '''Returns an openlock style base with clip sockets'''
+        if bpy.context.scene.mt_scene_props.mt_main_part_blueprint == 'OPENLOCK':
+            tile_props.base_size[0] = tile_props.tile_size[0]
         base = MT_Straight_Tile.create_openlock_base(self, tile_props)
         return base
 
@@ -297,7 +301,7 @@ class MT_Straight_Wall_Tile(MT_Straight_Tile, MT_Tile):
         return preview_core
 
     def create_openlock_cores(self, base, tile_props):
-        # Again width is a constant for OpenLOCK tiles
+        # width is a constant for OpenLOCK tiles
         tile_props.tile_size = Vector((
             tile_props.tile_size[0],
             0.3149,

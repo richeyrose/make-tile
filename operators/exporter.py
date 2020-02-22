@@ -16,6 +16,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
     def execute(self, context):
         deselect_all()
 
+        objects = bpy.data.objects
         obj = context.active_object
         obj_props = obj.mt_object_props
 
@@ -106,13 +107,13 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                     merged_obj = voxelise_and_triangulate(merged_obj)
 
                 # add merged object to exported objects collection
-                add_object_to_collection(merged_obj, exported_obj_collection.name)
+                # add_object_to_collection(merged_obj, exported_obj_collection.name)
 
                 # remove merged_obj from tile collection
-                bpy.ops.collection.objects_remove(collection=tile_name)
+                # bpy.ops.collection.objects_remove(collection=tile_name)
 
                 # Change merged object's geometry_type property
-                merged_obj.mt_object_props.geometry_type = 'FLATTENED'
+                # merged_obj.mt_object_props.geometry_type = 'FLATTENED'
 
                 # construct filepath
                 file_path = os.path.join(context.scene.mt_export_path, merged_obj.name + '.' + str(rand_seed) + '.stl')
@@ -126,8 +127,12 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                     global_scale=unit_multiplier,
                     use_mesh_modifiers=True)
 
+                '''
                 # hide merged obj
                 merged_obj.hide_viewport = True
+                '''
+                # Delete merged obj
+                objects.remove(objects[obj.name], do_unlink=True)
 
                 # unhide original obj
                 for obj in obs:
@@ -156,6 +161,8 @@ class MT_OT_Export_Tile(bpy.types.Operator):
             return True
 
     def execute(self, context):
+        objects = bpy.data.objects
+
         if context.scene.mt_num_variants > 1:
             bpy.ops.scene.mt_export_multiple_tile_variants()
             return {'PASS_THROUGH'}
@@ -230,7 +237,7 @@ class MT_OT_Export_Tile(bpy.types.Operator):
             merged_obj = context.active_object
             merged_obj.name = tile_name + '.merged'
             merged_obj.mt_object_props.tile_name = tile_name
-            
+
             # voxelise if necessary
             if context.scene.mt_voxelise_on_export is True:
                 merged_obj = voxelise_and_triangulate(merged_obj)
@@ -244,11 +251,21 @@ class MT_OT_Export_Tile(bpy.types.Operator):
             # Change merged object's geometry_type property
             merged_obj.mt_object_props.geometry_type = 'FLATTENED'
 
-            # construct filepath
-            file_path = os.path.join(context.scene.mt_export_path, tile_name + '.stl')
+            file_path = os.path.join(context.scene.mt_export_path, merged_obj.name + '.' + str(random()) + '.stl')
 
             # export our merged object
-            bpy.ops.export_mesh.stl('INVOKE_DEFAULT', filepath=file_path, check_existing=True, filter_glob="*.stl", use_selection=True, global_scale=unit_multiplier, use_mesh_modifiers=True)
+            bpy.ops.export_mesh.stl(
+                filepath=file_path,
+                check_existing=True,
+                filter_glob="*.stl",
+                use_selection=True,
+                global_scale=unit_multiplier,
+                use_mesh_modifiers=True)
+
+ 
+            objects.remove(objects[merged_obj.name], do_unlink=True)
+            for obj in obs:
+                obj.hide_set(False)
 
         else:
             obj = context.active_object
@@ -259,17 +276,19 @@ class MT_OT_Export_Tile(bpy.types.Operator):
                 voxelise_and_triangulate(obj_copy)
 
             select(obj_copy.name)
-            file_path = os.path.join(context.scene.mt_export_path, context.active_object.name + '.stl')
-            bpy.ops.export_mesh.stl('INVOKE_DEFAULT', filepath=file_path, check_existing=True, filter_glob="*.stl", use_selection=True, global_scale=unit_multiplier, use_mesh_modifiers=True)
+            file_path = os.path.join(context.scene.mt_export_path, merged_obj.name + '.' + str(random()) + '.stl')
 
-            ctx = {
-                'active_object': obj_copy,
-                'object': obj_copy}
+            # export our merged object
+            bpy.ops.export_mesh.stl(
+                filepath=file_path,
+                check_existing=True,
+                filter_glob="*.stl",
+                use_selection=True,
+                global_scale=unit_multiplier,
+                use_mesh_modifiers=True)
 
-            # remove copy from original collection
-            # and add it to exported objects collection
-            bpy.ops.collection.objects_remove(ctx)
-            add_object_to_collection(obj_copy, exported_obj_collection.name)
+            # delete copy
+            objects.remove(objects[obj_copy.name], do_unlink=True)
 
         return {'FINISHED'}
 

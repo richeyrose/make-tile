@@ -47,7 +47,7 @@ class MT_Straight_Tile:
         '''Returns an openlock style base with clip sockets'''
         # For OpenLOCK tiles the width and height of the base are constants
         tile_props.base_size = Vector((
-            tile_props.base_size[0],
+            tile_props.tile_size[0],
             0.5,
             0.2755))
 
@@ -101,6 +101,8 @@ class MT_Straight_Tile:
             'selected_objects': [core]
         }
 
+        scene_props = bpy.context.scene.mt_scene_props
+
         bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
         bpy.ops.uv.smart_project(ctx, island_margin=0.05)
 
@@ -147,6 +149,7 @@ class MT_Straight_Tile:
             'selected_objects': [cutter]
         }
 
+        base.select_set(False)
         bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
 
         slot_boolean = base.modifiers.new(cutter.name, 'BOOLEAN')
@@ -222,6 +225,18 @@ class MT_Straight_Floor_Tile(MT_Straight_Tile, MT_Tile):
     def __init__(self, tile_props):
         MT_Tile.__init__(self, tile_props)
 
+        if tile_props.tile_blueprint or tile_props.base_blueprint or tile_props.main_part_blueprint == 'OPENLOCK':
+            tile_props.base_size = Vector((
+                tile_props.tile_size[0],
+                0.5,
+                0.2755))
+
+        else:
+            tile_props.base_size = (
+                tile_props.tile_size[0],
+                tile_props.tile_size[1],
+                tile_props.base_size[2])
+
     def create_plain_base(self, tile_props):
         """Returns a plain base for a straight wall tile
         """
@@ -230,14 +245,18 @@ class MT_Straight_Floor_Tile(MT_Straight_Tile, MT_Tile):
 
     def create_openlock_base(self, tile_props):
         '''Returns an openlock style base with clip sockets'''
-        if bpy.context.scene.mt_scene_props.mt_main_part_blueprint == 'OPENLOCK':
-            tile_props.base_size[0] = tile_props.tile_size[0]
-            tile_props.base_size[1] = tile_props.tile_size[1]
         base = MT_Straight_Tile.create_openlock_base(self, tile_props)
         return base
 
     def create_plain_cores(self, base, tile_props):
         textured_vertex_groups = ['Top']
+
+        if tile_props.base_blueprint == 'NONE':
+            tile_props.base_size = Vector((
+                tile_props.tile_size[0],
+                tile_props.tile_size[1],
+                tile_props.base_size[2]
+            ))
 
         preview_core, displacement_core = self.create_cores(
             base,
@@ -247,6 +266,11 @@ class MT_Straight_Floor_Tile(MT_Straight_Tile, MT_Tile):
         return preview_core
 
     def create_openlock_cores(self, base, tile_props):
+        tile_props.tile_size = Vector((
+            tile_props.tile_size[0],
+            0.5,
+            0.3))
+
         preview_core = self.create_plain_cores(base, tile_props)
         return preview_core
 

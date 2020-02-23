@@ -211,7 +211,7 @@ class MT_Scene_Properties(PropertyGroup):
 
     mt_is_just_activated: bpy.props.BoolProperty(
         description="Has the add-on just been activated. Used to populate materials list first time round",
-        default=True
+        default=False
     )
 
     mt_last_selected: bpy.props.PointerProperty(

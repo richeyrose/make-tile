@@ -119,7 +119,7 @@ class MT_PT_Tile_Generator_Panel(Panel):
         scene = context.scene
         scene_props = scene.mt_scene_props
         layout = self.layout
-
+        '''
         if scene_props.mt_tile_type in (
                 'STRAIGHT_WALL',
                 'RECTANGULAR_FLOOR',
@@ -129,6 +129,7 @@ class MT_PT_Tile_Generator_Panel(Panel):
             row.prop(scene_props, 'mt_base_x')
             row.prop(scene_props, 'mt_base_y')
             row.prop(scene_props, 'mt_base_z')
+        '''
 
         if scene_props.mt_tile_type == 'CORNER_WALL' or scene_props.mt_tile_type == 'CORNER_FLOOR':
             layout.label(text="Base Thickness and Height")

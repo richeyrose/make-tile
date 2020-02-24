@@ -231,7 +231,7 @@ class MT_Straight_Floor_Tile(MT_Straight_Tile, MT_Tile):
                 0.5,
                 0.2755))
 
-        else:
+        elif tile_props.base_blueprint != 'NONE':
             tile_props.base_size = (
                 tile_props.tile_size[0],
                 tile_props.tile_size[1],
@@ -248,15 +248,26 @@ class MT_Straight_Floor_Tile(MT_Straight_Tile, MT_Tile):
         base = MT_Straight_Tile.create_openlock_base(self, tile_props)
         return base
 
+    def create_empty_base(self, tile_props):
+        tile_props.base_size = (
+            tile_props.tile_size[0],
+            tile_props.tile_size[1],
+            0
+        )
+        base = bpy.data.objects.new(tile_props.tile_name + '.base', None)
+        add_object_to_collection(base, tile_props.tile_name)
+        return base
+
     def create_plain_cores(self, base, tile_props):
         textured_vertex_groups = ['Top']
-
+        '''
         if tile_props.base_blueprint == 'NONE':
             tile_props.base_size = Vector((
                 tile_props.tile_size[0],
                 tile_props.tile_size[1],
                 tile_props.base_size[2]
             ))
+        '''
 
         preview_core, displacement_core = self.create_cores(
             base,

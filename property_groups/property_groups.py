@@ -24,7 +24,7 @@ from .. lib.utils.update_scene_props import load_material_libraries
 class MT_Radio_Buttons(PropertyGroup):
     def update_mapping_axis(self, context):
         axis = context.window_manager.mt_radio_buttons.mapping_axis
-        material = bpy.data.materials[context.scene.mt_scene_props.mt_tile_material_1]
+        material = context.object.active_material
         tree = material.node_tree
         nodes = tree.nodes
         axis_node = nodes['Wrap Around Axis']

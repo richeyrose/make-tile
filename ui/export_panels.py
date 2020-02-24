@@ -12,7 +12,6 @@ class MT_PT_Voxelise_Panel(Panel):
 
     @classmethod
     def poll(cls, context):
-        engine = context.engine
         obj = context.object
         return (obj and obj.type in {'MESH'})
 
@@ -36,7 +35,6 @@ class MT_PT_Export_Panel(Panel):
 
     @classmethod
     def poll(cls, context):
-        engine = context.engine
         obj = context.object
         return (obj and obj.type in {'MESH'})
 
@@ -46,8 +44,7 @@ class MT_PT_Export_Panel(Panel):
 
         layout.operator('scene.mt_export_tile', text='Export Tile')
         layout.prop(scene, 'mt_export_path')
-
-        row = layout.row()
         layout.prop(scene, 'mt_units')
         layout.prop(scene, 'mt_voxelise_on_export')
+        layout.prop(scene, 'mt_randomise_on_export')
         layout.prop(scene, 'mt_num_variants')

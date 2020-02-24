@@ -65,9 +65,11 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
 
                 if obj.mt_object_props.geometry_type == 'DISPLACEMENT':
                     ctx['selected_objects'] = [obj]
+                    
                     obj.data.remesh_voxel_size = context.scene.mt_voxel_quality
                     obj.data.remesh_voxel_adaptivity = context.scene.mt_voxel_adaptivity
                     bpy.ops.object.voxel_remesh(ctx)
+
 
         if context.scene.mt_merge_and_voxelise is True:
             for collection in tile_collections:
@@ -94,7 +96,7 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
             name="Quality",
             description="Quality of the voxelisation. Smaller = Better",
             soft_min=0.005,
-            default=0.01,
+            default=0.0101,
             precision=3,
         )
 
@@ -130,12 +132,12 @@ def voxelise_and_triangulate(obj, triangulate=True):
 
     ctx = {
         'object': obj,
-        'active_object': obj}
-
+        'active_object': obj,
+        'selected_objects': [obj]}
+    obj.select_set(True)
+    bpy.ops.object.convert(ctx, target='MESH', keep_original=False)
     bpy.ops.object.voxel_remesh(ctx)
-
-    if triangulate is True:
-        obj.modifiers.new('Triangulate', 'TRIANGULATE')
-
+    obj.select_set(False)
     obj.mt_object_props.geometry_type = 'VOXELISED'
+    
     return obj

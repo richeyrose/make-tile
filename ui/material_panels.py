@@ -126,10 +126,18 @@ class MT_PT_Material_Mapping_Options_Panel(Panel):
     def draw(self, context):
         scene_props = context.scene.mt_scene_props
         layout = self.layout
-
+        obj = context.object
+        material = obj.active_material
+        tree = material.node_tree
+        nodes = tree.nodes
+        
         layout.prop(scene_props, 'mt_material_mapping_method')
         if scene_props.mt_material_mapping_method == 'WRAP_AROUND':
             layout.prop(context.window_manager.mt_radio_buttons, 'mapping_axis', expand=True)
+        if 'Texture Coordinate' in nodes:
+            layout.label(text='Reference Object')
+            texture_node = nodes['Texture Coordinate']
+            layout.prop(texture_node, "object", text="")
 
     @classmethod
     def unregister(cls):

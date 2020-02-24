@@ -38,12 +38,12 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                 tile_collections.add(collection.name)
 
         for collection in tile_collections:
-            preview_obs = []
+            preview_obs = set()
             ctx = {}
 
             for obj in collections[collection].objects:
                 if obj.mt_object_props.geometry_type == 'PREVIEW':
-                    preview_obs.append(obj)
+                    preview_obs.add(obj)
 
             i = 0
 
@@ -61,15 +61,16 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                             seed_node = tree.nodes['Seed']
                             rand_seed = random()
                             seed_node.outputs[0].default_value = rand_seed * 1000
-                            # bake the displacement map
-                            bpy.ops.scene.mt_bake_displacement(ctx)
+
+                    bpy.ops.scene.mt_bake_displacement(ctx)
+
                 obs = []
                 for obj in collections[collection].all_objects:
                     if obj.type == 'MESH':
                         if obj.hide_viewport is False and obj.hide_get() is False:
                             obs.append(obj)
                             obj.select_set(True)
-        
+
                 ctx['selected_objects'] = obs
                 ctx['active_object'] = obs[0]
                 ctx['object'] = obs[0]

@@ -102,13 +102,13 @@ class MT_OT_Bake_Displacement(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        if bpy.context.object is not None:
-            return bpy.context.object.mode == 'OBJECT'
+        if context.object is not None:
+            return context.object.mode == 'OBJECT'
         else:
             return True
 
     def execute(self, context):
-        preview_obj = bpy.context.object
+        preview_obj = context.object
         obj_props = preview_obj.mt_object_props
         tile = bpy.data.collections[obj_props.tile_name]
 
@@ -117,6 +117,7 @@ class MT_OT_Bake_Displacement(bpy.types.Operator):
 
         resolution = context.scene.mt_scene_props.mt_tile_resolution
         disp_obj.hide_viewport = False
+
         disp_image = bake_displacement_map(preview_obj, disp_obj, resolution)
 
         disp_texture = disp_obj['disp_texture']
@@ -138,28 +139,30 @@ def bake_displacement_map(preview_obj, disp_obj, resolution):
     context = bpy.context
     prefs = get_prefs()
     # save original settings
-    orig_engine = bpy.context.scene.render.engine
+    orig_engine = context.scene.render.engine
     # cycles settings
-    orig_samples = bpy.context.scene.cycles.samples
-    orig_x = bpy.context.scene.render.tile_x
-    orig_y = bpy.context.scene.render.tile_y
-    orig_bake_type = bpy.context.scene.cycles.bake_type
+    orig_samples = context.scene.cycles.samples
+    orig_x = context.scene.render.tile_x
+    orig_y = context.scene.render.tile_y
+    orig_bake_type = context.scene.cycles.bake_type
 
     # switch to Cycles and set up rendering settings for baking
-    bpy.context.scene.render.engine = 'CYCLES'
-    bpy.context.scene.cycles.samples = 1
-    bpy.context.scene.render.tile_x = resolution
-    bpy.context.scene.render.tile_y = resolution
-    bpy.context.scene.cycles.bake_type = 'EMIT'
+    context.scene.render.engine = 'CYCLES'
+    context.scene.cycles.samples = 1
+    context.scene.render.tile_x = resolution
+    context.scene.render.tile_y = resolution
+    context.scene.cycles.bake_type = 'EMIT'
 
-    image_resolution = bpy.context.scene.mt_scene_props.mt_tile_resolution
+    image_resolution = context.scene.mt_scene_props.mt_tile_resolution
     disp_image = bpy.data.images.new(disp_obj.name + '.image', width=image_resolution, height=image_resolution, float_buffer=True)
 
     disp_materials = []
 
     for item in preview_obj.material_slots.items():
+
         material = bpy.data.materials[item[0]]
         tree = material.node_tree
+
         if 'disp_emission' in tree.nodes:
             # plug emission node into output for baking
             disp_materials.append(material)
@@ -194,21 +197,28 @@ def bake_displacement_map(preview_obj, disp_obj, resolution):
     preview_mesh = disp_obj.mt_object_props.linked_object
     preview_mesh.hide_viewport = False
     disp_obj.hide_viewport = False
-    deselect_all()
-    select(preview_mesh.name)
-    select(disp_obj.name)
-    activate(disp_obj.name)
-    bpy.context.scene.render.bake.use_selected_to_active = True
-    bpy.context.scene.render.bake.cage_extrusion = 1
-    bpy.context.scene.render.bake.margin = 0
+    #deselect_all()
+    #select(preview_mesh.name)
+    #select(disp_obj.name)
+    #activate(disp_obj.name)
+    
+    context.scene.render.bake.use_selected_to_active = True
+    context.scene.render.bake.cage_extrusion = 1
+    context.scene.render.bake.margin = 0
 
     # temporarily assign a displacement material so we can bake to an image
     for material in disp_obj.data.materials:
         disp_obj.data.materials.pop(index=0)
     disp_obj.data.materials.append(disp_materials[0])
 
+    ctx = {
+        'selected_objects':[preview_mesh, disp_obj],
+        'active_object': disp_obj,
+        'object': disp_obj
+    }
+    
     # bake
-    bpy.ops.object.bake(type='EMIT')
+    bpy.ops.object.bake(ctx, type='EMIT')
 
     # pack image
     disp_image.pack()
@@ -227,10 +237,10 @@ def bake_displacement_map(preview_obj, disp_obj, resolution):
     disp_obj.data.materials.append(bpy.data.materials[prefs.secondary_material])
 
     # reset engine
-    bpy.context.scene.cycles.samples = orig_samples
-    bpy.context.scene.render.tile_x = orig_x
-    bpy.context.scene.render.tile_y = orig_y
-    bpy.context.scene.cycles.bake_type = orig_bake_type
-    bpy.context.scene.render.engine = orig_engine
+    context.scene.cycles.samples = orig_samples
+    context.scene.render.tile_x = orig_x
+    context.scene.render.tile_y = orig_y
+    context.scene.cycles.bake_type = orig_bake_type
+    context.scene.render.engine = orig_engine
 
     return disp_image

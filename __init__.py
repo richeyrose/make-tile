@@ -59,7 +59,7 @@ from . operators.object_converter import MT_OT_Convert_To_MT_Obj
 from . operators.flatten_tile import MT_OT_Flatten_Tile
 
 from . operators.bakedisplacement import (
-    MT_OT_Bake_Displacement,
+    MT_OT_Make_3D,
     MT_OT_Assign_Material_To_Vert_Group,
     MT_OT_Remove_Material_From_Vert_Group)
 
@@ -105,7 +105,7 @@ classes = (
     MT_OT_Export_Material,
     MT_OT_Flatten_Tile,
     MT_OT_Convert_To_MT_Obj,
-    MT_OT_Bake_Displacement,
+    MT_OT_Make_3D,
     MT_OT_Return_To_Preview,
     MT_OT_Create_Lighting_Setup,
     MT_OT_Tile_Voxeliser,

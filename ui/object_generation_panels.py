@@ -33,7 +33,7 @@ class MT_PT_Tile_Generator_Panel(Panel):
 
         if bpy.context.object is not None:
             if bpy.context.object.mt_object_props.geometry_type == 'PREVIEW':
-                layout.operator('scene.mt_bake_displacement', text='Make 3D')
+                layout.operator('scene.mt_make_3d', text='Make 3D')
             if bpy.context.object.mt_object_props.geometry_type == 'DISPLACEMENT':
                 layout.operator('scene.mt_return_to_preview', text='Return to Preview')
             layout.prop(scene_props, 'mt_subdivisions')

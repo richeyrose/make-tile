@@ -21,33 +21,42 @@ class MT_OT_Assign_Material_To_Vert_Group(bpy.types.Operator):
 
     def execute(self, context):
         prefs = get_prefs()
-        obj = context.object
 
-        object_props = obj.mt_object_props
-        vertex_group = obj.vertex_groups.active.name
+        active_obj = context.active_object
+        vert_group_name = active_obj.vertex_groups.active.name
+
         primary_material = context.object.active_material
         secondary_material = bpy.data.materials[prefs.secondary_material]
 
-        # check that material is on our object and add it if not
-        assign_mat_to_vert_group(vertex_group, obj, primary_material)
+        selected_objects = context.selected_objects
 
-        # create new displacement material item and save it on our displacement object
-        disp_obj = object_props.linked_object
+        for obj in selected_objects:
+            if primary_material.name not in obj.material_slots:
+                obj.data.materials.append(primary_material)
 
-        textured_verts = set()
-    
-        for key, value in obj.material_slots.items():
-            if key != secondary_material.name:
-                verts = get_verts_with_material(obj, key)
-                textured_verts = verts | textured_verts
+            vert_groups = obj.vertex_groups
+            if vert_group_name in vert_groups:
+                obj_props = obj.mt_object_props
 
-        if 'disp_mod_vert_group' in disp_obj.vertex_groups:
-            disp_vert_group = disp_obj.vertex_groups['disp_mod_vert_group']
-            clear_vert_group(disp_vert_group, disp_obj)
-            disp_vert_group.add(index=list(textured_verts), weight=1, type='ADD')
-        else:
-            disp_vert_group = obj.vertex_groups.new(name='disp_mod_vert_group')
-            disp_vert_group.add(index=list(textured_verts), weight=1, type='ADD')
+                assign_mat_to_vert_group(vert_group_name, obj, primary_material)
+
+                # get disp objects
+                disp_obj = obj_props.linked_object
+
+                textured_verts = set()
+
+                for key, value in obj.material_slots.items():
+                    if key != secondary_material.name:
+                        verts = get_verts_with_material(obj, key)
+                        textured_verts = verts | textured_verts
+
+                if 'disp_mod_vert_group' in disp_obj.vertex_groups:
+                    disp_vert_group = disp_obj.vertex_groups['disp_mod_vert_group']
+                    clear_vert_group(disp_vert_group, disp_obj)
+                    disp_vert_group.add(index=list(textured_verts), weight=1, type='ADD')
+                else:
+                    disp_vert_group = obj.vertex_groups.new(name='disp_mod_vert_group')
+                    disp_vert_group.add(index=list(textured_verts), weight=1, type='ADD')
 
         return {'FINISHED'}
 
@@ -66,15 +75,22 @@ class MT_OT_Remove_Material_From_Vert_Group(bpy.types.Operator):
 
     def execute(self, context):
         prefs = get_prefs()
-        obj = context.object
-        vertex_group = obj.vertex_groups.active.name
+
+        active_obj = context.active_object
+        vert_group_name = active_obj.vertex_groups.active.name
+
         secondary_material = bpy.data.materials[prefs.secondary_material]
 
-        if prefs.secondary_material in obj.material_slots.keys():
-            assign_mat_to_vert_group(vertex_group, obj, secondary_material)
-        else:
-            obj.data.materials.append(secondary_material)
-            assign_mat_to_vert_group(vertex_group, obj, secondary_material)
+        selected_objects = context.selected_objects
+
+        for obj in selected_objects:
+            if secondary_material.name not in obj.material_slots:
+                obj.data.materials.append(secondary_material)
+
+            vert_groups = obj.vertex_groups
+
+            if vert_group_name in vert_groups:
+                assign_mat_to_vert_group(vert_group_name, obj, secondary_material)
 
         return {'FINISHED'}
 
@@ -95,7 +111,7 @@ class MT_OT_Make_3D(bpy.types.Operator):
     def execute(self, context):
         selected_objects = context.selected_objects
         orig_render_settings = set_cycles_to_bake_mode()
-        
+
         for obj in selected_objects:
             obj_props = obj.mt_object_props
 

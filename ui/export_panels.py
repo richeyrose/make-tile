@@ -47,4 +47,6 @@ class MT_PT_Export_Panel(Panel):
         layout.prop(scene, 'mt_units')
         layout.prop(scene, 'mt_voxelise_on_export')
         layout.prop(scene, 'mt_randomise_on_export')
-        layout.prop(scene, 'mt_num_variants')
+
+        if scene.mt_randomise_on_export is True:
+            layout.prop(scene, 'mt_num_variants')

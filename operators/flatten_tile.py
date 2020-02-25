@@ -8,7 +8,7 @@ class MT_OT_Flatten_Tile(bpy.types.Operator):
     meshes in the objects' owning collection(s) that are not visible"""
 
     bl_idname = "object.flatten_tiles"
-    bl_label = "Flatten_Tiles"
+    bl_label = "Flatten Tiles"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -50,6 +50,7 @@ class MT_OT_Flatten_Tile(bpy.types.Operator):
                     ctx['active_object'] = obj
                     obj.select_set(True)
                     bpy.ops.object.convert(ctx, target='MESH', keep_original=False)
+                    obj.mt_object_props.geometry_type = 'FLATTENED'
                 else:
                     ctx['object'] = obj
                     ctx['active_object'] = obj

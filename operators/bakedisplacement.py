@@ -93,31 +93,30 @@ class MT_OT_Make_3D(bpy.types.Operator):
             return True
 
     def execute(self, context):
-        preview_obj = context.object
-        obj_props = preview_obj.mt_object_props
-        tile = bpy.data.collections[obj_props.tile_name]
-
-        disp_obj = obj_props.linked_object
-        disp_strength = tile.mt_tile_props.displacement_strength
-
-        disp_obj.hide_viewport = False
-
+        selected_objects = context.selected_objects
         orig_render_settings = set_cycles_to_bake_mode()
-        disp_image, disp_obj = bake_displacement_map(preview_obj, disp_obj)
+        
+        for obj in selected_objects:
+            obj_props = obj.mt_object_props
+
+            if obj_props.geometry_type == 'PREVIEW':
+                preview_obj = obj
+                tile = bpy.data.collections[obj_props.tile_name]
+                disp_obj = obj_props.linked_object
+                disp_strength = tile.mt_tile_props.displacement_strength
+                disp_obj.hide_viewport = False
+                disp_image, disp_obj = bake_displacement_map(preview_obj, disp_obj)
+                disp_texture = disp_obj['disp_texture']
+                disp_texture.image = disp_image
+                disp_mod = disp_obj.modifiers[disp_obj['disp_mod_name']]
+                disp_mod.texture = disp_texture
+                disp_mod.mid_level = 0
+                disp_mod.strength = disp_strength
+                subsurf_mod = disp_obj.modifiers[disp_obj['subsurf_mod_name']]
+                subsurf_mod.levels = bpy.context.scene.mt_scene_props.mt_subdivisions
+                preview_obj.hide_viewport = True
+
         reset_renderer_from_bake(orig_render_settings)
-
-        disp_texture = disp_obj['disp_texture']
-        disp_texture.image = disp_image
-        disp_mod = disp_obj.modifiers[disp_obj['disp_mod_name']]
-        disp_mod.texture = disp_texture
-        disp_mod.mid_level = 0
-        disp_mod.strength = disp_strength
-        subsurf_mod = disp_obj.modifiers[disp_obj['subsurf_mod_name']]
-
-        subsurf_mod.levels = bpy.context.scene.mt_scene_props.mt_subdivisions
-
-        preview_obj.hide_viewport = True
-
         return {'FINISHED'}
 
 

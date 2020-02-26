@@ -41,7 +41,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
 
             for collection in obj_collections:
                 tile_collections.add(collection.name)
-                
+
         orig_settings = set_cycles_to_bake_mode()
 
         for collection in tile_collections:
@@ -99,14 +99,14 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                     ctx['object'] = obj
                     bpy.ops.object.convert(ctx, target='MESH', keep_original=True)
                     obj.select_set(False)
-                    obj.hide_set(True)
+                    obj.hide_viewport = True
 
                 # save a list of the copies
                 disp_obj_copies = []
 
                 for obj in collections[collection].all_objects:
                     if obj.mt_object_props.geometry_type == 'DISPLACEMENT' \
-                            and obj.visible_get() == True:
+                            and obj.visible_get() is True:
 
                         disp_obj_copies.append(obj)
                         obj.select_set(True)

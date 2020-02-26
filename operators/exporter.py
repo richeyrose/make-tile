@@ -4,9 +4,9 @@ import bpy
 from .. lib.utils.selection import select, deselect_all
 from .. utils.registration import get_prefs
 from .. enums.enums import units
-from .voxeliser import voxelise_and_triangulate
+from .voxeliser import voxelise
 from .. lib.utils.collections import get_objects_owning_collections
-
+from .bakedisplacement import set_cycles_to_bake_mode, reset_renderer_from_bake, bake_displacement_map
 
 class MT_OT_Export_Tile_Variants(bpy.types.Operator):
     bl_idname = "scene.mt_export_multiple_tile_variants"
@@ -16,7 +16,12 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
     def execute(self, context):
         objects = bpy.data.objects
         collections = bpy.data.collections
-        selected_objects = context.selected_objects
+
+        selected_objects = context.selected_objects.copy()
+
+        for obj in bpy.data.objects:
+            obj.select_set(False)
+
         tile_collections = set()
 
         # set up exporter options
@@ -36,10 +41,11 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
 
             for collection in obj_collections:
                 tile_collections.add(collection.name)
+                
+        orig_settings = set_cycles_to_bake_mode()
 
         for collection in tile_collections:
             preview_obs = set()
-            ctx = {}
 
             for obj in collections[collection].objects:
                 if obj.mt_object_props.geometry_type == 'PREVIEW':
@@ -47,13 +53,16 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
 
             i = 0
             while i < context.scene.mt_num_variants:
+                disp_obs = []
+
                 for obj in preview_obs:
                     obj.hide_viewport = False
                     disp_obj = obj.mt_object_props.linked_object
-
-                    ctx['selected_objects'] = [obj]
-                    ctx['active_object'] = obj
-                    ctx['object'] = obj
+                    ctx = {
+                        'selected_objects': [obj],
+                        'active_object': obj,
+                        'object': obj
+                    }
 
                     for item in obj.material_slots.items():
                         material = bpy.data.materials[item[0]]
@@ -63,54 +72,77 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                             rand_seed = random()
                             seed_node.outputs[0].default_value = rand_seed * 1000
 
-                    bpy.ops.scene.mt_make_3d(ctx)
+                    #bpy.ops.scene.mt_make_3d(ctx)
                     disp_obj.hide_viewport = False
                     disp_obj.hide_set(False)
 
-                obs = []
-                for obj in collections[collection].all_objects:
-                    if obj.type == 'MESH':
-                        if obj.hide_viewport is False:
-                            obs.append(obj)
-                            obj.select_set(True)
+                    disp_image, disp_obj = bake_displacement_map(obj, disp_obj)
 
-                ctx['selected_objects'] = obs
-                ctx['active_object'] = obs[0]
-                ctx['object'] = obs[0]
+                    disp_texture = disp_obj['disp_texture']
+                    disp_texture.image = disp_image
+                    disp_mod = disp_obj.modifiers[disp_obj['disp_mod_name']]
+                    disp_mod.texture = disp_texture
+                    disp_mod.mid_level = 0
+                    disp_mod.strength = collections[collection].mt_tile_props.displacement_strength
+                    subsurf_mod = disp_obj.modifiers[disp_obj['subsurf_mod_name']]
+                    subsurf_mod.levels = bpy.context.scene.mt_scene_props.mt_subdivisions
 
-                bpy.ops.object.convert(ctx, target='MESH', keep_original=True)
+                    disp_obs.append(disp_obj)
 
-                # hide the original objects
-                for obj in obs:
+                ctx = {
+                    'selected_objects': disp_obs,
+                }
+
+                for obj in disp_obs:
+                    obj.select_set(True)
+                    ctx['active_object'] = obj
+                    ctx['object'] = obj
+                    bpy.ops.object.convert(ctx, target='MESH', keep_original=True)
                     obj.select_set(False)
                     obj.hide_set(True)
 
                 # save a list of the copies
-                copies = []
+                disp_obj_copies = []
 
                 for obj in collections[collection].all_objects:
-                    if obj.type == 'MESH':
-                        if obj.hide_viewport is False and obj.hide_get() is False:
-                            copies.append(obj)
-                            obj.select_set(True)
+                    if obj.mt_object_props.geometry_type == 'DISPLACEMENT' \
+                            and obj.visible_get() == True:
 
-                ctx['selected_objects'] = copies
-                ctx['active_object'] = copies[0]
-                ctx['object'] = copies[0]
+                        disp_obj_copies.append(obj)
+                        obj.select_set(True)
 
                 if context.scene.mt_voxelise_on_export is True:
-                    for obj in copies:
-                        if obj.mt_object_props.geometry_type == 'DISPLACEMENT':
-                            voxelise_and_triangulate(obj, triangulate=False)
+                    for obj in disp_obj_copies:
+                        obj.data.remesh_voxel_size = bpy.context.scene.mt_voxel_quality
+                        obj.data.remesh_voxel_adaptivity = bpy.context.scene.mt_voxel_adaptivity
+                        ctx = {
+                            'object': obj,
+                            'active_object': obj,
+                            'selected_objects': [obj]
+                        }
+                        bpy.ops.object.voxel_remesh(ctx)
+                        obj.mt_object_props.geometry_type = 'VOXELISED'
 
                 # construct filepath
-                file_path = os.path.join(context.scene.mt_export_path, copies[0].name + '.' + str(rand_seed) + '.stl')
+                file_path = os.path.join(context.scene.mt_export_path, collection + '.' + str(random()) + '.stl')
 
-                ctx['selected_objects'] = copies
-                ctx['active_object'] = copies[0]
-                ctx['object'] = copies[0]
+                export_objects = []
+                export_objects.extend(disp_obj_copies)
 
-                # export our merged object
+                for obj in collections[collection].all_objects:
+                    if obj.mt_object_props.geometry_type not in ('PREVIEW', 'DISPLACEMENT') and \
+                            obj not in disp_obj_copies and \
+                            obj.visible_get() is True:
+
+                        export_objects.append(obj)
+
+                ctx = {
+                    'selected_objects': export_objects,
+                    'object': export_objects[0],
+                    'active_object': export_objects[0]
+                }
+
+                # export our tile
                 bpy.ops.export_mesh.stl(
                     ctx,
                     filepath=file_path,
@@ -121,21 +153,21 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                     use_mesh_modifiers=True)
 
                 # Delete copies
-                for obj in copies:
+                for obj in disp_obj_copies:
+                    obj.select_set(False)
                     objects.remove(obj, do_unlink=True)
 
-                # unhide original obj
-                for obj in obs:
-                    obj.hide_set(False)
-                    obj.select_set(True)
-                    if obj.mt_object_props.geometry_type == 'DISPLACEMENT':
-                        obj.hide_viewport = True
+                # unhide preview objects
                 for obj in preview_obs:
                     obj.hide_viewport = False
                     obj.hide_set(False)
 
                 i += 1
 
+            for obj in preview_obs:
+                obj.select_set(False)
+
+        reset_renderer_from_bake(orig_settings)
         return {'FINISHED'}
 
 
@@ -216,7 +248,7 @@ class MT_OT_Export_Tile(bpy.types.Operator):
             for obj in copies:
                 if context.scene.mt_voxelise_on_export is True:
                     if obj.mt_object_props.geometry_type == 'DISPLACEMENT':
-                        voxelise_and_triangulate(obj, triangulate=False)
+                        voxelise(obj)
 
             file_path = os.path.join(context.scene.mt_export_path, obj.name + '.' + str(random()) + '.stl')
 
@@ -242,7 +274,7 @@ class MT_OT_Export_Tile(bpy.types.Operator):
             obj_copy.data = obj_copy.data.copy()
 
             if context.scene.mt_voxelise_on_export is True:
-                voxelise_and_triangulate(obj_copy, triangulate=False)
+                voxelise(obj_copy)
 
             select(obj_copy.name)
             file_path = os.path.join(context.scene.mt_export_path, obj.name + '.' + str(random()) + '.stl')

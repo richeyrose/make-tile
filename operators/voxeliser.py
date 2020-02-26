@@ -120,7 +120,7 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
         del bpy.types.Scene.mt_voxel_quality
 
 
-def voxelise_and_triangulate(obj, triangulate=True):
+def voxelise(obj):
     """Voxelises the passed in object and adds a triangulate modifier
     by default
     Keyword Arguments:

@@ -22,7 +22,7 @@ class MT_PT_Voxelise_Panel(Panel):
         layout.operator('scene.mt_voxelise_tile', text='Voxelise Tile')
         layout.prop(scene, 'mt_voxel_quality')
         layout.prop(scene, 'mt_voxel_adaptivity')
-        layout.prop(scene, 'mt_merge_and_voxelise')
+        layout.prop(scene, 'mt_merge')
 
 
 class MT_PT_Export_Panel(Panel):

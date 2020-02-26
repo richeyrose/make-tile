@@ -134,10 +134,10 @@ def voxelise_and_triangulate(obj, triangulate=True):
         'object': obj,
         'active_object': obj,
         'selected_objects': [obj]}
+    obj.hide_set(False)
     obj.select_set(True)
     bpy.ops.object.convert(ctx, target='MESH', keep_original=False)
     bpy.ops.object.voxel_remesh(ctx)
-    obj.select_set(False)
     obj.mt_object_props.geometry_type = 'VOXELISED'
-    
+
     return obj

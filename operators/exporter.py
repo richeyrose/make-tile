@@ -46,10 +46,11 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                     preview_obs.add(obj)
 
             i = 0
-
             while i < context.scene.mt_num_variants:
                 for obj in preview_obs:
                     obj.hide_viewport = False
+                    disp_obj = obj.mt_object_props.linked_object
+
                     ctx['selected_objects'] = [obj]
                     ctx['active_object'] = obj
                     ctx['object'] = obj
@@ -62,12 +63,14 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                             rand_seed = random()
                             seed_node.outputs[0].default_value = rand_seed * 1000
 
-                    bpy.ops.scene.mt_bake_displacement(ctx)
+                    bpy.ops.scene.mt_make_3d(ctx)
+                    disp_obj.hide_viewport = False
+                    disp_obj.hide_set(False)
 
                 obs = []
                 for obj in collections[collection].all_objects:
                     if obj.type == 'MESH':
-                        if obj.hide_viewport is False and obj.hide_get() is False:
+                        if obj.hide_viewport is False:
                             obs.append(obj)
                             obj.select_set(True)
 
@@ -103,8 +106,13 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                 # construct filepath
                 file_path = os.path.join(context.scene.mt_export_path, copies[0].name + '.' + str(rand_seed) + '.stl')
 
+                ctx['selected_objects'] = copies
+                ctx['active_object'] = copies[0]
+                ctx['object'] = copies[0]
+
                 # export our merged object
                 bpy.ops.export_mesh.stl(
+                    ctx,
                     filepath=file_path,
                     check_existing=True,
                     filter_glob="*.stl",

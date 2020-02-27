@@ -1,7 +1,7 @@
 from math import radians, sqrt, cos, acos, degrees
 import bpy
 import bmesh
-from mathutils import Vector
+from mathutils import Vector, Euler, Matrix
 from . selection import select, activate, deselect_all, select_all
 from . collections import add_object_to_collection
 
@@ -154,23 +154,3 @@ def calc_tri(A, b, c):
         'C': C}
 
     return dimensions
-
-
-def apply_all_modifiers(mesh, only_visible=True):
-    '''Applies all modifiers. if only_vsible is True it only applies those
-    modifiers that are visible in the viewport'''
-    ctx = bpy.context.copy()
-    ctx['object'] = mesh
-
-    for mod in mesh.modifiers[:]:
-        ctx['modifier'] = mod
-        print(mod.name)
-        if only_visible is True:
-            if ctx['modifier'].show_viewport is True:
-                bpy.ops.object.modifier_apply(
-                    ctx, apply_as='DATA',
-                    modifier=ctx['modifier'].name)
-        else:
-            bpy.ops.object.modifier_apply(
-                ctx, apply_as='DATA',
-                modifier=ctx['modifier'].name)

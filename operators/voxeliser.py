@@ -1,14 +1,50 @@
 import bpy
-from .. lib.utils.selection import select, deselect_all, select_all, activate
-from .. lib.utils.collections import add_object_to_collection, create_collection
-from . trim_tile import add_bool_modifier
 from .. lib.utils.collections import get_objects_owning_collections
-from copy import deepcopy
+
+
+class MT_OT_Object_Voxeliser(bpy.types.Operator):
+    """Applies all modifiers to the selected objects and, optionally merges them
+    and then voxelises objects"""
+    bl_idname = "scene.mt_voxelise_objects"
+    bl_label = "Voxelise Objects"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        return obj is not None and obj.mode == 'OBJECT'
+
+    def execute(self, context):
+        merge = context.scene.mt_merge
+        selected_objects = context.selected_objects
+
+        ctx = {
+            'selected_objects': selected_objects,
+            'object': context.active_object,
+            'active_object': context.active_object
+        }
+
+        bpy.ops.object.convert(ctx, target='MESH', keep_original=False)
+
+        if merge is True:
+            bpy.ops.object.join(ctx)
+
+        for obj in selected_objects:
+            obj.data.remesh_voxel_size = bpy.context.scene.mt_voxel_quality
+            obj.data.remesh_voxel_adaptivity = bpy.context.scene.mt_voxel_adaptivity
+
+            ctx['active_object'] = obj
+            ctx['object'] = obj
+
+            bpy.ops.object.voxel_remesh(ctx)
+            obj.mt_object_props.geometry_type = 'VOXELISED'
+        return {'FINISHED'}
+
 
 class MT_OT_Tile_Voxeliser(bpy.types.Operator):
     """Applies all modifiers to the selected objects and then deletes any
-    meshes in the objects' owning collection(s) that are not visible
-    then Voxelises displacement objects."""
+    meshes in the objects' owning collection(s) that are not visible, optionally
+    merges them then Voxelises remaining objects."""
 
     bl_idname = "scene.mt_voxelise_tile"
     bl_label = "Voxelise tile"
@@ -24,11 +60,9 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
         merge = context.scene.mt_merge
         selected_objects = context.selected_objects
         sel_obs_names = []
-        
+
         for obj in selected_objects:
             sel_obs_names.append(obj.name)
-
-        #selected_objects_copy = deepcopy(selected_objects)
 
         for name in sel_obs_names:
             obj_collections = get_objects_owning_collections(name)
@@ -125,7 +159,7 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
 
         bpy.types.Scene.mt_merge = bpy.props.BoolProperty(
             name="Merge",
-            description="Merge tile before voxelising? Creates a single mesh.",
+            description="Merge tile? Creates a single mesh.",
             default=True
         )
 

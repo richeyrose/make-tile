@@ -16,6 +16,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
     def execute(self, context):
         objects = bpy.data.objects
         collections = bpy.data.collections
+        
 
         selected_objects = context.selected_objects.copy()
 
@@ -47,7 +48,9 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
         for collection in tile_collections:
             preview_obs = set()
 
-            for obj in collections[collection].objects:
+            coll = collections[collection]
+            
+            for obj in coll.objects:
                 if obj.mt_object_props.geometry_type == 'PREVIEW':
                     preview_obs.add(obj)
 
@@ -72,7 +75,6 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                             rand_seed = random()
                             seed_node.outputs[0].default_value = rand_seed * 1000
 
-                    #bpy.ops.scene.mt_make_3d(ctx)
                     disp_obj.hide_viewport = False
                     disp_obj.hide_set(False)
 
@@ -83,36 +85,37 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                     disp_mod = disp_obj.modifiers[disp_obj['disp_mod_name']]
                     disp_mod.texture = disp_texture
                     disp_mod.mid_level = 0
-                    disp_mod.strength = collections[collection].mt_tile_props.displacement_strength
+                    disp_mod.strength = coll.mt_tile_props.displacement_strength
                     subsurf_mod = disp_obj.modifiers[disp_obj['subsurf_mod_name']]
                     subsurf_mod.levels = bpy.context.scene.mt_scene_props.mt_subdivisions
-
                     disp_obs.append(disp_obj)
 
                 ctx = {
                     'selected_objects': disp_obs,
                 }
 
-                for obj in disp_obs:
-                    obj.select_set(True)
-                    ctx['active_object'] = obj
-                    ctx['object'] = obj
-                    bpy.ops.object.convert(ctx, target='MESH', keep_original=True)
-                    obj.select_set(False)
-                    obj.hide_viewport = True
-
-                # save a list of the copies
                 disp_obj_copies = []
 
-                for obj in collections[collection].all_objects:
-                    if obj.mt_object_props.geometry_type == 'DISPLACEMENT' \
-                            and obj.visible_get() is True:
+                depsgraph = context.evaluated_depsgraph_get()
 
-                        disp_obj_copies.append(obj)
-                        obj.select_set(True)
+                for obj in disp_obs:
+                    object_eval = obj.evaluated_get(depsgraph)
+                    mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
+
+                    dup_obj = bpy.data.objects.new("dupe", mesh_from_eval)
+                    dup_obj.mt_object_props.geometry_type = 'DISPLACEMENT'
+                    dup_obj.location = obj.location
+                    dup_obj.rotation_euler = obj.rotation_euler
+                    dup_obj.scale = obj.scale
+                    dup_obj.parent = obj.parent
+                    coll.objects.link(dup_obj)
+                    disp_obj_copies.append(dup_obj)
+                    obj.hide_viewport = True
+                    obj.select_set(True)
 
                 if context.scene.mt_voxelise_on_export is True:
                     for obj in disp_obj_copies:
+
                         obj.data.remesh_voxel_size = bpy.context.scene.mt_voxel_quality
                         obj.data.remesh_voxel_adaptivity = bpy.context.scene.mt_voxel_adaptivity
                         ctx = {
@@ -129,7 +132,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                 export_objects = []
                 export_objects.extend(disp_obj_copies)
 
-                for obj in collections[collection].all_objects:
+                for obj in coll.all_objects:
                     if obj.mt_object_props.geometry_type not in ('PREVIEW', 'DISPLACEMENT') and \
                             obj not in disp_obj_copies and \
                             obj.visible_get() is True:

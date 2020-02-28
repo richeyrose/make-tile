@@ -294,8 +294,8 @@ class MT_PT_Converter_Panel(Panel):
 
         layout.operator('object.convert_to_make_tile', text='Convert to MakeTile Object')
         layout.operator('object.flatten_tiles', text="Flatten Selected Tiles")
-        
+
         layout.label(text="Add selected to Tile")
         layout.operator('object.add_to_tile', text="Add Selected to Tile")
         layout.prop(scene, "mt_parent_to_new_tile")
-        layout.prop(scene, "mt_flatten_before_adding")
+        layout.prop(scene, "mt_apply_modifiers")

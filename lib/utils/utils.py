@@ -154,3 +154,23 @@ def calc_tri(A, b, c):
         'C': C}
 
     return dimensions
+
+
+def clear_parent_and_apply_transformation(ctx, ob):
+    #ob = bpy.context.object
+    mat = ob.matrix_world
+
+    loc, rot, sca = mat.decompose()
+
+    mat_loc = Matrix.Translation(loc)
+    mat_rot = rot.to_matrix().to_4x4()
+    mat_sca = Matrix.Identity(4)
+    mat_sca[0][0], mat_sca[1][1], mat_sca[2][2] = sca
+
+    mat_out = mat_loc @ mat_rot @ mat_sca
+    mat_h = mat_out.inverted() @ mat
+
+    # Move the vertices to their original position,
+    # which the mat_out can't represent.
+    for v in ob.data.vertices:
+        v.co = mat_h @ v.co

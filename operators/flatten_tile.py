@@ -14,46 +14,61 @@ class MT_OT_Flatten_Tile(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         obj = context.object
-        return (obj is not None
-                and obj.mode == 'OBJECT'
-                and obj.mt_object_props.is_mt_object is True)
+        return obj is not None and obj.mode == 'OBJECT'
 
     def execute(self, context):
-        objects = bpy.data.objects
-        collections = bpy.data.collections
         selected_objects = context.selected_objects
         tile_collections = set()
 
-        ctx = {
-            'selected_objects': selected_objects
-        }
-
-        # Save name of selected object's owning collection(s)
+        # Save selected object's owning collection(s)
         for obj in selected_objects:
-            ctx['object'] = obj
-            ctx['active_object'] = obj
-            bpy.ops.object.convert(ctx, target='MESH', keep_original=False)
+            if obj.type == 'MESH':
+                obj_collections = get_objects_owning_collections(obj.name)
+                for collection in obj_collections:
+                    tile_collections.add(collection)
 
-            obj_collections = get_objects_owning_collections(obj.name)
-
-            for collection in obj_collections:
-                tile_collections.add(collection.name)
-
-        # Flatten visible objects in collection
         for collection in tile_collections:
-            for obj in collections[collection].objects:
-                ctx = {
-                    'selected_objects': collections[collection].objects
-                }
-                if obj.hide_viewport is False and obj.hide_get() is False:
-                    ctx['object'] = obj
-                    ctx['active_object'] = obj
-                    obj.select_set(True)
-                    bpy.ops.object.convert(ctx, target='MESH', keep_original=False)
-                    obj.mt_object_props.geometry_type = 'FLATTENED'
-                else:
-                    ctx['object'] = obj
-                    ctx['active_object'] = obj
-                    objects.remove(objects[obj.name], do_unlink=True)
-
+            flatten_tile(context, collection)
         return {'FINISHED'}
+
+
+def flatten_tile(context, collection):
+    ctx = {
+        'selected_objects': collection.all_objects,
+        'object': collection.all_objects[0],
+        'active_object': collection.all_objects[0]
+    }
+
+    # Unparent the objects in this collection.
+    bpy.ops.object.parent_clear(ctx, type='CLEAR_KEEP_TRANSFORM')
+
+    # get all visible mesh objects
+    visible_mesh_objects = [obj for obj in collection.all_objects if obj.type == 'MESH' and obj.visible_get() is True]
+
+    # apply all modifiers
+    depsgraph = context.evaluated_depsgraph_get()
+
+    for obj in visible_mesh_objects:
+        object_eval = obj.evaluated_get(depsgraph)
+        mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
+        obj.modifiers.clear()
+        obj.data = mesh_from_eval
+
+    # join all objects
+    if len(visible_mesh_objects) > 1:
+        ctx = {
+            'object': visible_mesh_objects[0],
+            'active_object': visible_mesh_objects[0],
+            'selected_objects': visible_mesh_objects,
+            'selected_editable_objects': visible_mesh_objects
+        }
+        bpy.ops.object.join(ctx)
+
+    # Rename duplicate object to collection name
+    if len(visible_mesh_objects) > 0:
+        visible_mesh_objects[0].name = collection.name
+
+    # Delete all other objects in collection
+    for obj in collection.all_objects:
+        if obj not in visible_mesh_objects:
+            bpy.data.objects.remove(obj, do_unlink=True)

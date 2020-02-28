@@ -8,6 +8,7 @@ from .voxeliser import voxelise
 from .. lib.utils.collections import get_objects_owning_collections
 from .bakedisplacement import set_cycles_to_bake_mode, reset_renderer_from_bake, bake_displacement_map
 
+
 class MT_OT_Export_Tile_Variants(bpy.types.Operator):
     bl_idname = "scene.mt_export_multiple_tile_variants"
     bl_label = "Export multiple tile variants"
@@ -16,7 +17,6 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
     def execute(self, context):
         objects = bpy.data.objects
         collections = bpy.data.collections
-        
 
         selected_objects = context.selected_objects.copy()
 
@@ -222,31 +222,25 @@ class MT_OT_Export_Tile(bpy.types.Operator):
             obs = []
             for obj in tile_collection.all_objects:
                 if obj.type == 'MESH':
-                    if obj.hide_viewport is False and obj.hide_get() is False:
+                    if obj.visible_get() is True:
                         obs.append(obj)
-                        obj.select_set(True)
-
-            ctx = {
-                'selected_objects': obs,
-                'active_object': obs[0],
-                'object': obs[0]
-            }
-
-            bpy.ops.object.convert(ctx, target='MESH', keep_original=True)
-
-
-            # hide the original objects
-            for obj in obs:
-                obj.hide_set(True)
-                obj.select_set(False)
-
-            # save a list of the copies
+            
             copies = []
-            for obj in tile_collection.all_objects:
-                if obj.type == 'MESH':
-                    if obj.hide_viewport is False and obj.hide_get() is False:
-                        copies.append(obj)
-                        obj.select_set(True)
+            depsgraph = context.evaluated_depsgraph_get()
+            for obj in obs:
+                object_eval = obj.evaluated_get(depsgraph)
+                mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
+
+                dup_obj = bpy.data.objects.new("dupe", mesh_from_eval)
+                dup_obj.mt_object_props.geometry_type = 'DISPLACEMENT'
+                dup_obj.location = obj.location
+                dup_obj.rotation_euler = obj.rotation_euler
+                dup_obj.scale = obj.scale
+                dup_obj.parent = obj.parent
+                tile_collection.objects.link(dup_obj)
+                copies.append(dup_obj)
+                obj.hide_viewport = True
+                obj.select_set(True)
 
             for obj in copies:
                 if context.scene.mt_voxelise_on_export is True:
@@ -255,8 +249,18 @@ class MT_OT_Export_Tile(bpy.types.Operator):
 
             file_path = os.path.join(context.scene.mt_export_path, obj.name + '.' + str(random()) + '.stl')
 
+            ctx = {
+                'selected_objects': copies,
+                'active_object': copies[0],
+                'object': copies[0]
+            }
+
+            for obj in copies:
+                obj.select_set(True)
+
             # export our merged object
             bpy.ops.export_mesh.stl(
+                ctx,
                 filepath=file_path,
                 check_existing=True,
                 filter_glob="*.stl",
@@ -268,8 +272,8 @@ class MT_OT_Export_Tile(bpy.types.Operator):
                 objects.remove(objects[obj.name], do_unlink=True)
 
             for obj in obs:
-                obj.hide_set(False)
-                obj.select_set(False)
+                obj.hide_viewport = False
+                obj.select_set(True)
 
         else:
             obj = context.active_object

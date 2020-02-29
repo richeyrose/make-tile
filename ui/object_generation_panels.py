@@ -297,5 +297,4 @@ class MT_PT_Converter_Panel(Panel):
 
         layout.label(text="Add selected to Tile")
         layout.operator('object.add_to_tile', text="Add Selected to Tile")
-        layout.prop(scene, "mt_parent_to_new_tile")
         layout.prop(scene, "mt_apply_modifiers")

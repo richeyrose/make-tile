@@ -14,7 +14,7 @@ class MT_OT_Add_Object_To_Tile(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         obj = context.object
-        return obj is not None and obj.mode == 'OBJECT'
+        return obj is not None and obj.mode == 'OBJECT' and obj.mt_object_props.is_mt_object is True
 
     def execute(self, context):
         sel_obs_names = []

@@ -14,7 +14,7 @@ class MT_OT_Flatten_Tile(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         obj = context.object
-        return obj is not None and obj.mode == 'OBJECT'
+        return obj is not None and obj.mode == 'OBJECT' and obj.mt_object_props.is_mt_object is True
 
     def execute(self, context):
         selected_objects = context.selected_objects

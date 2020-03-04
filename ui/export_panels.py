@@ -19,7 +19,7 @@ class MT_PT_Voxelise_Panel(Panel):
         scene = context.scene
         layout = self.layout
 
-        layout.operator('scene.mt_voxelise_tile', text='Voxelise Tile')
+        layout.operator('scene.mt_voxelise_objects', text='Voxelise Objects')
         layout.prop(scene, 'mt_voxel_quality')
         layout.prop(scene, 'mt_voxel_adaptivity')
         layout.prop(scene, 'mt_merge')
@@ -36,7 +36,7 @@ class MT_PT_Export_Panel(Panel):
     @classmethod
     def poll(cls, context):
         obj = context.object
-        return (obj and obj.type in {'MESH'})
+        return obj and obj.type in {'MESH'}
 
     def draw(self, context):
         scene = context.scene

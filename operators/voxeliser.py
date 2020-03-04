@@ -18,13 +18,20 @@ class MT_OT_Object_Voxeliser(bpy.types.Operator):
         merge = context.scene.mt_merge
         selected_objects = context.selected_objects
 
+        depsgraph = context.evaluated_depsgraph_get()
+
+        for obj in selected_objects:
+            if context.object.type == 'MESH':
+                object_eval = obj.evaluated_get(depsgraph)
+                mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
+                obj.modifiers.clear()
+                obj.data = mesh_from_eval
+
         ctx = {
             'selected_objects': selected_objects,
             'object': context.active_object,
             'active_object': context.active_object
         }
-
-        bpy.ops.object.convert(ctx, target='MESH', keep_original=False)
 
         if merge is True:
             bpy.ops.object.join(ctx)
@@ -38,6 +45,7 @@ class MT_OT_Object_Voxeliser(bpy.types.Operator):
 
             bpy.ops.object.voxel_remesh(ctx)
             obj.mt_object_props.geometry_type = 'VOXELISED'
+
         return {'FINISHED'}
 
 
@@ -53,12 +61,13 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         obj = context.object
-        return (obj is not None and obj.mode == 'OBJECT')
+        return obj is not None and obj.mode == 'OBJECT'
 
     def execute(self, context):
         tile_collections = set()
         merge = context.scene.mt_merge
         selected_objects = context.selected_objects
+
         sel_obs_names = []
 
         for obj in selected_objects:
@@ -105,11 +114,11 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
             if merge is True:
                 for obj in collection.all_objects:
                     obj.select_set(True)
-                    
+
                 obj = collection.all_objects[0]
 
                 bpy.ops.object.join(ctx)
-                
+
                 ctx = {
                     'selected_objects': collection.all_objects,
                     'active_object': collection.all_objects[0],

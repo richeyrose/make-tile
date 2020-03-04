@@ -80,7 +80,6 @@ def create_plain_base(tile_props):
     """Returns a base for a wall tile
     """
     cursor = bpy.context.scene.cursor
-    cursor_orig_loc = cursor.location.copy()
 
     base_size = tile_props.base_size
     tile_name = tile_props.tile_name

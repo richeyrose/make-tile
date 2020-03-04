@@ -1,4 +1,5 @@
 import bpy
+from .. lib.utils.collections import get_objects_owning_collections
 
 class MT_OT_Add_Object_To_Tile(bpy.types.Operator):
     """Adds the selected object to the active object's tile collection,
@@ -16,40 +17,50 @@ class MT_OT_Add_Object_To_Tile(bpy.types.Operator):
 
     def execute(self, context):
         objects_to_add = []
+        collection = bpy.data.collections[context.active_object.mt_object_props.tile_name]
 
         for obj in context.selected_objects:
             if obj != context.active_object:
                 objects_to_add.append(obj)
+                # change geometry type and tile name props
                 obj.mt_object_props.geometry_type = 'ADDITIONAL'
+                obj.mt_object_props.tile_name = collection.name
 
-        context.active_object.select_set(False)
-        collection = bpy.data.collections[context.active_object.mt_object_props.tile_name]
+                # unlink from current collections
+                current_collections = get_objects_owning_collections(obj.name)
+                for coll in current_collections:
+                    coll.objects.unlink(obj)
 
-        if len(objects_to_add) > 0:
-            ctx = {
-                'selected_objects': objects_to_add,
-                'active_object': objects_to_add[0],
-                'object': objects_to_add[0]
-            }
+                # add to new tile collection
+                collection.objects.link(obj)
 
-            # Unparent the objects we're going to add to our tile
-            bpy.ops.object.parent_clear(ctx, type='CLEAR_KEEP_TRANSFORM')
-
-            # apply modifiers if necessary
-            if context.scene.mt_apply_modifiers is True:
-                depsgraph = context.evaluated_depsgraph_get()
-                for obj in objects_to_add:
-                    object_eval = obj.evaluated_get(depsgraph)
-                    mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
-                    obj.modifiers.clear()
-                    obj.data = mesh_from_eval
-
-            base_object = [obj for obj in collection.all_objects if obj.mt_object_props.geometry_type == 'BASE']
-
+        # apply modifiers if necessary
+        if context.scene.mt_apply_modifiers is True:
+            depsgraph = context.evaluated_depsgraph_get()
             for obj in objects_to_add:
-                obj.parent = base_object[0]
+                object_eval = obj.evaluated_get(depsgraph)
+                mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
+                obj.modifiers.clear()
+                obj.data = mesh_from_eval
 
-        context.active_object.select_set(True)
+        # parent object to tile's base object
+        parent = None
+        for obj in collection.all_objects:
+            if obj.mt_object_props.geometry_type == 'BASE':
+                parent = obj
+
+        ctx = {
+            'selected_objects': objects_to_add,
+            'selectable_objects': objects_to_add,
+            'selected_editable_objects': objects_to_add,
+            'active_object': parent,
+            'object': parent
+        }
+
+        for obj in objects_to_add:
+            bpy.ops.object.parent_set(ctx, type='OBJECT', keep_transform=True)
+
+
         return {'FINISHED'}
 
     @classmethod

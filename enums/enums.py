@@ -42,18 +42,19 @@ tile_types = [
 ]
 
 geometry_types = [
-    ("BASE", "Base", "", 1),
-    ("CORE", "Core", "", 2),
-    ("CUTTER", "Cutter", "", 3),
-    ("PREVIEW", "Preview", "", 4),
-    ("DISPLACEMENT", "Displacement", "", 5),
-    ("PROP", "Prop", "", 6),
-    ("GREEBLE", "Greeble", "", 7),
-    ("TRIMMER", "Trimmer", "", 8),
-    ("EMPTY", "Empty", "", 9),
-    ("VOXELISED", "Voxelised", "", 10),
-    ("FLATTENED", "Flattened", "", 11),
-    ("ADDITIONAL", "Additional", "", 12)
+    ("NONE", "None", "", 1),
+    ("BASE", "Base", "", 2),
+    ("CORE", "Core", "", 3),
+    ("CUTTER", "Cutter", "", 4),
+    ("PREVIEW", "Preview", "", 5),
+    ("DISPLACEMENT", "Displacement", "", 6),
+    ("PROP", "Prop", "", 7),
+    ("GREEBLE", "Greeble", "", 8),
+    ("TRIMMER", "Trimmer", "", 9),
+    ("EMPTY", "Empty", "", 10),
+    ("VOXELISED", "Voxelised", "", 11),
+    ("FLATTENED", "Flattened", "", 12),
+    ("ADDITIONAL", "Additional", "", 13)
 ]
 
 base_socket_side = [

@@ -101,8 +101,6 @@ class MT_Straight_Tile:
             'selected_objects': [core]
         }
 
-        scene_props = bpy.context.scene.mt_scene_props
-
         bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
         bpy.ops.uv.smart_project(ctx, island_margin=0.05)
 

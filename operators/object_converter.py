@@ -27,7 +27,7 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         obj = context.object
-        return obj and obj.type in {'MESH'}
+        return obj is not None and obj.mode == 'OBJECT' and obj.type in {'MESH'}
 
     def execute(self, context):
         obj = context.object
@@ -35,9 +35,6 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
         return {'FINISHED'}
 
     def convert_to_make_tile_obj(self, context, obj):
-        mode('OBJECT')
-        deselect_all()
-
         scene = context.scene
         scene_props = scene.mt_scene_props
         scene_collection = scene.collection
@@ -48,8 +45,15 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
         # create a new collection named after our object as a sub collection
         # of the converted objects collection
         obj_collection = create_collection(obj.name, converted_obj_collection)
-
         activate_collection(obj_collection.name)
+
+        # UV Project
+        ctx = {
+            'selected_objects': [obj],
+            'object': obj,
+            'active_object': obj
+        }
+        bpy.ops.uv.smart_project(ctx, island_margin=0.05)
 
         # duplicate object and make local
         new_obj = obj.copy()
@@ -94,6 +98,9 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
         # create an empty that we will parent our object to
         object_empty = bpy.data.objects.new(new_obj.name + ".empty", None)
         add_object_to_collection(object_empty, obj_collection.name)
+        object_empty.location = preview_obj
+        object_empty.rotation_euler = preview_obj
+
         preview_obj.parent = object_empty
         displacement_obj.parent = object_empty
 

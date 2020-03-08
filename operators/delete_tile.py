@@ -33,4 +33,10 @@ class MT_OT_Delete_Tiles(bpy.types.Operator):
                     objects.remove(objects[obj.name], do_unlink=True)
 
                 collections.remove(bpy.data.collections[collection], do_unlink=True)
+                
+        # clean up orphan meshes
+        for mesh in bpy.data.meshes:
+            if mesh.users == 0:
+                bpy.data.meshes.remove(mesh)
+
         return {'FINISHED'}

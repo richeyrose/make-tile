@@ -13,7 +13,7 @@ class MT_PT_Voxelise_Panel(Panel):
     @classmethod
     def poll(cls, context):
         obj = context.object
-        return (obj and obj.type in {'MESH'})
+        return obj and obj.type in {'MESH'}
 
     def draw(self, context):
         scene = context.scene

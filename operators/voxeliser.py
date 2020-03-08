@@ -17,11 +17,13 @@ class MT_OT_Object_Voxeliser(bpy.types.Operator):
     def execute(self, context):
         merge = context.scene.mt_merge
         selected_objects = context.selected_objects
+        meshes = []
 
         depsgraph = context.evaluated_depsgraph_get()
 
         for obj in selected_objects:
             if context.object.type == 'MESH':
+                meshes.append(obj.data)
                 object_eval = obj.evaluated_get(depsgraph)
                 mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
                 obj.modifiers.clear()
@@ -36,15 +38,23 @@ class MT_OT_Object_Voxeliser(bpy.types.Operator):
         if merge is True:
             bpy.ops.object.join(ctx)
 
-        for obj in selected_objects:
-            obj.data.remesh_voxel_size = bpy.context.scene.mt_voxel_quality
-            obj.data.remesh_voxel_adaptivity = bpy.context.scene.mt_voxel_adaptivity
+        for obj in context.selected_objects:
+            if obj.type == 'MESH':
+                obj.data.remesh_voxel_size = bpy.context.scene.mt_voxel_quality
+                obj.data.remesh_voxel_adaptivity = bpy.context.scene.mt_voxel_adaptivity
+                ctx = {
+                    'selected_objects': context.selected_objects,
+                    'object': obj,
+                    'active_object': obj
+                }
 
-            ctx['active_object'] = obj
-            ctx['object'] = obj
+                bpy.ops.object.voxel_remesh(ctx)
+                obj.mt_object_props.geometry_type = 'VOXELISED'
 
-            bpy.ops.object.voxel_remesh(ctx)
-            obj.mt_object_props.geometry_type = 'VOXELISED'
+        for mesh in bpy.data.meshes:
+            if mesh is not None:
+                if mesh.users == 0:
+                    bpy.data.meshes.remove(mesh)
 
         return {'FINISHED'}
 

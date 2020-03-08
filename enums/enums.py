@@ -4,6 +4,7 @@
 units = [
     ("CM", "Centimeters", "", 1),
     ("INCHES", "Inches", "", 2),
+    ("BLENDER", "Blender", "", 3),
 ]
 
 curve_types = [

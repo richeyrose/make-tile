@@ -35,7 +35,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
 
         if blend_units == 'CM':
             unit_multiplier = 10
-        else:
+        if blend_units == 'INCHES':
             unit_multiplier = 25.4
 
         if not os.path.exists(export_path):
@@ -221,8 +221,10 @@ class MT_OT_Export_Tile(bpy.types.Operator):
 
         if blend_units == 'CM':
             unit_multiplier = 10
-        else:
+        
+        if blend_units == 'INCHES':
             unit_multiplier = 25.4
+        
 
         if not os.path.exists(export_path):
             os.mkdir(export_path)
@@ -309,6 +311,12 @@ class MT_OT_Export_Tile(bpy.types.Operator):
 
             for obj in selected_objects:
                 obj.select_set(True)
+
+        # clean up orphaned meshes
+        
+        for mesh in bpy.data.meshes:
+            if mesh.users == 0:
+                bpy.data.meshes.remove(mesh)
 
         return {'FINISHED'}
 

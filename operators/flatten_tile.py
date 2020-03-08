@@ -39,12 +39,17 @@ def flatten_tile(context, collection):
         'active_object': collection.all_objects[0]
     }
 
+    # save a list of meshes
+    meshes = []
+    for obj in collection.all_objects:
+        meshes.append(obj.data)
+
     # Unparent the objects in this collection.
     bpy.ops.object.parent_clear(ctx, type='CLEAR_KEEP_TRANSFORM')
 
     # get all visible mesh objects
     visible_mesh_objects = [obj for obj in collection.all_objects if obj.type == 'MESH' and obj.visible_get() is True]
-
+    
     # apply all modifiers
     depsgraph = context.evaluated_depsgraph_get()
 
@@ -72,3 +77,9 @@ def flatten_tile(context, collection):
     for obj in collection.all_objects:
         if obj not in visible_mesh_objects:
             bpy.data.objects.remove(obj, do_unlink=True)
+
+    # Delete all unused meshes in collection
+    for mesh in meshes:
+        if mesh is not None:
+            if mesh.users == 0:
+                bpy.data.meshes.remove(mesh)

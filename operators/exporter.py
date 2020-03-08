@@ -105,7 +105,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                     dup_obj = bpy.data.objects.new("dupe", mesh_from_eval)
                     dup_obj.mt_object_props.geometry_type = 'DISPLACEMENT'
 
-                    #set dupe objects locrotscale and parent to original object
+                    # set dupe objects locrotscale and parent to original object
                     dup_obj.location = obj.location
                     dup_obj.rotation_euler = obj.rotation_euler
                     dup_obj.scale = obj.scale
@@ -221,10 +221,9 @@ class MT_OT_Export_Tile(bpy.types.Operator):
 
         if blend_units == 'CM':
             unit_multiplier = 10
-        
+
         if blend_units == 'INCHES':
             unit_multiplier = 25.4
-        
 
         if not os.path.exists(export_path):
             os.mkdir(export_path)
@@ -313,7 +312,6 @@ class MT_OT_Export_Tile(bpy.types.Operator):
                 obj.select_set(True)
 
         # clean up orphaned meshes
-        
         for mesh in bpy.data.meshes:
             if mesh.users == 0:
                 bpy.data.meshes.remove(mesh)

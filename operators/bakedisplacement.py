@@ -176,7 +176,7 @@ def bake_displacement_map(preview_obj, disp_obj):
         disp_obj.name + '.image',
         width=image_resolution,
         height=image_resolution,
-        float_buffer=True)
+        float_buffer=False)
 
     disp_materials = []
     for item in preview_obj.material_slots.items():

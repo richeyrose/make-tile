@@ -53,6 +53,7 @@ class MT_Tile:
     def create_empty_base(self, tile_props):
         tile_props.base_size = (0, 0, 0)
         base = bpy.data.objects.new(tile_props.tile_name + '.base', None)
+        base.show_in_front = True
         add_object_to_collection(base, tile_props.tile_name)
         return base
 

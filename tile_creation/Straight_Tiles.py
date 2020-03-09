@@ -11,6 +11,7 @@ from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. lib.utils.utils import mode, view3d_find
 from .. lib.utils.vertex_groups import straight_wall_to_vert_groups, straight_floor_to_vert_groups
 
+
 # MIXIN
 class MT_Straight_Tile:
     def create_plain_base(self, tile_props):

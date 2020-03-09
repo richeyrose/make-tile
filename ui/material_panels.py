@@ -68,11 +68,13 @@ class MT_PT_Material_Options_Panel(Panel):
         tree = material.node_tree
         nodes = tree.nodes
 
-        # search for a custom image node and add a load image section if one is foind:
+        # search for a custom image node and add a load image section
         if 'mt_custom_image' in nodes:
             layout.label(text="Custom Image")
             image_node = nodes['mt_custom_image']
             layout.template_ID(image_node, "image", new="image.new", open="image.open")
+            layout.prop(image_node, "extension", text="Tiling")
+            
 
         # get all frame nodes in material that are within the 'editable_inputs' frame
         frame_names = []
@@ -130,7 +132,7 @@ class MT_PT_Material_Mapping_Options_Panel(Panel):
         material = obj.active_material
         tree = material.node_tree
         nodes = tree.nodes
-        
+
         layout.prop(scene_props, 'mt_material_mapping_method')
         if scene_props.mt_material_mapping_method == 'WRAP_AROUND':
             layout.prop(context.window_manager.mt_radio_buttons, 'mapping_axis', expand=True)

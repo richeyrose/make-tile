@@ -98,11 +98,17 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
         # create an empty that we will parent our object to
         object_empty = bpy.data.objects.new(new_obj.name + ".empty", None)
         add_object_to_collection(object_empty, obj_collection.name)
-        object_empty.location = preview_obj
-        object_empty.rotation_euler = preview_obj
+        object_empty.location = preview_obj.location
+        object_empty.rotation_euler = preview_obj.rotation_euler
+        object_empty.show_in_front = True
 
-        preview_obj.parent = object_empty
-        displacement_obj.parent = object_empty
+        ctx = {
+            'selected_objects': [object_empty, preview_obj, displacement_obj],
+            'active_object': object_empty,
+            'object': object_empty
+        }
+
+        bpy.ops.object.parent_set(ctx, type='OBJECT', keep_transform=True)
 
         # Get prefs from scene
         prefs = get_prefs()

@@ -1,2 +1,3 @@
-# ignore blend1,2 etc. files
+# ignore blend files
+*.blend
 *.blend[0-9]

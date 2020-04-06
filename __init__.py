@@ -81,6 +81,12 @@ from . lib.turtle.operators.selection import *
 from . lib.turtle.operators.vertex_group import *
 from . lib.turtle.operators.aliases import *
 
+from . utils.registration import (
+    register_materials,
+    register_classes,
+    unregister_classes,
+    unregister_materials)
+
 
 bl_info = {
     "name": "MakeTile",
@@ -93,7 +99,6 @@ bl_info = {
     "tracker_url": "https://github.com/richeyrose/make-tile",
     "category": "Object"
 }
-
 
 classes = (
     MT_MakeTilePreferences,
@@ -207,6 +212,7 @@ classes = (
     TURTLE_OT_remove_from_vert_group_alias)
 
 register, unregister = bpy.utils.register_classes_factory(classes)
+
 
 if __name__ == "__main__":
     register()

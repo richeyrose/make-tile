@@ -1,5 +1,9 @@
 import os
 import bpy
+from bpy.utils import register_class, unregister_class
+from .. materials.materials import (
+    get_blend_filenames,
+    load_materials)
 
 
 # File and directory handling
@@ -18,21 +22,33 @@ def get_prefs():
     return bpy.context.preferences.addons[get_addon_name()].preferences
 
 
+'''
 def reload_asset_libraries(library="ALL", default=None):
     """reloads passed in asset libraries"""
     if library == "ALL":
         unregister_assets()
         register_assets(reloading=True)
+'''
 
 
-assets = {}
+def register_classes(classlist):
+    for cls in classlist:
+        register_class(cls)
 
 
-# TODO: stub
-def register_assets(library="ALL", default=None, reloading=False):
-    assets_path = get_prefs().assets_path
+def unregister_classes(classlist):
+    for cls in classlist:
+        unregister_class(cls)
 
 
-# TODO: stub
-def unregister_assets(library="ALL"):
-    print("unregistering assets")
+def register_materials():
+    print("Registering MakeTile Materials")
+    addon_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    materials_path = os.path.join(addon_path, "assets", "materials")
+    blend_filenames = get_blend_filenames(materials_path)
+    load_materials(materials_path, blend_filenames)
+
+
+#TODO: Stub
+def unregister_materials():
+    print("Unregistering MakeTile Materials")

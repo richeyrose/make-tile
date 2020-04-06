@@ -1,15 +1,15 @@
 import os
 import bpy
-from .. utils.registration import get_path, get_prefs
-from .. lib.utils.utils import mode
-from .. lib.utils.selection import deselect_all, select_all, select, activate
-from .. lib.utils.vertex_groups import get_verts_in_vert_group, get_vert_indexes_in_vert_group
+#from .. utils.registration import get_path, get_prefs
+#from .. lib.utils.utils import mode
+#from .. lib.utils.selection import deselect_all, select_all, select, activate
+#from .. lib.utils.vertex_groups import get_verts_in_vert_group, get_vert_indexes_in_vert_group
 
 
 def load_materials(directory_path, blend_filenames):
     for filename in blend_filenames:
         file_path = os.path.join(directory_path, filename)
-        materials = get_materials_from_file(file_path)
+        get_materials_from_file(file_path)
 
 
 def get_blend_filenames(directory_path):

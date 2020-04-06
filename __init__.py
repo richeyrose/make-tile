@@ -81,12 +81,6 @@ from . lib.turtle.operators.selection import *
 from . lib.turtle.operators.vertex_group import *
 from . lib.turtle.operators.aliases import *
 
-from . utils.registration import (
-    register_materials,
-    register_classes,
-    unregister_classes,
-    unregister_materials)
-
 
 bl_info = {
     "name": "MakeTile",

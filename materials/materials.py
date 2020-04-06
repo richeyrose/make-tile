@@ -1,9 +1,9 @@
 import os
 import bpy
-#from .. utils.registration import get_path, get_prefs
-#from .. lib.utils.utils import mode
-#from .. lib.utils.selection import deselect_all, select_all, select, activate
-#from .. lib.utils.vertex_groups import get_verts_in_vert_group, get_vert_indexes_in_vert_group
+from .. utils.registration import get_prefs
+# from .. lib.utils.utils import mode
+# from .. lib.utils.selection import deselect_all, select_all, select, activate
+from .. lib.utils.vertex_groups import get_verts_in_vert_group, get_vert_indexes_in_vert_group
 
 
 def load_materials(directory_path, blend_filenames):
@@ -32,7 +32,7 @@ def get_materials_from_file(file_path):
 
 def load_secondary_material():
     '''Adds a blank material to the passed in object'''
-    prefs = get_prefs
+    prefs = get_prefs()
     secondary_mat = prefs.secondary_material
     if secondary_mat not in bpy.data.materials:
         secondary_mat = bpy.data.materials.new("Blank_Material")
@@ -63,7 +63,7 @@ def add_preview_mesh_subsurf(obj):
     '''Adds a triangulate modifier so that sockets etc. appear correctly
     then adds an adaptive subdivison modifier'''
 
-    obj_triangulate = obj.modifiers.new('Triangulate', 'TRIANGULATE')
+    obj.modifiers.new('Triangulate', 'TRIANGULATE')
 
     obj_subsurf = obj.modifiers.new('Subsurf', 'SUBSURF')
     obj_subsurf.subdivision_type = 'SIMPLE'

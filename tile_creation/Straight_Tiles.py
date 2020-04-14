@@ -12,10 +12,10 @@ from .. lib.utils.utils import mode
 from .. lib.utils.vertex_groups import straight_wall_to_vert_groups, rect_floor_to_vert_groups
 
 
+
 # MIXIN
 class MT_Straight_Tile:
     def create_plain_base(self, tile_props):
-
         base_size = tile_props.base_size
         tile_name = tile_props.tile_name
 

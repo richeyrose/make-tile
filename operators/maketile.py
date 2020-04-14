@@ -9,8 +9,8 @@ from .. lib.utils.collections import (
 from .. tile_creation.L_Tiles import MT_L_Wall, MT_L_Floor
 from .. tile_creation.Straight_Tiles import MT_Straight_Wall_Tile, MT_Straight_Floor_Tile
 from .. tile_creation.Curved_Tiles import MT_Curved_Wall_Tile, MT_Curved_Floor_Tile
+from .. tile_creation.Rectangular_Tiles import MT_Rectangular_Floor_Tile
 
-from .. tile_creation.create_rect_floor_tile import create_rectangular_floor
 from .. tile_creation.create_triangular_floor import create_triangular_floor
 from .. tile_creation.create_curved_floor import create_curved_floor
 
@@ -144,7 +144,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             MT_L_Floor(tile_props)
 
         if tile_type == 'RECTANGULAR_FLOOR':
-            create_rectangular_floor(tile_props)
+            MT_Rectangular_Floor_Tile(tile_props)
 
         if tile_type == 'TRIANGULAR_FLOOR':
             create_triangular_floor(tile_props)

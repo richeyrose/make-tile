@@ -520,7 +520,7 @@ def curved_floor_to_vert_groups(obj, height, side_length):
     mode('OBJECT')
 
 
-def tri_floor_to_vert_groups(obj, dim, height):
+def tri_floor_to_vert_groups(obj, dim, height, base_height, native_subdivisions):
     # make vertex groups
     obj.vertex_groups.new(name='Side b')
     obj.vertex_groups.new(name='Side a')
@@ -545,6 +545,7 @@ def tri_floor_to_vert_groups(obj, dim, height):
 
     bpy.ops.object.vertex_group_set_active(group='Top')
     bpy.ops.mesh.inset(thickness=0.001, depth=0)
+    bpy.ops.mesh.subdivide(number_cuts=native_subdivisions)
     bpy.ops.object.vertex_group_assign()
 
     deselect_all()
@@ -553,7 +554,7 @@ def tri_floor_to_vert_groups(obj, dim, height):
         ubound=(
             dim['loc_C'][0],
             dim['loc_C'][1],
-            dim['loc_C'][2] + height)
+            dim['loc_C'][2] + base_height)
     )
     bpy.ops.object.vertex_group_set_active(group='Side b')
     bpy.ops.object.vertex_group_assign()
@@ -564,7 +565,7 @@ def tri_floor_to_vert_groups(obj, dim, height):
         ubound=(
             dim['loc_B'][0],
             dim['loc_B'][1],
-            dim['loc_B'][2] + height)
+            dim['loc_B'][2] + base_height)
     )
     bpy.ops.object.vertex_group_set_active(group='Side c')
     bpy.ops.object.vertex_group_assign()
@@ -576,7 +577,7 @@ def tri_floor_to_vert_groups(obj, dim, height):
         ubound=(
             dim['loc_C'][0],
             dim['loc_C'][1],
-            dim['loc_C'][2] + height)
+            dim['loc_C'][2] + base_height)
     )
 
     select_by_loc(
@@ -584,7 +585,7 @@ def tri_floor_to_vert_groups(obj, dim, height):
         ubound=(
             dim['loc_B'][0],
             dim['loc_B'][1],
-            dim['loc_B'][2] + height),
+            dim['loc_B'][2] + base_height),
         additive=True
     )
 

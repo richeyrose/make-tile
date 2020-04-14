@@ -258,7 +258,7 @@ class MT_Straight_Floor_Tile(MT_Straight_Tile, MT_Tile):
             core.location[0],
             core.location[1] + (base_size[1] - tile_size[1]) / 2,
             cursor_start_loc[2] + base_size[2])
-    
+
         ctx = {
             'object': core,
             'active_object': core,

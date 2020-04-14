@@ -121,6 +121,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         tile_props.tile_units = scene_props.mt_tile_units
         tile_props.displacement_strength = scene_props.mt_displacement_strength
         tile_props.tile_resolution = scene_props.mt_tile_resolution
+        tile_props.tile_native_subdivisions = scene_props.mt_native_subdivisions
         tile_props.subdivisions = scene_props.mt_subdivisions
 
         ###############

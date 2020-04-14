@@ -20,7 +20,8 @@ class MT_PT_Tile_Generator_Panel(Panel):
         layout.prop(scene_props, 'mt_tile_blueprint')
         layout.prop(scene_props, 'mt_tile_type')
         layout.prop(scene_props, 'mt_tile_material_1', text="Main Material")
-
+        layout.prop(scene_props, 'mt_native_subdivisions')
+        
         if scene_props.mt_tile_blueprint == 'PLAIN':
             self.draw_plain_base_panel(context)
             self.draw_plain_main_part_panel(context)

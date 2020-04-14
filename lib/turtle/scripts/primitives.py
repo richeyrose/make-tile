@@ -5,7 +5,6 @@ from math import sqrt, cos, radians, acos, degrees
 # TODO: make it consistent whether we add turtle in script or prior
 def draw_cuboid(size):
     """Returns a cuboid. size = (x, y, z)"""
-    turtle = bpy.context.scene.cursor
     t = bpy.ops.turtle
 
     t.add_turtle()
@@ -78,7 +77,6 @@ def draw_tri_prism(b, c, A, height):
 
 
 def draw_curved_slab(radius, A, height, width, segments):
-    turtle = bpy.context.scene.cursor
     t = bpy.ops.turtle
     t.add_turtle()
     t.pd()

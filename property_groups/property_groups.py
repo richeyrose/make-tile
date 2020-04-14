@@ -286,11 +286,17 @@ class MT_Scene_Properties(PropertyGroup):
         step=1024,
     )
 
+    mt_native_subdivisions: bpy.props.IntProperty(
+        name="Native Subdivisions",
+        description="The number of times to subdivide the tile on creation",
+        default=5
+    )
+
     mt_subdivisions: bpy.props.IntProperty(
         name="Subdivisions",
         description="How many times to subdivide the displacement mesh. Higher = better but slower. \
         Going above 8 is really not recommended and may cause Blender to freeze up for a loooooong time!",
-        default=6,
+        default=4,
         soft_max=8,
         update=update_disp_subdivisions
     )
@@ -488,6 +494,12 @@ class MT_Tile_Properties(PropertyGroup):
         name="Type",
         description="The type of tile e.g. Straight Wall, Curved Floor",
         default="STRAIGHT_WALL",
+    )
+
+    tile_native_subdivisions: bpy.props.IntProperty(
+        name="Native Subdivisions",
+        description="The number of times to subdivide the tile on creation",
+        default=5
     )
 
     tile_size: bpy.props.FloatVectorProperty(

@@ -5,18 +5,17 @@ import bpy
 from .. lib.utils.collections import add_object_to_collection
 from .. utils.registration import get_prefs
 from .. lib.turtle.scripts.openlock_curved_wall_base import draw_openlock_curved_base
+from .. lib.turtle.scripts.straight_tile import draw_rectangular_floor_core, draw_straight_wall_core
 
 from .. lib.utils.selection import (
     deselect_all,
     select,
     activate)
 
-from .. lib.utils.utils import (
-    mode,
-    add_circle_array)
+from .. lib.utils.utils import (add_circle_array)
 
 from .. lib.utils.vertex_groups import (
-    straight_floor_to_vert_groups,
+    rect_floor_to_vert_groups,
     straight_wall_to_vert_groups)
 
 from . create_tile import MT_Tile
@@ -172,41 +171,27 @@ class MT_Curved_Floor_Tile(MT_Curved_Tile, MT_Tile):
         return self.create_plain_cores(base, tile_props)
 
     def create_core(self, tile_props):
-        segments = tile_props.segments
         angle = tile_props.degrees_of_arc
         radius = tile_props.wall_radius
         width = tile_props.tile_size[1]
         height = tile_props.tile_size[2] - tile_props.base_size[2]
-        base_height = tile_props.base_size[2]
         inner_circumference = 2 * pi * radius
         wall_length = inner_circumference / (360 / angle)
+        tile_name = tile_props.tile_name
+        native_subdivisions = tile_props.tile_native_subdivisions
 
         # Rather than creating our cores as curved objects we create them as straight cuboids
         # and then add a deform modifier. This allows us to not use the modifier when baking the
         # displacement texture by disabling it in render and thus being able to use
         # standard projections
 
-        t = bpy.ops.turtle
+        core = draw_rectangular_floor_core(
+            (wall_length,
+             width,
+             height),
+            native_subdivisions)
 
-        t.add_turtle()
-        t.pu()
-        t.rt(d=90)
-        t.pd()
-        i = 0
-        while i < segments:
-            t.fd(d=wall_length / segments)
-            i += 1
-        t.select_all()
-        t.lf(d=width)
-        t.select_all()
-        t.up(d=height)
-        t.select_all()
-        t.up(d=base_height, m=True)
-        t.home()
-        t.select_all()
-
-        core = bpy.context.object
-
+        core.name = tile_name + '.core'
         add_object_to_collection(core, tile_props.tile_name)
 
         ctx = {
@@ -215,12 +200,16 @@ class MT_Curved_Floor_Tile(MT_Curved_Tile, MT_Tile):
             'selected_objects': [core]
         }
 
+        bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
         bpy.ops.uv.smart_project(ctx, island_margin=0.05)
 
         tile_props.tile_size[0] = wall_length
-        straight_floor_to_vert_groups(core, tile_props)
+        rect_floor_to_vert_groups(core)
 
-        core.location[1] = core.location[1] + radius
+        core.location = (
+            core.location[0],
+            core.location[1] + tile_props.base_radius,
+            core.location[2] + tile_props.base_size[2])
 
         mod = core.modifiers.new('Simple_Deform', type='SIMPLE_DEFORM')
         mod.deform_method = 'BEND'
@@ -233,7 +222,7 @@ class MT_Curved_Floor_Tile(MT_Curved_Tile, MT_Tile):
         obj_props.is_mt_object = True
         obj_props.tile_name = tile_props.tile_name
 
-        return core    
+        return core
 
 class MT_Curved_Wall_Tile(MT_Curved_Tile, MT_Tile):
     def __init__(self, tile_props):
@@ -261,7 +250,7 @@ class MT_Curved_Wall_Tile(MT_Curved_Tile, MT_Tile):
         offset = (tile_props.base_size[1] - tile_props.tile_size[1]) / 2
         tile_props.wall_radius = tile_props.base_radius + offset
         textured_vertex_groups = ['Front', 'Back']
-        
+
         preview_core, displacement_core = self.create_cores(base, tile_props, textured_vertex_groups)
 
         cores = [preview_core, displacement_core]
@@ -294,72 +283,27 @@ class MT_Curved_Wall_Tile(MT_Curved_Tile, MT_Tile):
         return preview_core
 
     def create_core(self, tile_props):
-        scene = bpy.context.scene
-
-        segments = tile_props.segments
         angle = tile_props.degrees_of_arc
         radius = tile_props.wall_radius
         width = tile_props.tile_size[1]
-        height = tile_props.tile_size[2] - tile_props.base_size[2]
-        base_height = tile_props.base_size[2]
         inner_circumference = 2 * pi * radius
         wall_length = inner_circumference / (360 / angle)
-
-        cursor_start_loc = scene.cursor.location.copy()
+        tile_name = tile_props.tile_name
+        native_subdivisions = tile_props.tile_native_subdivisions
 
         # Rather than creating our cores as curved objects we create them as straight cuboids
         # and then add a deform modifier. This allows us to not use the modifier when baking the
         # displacement texture by disabling it in render and thus being able to use
         # standard projections
+        core = draw_straight_wall_core(
+            (wall_length,
+             width,
+             tile_props.tile_size[2]),
+            native_subdivisions)
 
-        t = bpy.ops.turtle
-
-        t.add_turtle()
-        t.pu()
-        t.rt(d=90)
-        t.pd()
-        i = 0
-        while i < segments:
-            t.fd(d=wall_length / segments)
-            i += 1
-        t.select_all()
-        t.lf(d=width)
-        t.select_all()
-        t.up(d=height)
-        t.select_all()
-        t.up(d=base_height, m=True)
-        t.home()
-        t.select_all()
-
-        core = bpy.context.object
+        core.name = tile_name + '.core'
 
         add_object_to_collection(core, tile_props.tile_name)
-
-        tile_size = core.dimensions
-        bpy.ops.mesh.bisect(
-            plane_co=(cursor_start_loc[0] + 0.001, 0, 0),
-            plane_no=(1, 0, 0))
-        bpy.ops.mesh.select_all(action='SELECT')
-        bpy.ops.mesh.bisect(
-            plane_co=(cursor_start_loc[0] + tile_size[0] - 0.001, 0, 0),
-            plane_no=(1, 0, 0))
-        bpy.ops.mesh.select_all(action='SELECT')
-        bpy.ops.mesh.bisect(
-            plane_co=(0, cursor_start_loc[1] + 0.001, 0),
-            plane_no=(0, 1, 0))
-        bpy.ops.mesh.select_all(action='SELECT')
-        bpy.ops.mesh.bisect(
-            plane_co=(0, cursor_start_loc[1] + tile_size[1] - 0.001, 0),
-            plane_no=(0, 1, 0))
-        bpy.ops.mesh.select_all(action='SELECT')
-        bpy.ops.mesh.bisect(
-            plane_co=(0, 0, cursor_start_loc[2] + tile_props.base_size[2] + 0.001),
-            plane_no=(0, 0, 1))
-        bpy.ops.mesh.select_all(action='SELECT')
-        bpy.ops.mesh.bisect(
-            plane_co=(0, 0, cursor_start_loc[2] + tile_size[2] + tile_props.base_size[2] - 0.01),
-            plane_no=(0, 0, 1))
-        mode('OBJECT')
 
         ctx = {
             'object': core,
@@ -371,7 +315,10 @@ class MT_Curved_Wall_Tile(MT_Curved_Tile, MT_Tile):
 
         straight_wall_to_vert_groups(core)
 
-        core.location[1] = core.location[1] + radius
+        core.location = (
+            core.location[0],
+            core.location[1] + radius,
+            core.location[2] + tile_props.base_size[2])
 
         mod = core.modifiers.new('Simple_Deform', type='SIMPLE_DEFORM')
         mod.deform_method = 'BEND'

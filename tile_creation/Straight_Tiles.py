@@ -7,7 +7,7 @@ from . create_tile import MT_Tile
 from .. utils.registration import get_prefs
 from .. lib.utils.collections import add_object_to_collection
 from .. lib.turtle.scripts.primitives import draw_cuboid
-from .. lib.turtle.scripts.straight_tile import draw_rectangular_floor_core, draw_straight_wall_core
+from .. lib.turtle.scripts.straight_tile import draw_straight_floor_core, draw_straight_wall_core
 from .. lib.utils.utils import mode
 from .. lib.utils.vertex_groups import straight_wall_to_vert_groups, rect_floor_to_vert_groups
 
@@ -245,7 +245,7 @@ class MT_Straight_Floor_Tile(MT_Straight_Tile, MT_Tile):
         tile_name = tile_props.tile_name
         native_subdivisions = tile_props.tile_native_subdivisions
 
-        core = draw_rectangular_floor_core(
+        core = draw_straight_floor_core(
             [tile_size[0],
              tile_size[1],
              tile_size[2] - base_size[2]],

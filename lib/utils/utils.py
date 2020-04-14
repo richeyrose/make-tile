@@ -116,7 +116,13 @@ def loopcut_and_add_deform_modifiers(obj, segments=8, degrees_of_arc=90, axis='Z
         'space': v3d
     }
 
-    bpy.ops.mesh.loopcut(override, number_cuts=segments - 2, smoothness=0, falloff='INVERSE_SQUARE', object_index=0, edge_index=2)
+    bpy.ops.mesh.loopcut(
+        override,
+        number_cuts=segments - 2,
+        smoothness=0,
+        falloff='INVERSE_SQUARE',
+        object_index=0,
+        edge_index=2)
 
     mode('OBJECT')
 

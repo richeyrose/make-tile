@@ -82,7 +82,7 @@ def draw_corner_3D(triangles, angle, thickness, height, inc_vert_locs=False):
 
 
 def draw_corner_2D(triangles, angle, thickness, return_object=False):
-    '''Draws a 2D corner mesh in which is an "L" shape when the base angle is 90
+    '''Draws a 2D corner mesh in which is an "L" shape
     and returns a dict containing the location of the verts for making vert
     groups later and optionally the object.'''
     mode('OBJECT')

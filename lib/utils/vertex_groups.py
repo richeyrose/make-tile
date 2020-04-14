@@ -434,7 +434,8 @@ def corner_wall_to_vert_groups(obj, vert_locs):
         bpy.ops.object.vertex_group_set_active(ctx, group='X Pos')
         bpy.ops.object.vertex_group_assign(ctx)
         bpy.ops.mesh.select_all(ctx, action="DESELECT")
-
+    
+    mode('OBJECT')
 
 def curved_floor_to_vert_groups(obj, height, side_length):
     obj.vertex_groups.new(name='Side a')

@@ -1,6 +1,7 @@
 from math import floor, sqrt
 import bpy
 from mathutils import *
+from ...utils.utils import view3d_find, mode
 outer_w = 0.2362                 # outer ring width
 slot_w = 0.1811                # slot width
 slot_h = 0.2402                # slot height
@@ -19,19 +20,26 @@ def draw_openlock_rect_floor_base(dimensions):
 
     t.add_turtle()
 
-    # We want our tile to have its origin at the center
-    # so we make sure the pen is up
-    # and move the cursor back along the Y axis by 0.5 Y
     t.pu()
     t.bk(d=y / 2)
     t.pd()
     t.add_vert()
     start_loc = turtle.location.copy()
     draw_quarter_floor(dimensions, start_loc)
+    mode('OBJECT')
+
     base = bpy.context.object
     mirror_mod = base.modifiers.new('Mirror', 'MIRROR')
     mirror_mod.use_axis[0] = True
     mirror_mod.use_axis[1] = True
+
+    # apply modifiers
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+
+    object_eval = base.evaluated_get(depsgraph)
+    mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
+    base.modifiers.clear()
+    base.data = mesh_from_eval
 
     return base
 

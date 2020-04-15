@@ -39,12 +39,14 @@ class MT_Rectangular_Tile:
 
     def create_openlock_base(self, tile_props):
         tile_name = tile_props.tile_name
-        tile_props.base_size = Vector((
+        base_size = tile_props.base_size
+
+        base_size = (
             tile_props.tile_size[0],
             tile_props.tile_size[1],
-            .2756))
+            .2756)
 
-        base = draw_openlock_rect_floor_base(tile_props.base_size)
+        base = draw_openlock_rect_floor_base(base_size)
         base.name = tile_props.tile_name + '.base'
         mode('OBJECT')
 
@@ -56,19 +58,23 @@ class MT_Rectangular_Tile:
             'selected_objects': [base]
         }
 
-        #bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-
         obj_props = base.mt_object_props
         obj_props.is_mt_object = True
         obj_props.geometry_type = 'BASE'
         obj_props.tile_name = tile_name
 
+        base.location = (
+            base.location[0] + base_size[0] / 2,
+            base.location[1] + base_size[1] / 2,
+            base.location[2]
+        )
+
+        bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+
         clip_cutters = self.create_openlock_base_clip_cutter(base, tile_props)
 
         for clip_cutter in clip_cutters:
-            matrixcopy = clip_cutter.matrix_world.copy()
             clip_cutter.parent = base
-            clip_cutter.matrix_world = matrixcopy
             clip_cutter.display_type = 'BOUNDS'
             clip_cutter.hide_viewport = True
             clip_cutter_bool = base.modifiers.new('Clip Cutter', 'BOOLEAN')
@@ -81,6 +87,7 @@ class MT_Rectangular_Tile:
         obj_props.is_mt_object = True
         obj_props.geometry_type = 'BASE'
         obj_props.tile_name = tile_props.tile_name
+
         return base
 
     def create_openlock_base_clip_cutter(self, base, tile_props):
@@ -112,8 +119,8 @@ class MT_Rectangular_Tile:
 
         # get location of bottom front left corner of tile
         front_left = (
-            base_location[0] - (tile_props.base_size[0] / 2),
-            base_location[1] - (tile_props.base_size[1] / 2),
+            base_location[0],
+            base_location[1],
             base_location[2])
 
         clip_cutter.location = (
@@ -127,14 +134,7 @@ class MT_Rectangular_Tile:
         array_mod.use_merge_vertices = True
 
         array_mod.fit_type = 'FIT_LENGTH'
-        array_mod.fit_length = tile_props.base_size[0] - 1
-
-        select(clip_cutter.name)
-        activate(clip_cutter.name)
-        mirror_mod = clip_cutter.modifiers.new('Mirror', 'MIRROR')
-        mirror_mod.use_axis[0] = False
-        mirror_mod.use_axis[1] = True
-        mirror_mod.mirror_object = base
+        array_mod.fit_length = base.dimensions[0] - 1
 
         clip_cutter2 = clip_cutter.copy()
         clip_cutter2.data = clip_cutter2.data.copy()
@@ -143,8 +143,8 @@ class MT_Rectangular_Tile:
         clip_cutter2.rotation_euler = (0, 0, math.radians(90))
 
         front_right = (
-            base_location[0] + (tile_props.base_size[0] / 2),
-            base_location[1] - (tile_props.base_size[1] / 2),
+            base_location[0] + base.dimensions[0],
+            base_location[1],
             base_location[2])
 
         clip_cutter2.location = (
@@ -154,14 +154,42 @@ class MT_Rectangular_Tile:
 
         array_mod2 = clip_cutter2.modifiers['Array']
         array_mod2.fit_type = 'FIT_LENGTH'
-        array_mod2.fit_length = tile_props.base_size[1] - 1
-        mirror_mod2 = clip_cutter2.modifiers['Mirror']
-        mirror_mod2.use_axis[0] = True
-        mirror_mod2.use_axis[1] = False
+        array_mod2.fit_length = base.dimensions[1] - 1
+
+        clip_cutter3 = clip_cutter.copy()
+        clip_cutter3.data = clip_cutter3.data.copy()
+        add_object_to_collection(clip_cutter3, tile_props.tile_name)
+
+        clip_cutter3.rotation_euler = (0, 0, math.radians(180))
+        
+        clip_cutter3.location = (
+            clip_cutter.location[0] + base.dimensions[0] - 1,
+            clip_cutter.location[1] + base.dimensions[1] - 0.5,
+            clip_cutter.location[2]
+        )
+        array_mod3 = clip_cutter3.modifiers['Array']
+        array_mod3.fit_type = 'FIT_LENGTH'
+        array_mod3.fit_length = base.dimensions[0] - 1
+
+        clip_cutter4 = clip_cutter2.copy()
+        clip_cutter4.data = clip_cutter4.data.copy()
+        add_object_to_collection(clip_cutter4, tile_props.tile_name)
+
+        clip_cutter4.rotation_euler = (0, 0, math.radians(-90))
+
+        clip_cutter4.location = (
+            clip_cutter2.location[0] - base.dimensions[0] + 0.5,
+            clip_cutter2.location[1] + base.dimensions[1] - 1,
+            clip_cutter2.location[2]
+        )
+
+        array_mod4 = clip_cutter4.modifiers['Array']
+        array_mod4.fit_type = 'FIT_LENGTH'
+        array_mod4.fit_length = base.dimensions[1] - 1
 
         bpy.ops.object.make_single_user(type='ALL', object=True, obdata=True)
 
-        return [clip_cutter, clip_cutter2]
+        return [clip_cutter, clip_cutter2, clip_cutter3, clip_cutter4]
 
 
 class MT_Rectangular_Floor_Tile(MT_Rectangular_Tile, MT_Tile):
@@ -238,10 +266,7 @@ class MT_Rectangular_Floor_Tile(MT_Rectangular_Tile, MT_Tile):
         core.name = tile_name + '.core'
         add_object_to_collection(core, tile_name)
 
-        core.location = (
-            core.location[0] - (tile_size[0] / 2),
-            core.location[1] - (tile_size[1] / 2),
-            cursor_start_loc[2] + base_size[2])
+        core.location[2] = cursor_start_loc[2] + base_size[2]
 
         ctx = {
             'object': core,

@@ -2,7 +2,7 @@ import os
 import bpy
 from math import radians
 from .. lib.turtle.scripts.curved_floor import draw_neg_curved_slab, draw_pos_curved_slab, draw_openlock_pos_curved_base
-from .. lib.turtle.scripts.L_Tile import calculate_corner_wall_triangles, move_cursor_to_wall_start, draw_corner_3D
+from .. lib.turtle.scripts.L_tile import calculate_corner_wall_triangles, move_cursor_to_wall_start, draw_corner_3D
 from .. lib.utils.vertex_groups import (
     curved_floor_to_vert_groups,
     construct_displacement_mod_vert_group)

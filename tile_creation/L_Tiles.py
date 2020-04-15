@@ -11,7 +11,7 @@ from .. utils.registration import get_prefs
 from .. lib.utils.selection import (
     deselect_all,
     select)
-from .. lib.turtle.scripts.L_Tile import (
+from .. lib.turtle.scripts.L_tile import (
     draw_corner_3D,
     draw_corner_wall,
     draw_corner_floor,

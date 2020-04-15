@@ -11,9 +11,9 @@ from .. tile_creation.Straight_Tiles import MT_Straight_Wall_Tile, MT_Straight_F
 from .. tile_creation.Curved_Tiles import MT_Curved_Wall_Tile, MT_Curved_Floor_Tile
 from .. tile_creation.Rectangular_Tiles import MT_Rectangular_Floor_Tile
 from .. tile_creation.Triangular_Tiles import MT_Triangular_Floor_Tile
+from .. tile_creation.Semi_Circ_Tiles import MT_Semi_Circ_Floor_Tile
 
-
-from .. tile_creation.create_curved_floor import create_curved_floor
+#from .. tile_creation.create_curved_floor import create_curved_floor
 
 from .. property_groups.property_groups import (
     MT_Tile_Properties,
@@ -151,7 +151,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             MT_Triangular_Floor_Tile(tile_props)
 
         if tile_type == 'SEMI_CIRC_FLOOR':
-            create_curved_floor(tile_props)
+            MT_Semi_Circ_Floor_Tile(tile_props)
 
         if tile_type == 'CURVED_FLOOR':
             MT_Curved_Floor_Tile(tile_props)

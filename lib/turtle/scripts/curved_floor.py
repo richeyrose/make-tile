@@ -254,27 +254,36 @@ def draw_openlock_pos_curved_base(length, segments, angle, height):
     return base
 
 
-def draw_pos_curved_slab(length, segments, angle, height):
+def draw_pos_curved_slab(length, segments, angle, height, native_subdivisions=1):
     t = bpy.ops.turtle
-    turtle = bpy.context.scene.cursor
 
     mode('OBJECT')
     t.add_turtle()
     t.pd()
-    t.fd(d=length)
+
+    i = 0
+    while i < native_subdivisions:
+        t.fd(d=length / native_subdivisions)
+        i += 1
+
     t.pu()
     t.home()
     t.deselect_all()
     t.select_at_cursor()
     t.pd()
     t.rt(d=angle)
-    t.fd(d=length)
+
+    i = 0
+    while i < native_subdivisions:
+        t.fd(d=length / native_subdivisions)
+        i += 1
+
     t.home()
     t.deselect_all()
     t.arc(r=length, d=angle, s=segments)
     t.select_all()
     t.merge(t=0.01)
-    bpy.ops.mesh.edge_face_add()
+    bpy.ops.mesh.fill_grid(use_interp_simple=True)
     t.pd()
     t.up(d=height)
     bpy.ops.mesh.inset(thickness=0.001, depth=0)
@@ -283,11 +292,6 @@ def draw_pos_curved_slab(length, segments, angle, height):
     t.pu()
     t.home()
     t.select_all()
-    '''
-    bpy.ops.mesh.quads_convert_to_tris(
-        quad_method='BEAUTY',
-        ngon_method='BEAUTY')
-    '''
     mode('OBJECT')
     slab = bpy.context.object
     deselect_all()
@@ -295,9 +299,8 @@ def draw_pos_curved_slab(length, segments, angle, height):
     return slab
 
 
-def draw_neg_curved_slab(length, segments, angle, height):
+def draw_neg_curved_slab(length, segments, angle, height, native_subdivisions=1):
     t = bpy.ops.turtle
-    turtle = bpy.context.scene.cursor
 
     dim = calc_tri(angle, length, length)
 
@@ -306,7 +309,11 @@ def draw_neg_curved_slab(length, segments, angle, height):
     t.pd()
 
     # draw side b
-    t.fd(d=length)
+    i = 0
+    while i < native_subdivisions:
+        t.fd(d=length / native_subdivisions)
+        i += 1
+
     t.pu()
     t.home()
     t.deselect_all()
@@ -315,7 +322,12 @@ def draw_neg_curved_slab(length, segments, angle, height):
 
     # draw side c
     t.rt(d=angle)
-    t.fd(d=length)
+
+    i = 0
+    while i < native_subdivisions:
+        t.fd(d=length / native_subdivisions)
+        i += 1
+
     t.deselect_all()
     t.pu()
 
@@ -330,7 +342,7 @@ def draw_neg_curved_slab(length, segments, angle, height):
     t.merge(t=0.01)
     bpy.ops.mesh.edge_face_add()
     t.pd()
-    t.up(d=height)
+    t.up(d=height)  
     bpy.ops.mesh.inset(thickness=0.001, depth=0)
     t.select_all()
     bpy.ops.mesh.normals_make_consistent()

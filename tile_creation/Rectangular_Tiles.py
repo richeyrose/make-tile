@@ -7,10 +7,10 @@ from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. lib.utils.collections import add_object_to_collection
 from .. lib.utils.utils import mode
 from .. utils.registration import get_prefs
-from .. lib.utils.selection import select, activate
 from .. lib.turtle.scripts.straight_tile import draw_rectangular_floor_core
 from .. lib.turtle.scripts.openlock_floor_base import draw_openlock_rect_floor_base
 from .. lib.utils.vertex_groups import rect_floor_to_vert_groups
+
 
 class MT_Rectangular_Tile:
     def create_plain_base(self, tile_props):
@@ -212,12 +212,6 @@ class MT_Rectangular_Floor_Tile(MT_Rectangular_Tile, MT_Tile):
                 tile_props.tile_size[1],
                 tile_props.base_size[2])
 
-    def create_plain_base(self, tile_props):
-        """Returns a plain base for a straight wall tile
-        """
-        base = MT_Rectangular_Tile.create_plain_base(self, tile_props)
-        return base
-
     def create_empty_base(self, tile_props):
         tile_props.base_size = (
             tile_props.tile_size[0],
@@ -272,6 +266,7 @@ class MT_Rectangular_Floor_Tile(MT_Rectangular_Tile, MT_Tile):
             'object': core,
             'active_object': core,
             'selected_objects': [core]
+            
         }
 
         bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')

@@ -12,7 +12,8 @@ from .. lib.turtle.scripts.L_tile import (
     move_cursor_to_wall_start,
     draw_corner_3D)
 from .. lib.utils.vertex_groups import (
-    curved_floor_to_vert_groups)
+    curved_floor_to_vert_groups,
+    neg_curved_floor_to_vert_groups)
 from .. utils.registration import get_prefs
 from .. lib.utils.selection import select, deselect_all
 from .. lib.utils.utils import mode
@@ -317,13 +318,18 @@ class MT_Semi_Circ_Floor_Tile(MT_Semi_Circ_Tile, MT_Tile):
 
         if curve_type == 'POS':
             core = draw_pos_curved_slab(radius, segments, angle, height, native_subdivisions)
+            curved_floor_to_vert_groups(
+                core,
+                height,
+                radius)
         else:
-            core = draw_neg_curved_slab(radius, segments, angle, height, native_subdivisions)
-
-        curved_floor_to_vert_groups(
-            core,
-            height,
-            radius)
+            core, vert_locs = draw_neg_curved_slab(radius, segments, angle, height, native_subdivisions, return_vert_locs=True)
+            neg_curved_floor_to_vert_groups(
+                core,
+                height,
+                radius,
+                vert_locs
+            )
 
         core.location[2] = core.location[2] + base_size[2]
         core.name = tile_props.tile_name + '.core'

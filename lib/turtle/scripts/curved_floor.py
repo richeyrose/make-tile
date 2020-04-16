@@ -1,6 +1,5 @@
-import bpy
 from math import sqrt, radians, degrees, cos, acos
-from mathutils import Vector
+import bpy
 from ...utils.utils import mode
 from ...utils.selection import deselect_all
 
@@ -298,22 +297,27 @@ def draw_pos_curved_slab(length, segments, angle, height, native_subdivisions=1)
 
     return slab
 
-
-def draw_neg_curved_slab(length, segments, angle, height, native_subdivisions=1):
+def draw_neg_curved_slab(length, segments, angle, height, native_subdivisions=1, return_vert_locs=False):
     t = bpy.ops.turtle
-
+    start_loc = bpy.context.scene.cursor.location.copy()
     dim = calc_tri(angle, length, length)
 
     mode('OBJECT')
     t.add_turtle()
     t.pd()
+    t.add_vert()
+    verts = bpy.context.object.data.vertices
+    vert_locs = {}
 
     # draw side b
+    side_b_vert_locs = []
     i = 0
     while i < native_subdivisions:
         t.fd(d=length / native_subdivisions)
         i += 1
-
+    for v in verts:
+        side_b_vert_locs.append(v.co.copy())
+    vert_locs['side_b'] = side_b_vert_locs
     t.pu()
     t.home()
     t.deselect_all()
@@ -322,12 +326,20 @@ def draw_neg_curved_slab(length, segments, angle, height, native_subdivisions=1)
 
     # draw side c
     t.rt(d=angle)
+    side_c_vert_locs = []
 
+    start_index = verts.values()[-1].index
     i = 0
     while i < native_subdivisions:
         t.fd(d=length / native_subdivisions)
         i += 1
 
+    i = start_index
+    while i <= verts.values()[-1].index:
+        side_c_vert_locs.append(verts[i].co.copy())
+        i += 1
+
+    vert_locs['side_c'] = side_c_vert_locs
     t.deselect_all()
     t.pu()
 
@@ -337,7 +349,23 @@ def draw_neg_curved_slab(length, segments, angle, height, native_subdivisions=1)
     t.lt(d=180)
 
     # draw side a
+    side_a_vert_locs = []
+    start_index = verts.values()[-1].index
     t.arc(r=length, d=angle, s=segments)
+
+    i = start_index
+    while i < verts.values()[-1].index:
+        side_a_vert_locs.append(verts[i].co.copy())
+        i += 1
+    side_a_vert_locs.append(verts[verts.values()[-1].index].co.copy())
+    vert_locs['side_a'] = side_a_vert_locs
+
+    t.pu()
+    t.deselect_all()
+    t.home()
+    t.fd(d=length)
+    t.select_at_cursor()
+    bpy.ops.mesh.merge(type='CURSOR')
     t.select_all()
     t.merge(t=0.01)
     bpy.ops.mesh.edge_face_add()
@@ -356,6 +384,9 @@ def draw_neg_curved_slab(length, segments, angle, height, native_subdivisions=1)
     mode('OBJECT')
     slab = bpy.context.object
     deselect_all()
+
+    if return_vert_locs is True:
+        return slab, vert_locs
 
     return slab
 

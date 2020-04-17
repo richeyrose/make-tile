@@ -56,7 +56,7 @@ class MT_Semi_Circ_Tile:
         angle = tile_props.angle
         height = tile_props.base_size[2]
         curve_type = tile_props.curve_type
-
+        native_subdivisions = tile_props.tile_native_subdivisions
         if curve_type == 'POS':
             base = draw_openlock_pos_curved_base(length, segments, angle, height)
             base.mt_object_props.geometry_type = 'BASE'
@@ -67,7 +67,7 @@ class MT_Semi_Circ_Tile:
             bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
 
         else:
-            draw_neg_curved_slab(length, segments, angle, height)
+            draw_neg_curved_slab(length, segments, angle, height, native_subdivisions)
             base = bpy.context.object
             base.mt_object_props.geometry_type = 'BASE'
             ctx = {

@@ -290,7 +290,7 @@ class MT_L_Floor(MT_L_Tile, MT_Tile):
 
     # although this is a slow method of subdividing it allows us to preserve
     # vertex groups easily in this case and is worth the hit
-    def subdivide_corner_floor(self, core, native_subdivisions=5):
+    def subdivide_corner_floor(self, core, native_subdivisions):
         mode('EDIT')
         region, rv3d, v3d, area = view3d_find(True)
 
@@ -306,7 +306,7 @@ class MT_L_Floor(MT_L_Tile, MT_Tile):
 
         bpy.ops.mesh.loopcut(
             ctx,
-            number_cuts=native_subdivisions,
+            number_cuts=native_subdivisions[0],
             smoothness=0,
             falloff='INVERSE_SQUARE',
             object_index=0,
@@ -314,7 +314,15 @@ class MT_L_Floor(MT_L_Tile, MT_Tile):
 
         bpy.ops.mesh.loopcut(
             ctx,
-            number_cuts=native_subdivisions,
+            number_cuts=native_subdivisions[1],
+            smoothness=0,
+            falloff='INVERSE_SQUARE',
+            object_index=0,
+            edge_index=53)
+
+        bpy.ops.mesh.loopcut(
+            ctx,
+            number_cuts=native_subdivisions[0],
             smoothness=0,
             falloff='INVERSE_SQUARE',
             object_index=0,
@@ -498,7 +506,7 @@ class MT_L_Wall(MT_L_Tile, MT_Tile):
 
         bpy.ops.mesh.loopcut(
             ctx,
-            number_cuts=native_subdivisions,
+            number_cuts=native_subdivisions[0],
             smoothness=0,
             falloff='INVERSE_SQUARE',
             object_index=0,
@@ -506,7 +514,7 @@ class MT_L_Wall(MT_L_Tile, MT_Tile):
 
         bpy.ops.mesh.loopcut(
             ctx,
-            number_cuts=native_subdivisions,
+            number_cuts=native_subdivisions[0],
             smoothness=0,
             falloff='INVERSE_SQUARE',
             object_index=0,
@@ -514,11 +522,35 @@ class MT_L_Wall(MT_L_Tile, MT_Tile):
 
         bpy.ops.mesh.loopcut(
             ctx,
-            number_cuts=native_subdivisions,
+            number_cuts=native_subdivisions[2],
             smoothness=0,
             falloff='INVERSE_SQUARE',
             object_index=0,
             edge_index=88)
+
+        bpy.ops.mesh.loopcut(
+            ctx,
+            number_cuts=native_subdivisions[1],
+            smoothness=0,
+            falloff='INVERSE_SQUARE',
+            object_index=0,
+            edge_index=92)
+        
+        bpy.ops.mesh.loopcut(
+            ctx,
+            number_cuts=native_subdivisions[1],
+            smoothness=0,
+            falloff='INVERSE_SQUARE',
+            object_index=0,
+            edge_index=57)
+
+        bpy.ops.mesh.loopcut(
+            ctx,
+            number_cuts=native_subdivisions[1],
+            smoothness=0,
+            falloff='INVERSE_SQUARE',
+            object_index=0,
+            edge_index=51)
 
         mode('OBJECT')  
 

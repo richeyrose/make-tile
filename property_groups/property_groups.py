@@ -96,7 +96,7 @@ class MT_Trimmer_Item(PropertyGroup):
 class MT_Scene_Properties(PropertyGroup):
     def change_tile_type(self, context):
         self.update_size_defaults(context)
-        self.update_native_subdiv_defaults(context)
+        self.update_subdiv_defaults(context)
     
     def update_size_defaults(self, context):
         '''updates tile and base size defaults depending on whether we are generating a base or wall'''
@@ -121,7 +121,7 @@ class MT_Scene_Properties(PropertyGroup):
             scene_props.mt_tile_y = 0.3149
 
 
-    def update_native_subdiv_defaults(self, context):
+    def update_subdiv_defaults(self, context):
         scene_props = context.scene.mt_scene_props
         if scene_props.mt_tile_type in (
                 'STRAIGHT_WALL',
@@ -130,8 +130,15 @@ class MT_Scene_Properties(PropertyGroup):
             scene_props.mt_native_subdivisions = (15, 2, 15)
         elif scene_props.mt_tile_type in (
                 'STRAIGHT_FLOOR',
-                'CURVED_FLOOR'):
+                'CURVED_FLOOR',
+                'CORNER_FLOOR'):
             scene_props.mt_native_subdivisions = (15, 3, 1)
+        elif scene_props.mt_tile_type == 'SEMI_CIRC_FLOOR' and scene_props.mt_curve_type == 'NEG':
+            scene_props.mt_native_subdivisions = (15, 8, 1)
+            scene_props.mt_segments = 20
+        elif scene_props.mt_tile_type == 'SEMI_CIRC_FLOOR' and scene_props.mt_curve_type == 'POS':
+            scene_props.mt_native_subdivisions = (15, 15, 1)
+            scene_props.mt_segments = 20
         else:
             scene_props.mt_native_subdivisions = (15, 15, 1)
 
@@ -444,7 +451,7 @@ class MT_Scene_Properties(PropertyGroup):
 
     mt_segments: bpy.props.IntProperty(
         name="Number of segments",
-        default=8
+        default=20
     )
 
     '''

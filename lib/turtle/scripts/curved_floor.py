@@ -261,8 +261,8 @@ def draw_pos_curved_slab(length, segments, angle, height, native_subdivisions=1)
     t.pd()
 
     i = 0
-    while i < native_subdivisions:
-        t.fd(d=length / native_subdivisions)
+    while i < native_subdivisions[0]:
+        t.fd(d=length / native_subdivisions[0])
         i += 1
 
     t.pu()
@@ -273,8 +273,8 @@ def draw_pos_curved_slab(length, segments, angle, height, native_subdivisions=1)
     t.rt(d=angle)
 
     i = 0
-    while i < native_subdivisions:
-        t.fd(d=length / native_subdivisions)
+    while i < native_subdivisions[0]:
+        t.fd(d=length / native_subdivisions[0])
         i += 1
 
     t.home()
@@ -282,7 +282,7 @@ def draw_pos_curved_slab(length, segments, angle, height, native_subdivisions=1)
     t.arc(r=length, d=angle, s=segments)
     t.select_all()
     t.merge(t=0.01)
-    bpy.ops.mesh.fill_grid(use_interp_simple=True)
+    bpy.ops.mesh.fill_grid(span=native_subdivisions[0])
     t.pd()
     t.up(d=height)
     bpy.ops.mesh.inset(thickness=0.001, depth=0)
@@ -297,7 +297,7 @@ def draw_pos_curved_slab(length, segments, angle, height, native_subdivisions=1)
 
     return slab
 
-def draw_neg_curved_slab(length, segments, angle, height, native_subdivisions=1, return_vert_locs=False):
+def draw_neg_curved_slab(length, segments, angle, height, native_subdivisions, return_vert_locs=False):
     t = bpy.ops.turtle
     start_loc = bpy.context.scene.cursor.location.copy()
     dim = calc_tri(angle, length, length)
@@ -312,8 +312,8 @@ def draw_neg_curved_slab(length, segments, angle, height, native_subdivisions=1,
     # draw side b
     side_b_vert_locs = []
     i = 0
-    while i < native_subdivisions:
-        t.fd(d=length / native_subdivisions)
+    while i < native_subdivisions[0]:
+        t.fd(d=length / native_subdivisions[0])
         i += 1
     for v in verts:
         side_b_vert_locs.append(v.co.copy())
@@ -330,8 +330,8 @@ def draw_neg_curved_slab(length, segments, angle, height, native_subdivisions=1,
 
     start_index = verts.values()[-1].index
     i = 0
-    while i < native_subdivisions:
-        t.fd(d=length / native_subdivisions)
+    while i < native_subdivisions[0]:
+        t.fd(d=length / native_subdivisions[0])
         i += 1
 
     i = start_index

@@ -69,7 +69,6 @@ class MT_PT_Tile_Generator_Panel(Panel):
             layout.label(text="Tile Properties:")
             layout.prop(scene_props, 'mt_base_radius')
             layout.prop(scene_props, 'mt_degrees_of_arc')
-            layout.prop(scene_props, 'mt_segments')
             layout.prop(scene_props, 'mt_base_socket_side')
             layout.label(text="Height")
             layout.prop(scene_props, 'mt_tile_z')

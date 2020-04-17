@@ -93,8 +93,11 @@ class MT_Trimmer_Item(PropertyGroup):
     parent: bpy.props.StringProperty(
         name="")
 
-
 class MT_Scene_Properties(PropertyGroup):
+    def change_tile_type(self, context):
+        self.update_size_defaults(context)
+        self.update_native_subdiv_defaults(context)
+    
     def update_size_defaults(self, context):
         '''updates tile and base size defaults depending on whether we are generating a base or wall'''
         scene_props = context.scene.mt_scene_props
@@ -116,6 +119,21 @@ class MT_Scene_Properties(PropertyGroup):
             scene_props.mt_base_z = 0.2755
             scene_props.mt_base_y = 0.5
             scene_props.mt_tile_y = 0.3149
+
+
+    def update_native_subdiv_defaults(self, context):
+        scene_props = context.scene.mt_scene_props
+        if scene_props.mt_tile_type in (
+                'STRAIGHT_WALL',
+                'CURVED_WALL',
+                'CORNER_WALL'):
+            scene_props.mt_native_subdivisions = (15, 2, 15)
+        elif scene_props.mt_tile_type in (
+                'STRAIGHT_FLOOR',
+                'CURVED_FLOOR'):
+            scene_props.mt_native_subdivisions = (15, 3, 1)
+        else:
+            scene_props.mt_native_subdivisions = (15, 15, 1)
 
     def update_disp_strength(self, context):
         obj = bpy.context.object
@@ -209,6 +227,15 @@ class MT_Scene_Properties(PropertyGroup):
         prefs = get_prefs()
         return prefs.default_base_system
 
+    mt_native_subdivisions: bpy.props.IntVectorProperty(
+        name="Native Subdivisions",
+        description="The number of times to subdivide the tile on creation",
+        min=1,
+        soft_max=25,
+        default=(15, 2, 15),
+        subtype='XYZ'
+    )
+
     mt_is_just_activated: bpy.props.BoolProperty(
         description="Has the add-on just been activated. Used to populate materials list first time round",
         default=False
@@ -246,7 +273,7 @@ class MT_Scene_Properties(PropertyGroup):
         items=tile_types,
         name="Type",
         default="STRAIGHT_WALL",
-        update=update_size_defaults
+        update=change_tile_type
     )
 
     mt_base_blueprint: bpy.props.EnumProperty(
@@ -285,13 +312,7 @@ class MT_Scene_Properties(PropertyGroup):
         max=8192,
         step=1024,
     )
-
-    mt_native_subdivisions: bpy.props.IntProperty(
-        name="Native Subdivisions",
-        description="The number of times to subdivide the tile on creation",
-        default=5
-    )
-
+    
     mt_subdivisions: bpy.props.IntProperty(
         name="Subdivisions",
         description="How many times to subdivide the displacement mesh. Higher = better but slower. \
@@ -496,10 +517,10 @@ class MT_Tile_Properties(PropertyGroup):
         default="STRAIGHT_WALL",
     )
 
-    tile_native_subdivisions: bpy.props.IntProperty(
+    tile_native_subdivisions: bpy.props.IntVectorProperty(
         name="Native Subdivisions",
         description="The number of times to subdivide the tile on creation",
-        default=5
+        default=(15, 2, 15)
     )
 
     tile_size: bpy.props.FloatVectorProperty(

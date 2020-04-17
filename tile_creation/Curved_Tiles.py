@@ -25,7 +25,7 @@ from . create_tile import MT_Tile
 class MT_Curved_Tile:
     def create_plain_base(self, tile_props):
         radius = tile_props.base_radius
-        segments = tile_props.segments
+        segments = tile_props.tile_native_subdivisions[0]
         angle = tile_props.degrees_of_arc
         height = tile_props.base_size[2]
         width = tile_props.base_size[1]
@@ -58,7 +58,7 @@ class MT_Curved_Tile:
         scene = bpy.context.scene
 
         radius = tile_props.base_radius
-        segments = tile_props.segments
+        segments = tile_props.tile_native_subdivisions[0]
         angle = tile_props.degrees_of_arc
         tile_props.base_size[2] = 0.2755
         tile_props.base_size[1] = 0.5
@@ -185,7 +185,7 @@ class MT_Curved_Floor_Tile(MT_Curved_Tile, MT_Tile):
         # displacement texture by disabling it in render and thus being able to use
         # standard projections
 
-        core = draw_rectangular_floor_core(
+        core = draw_straight_wall_core(
             (wall_length,
              width,
              height),

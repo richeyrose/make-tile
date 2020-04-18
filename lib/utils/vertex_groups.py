@@ -672,8 +672,6 @@ def tri_floor_to_vert_groups(obj, dim, height, base_height, native_subdivisions)
     )
 
     bpy.ops.object.vertex_group_set_active(group='Top')
-    bpy.ops.mesh.inset(thickness=0.001, depth=0)
-    bpy.ops.mesh.subdivide(number_cuts=native_subdivisions[0])
     bpy.ops.object.vertex_group_assign()
 
     deselect_all()

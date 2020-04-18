@@ -230,7 +230,7 @@ class MT_L_Floor(MT_L_Tile, MT_Tile):
         leg_1_len = tile_props.leg_1_len
         leg_2_len = tile_props.leg_2_len
         angle = tile_props.angle
-        native_subdivisions = tile_props.tile_native_subdivisions
+        native_subdivisions = tile_props.native_subdivisions
         thickness_diff = base_thickness - core_thickness
 
         # first work out where we're going to start drawing our wall
@@ -431,7 +431,7 @@ class MT_L_Wall(MT_L_Tile, MT_Tile):
         leg_1_len = tile_props.leg_1_len
         leg_2_len = tile_props.leg_2_len
         angle = tile_props.angle
-        native_subdivisions = tile_props.tile_native_subdivisions
+        native_subdivisions = tile_props.native_subdivisions
         thickness_diff = base_thickness - wall_thickness
 
         # first work out where we're going to start drawing our wall

@@ -14,11 +14,8 @@ from .. enums.enums import (
     units,
     material_mapping)
 
-from .. materials.materials import (
-    get_blend_filenames,
-    load_materials)
-
 from .. lib.utils.update_scene_props import load_material_libraries
+
 
 # Radio buttons used in menus
 class MT_Radio_Buttons(PropertyGroup):
@@ -97,7 +94,7 @@ class MT_Scene_Properties(PropertyGroup):
     def change_tile_type(self, context):
         self.update_size_defaults(context)
         self.update_subdiv_defaults(context)
-    
+
     def update_size_defaults(self, context):
         '''updates tile and base size defaults depending on whether we are generating a base or wall'''
         scene_props = context.scene.mt_scene_props
@@ -120,27 +117,46 @@ class MT_Scene_Properties(PropertyGroup):
             scene_props.mt_base_y = 0.5
             scene_props.mt_tile_y = 0.3149
 
-
     def update_subdiv_defaults(self, context):
         scene_props = context.scene.mt_scene_props
-        if scene_props.mt_tile_type in (
-                'STRAIGHT_WALL',
-                'CURVED_WALL',
-                'CORNER_WALL'):
-            scene_props.mt_native_subdivisions = (15, 2, 15)
-        elif scene_props.mt_tile_type in (
-                'STRAIGHT_FLOOR',
-                'CURVED_FLOOR',
-                'CORNER_FLOOR'):
-            scene_props.mt_native_subdivisions = (15, 3, 1)
-        elif scene_props.mt_tile_type == 'SEMI_CIRC_FLOOR' and scene_props.mt_curve_type == 'NEG':
-            scene_props.mt_native_subdivisions = (15, 8, 1)
-            scene_props.mt_segments = 20
-        elif scene_props.mt_tile_type == 'SEMI_CIRC_FLOOR' and scene_props.mt_curve_type == 'POS':
-            scene_props.mt_native_subdivisions = (15, 15, 1)
-            scene_props.mt_segments = 20
-        else:
-            scene_props.mt_native_subdivisions = (15, 15, 1)
+        if scene_props.mt_tile_type == 'STRAIGHT_WALL':
+            scene_props.mt_x_native_subdivisions = 15
+            scene_props.mt_y_native_subdivisions = 3
+            scene_props.mt_z_native_subdivisions = 15
+        elif scene_props.mt_tile_type == 'STRAIGHT_FLOOR':
+            scene_props.mt_x_native_subdivisions = 15
+            scene_props.mt_y_native_subdivisions = 3
+            scene_props.mt_z_native_subdivisions = 1
+        elif scene_props.mt_tile_type == 'CURVED_WALL':
+            scene_props.mt_curve_native_subdivisions = 20
+            scene_props.mt_y_native_subdivisions = 3
+            scene_props.mt_z_native_subdivisions = 15
+        elif scene_props.mt_tile_type == 'CURVED_FLOOR':
+            scene_props.mt_curve_native_subdivisions = 20
+            scene_props.mt_y_native_subdivisions = 3
+            scene_props.mt_z_native_subdivisions = 1
+        elif scene_props.mt_tile_type == 'CORNER_WALL':
+            scene_props.mt_x_native_subdivisions = 15
+            scene_props.mt_y_native_subdivisions = 2
+            scene_props.mt_z_native_subdivisions = 15
+        elif scene_props.mt_tile_type == 'CORNER_FLOOR':
+            scene_props.mt_x_native_subdivisions = 15
+            scene_props.mt_y_native_subdivisions = 2
+            scene_props.mt_z_native_subdivisions = 1
+        elif scene_props.mt_tile_type == 'RECTANGULAR_FLOOR':
+            scene_props.mt_x_native_subdivisions = 15
+            scene_props.mt_y_native_subdivisions = 15
+            scene_props.mt_z_native_subdivisions = 1
+        elif scene_props.mt_tile_type == 'TRIANGULAR_FLOOR':
+            scene_props.mt_x_native_subdivisions = 15
+            scene_props.mt_y_native_subdivisions = 15
+            scene_props.mt_z_native_subdivisions = 1
+            scene_props.mt_opposite_native_subdivisions = 15
+        elif scene_props.mt_tile_type == 'SEMI_CIRC_FLOOR':
+            scene_props.mt_x_native_subdivisions = 15
+            scene_props.mt_y_native_subdivisions = 15
+            scene_props.mt_z_native_subdivisions = 1
+            scene_props.mt_curve_native_subdivisions = 20
 
     def update_disp_strength(self, context):
         obj = bpy.context.object
@@ -205,7 +221,6 @@ class MT_Scene_Properties(PropertyGroup):
 
         if context.scene.mt_scene_props.mt_is_just_activated is True:
             load_material_libraries(dummy=None)
-            #context.scene.mt_scene_props.mt_is_just_activated = False
 
         prefs = get_prefs()
 
@@ -216,32 +231,6 @@ class MT_Scene_Properties(PropertyGroup):
                 enum = (material.name, material.name, "")
                 enum_items.append(enum)
         return enum_items
-
-    # TODO: See why we get warning if we use this
-    def get_default_units(self, context):
-        prefs = get_prefs()
-        return prefs.default_units
-
-    def get_default_tile_blueprint(self, context):
-        prefs = get_prefs()
-        return prefs.default_tile_blueprint
-
-    def get_default_tile_main_system(self, context):
-        prefs = get_prefs()
-        return prefs.default_tile_main_system
-
-    def get_default_base_system(self, context):
-        prefs = get_prefs()
-        return prefs.default_base_system
-
-    mt_native_subdivisions: bpy.props.IntVectorProperty(
-        name="Native Subdivisions",
-        description="The number of times to subdivide the tile on creation",
-        min=1,
-        soft_max=25,
-        default=(15, 2, 15),
-        subtype='XYZ'
-    )
 
     mt_is_just_activated: bpy.props.BoolProperty(
         description="Has the add-on just been activated. Used to populate materials list first time round",
@@ -289,6 +278,37 @@ class MT_Scene_Properties(PropertyGroup):
         default='OPENLOCK'
     )
 
+    # Native Subdivisions #
+    mt_x_native_subdivisions: bpy.props.IntProperty(
+        name="X",
+        description="The number of times to subdivide the X axis on creation",
+        default=15
+    )
+
+    mt_y_native_subdivisions: bpy.props.IntProperty(
+        name="Y",
+        description="The number of times to subdivide the Y axis on creation",
+        default=3
+    )
+
+    mt_z_native_subdivisions: bpy.props.IntProperty(
+        name="Z",
+        description="The number of times to subdivide the Z axis on creation",
+        default=15
+    )
+
+    mt_opposite_native_subdivisions: bpy.props.IntProperty(
+        name="Opposite Side",
+        description="The number of times to subdivide the edge opposite the root angle on triangular tile creation",
+        default=1
+    )
+
+    mt_curve_native_subdivisions: bpy.props.IntProperty(
+        name="Curved Side",
+        description="The number of times to subdivide the curved side of a tile",
+        default=1
+    )
+
     mt_material_mapping_method: bpy.props.EnumProperty(
         items=material_mapping,
         description="How to map the active material onto an object",
@@ -319,12 +339,11 @@ class MT_Scene_Properties(PropertyGroup):
         max=8192,
         step=1024,
     )
-    
+
     mt_subdivisions: bpy.props.IntProperty(
         name="Subdivisions",
-        description="How many times to subdivide the displacement mesh. Higher = better but slower. \
-        Going above 8 is really not recommended and may cause Blender to freeze up for a loooooong time!",
-        default=4,
+        description="How many times to subdivide the displacement mesh with a subsurf modifier. Higher = better but slower.",
+        default=3,
         soft_max=8,
         update=update_disp_subdivisions
     )
@@ -449,19 +468,6 @@ class MT_Scene_Properties(PropertyGroup):
         min=0
     )
 
-    mt_segments: bpy.props.IntProperty(
-        name="Number of segments",
-        default=20
-    )
-
-    '''
-    @classmethod
-    def unregister(cls):
-        for pcoll in enum_collections.values():
-            bpy.utils.previews.remove(pcoll)
-        enum_collections.clear()
-    '''
-
 
 class MT_Object_Properties(PropertyGroup):
     is_mt_object: bpy.props.BoolProperty(
@@ -491,6 +497,7 @@ class MT_Object_Properties(PropertyGroup):
         description="Used for storing a reference from a preview object to a displacement object and vice versa"
     )
 
+
 class MT_Tile_Properties(PropertyGroup):
     is_mt_collection: bpy.props.BoolProperty(
         name="Is MakeTile collection",
@@ -500,6 +507,7 @@ class MT_Tile_Properties(PropertyGroup):
         name="Tile Name"
     )
 
+    # Tile type #
     tile_blueprint: bpy.props.EnumProperty(
         items=tile_blueprints,
         name="Blueprint",
@@ -524,12 +532,45 @@ class MT_Tile_Properties(PropertyGroup):
         default="STRAIGHT_WALL",
     )
 
-    tile_native_subdivisions: bpy.props.IntVectorProperty(
-        name="Native Subdivisions",
-        description="The number of times to subdivide the tile on creation",
-        default=(15, 2, 15)
+    # Native Subdivisions #
+    x_native_subdivisions: bpy.props.IntProperty(
+        name="X",
+        description="The number of times to subdivide the X axis on creation",
+        default=15
     )
 
+    y_native_subdivisions: bpy.props.IntProperty(
+        name="Y",
+        description="The number of times to subdivide the Y axis on creation",
+        default=3
+    )
+
+    z_native_subdivisions: bpy.props.IntProperty(
+        name="Z",
+        description="The number of times to subdivide the Z axis on creation",
+        default=15
+    )
+
+    opposite_native_subdivisions: bpy.props.IntProperty(
+        name="Opposite Side",
+        description="The number of times to subdivide the edge opposite the root angle on triangular tile creation",
+        default=1
+    )
+
+    curve_native_subdivisions: bpy.props.IntProperty(
+        name="Curved Side",
+        description="The number of times to subdivide the curved side of a tile",
+        default=1
+    )
+
+    # Subsurf modifier subdivisions #
+    subdivisions: bpy.props.IntProperty(
+        name="Subdivisions",
+        description="Subsurf modifier subdivision levels",
+        default=3
+    )
+
+    # Dimensions #
     tile_size: bpy.props.FloatVectorProperty(
         name="Tile Size"
     )
@@ -559,10 +600,6 @@ class MT_Tile_Properties(PropertyGroup):
         name="Angle"
     )
 
-    segments: bpy.props.IntProperty(
-        name="Segments"
-    )
-
     leg_1_len: bpy.props.FloatProperty(
         name="Leg 1 Length"
     )
@@ -587,14 +624,4 @@ class MT_Tile_Properties(PropertyGroup):
 
     tile_resolution: bpy.props.IntProperty(
         name="Tile Resolution"
-    )
-
-    subdivisions: bpy.props.IntProperty(
-        name="Subdivisions"
-    )
-
-    # Collection of trimmers that can be turned on or off
-    # by MakeTile. Deprecated
-    trimmers_collection: bpy.props.CollectionProperty(
-        type=MT_Trimmer_Item
     )

@@ -261,8 +261,8 @@ def draw_pos_curved_slab(length, segments, angle, height, native_subdivisions=1)
     t.pd()
 
     i = 0
-    while i < native_subdivisions[0]:
-        t.fd(d=length / native_subdivisions[0])
+    while i < native_subdivisions[1]:
+        t.fd(d=length / native_subdivisions[1])
         i += 1
 
     t.pu()
@@ -279,12 +279,15 @@ def draw_pos_curved_slab(length, segments, angle, height, native_subdivisions=1)
 
     t.home()
     t.deselect_all()
-    t.arc(r=length, d=angle, s=segments)
+    t.arc(r=length, d=angle, s=native_subdivisions[3])
     t.select_all()
     t.merge(t=0.01)
     bpy.ops.mesh.fill_grid(span=native_subdivisions[0])
     t.pd()
-    t.up(d=height)
+    i = 0
+    while i < native_subdivisions[2]:
+        t.up(d=height / native_subdivisions[2])
+        i += 1
     bpy.ops.mesh.inset(thickness=0.001, depth=0)
     t.select_all()
     bpy.ops.mesh.normals_make_consistent()
@@ -299,7 +302,6 @@ def draw_pos_curved_slab(length, segments, angle, height, native_subdivisions=1)
 
 def draw_neg_curved_slab(length, segments, angle, height, native_subdivisions, return_vert_locs=False):
     t = bpy.ops.turtle
-    start_loc = bpy.context.scene.cursor.location.copy()
     dim = calc_tri(angle, length, length)
 
     mode('OBJECT')

@@ -57,8 +57,7 @@ def draw_triangle(b, c, A):
         'loc_C': loc_C}
 
     return bpy.context.object, dimensions
-
-
+    
 def draw_tri_prism(b, c, A, height):
     '''draws a triangular prism given the length of two sides of triangle (a, b),
     the angle between them (A) and the height'''

@@ -243,7 +243,11 @@ class MT_Straight_Floor_Tile(MT_Straight_Tile, MT_Tile):
         tile_size = tile_props.tile_size
         base_size = tile_props.base_size
         tile_name = tile_props.tile_name
-        native_subdivisions = tile_props.tile_native_subdivisions
+        native_subdivisions = (
+            tile_props.x_native_subdivisions,
+            tile_props.y_native_subdivisions,
+            tile_props.z_native_subdivisions
+        )
 
         core = draw_straight_floor_core(
             [tile_size[0],
@@ -359,7 +363,11 @@ class MT_Straight_Wall_Tile(MT_Straight_Tile, MT_Tile):
         tile_size = tile_props.tile_size
         base_size = tile_props.base_size
         tile_name = tile_props.tile_name
-        native_subdivisions = tile_props.tile_native_subdivisions
+        native_subdivisions = (
+            tile_props.x_native_subdivisions,
+            tile_props.y_native_subdivisions,
+            tile_props.z_native_subdivisions
+        )
 
         core = draw_straight_wall_core(
             [tile_size[0],

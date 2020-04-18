@@ -1,7 +1,7 @@
 import bpy
 from . primitives import draw_tri_prism, draw_triangle
 from ... utils.utils import mode
-
+from math import sqrt, cos, radians, acos, degrees
 
 def draw_plain_triangular_base(tile_props):
     t = bpy.ops.turtle
@@ -200,5 +200,60 @@ def draw_base(b, c, height, start_loc, A):
     t.home()
 
     bpy.ops.object.mode_set(mode='OBJECT')
+
+    return bpy.context.object, dimensions
+
+def draw_tri_floor_core(b, c, A, height, native_subdivisions=(15, 2)):
+    '''draws a triangle given the length of two sides (b, c) and the angle between them (A).
+    native_subdivisions contains subdivs for edges and z axis'''
+    a = sqrt((b**2 + c**2) - ((2 * b * c) * cos(radians(A))))
+    B = degrees(acos((c**2 + a**2 - (b**2)) / (2 * c * a)))
+    C = 180 - A - B
+
+    mode('OBJECT')
+
+    turtle = bpy.context.scene.cursor
+    t = bpy.ops.turtle
+    t.add_turtle()
+
+    t.pd()
+    t.add_vert()
+
+    loc_A = turtle.location.copy()
+    t.begin_path()
+    t.fd(d=b)
+    loc_B = turtle.location.copy()
+    t.rt(d=180 - C)
+    t.fd(d=a)
+    loc_C = turtle.location.copy()
+    t.rt(d=180 - B)
+    t.fd(d=c)
+
+    t.select_all()
+    t.merge()
+    bpy.ops.mesh.edge_face_add()
+    bpy.ops.mesh.subdivide(number_cuts=native_subdivisions[0])
+
+    i = 0
+    while i < native_subdivisions[1]:
+        t.up(d=height / native_subdivisions[1])
+        i += 1
+
+    bpy.ops.mesh.inset(thickness=0.001, depth=0)
+    t.select_all()
+    bpy.ops.mesh.normals_make_consistent()
+    t.pu()
+    t.home()
+
+    dimensions = {
+        'a': a,  # sides
+        'b': b,
+        'c': c,
+        'A': A,  # angles
+        'B': B,
+        'C': C,
+        'loc_A': loc_A,  # corner coords
+        'loc_B': loc_B,
+        'loc_C': loc_C}
 
     return bpy.context.object, dimensions

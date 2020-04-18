@@ -1,7 +1,4 @@
-# from DECALmachine #
-
 import os
-import bpy
 
 
 def abspath(path):

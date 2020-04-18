@@ -5,7 +5,7 @@ from . create_tile import MT_Tile
 from .. utils.registration import get_prefs
 from .. lib.turtle.scripts.triangular_tile import (
     draw_plain_triangular_base,
-    draw_triangular_floor_core,
+    draw_tri_floor_core,
     draw_openlock_tri_floor_base)
 from .. lib.utils.collections import add_object_to_collection
 from .. lib.utils.utils import mode
@@ -95,9 +95,17 @@ class MT_Triangular_Floor_Tile(MT_Tile):
 
     def create_core(self, tile_props):
         tile_name = tile_props.tile_name
-        native_subdivisions = tile_props.tile_native_subdivisions
+        native_subdivisions = (
+            tile_props.opposite_native_subdivisions,
+            tile_props.z_native_subdivisions)
 
-        core, dimensions = draw_triangular_floor_core(tile_props)
+        core, dimensions = draw_tri_floor_core(
+            tile_props.leg_1_len,
+            tile_props.leg_2_len,
+            tile_props.angle,
+            tile_props.tile_size[2] - tile_props.base_size[2],
+            native_subdivisions)
+
         core.name = tile_name + '.core'
         add_object_to_collection(core, tile_name)
 

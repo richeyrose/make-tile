@@ -56,9 +56,13 @@ def update_mt_scene_props_handler(dummy):
         scene_props.mt_wall_radius = tile_props.wall_radius
         scene_props.mt_curve_type = tile_props.curve_type
         scene_props.mt_degrees_of_arc = tile_props.degrees_of_arc
-        scene_props.mt_segments = tile_props.segments
-
-
+              
+        scene_props.mt_x_native_subdivisions = tile_props.x_native_subdivisions
+        scene_props.mt_y_native_subdivisions = tile_props.y_native_subdivisions
+        scene_props.mt_z_native_subdivisions = tile_props.z_native_subdivisions
+        scene_props.mt_opposite_native_subdivisions = tile_props.opposite_native_subdivisions
+        scene_props.mt_curve_native_subdivisions = tile_props.curve_native_subdivisions
+        
 bpy.app.handlers.depsgraph_update_post.append(update_mt_scene_props_handler)
 bpy.app.handlers.load_post.append(load_material_libraries)
 bpy.app.handlers.depsgraph_update_pre.append(load_materials_on_addon_activation)

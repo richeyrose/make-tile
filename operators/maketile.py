@@ -1,4 +1,4 @@
-"""Contains operator class to make tiles"""
+"""Operator class to make tiles"""
 import bpy
 
 from .. lib.utils.selection import deselect_all
@@ -12,8 +12,6 @@ from .. tile_creation.Curved_Tiles import MT_Curved_Wall_Tile, MT_Curved_Floor_T
 from .. tile_creation.Rectangular_Tiles import MT_Rectangular_Floor_Tile
 from .. tile_creation.Triangular_Tiles import MT_Triangular_Floor_Tile
 from .. tile_creation.Semi_Circ_Tiles import MT_Semi_Circ_Floor_Tile
-
-#from .. tile_creation.create_curved_floor import create_curved_floor
 
 from .. property_groups.property_groups import (
     MT_Tile_Properties,
@@ -100,7 +98,6 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         # We store tile properties in the mt_tile_props property group of
         # the collection so we can access them from any object in this
         # collection.
-
         tile_props = tile_collection.mt_tile_props
         tile_props.tile_name = tile_collection.name
         tile_props.is_mt_collection = True
@@ -115,15 +112,19 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         tile_props.wall_radius = scene_props.mt_wall_radius
         tile_props.degrees_of_arc = scene_props.mt_degrees_of_arc
         tile_props.angle = scene_props.mt_angle
-        tile_props.segments = scene_props.mt_segments
+
         tile_props.leg_1_len = scene_props.mt_leg_1_len
         tile_props.leg_2_len = scene_props.mt_leg_2_len
         tile_props.curve_type = scene_props.mt_curve_type
         tile_props.tile_units = scene_props.mt_tile_units
         tile_props.displacement_strength = scene_props.mt_displacement_strength
         tile_props.tile_resolution = scene_props.mt_tile_resolution
-        tile_props.tile_native_subdivisions = scene_props.mt_native_subdivisions
-        tile_props.subdivisions = scene_props.mt_subdivisions
+
+        tile_props.x_native_subdivisions = scene_props.mt_x_native_subdivisions
+        tile_props.y_native_subdivisions = scene_props.mt_y_native_subdivisions
+        tile_props.z_native_subdivisions = scene_props.mt_z_native_subdivisions
+        tile_props.opposite_native_subdivisions = scene_props.mt_opposite_native_subdivisions
+        tile_props.curve_native_subdivisions = scene_props.mt_curve_native_subdivisions
 
         ###############
         # Create Tile #
@@ -179,5 +180,5 @@ class MT_OT_Make_Tile(bpy.types.Operator):
     @classmethod
     def unregister(cls):
         del bpy.types.Scene.mt_scene_props
-        del bpy.types.Collection.mt_tile_props
         del bpy.types.Object.mt_object_props
+        del bpy.types.Collection.mt_tile_props

@@ -27,3 +27,21 @@ def unregister_classes(classlist):
     for cls in classlist:
         unregister_class(cls)
 
+def get_default_units():
+    prefs = get_prefs()
+    return prefs.default_units
+
+
+def get_default_tile_blueprint():
+    prefs = get_prefs()
+    return prefs.default_tile_blueprint
+
+
+def get_default_tile_main_system():
+    prefs = get_prefs()
+    return prefs.default_tile_main_system
+
+
+def get_default_base_system():
+    prefs = get_prefs()
+    return prefs.default_base_system

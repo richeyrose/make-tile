@@ -25,7 +25,7 @@ from . create_tile import MT_Tile
 class MT_Curved_Tile:
     def create_plain_base(self, tile_props):
         radius = tile_props.base_radius
-        segments = tile_props.tile_native_subdivisions[0]
+        segments = tile_props.curve_native_subdivisions
         angle = tile_props.degrees_of_arc
         height = tile_props.base_size[2]
         width = tile_props.base_size[1]
@@ -58,7 +58,7 @@ class MT_Curved_Tile:
         scene = bpy.context.scene
 
         radius = tile_props.base_radius
-        segments = tile_props.tile_native_subdivisions[0]
+        segments = tile_props.curve_native_subdivisions
         angle = tile_props.degrees_of_arc
         tile_props.base_size[2] = 0.2755
         tile_props.base_size[1] = 0.5
@@ -172,13 +172,17 @@ class MT_Curved_Floor_Tile(MT_Curved_Tile, MT_Tile):
 
     def create_core(self, tile_props):
         angle = tile_props.degrees_of_arc
-        radius = tile_props.wall_radius
+        radius = tile_props.base_radius
         width = tile_props.tile_size[1]
         height = tile_props.tile_size[2] - tile_props.base_size[2]
         inner_circumference = 2 * pi * radius
         wall_length = inner_circumference / (360 / angle)
         tile_name = tile_props.tile_name
-        native_subdivisions = tile_props.tile_native_subdivisions
+        native_subdivisions = (
+            tile_props.curve_native_subdivisions,
+            tile_props.y_native_subdivisions,
+            tile_props.z_native_subdivisions
+        )
 
         # Rather than creating our cores as curved objects we create them as straight cuboids
         # and then add a deform modifier. This allows us to not use the modifier when baking the
@@ -289,7 +293,11 @@ class MT_Curved_Wall_Tile(MT_Curved_Tile, MT_Tile):
         inner_circumference = 2 * pi * radius
         wall_length = inner_circumference / (360 / angle)
         tile_name = tile_props.tile_name
-        native_subdivisions = tile_props.tile_native_subdivisions
+        native_subdivisions = (
+            tile_props.curve_native_subdivisions,
+            tile_props.y_native_subdivisions,
+            tile_props.z_native_subdivisions
+        )
 
         # Rather than creating our cores as curved objects we create them as straight cuboids
         # and then add a deform modifier. This allows us to not use the modifier when baking the

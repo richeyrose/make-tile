@@ -23,7 +23,7 @@ from .. lib.utils.collections import add_object_to_collection
 class MT_Semi_Circ_Tile:
     def create_plain_base(self, tile_props):
         radius = tile_props.base_radius
-        segments = tile_props.segments
+        segments = tile_props.curve_native_subdivisions
         angle = tile_props.angle
         height = tile_props.base_size[2]
         curve_type = tile_props.curve_type
@@ -52,11 +52,17 @@ class MT_Semi_Circ_Tile:
         tile_props.base_size[2] = 0.2756
 
         length = tile_props.base_radius
-        segments = tile_props.segments
+        segments = tile_props.curve_native_subdivisions
         angle = tile_props.angle
         height = tile_props.base_size[2]
         curve_type = tile_props.curve_type
-        native_subdivisions = tile_props.tile_native_subdivisions
+        native_subdivisions = (
+            tile_props.x_native_subdivisions,
+            tile_props.y_native_subdivisions,
+            tile_props.z_native_subdivisions,
+            tile_props.curve_native_subdivisions
+        )
+
         if curve_type == 'POS':
             base = draw_openlock_pos_curved_base(length, segments, angle, height)
             base.mt_object_props.geometry_type = 'BASE'
@@ -310,11 +316,16 @@ class MT_Semi_Circ_Floor_Tile(MT_Semi_Circ_Tile, MT_Tile):
         '''
         base_size = tile_props.base_size
         radius = tile_props.base_radius
-        segments = tile_props.segments
+        segments = tile_props.curve_native_subdivisions
         angle = tile_props.angle
         height = tile_props.tile_size[2] - base_size[2]
         curve_type = tile_props.curve_type
-        native_subdivisions = tile_props.tile_native_subdivisions
+        native_subdivisions = (
+            tile_props.x_native_subdivisions,
+            tile_props.y_native_subdivisions,
+            tile_props.z_native_subdivisions,
+            tile_props.curve_native_subdivisions
+        )
 
         if curve_type == 'POS':
             core = draw_pos_curved_slab(radius, segments, angle, height, native_subdivisions)

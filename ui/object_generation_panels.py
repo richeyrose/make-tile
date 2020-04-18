@@ -20,7 +20,6 @@ class MT_PT_Tile_Generator_Panel(Panel):
         layout.prop(scene_props, 'mt_tile_blueprint')
         layout.prop(scene_props, 'mt_tile_type')
         layout.prop(scene_props, 'mt_tile_material_1', text="Main Material")
-        layout.prop(scene_props, 'mt_native_subdivisions')
         
         if scene_props.mt_tile_blueprint == 'PLAIN':
             self.draw_plain_base_panel(context)
@@ -109,7 +108,6 @@ class MT_PT_Tile_Generator_Panel(Panel):
             layout.label(text="Tile Properties")
             layout.prop(scene_props, 'mt_base_radius', text="Radius")
             layout.prop(scene_props, 'mt_angle', text="Angle")
-            layout.prop(scene_props, 'mt_segments')
             layout.prop(scene_props, 'mt_curve_type')
 
         if scene_props.mt_tile_type in (
@@ -169,7 +167,6 @@ class MT_PT_Tile_Generator_Panel(Panel):
             layout.label(text="Curve Properties")
             layout.prop(scene_props, 'mt_base_radius', text="Radius")
             layout.prop(scene_props, 'mt_angle', text="Angle")
-            layout.prop(scene_props, 'mt_segments')
             layout.prop(scene_props, 'mt_curve_type')
 
         if scene_props.mt_tile_type in ('CURVED_WALL', 'CURVED_FLOOR'):
@@ -181,7 +178,6 @@ class MT_PT_Tile_Generator_Panel(Panel):
             layout.label(text="Curve Properties")
             layout.prop(scene_props, 'mt_base_radius', text="Radius")
             layout.prop(scene_props, 'mt_degrees_of_arc')
-            layout.prop(scene_props, 'mt_segments')
 
     def draw_plain_main_part_panel(self, context):
         scene = context.scene
@@ -207,7 +203,6 @@ class MT_PT_Tile_Generator_Panel(Panel):
                 layout.prop(scene_props, 'mt_base_radius', text="Base Radius")
                 layout.prop(scene_props, 'mt_angle', text="Angle")
                 layout.prop(scene_props, 'mt_curve_type')
-                layout.prop(scene_props, 'mt_segments')
 
         elif scene_props.mt_tile_type == 'TRIANGULAR_FLOOR':
             layout.label(text="Tile Height")
@@ -230,7 +225,6 @@ class MT_PT_Tile_Generator_Panel(Panel):
             if scene_props.mt_base_blueprint == 'NONE':
                 layout.label(text="Curve Properties")
                 layout.prop(scene_props, 'mt_degrees_of_arc')
-                layout.prop(scene_props, 'mt_segments')
 
         elif scene_props.mt_tile_type == 'CURVED_FLOOR':
             layout.label(text="Floor Properties")
@@ -242,7 +236,6 @@ class MT_PT_Tile_Generator_Panel(Panel):
             if scene_props.mt_base_blueprint == 'NONE':
                 layout.label(text="Curve Properties")
                 layout.prop(scene_props, 'mt_degrees_of_arc')
-                layout.prop(scene_props, 'mt_segments')
 
         elif scene_props.mt_tile_type == 'CORNER_WALL':
             layout.label(text="Tile Properties")

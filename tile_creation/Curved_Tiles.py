@@ -5,7 +5,7 @@ import bpy
 from .. lib.utils.collections import add_object_to_collection
 from .. utils.registration import get_prefs
 from .. lib.turtle.scripts.openlock_curved_wall_base import draw_openlock_curved_base
-from .. lib.turtle.scripts.straight_tile import draw_rectangular_floor_core, draw_straight_wall_core
+from .. lib.turtle.scripts.straight_tile import draw_straight_wall_core
 
 from .. lib.utils.selection import (
     deselect_all,
@@ -13,12 +13,9 @@ from .. lib.utils.selection import (
     activate)
 
 from .. lib.utils.utils import (add_circle_array)
-
-from .. lib.utils.vertex_groups import (
-    rect_floor_to_vert_groups,
-    straight_wall_to_vert_groups)
-
 from . create_tile import MT_Tile
+from . Rectangular_Tiles import rect_floor_to_vert_groups
+from . Straight_Tiles import straight_wall_to_vert_groups
 
 
 # MIXIN #
@@ -64,7 +61,12 @@ class MT_Curved_Tile:
         tile_props.base_size[1] = 0.5
         clip_side = scene.mt_scene_props.mt_base_socket_side
 
-        base = draw_openlock_curved_base(radius, segments, angle, tile_props.base_size[2], clip_side)
+        base = draw_openlock_curved_base(
+            radius,
+            segments,
+            angle,
+            tile_props.base_size[2],
+            clip_side)
         self.create_openlock_base_clip_cutter(base, tile_props, clip_side)
 
         base.name = tile_props.tile_name + '.base'
@@ -80,7 +82,11 @@ class MT_Curved_Tile:
         cursor_orig_loc = scene.cursor.location.copy()
         # load base cutter
         preferences = get_prefs()
-        booleans_path = os.path.join(preferences.assets_path, "meshes", "booleans", "openlock.blend")
+        booleans_path = os.path.join(
+            preferences.assets_path,
+            "meshes",
+            "booleans",
+            "openlock.blend")
 
         with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
             data_to.objects = ['openlock.wall.base.cutter.clip_single']
@@ -228,6 +234,7 @@ class MT_Curved_Floor_Tile(MT_Curved_Tile, MT_Tile):
 
         return core
 
+
 class MT_Curved_Wall_Tile(MT_Curved_Tile, MT_Tile):
     def __init__(self, tile_props):
         MT_Tile.__init__(self, tile_props)
@@ -255,11 +262,17 @@ class MT_Curved_Wall_Tile(MT_Curved_Tile, MT_Tile):
         tile_props.wall_radius = tile_props.base_radius + offset
         textured_vertex_groups = ['Front', 'Back']
 
-        preview_core, displacement_core = self.create_cores(base, tile_props, textured_vertex_groups)
+        preview_core, displacement_core = self.create_cores(
+            base,
+            tile_props,
+            textured_vertex_groups)
 
         cores = [preview_core, displacement_core]
 
-        cutters = self.create_openlock_wall_cutters(preview_core, base.location, tile_props)
+        cutters = self.create_openlock_wall_cutters(
+            preview_core,
+            base.location,
+            tile_props)
 
         for cutter in cutters:
             obj_props = cutter.mt_object_props
@@ -347,7 +360,11 @@ class MT_Curved_Wall_Tile(MT_Curved_Tile, MT_Tile):
         tile_name = tile_props.tile_name
 
         preferences = get_prefs()
-        booleans_path = os.path.join(preferences.assets_path, "meshes", "booleans", "openlock.blend")
+        booleans_path = os.path.join(
+            preferences.assets_path,
+            "meshes",
+            "booleans",
+            "openlock.blend")
 
         # load side cutter
         with bpy.data.libraries.load(booleans_path) as (data_from, data_to):

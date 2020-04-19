@@ -9,7 +9,7 @@ from .. lib.utils.utils import mode
 from .. utils.registration import get_prefs
 from .. lib.turtle.scripts.straight_tile import draw_rectangular_floor_core
 from .. lib.turtle.scripts.openlock_floor_base import draw_openlock_rect_floor_base
-from .. lib.utils.vertex_groups import rect_floor_to_vert_groups
+from .. lib.utils.selection import deselect_all, select_by_loc
 
 
 class MT_Rectangular_Tile:
@@ -102,10 +102,17 @@ class MT_Rectangular_Tile:
 
         base_location = base.location.copy()
         preferences = get_prefs()
-        booleans_path = os.path.join(preferences.assets_path, "meshes", "booleans", "openlock.blend")
+        booleans_path = os.path.join(
+            preferences.assets_path,
+            "meshes",
+            "booleans",
+            "openlock.blend")
 
         with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
-            data_to.objects = ['openlock.wall.base.cutter.clip', 'openlock.wall.base.cutter.clip.cap.start', 'openlock.wall.base.cutter.clip.cap.end']
+            data_to.objects = [
+                'openlock.wall.base.cutter.clip',
+                'openlock.wall.base.cutter.clip.cap.start',
+                'openlock.wall.base.cutter.clip.cap.end']
 
         for obj in data_to.objects:
             add_object_to_collection(obj, tile_props.tile_name)
@@ -161,7 +168,7 @@ class MT_Rectangular_Tile:
         add_object_to_collection(clip_cutter3, tile_props.tile_name)
 
         clip_cutter3.rotation_euler = (0, 0, math.radians(180))
-        
+
         clip_cutter3.location = (
             clip_cutter.location[0] + base.dimensions[0] - 1,
             clip_cutter.location[1] + base.dimensions[1] - 0.5,
@@ -282,3 +289,114 @@ class MT_Rectangular_Floor_Tile(MT_Rectangular_Tile, MT_Tile):
         obj_props.tile_name = tile_props.tile_name
 
         return core
+
+
+def rect_floor_to_vert_groups(obj):
+    """makes a vertex group for each side of floor
+    and assigns vertices to it. Corrects for displacement map distortion"""
+
+    mode('OBJECT')
+    dim = obj.dimensions / 2
+
+    # get original location of object origin and of cursor
+    obj_original_loc = obj.location.copy()
+    cursor_original_loc = bpy.context.scene.cursor.location.copy()
+
+    # set origin to center of bounds
+    bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='BOUNDS')
+
+    # make vertex groups
+    obj.vertex_groups.new(name='Left')
+    obj.vertex_groups.new(name='Right')
+    obj.vertex_groups.new(name='Front')
+    obj.vertex_groups.new(name='Back')
+    obj.vertex_groups.new(name='Top')
+    obj.vertex_groups.new(name='Bottom')
+
+    mode('EDIT')
+
+    # select X- and assign to X-
+    select_by_loc(
+        lbound=[-dim[0], -dim[1], -dim[2]],
+        ubound=[-dim[0] + 0.001, dim[1], dim[2]],
+        select_mode='VERT',
+        coords='LOCAL',
+        buffer=0.0001,
+        additive=True)
+
+    bpy.ops.object.vertex_group_set_active(group='Left')
+    bpy.ops.object.vertex_group_assign()
+
+    deselect_all()
+
+    # select X+ and assign to X+
+    select_by_loc(
+        lbound=[dim[0] - 0.001, -dim[1], -dim[2]],
+        ubound=[dim[0], dim[1], dim[2]],
+        select_mode='VERT',
+        coords='LOCAL',
+        buffer=0.0001,
+        additive=True)
+    bpy.ops.object.vertex_group_set_active(group='Right')
+    bpy.ops.object.vertex_group_assign()
+
+    deselect_all()
+
+    # select Y- and assign to Y-
+    select_by_loc(
+        lbound=[-dim[0], -dim[1], -dim[2]],
+        ubound=[dim[0], -dim[1] + 0.001, dim[2]],
+        select_mode='VERT',
+        coords='LOCAL',
+        buffer=0.0001,
+        additive=True)
+    bpy.ops.object.vertex_group_set_active(group='Front')
+    bpy.ops.object.vertex_group_assign()
+
+    deselect_all()
+
+    # select Y+ and assign to Y+
+    select_by_loc(
+        lbound=[-dim[0], dim[1] - 0.001, -dim[2]],
+        ubound=[dim[0], dim[1], dim[2]],
+        select_mode='VERT',
+        coords='LOCAL',
+        buffer=0.0001,
+        additive=True)
+    bpy.ops.object.vertex_group_set_active(group='Back')
+    bpy.ops.object.vertex_group_assign()
+
+    deselect_all()
+
+    # select Z- and assign to Z-
+    select_by_loc(
+        lbound=[-dim[0] + 0.001, -dim[1] + 0.001, -dim[2]],
+        ubound=[dim[0] - 0.001, dim[1] - 0.001, -dim[2]],
+        select_mode='VERT',
+        coords='LOCAL',
+        buffer=0.0001,
+        additive=True)
+    bpy.ops.object.vertex_group_set_active(group='Bottom')
+    bpy.ops.object.vertex_group_assign()
+
+    deselect_all()
+
+    # select Z+ and assign to Z+
+    select_by_loc(
+        lbound=[-dim[0] + 0.001, -dim[1] + 0.001, dim[2]],
+        ubound=[dim[0] - 0.001, dim[1] - 0.001, dim[2]],
+        select_mode='VERT',
+        coords='LOCAL',
+        buffer=0.0001,
+        additive=True)
+    bpy.ops.object.vertex_group_set_active(group='Top')
+    bpy.ops.object.vertex_group_assign()
+
+    deselect_all()
+
+    mode('OBJECT')
+
+    # reset cursor and object origin
+    bpy.context.scene.cursor.location = obj_original_loc
+    bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
+    bpy.context.scene.cursor.location = cursor_original_loc

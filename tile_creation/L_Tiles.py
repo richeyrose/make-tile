@@ -4,18 +4,17 @@ import bpy
 from mathutils import Vector
 from .. lib.utils.collections import add_object_to_collection
 from .. lib.utils.vertex_groups import (
-    corner_wall_to_vert_groups,
-    corner_floor_to_vert_groups)
-from .. lib.utils.utils import mode, view3d_find
+    get_vert_indexes_in_vert_group,
+    remove_verts_from_group)
+from .. lib.utils.utils import mode
 from .. utils.registration import get_prefs
 from .. lib.utils.selection import (
     deselect_all,
-    select)
+    select,
+    select_by_loc)
 from .. lib.turtle.scripts.L_tile import (
     draw_corner_3D,
-    draw_corner_wall,
     draw_corner_wall_core,
-    draw_corner_floor,
     calculate_corner_wall_triangles,
     move_cursor_to_wall_start)
 from . create_tile import MT_Tile
@@ -272,14 +271,7 @@ class MT_L_Floor(MT_L_Tile, MT_Tile):
             floor_height - base_height,
             native_subdivisions
         )
-        '''
-        core, vert_locs = draw_corner_floor(
-            core_triangles_2,
-            angle,
-            core_thickness,
-            floor_height,
-            base_height)
-        '''
+
         core.name = tile_props.tile_name + '.core'
         obj_props = core.mt_object_props
         obj_props.is_mt_object = True
@@ -287,7 +279,7 @@ class MT_L_Floor(MT_L_Tile, MT_Tile):
 
         # create vert groups
         corner_floor_to_vert_groups(core, vert_locs, native_subdivisions)
-        
+
         ctx = {
             'object': core,
             'active_object': core,
@@ -299,7 +291,7 @@ class MT_L_Floor(MT_L_Tile, MT_Tile):
         bpy.context.scene.cursor.location = (0, 0, 0)
         bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
         return core
-      
+
 
 class MT_L_Wall(MT_L_Tile, MT_Tile):
     def __init__(self, tile_props):
@@ -462,7 +454,7 @@ class MT_L_Wall(MT_L_Tile, MT_Tile):
         mode('OBJECT')
         bpy.context.scene.cursor.location = (0, 0, 0)
         bpy.ops.uv.smart_project(ctx, island_margin=0.01)
-        
+
         bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
         return core
 
@@ -561,3 +553,1048 @@ class MT_L_Wall(MT_L_Tile, MT_Tile):
         cutters.extend([right_cutter_bottom, right_cutter_top])
 
         return cutters
+
+
+def corner_wall_to_vert_groups(obj, vert_locs, native_subdivisions):
+    """
+    Creates vertex groups out of passed in corner wall
+    and locations of bottom verts
+    """
+    select(obj.name)
+    mode('EDIT')
+    deselect_all()
+
+    ctx = {
+        'object': obj,
+        'active_object': obj,
+        'selected_objects': [obj]
+    }
+
+    # make vertex groups
+    obj.vertex_groups.new(name='Leg 1 End')
+    obj.vertex_groups.new(name='Leg 2 End')
+    obj.vertex_groups.new(name='Leg 1 Inner')
+    obj.vertex_groups.new(name='Leg 2 Inner')
+    obj.vertex_groups.new(name='Leg 1 Outer')
+    obj.vertex_groups.new(name='Leg 2 Outer')
+    obj.vertex_groups.new(name='Leg 1 Top')
+    obj.vertex_groups.new(name='Leg 2 Top')
+    obj.vertex_groups.new(name='Leg 1 Bottom')
+    obj.vertex_groups.new(name='Leg 2 Bottom')
+
+    # leg 1 outer
+    for vert_loc in vert_locs['leg_1_outer']:
+        select_by_loc(
+            lbound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2] + 0.001),
+            ubound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2] + 0.001),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+
+    subdiv_dist = (obj.dimensions[2] - 0.002) / native_subdivisions[3]
+    i = 0
+    while i <= native_subdivisions[3]:
+        for vert_loc in vert_locs['leg_1_outer']:
+            select_by_loc(
+                lbound=(
+                    vert_loc[0],
+                    vert_loc[1],
+                    vert_loc[2] + 0.001 + (subdiv_dist * i)),
+                ubound=(
+                    vert_loc[0],
+                    vert_loc[1],
+                    vert_loc[2] + 0.001 + (subdiv_dist * i)),
+                select_mode='VERT',
+                coords='LOCAL',
+                additive=True,
+                buffer=0.0001
+            )
+        i += 1
+
+    bpy.ops.object.vertex_group_set_active(ctx, group='Leg 1 Outer')
+    bpy.ops.object.vertex_group_assign(ctx)
+    deselect_all()
+
+    # leg 1 inner
+    for vert_loc in vert_locs['leg_1_inner']:
+        select_by_loc(
+            lbound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2] + 0.001),
+            ubound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2] + 0.001),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+
+    subdiv_dist = (obj.dimensions[2] - 0.002) / native_subdivisions[3]
+    i = 0
+    while i <= native_subdivisions[3]:
+        for vert_loc in vert_locs['leg_1_inner']:
+            select_by_loc(
+                lbound=(
+                    vert_loc[0],
+                    vert_loc[1],
+                    vert_loc[2] + 0.001 + (subdiv_dist * i)),
+                ubound=(
+                    vert_loc[0],
+                    vert_loc[1],
+                    vert_loc[2] + 0.001 + (subdiv_dist * i)),
+                select_mode='VERT',
+                coords='LOCAL',
+                additive=True,
+                buffer=0.0001
+            )
+        i += 1
+
+    bpy.ops.object.vertex_group_set_active(ctx, group='Leg 1 Inner')
+    bpy.ops.object.vertex_group_assign(ctx)
+    deselect_all()
+
+    bpy.ops.object.vertex_group_set_active(ctx, group='Leg 1 End')
+    # leg 1 end #
+    for vert_loc in vert_locs['leg_1_end']:
+        select_by_loc(
+            lbound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2]),
+            ubound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+    bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
+    bpy.ops.object.vertex_group_assign(ctx)
+    deselect_all()
+
+    subdiv_dist = (obj.dimensions[2] - 0.002) / native_subdivisions[3]
+    i = 0
+    while i <= native_subdivisions[3]:
+        for vert_loc in vert_locs['leg_1_end']:
+            select_by_loc(
+                lbound=(
+                    vert_loc[0],
+                    vert_loc[1],
+                    vert_loc[2] + 0.001 + (subdiv_dist * i)),
+                ubound=(
+                    vert_loc[0],
+                    vert_loc[1],
+                    vert_loc[2] + 0.001 + (subdiv_dist * i)),
+                select_mode='VERT',
+                coords='LOCAL',
+                additive=True,
+                buffer=0.0001
+            )
+        i += 1
+        bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
+        bpy.ops.object.vertex_group_assign(ctx)
+        deselect_all()
+
+    for vert_loc in vert_locs['leg_1_end']:
+        select_by_loc(
+            lbound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2] + obj.dimensions[2]),
+            ubound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2] + obj.dimensions[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+    bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
+    bpy.ops.object.vertex_group_assign(ctx)
+    deselect_all()
+
+    # Leg 1 bottom
+    bpy.ops.object.vertex_group_set_active(ctx, group='Leg 1 Bottom')
+    leg_1_inner_reversed = vert_locs['leg_1_inner'][::-1]
+    i = 0
+    while i < len(vert_locs['leg_1_outer']):
+        outer_vert_loc = vert_locs['leg_1_outer'][i]
+        inner_vert_loc = leg_1_inner_reversed[i]
+
+        select_by_loc(
+            lbound=(
+                outer_vert_loc[0],
+                outer_vert_loc[1],
+                outer_vert_loc[2]),
+            ubound=(
+                outer_vert_loc[0],
+                outer_vert_loc[1],
+                outer_vert_loc[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+        select_by_loc(
+            lbound=(
+                inner_vert_loc[0],
+                inner_vert_loc[1],
+                inner_vert_loc[2]),
+            ubound=(
+                inner_vert_loc[0],
+                inner_vert_loc[1],
+                inner_vert_loc[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+        bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
+        bpy.ops.object.vertex_group_assign(ctx)
+        deselect_all()
+        i += 1
+
+    # Leg 1 top
+    bpy.ops.object.vertex_group_set_active(ctx, group='Leg 1 Top')
+    i = 0
+    while i < len(vert_locs['leg_1_outer']):
+        outer_vert_loc = vert_locs['leg_1_outer'][i]
+        inner_vert_loc = leg_1_inner_reversed[i]
+
+        select_by_loc(
+            lbound=(
+                outer_vert_loc[0],
+                outer_vert_loc[1],
+                outer_vert_loc[2] + obj.dimensions[2]),
+            ubound=(
+                outer_vert_loc[0],
+                outer_vert_loc[1],
+                outer_vert_loc[2] + obj.dimensions[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+        select_by_loc(
+            lbound=(
+                inner_vert_loc[0],
+                inner_vert_loc[1],
+                inner_vert_loc[2] + obj.dimensions[2]),
+            ubound=(
+                inner_vert_loc[0],
+                inner_vert_loc[1],
+                inner_vert_loc[2] + obj.dimensions[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+        bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
+        bpy.ops.object.vertex_group_assign(ctx)
+        deselect_all()
+        i += 1
+
+    # Leg 2 outer
+    for vert_loc in vert_locs['leg_2_outer']:
+        select_by_loc(
+            lbound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2] + 0.001),
+            ubound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2] + 0.001),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+
+    subdiv_dist = (obj.dimensions[2] - 0.002) / native_subdivisions[3]
+    i = 0
+    while i <= native_subdivisions[3]:
+        for vert_loc in vert_locs['leg_2_outer']:
+            select_by_loc(
+                lbound=(
+                    vert_loc[0],
+                    vert_loc[1],
+                    vert_loc[2] + 0.001 + (subdiv_dist * i)),
+                ubound=(
+                    vert_loc[0],
+                    vert_loc[1],
+                    vert_loc[2] + 0.001 + (subdiv_dist * i)),
+                select_mode='VERT',
+                coords='LOCAL',
+                additive=True,
+                buffer=0.0001
+            )
+        i += 1
+
+    bpy.ops.object.vertex_group_set_active(ctx, group='Leg 2 Outer')
+    bpy.ops.object.vertex_group_assign(ctx)
+    deselect_all()
+
+    # Leg 2 inner
+    for vert_loc in vert_locs['leg_2_inner']:
+        select_by_loc(
+            lbound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2] + 0.001),
+            ubound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2] + 0.001),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+
+    subdiv_dist = (obj.dimensions[2] - 0.002) / native_subdivisions[3]
+    i = 0
+    while i <= native_subdivisions[3]:
+        for vert_loc in vert_locs['leg_2_inner']:
+            select_by_loc(
+                lbound=(
+                    vert_loc[0],
+                    vert_loc[1],
+                    vert_loc[2] + 0.001 + (subdiv_dist * i)),
+                ubound=(
+                    vert_loc[0],
+                    vert_loc[1],
+                    vert_loc[2] + 0.001 + (subdiv_dist * i)),
+                select_mode='VERT',
+                coords='LOCAL',
+                additive=True,
+                buffer=0.0001
+            )
+        i += 1
+
+    bpy.ops.object.vertex_group_set_active(ctx, group='Leg 2 Inner')
+    bpy.ops.object.vertex_group_assign(ctx)
+    deselect_all()
+
+    bpy.ops.object.vertex_group_set_active(ctx, group='Leg 2 End')
+    # Leg 2 end #
+    for vert_loc in vert_locs['leg_2_end']:
+        select_by_loc(
+            lbound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2]),
+            ubound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+    bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
+    bpy.ops.object.vertex_group_assign(ctx)
+    deselect_all()
+
+    subdiv_dist = (obj.dimensions[2] - 0.002) / native_subdivisions[3]
+    i = 0
+    while i <= native_subdivisions[3]:
+        for vert_loc in vert_locs['leg_2_end']:
+            select_by_loc(
+                lbound=(
+                    vert_loc[0],
+                    vert_loc[1],
+                    vert_loc[2] + 0.001 + (subdiv_dist * i)),
+                ubound=(
+                    vert_loc[0],
+                    vert_loc[1],
+                    vert_loc[2] + 0.001 + (subdiv_dist * i)),
+                select_mode='VERT',
+                coords='LOCAL',
+                additive=True,
+                buffer=0.0001
+            )
+        i += 1
+        bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
+        bpy.ops.object.vertex_group_assign(ctx)
+        deselect_all()
+
+    for vert_loc in vert_locs['leg_2_end']:
+        select_by_loc(
+            lbound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2] + obj.dimensions[2]),
+            ubound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2] + obj.dimensions[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+    bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
+    bpy.ops.object.vertex_group_assign(ctx)
+    deselect_all()
+
+    # Leg 2 bottom
+    bpy.ops.object.vertex_group_set_active(ctx, group='Leg 2 Bottom')
+    leg_2_inner_reversed = vert_locs['leg_2_inner'][::-1]
+    i = 0
+    while i < len(vert_locs['leg_2_outer']):
+        outer_vert_loc = vert_locs['leg_2_outer'][i]
+        inner_vert_loc = leg_2_inner_reversed[i]
+
+        select_by_loc(
+            lbound=(
+                outer_vert_loc[0],
+                outer_vert_loc[1],
+                outer_vert_loc[2]),
+            ubound=(
+                outer_vert_loc[0],
+                outer_vert_loc[1],
+                outer_vert_loc[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+        select_by_loc(
+            lbound=(
+                inner_vert_loc[0],
+                inner_vert_loc[1],
+                inner_vert_loc[2]),
+            ubound=(
+                inner_vert_loc[0],
+                inner_vert_loc[1],
+                inner_vert_loc[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+        bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
+        bpy.ops.object.vertex_group_assign(ctx)
+        deselect_all()
+        i += 1
+
+    # Leg 2 top
+    bpy.ops.object.vertex_group_set_active(ctx, group='Leg 2 Top')
+    i = 0
+    while i < len(vert_locs['leg_2_outer']):
+        outer_vert_loc = vert_locs['leg_2_outer'][i]
+        inner_vert_loc = leg_2_inner_reversed[i]
+
+        select_by_loc(
+            lbound=(
+                outer_vert_loc[0],
+                outer_vert_loc[1],
+                outer_vert_loc[2] + obj.dimensions[2]),
+            ubound=(
+                outer_vert_loc[0],
+                outer_vert_loc[1],
+                outer_vert_loc[2] + obj.dimensions[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+        select_by_loc(
+            lbound=(
+                inner_vert_loc[0],
+                inner_vert_loc[1],
+                inner_vert_loc[2] + obj.dimensions[2]),
+            ubound=(
+                inner_vert_loc[0],
+                inner_vert_loc[1],
+                inner_vert_loc[2] + obj.dimensions[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+        bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
+        bpy.ops.object.vertex_group_assign(ctx)
+        deselect_all()
+        i += 1
+
+    mode('OBJECT')
+
+
+def corner_floor_to_vert_groups(obj, vert_locs, native_subdivisions):
+    """
+    Creates vertex groups out of passed in corner floor
+    and locations of bottom verts
+    """
+    select(obj.name)
+    mode('EDIT')
+    deselect_all()
+
+    ctx = {
+        'object': obj,
+        'active_object': obj,
+        'selected_objects': [obj]
+    }
+
+    # make vertex groups
+    obj.vertex_groups.new(name='Leg 1 End')
+    obj.vertex_groups.new(name='Leg 2 End')
+    obj.vertex_groups.new(name='Leg 1 Inner')
+    obj.vertex_groups.new(name='Leg 2 Inner')
+    obj.vertex_groups.new(name='Leg 1 Outer')
+    obj.vertex_groups.new(name='Leg 2 Outer')
+    obj.vertex_groups.new(name='Leg 1 Top')
+    obj.vertex_groups.new(name='Leg 2 Top')
+    obj.vertex_groups.new(name='Leg 1 Bottom')
+    obj.vertex_groups.new(name='Leg 2 Bottom')
+
+    # leg 1 outer
+    for vert_loc in vert_locs['leg_1_outer']:
+        select_by_loc(
+            lbound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2]),
+            ubound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+
+    for vert_loc in vert_locs['leg_1_outer']:
+        select_by_loc(
+            lbound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2] + obj.dimensions[2]),
+            ubound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2] + obj.dimensions[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+    subdiv_dist = (obj.dimensions[2] - 0.002) / native_subdivisions[3]
+    i = 0
+    while i <= native_subdivisions[3]:
+        for vert_loc in vert_locs['leg_1_outer']:
+            select_by_loc(
+                lbound=(
+                    vert_loc[0],
+                    vert_loc[1],
+                    vert_loc[2] + 0.001 + (subdiv_dist * i)),
+                ubound=(
+                    vert_loc[0],
+                    vert_loc[1],
+                    vert_loc[2] + 0.001 + (subdiv_dist * i)),
+                select_mode='VERT',
+                coords='LOCAL',
+                additive=True,
+                buffer=0.0001
+            )
+        i += 1
+
+    bpy.ops.object.vertex_group_set_active(ctx, group='Leg 1 Outer')
+    bpy.ops.object.vertex_group_assign(ctx)
+    deselect_all()
+
+    # leg 1 inner
+    for vert_loc in vert_locs['leg_1_inner']:
+        select_by_loc(
+            lbound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2]),
+            ubound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+
+    for vert_loc in vert_locs['leg_1_inner']:
+        select_by_loc(
+            lbound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2] + obj.dimensions[2]),
+            ubound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2] + + obj.dimensions[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+
+    subdiv_dist = (obj.dimensions[2] - 0.002) / native_subdivisions[3]
+    i = 0
+    while i <= native_subdivisions[3]:
+        for vert_loc in vert_locs['leg_1_inner']:
+            select_by_loc(
+                lbound=(
+                    vert_loc[0],
+                    vert_loc[1],
+                    vert_loc[2] + 0.001 + (subdiv_dist * i)),
+                ubound=(
+                    vert_loc[0],
+                    vert_loc[1],
+                    vert_loc[2] + 0.001 + (subdiv_dist * i)),
+                select_mode='VERT',
+                coords='LOCAL',
+                additive=True,
+                buffer=0.0001
+            )
+        i += 1
+
+    bpy.ops.object.vertex_group_set_active(ctx, group='Leg 1 Inner')
+    bpy.ops.object.vertex_group_assign(ctx)
+    deselect_all()
+
+    bpy.ops.object.vertex_group_set_active(ctx, group='Leg 1 End')
+    # leg 1 end #
+    for vert_loc in vert_locs['leg_1_end']:
+        select_by_loc(
+            lbound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2]),
+            ubound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+    bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
+    bpy.ops.object.vertex_group_assign(ctx)
+    deselect_all()
+
+    subdiv_dist = (obj.dimensions[2] - 0.002) / native_subdivisions[3]
+    i = 0
+    while i <= native_subdivisions[3]:
+        for vert_loc in vert_locs['leg_1_end']:
+            select_by_loc(
+                lbound=(
+                    vert_loc[0],
+                    vert_loc[1],
+                    vert_loc[2] + 0.001 + (subdiv_dist * i)),
+                ubound=(
+                    vert_loc[0],
+                    vert_loc[1],
+                    vert_loc[2] + 0.001 + (subdiv_dist * i)),
+                select_mode='VERT',
+                coords='LOCAL',
+                additive=True,
+                buffer=0.0001
+            )
+        i += 1
+        bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
+        bpy.ops.object.vertex_group_assign(ctx)
+        deselect_all()
+
+    for vert_loc in vert_locs['leg_1_end']:
+        select_by_loc(
+            lbound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2] + obj.dimensions[2]),
+            ubound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2] + obj.dimensions[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+    bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
+    bpy.ops.object.vertex_group_assign(ctx)
+    deselect_all()
+
+    # Leg 1 bottom
+    bpy.ops.object.vertex_group_set_active(ctx, group='Leg 1 Bottom')
+    leg_1_inner_reversed = vert_locs['leg_1_inner'][::-1]
+    i = 0
+    while i < len(vert_locs['leg_1_outer']):
+        outer_vert_loc = vert_locs['leg_1_outer'][i]
+        inner_vert_loc = leg_1_inner_reversed[i]
+
+        select_by_loc(
+            lbound=(
+                outer_vert_loc[0],
+                outer_vert_loc[1],
+                outer_vert_loc[2]),
+            ubound=(
+                outer_vert_loc[0],
+                outer_vert_loc[1],
+                outer_vert_loc[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+        select_by_loc(
+            lbound=(
+                inner_vert_loc[0],
+                inner_vert_loc[1],
+                inner_vert_loc[2]),
+            ubound=(
+                inner_vert_loc[0],
+                inner_vert_loc[1],
+                inner_vert_loc[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+        bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
+        bpy.ops.object.vertex_group_assign(ctx)
+        deselect_all()
+        i += 1
+
+    # Leg 1 top
+    bpy.ops.object.vertex_group_set_active(ctx, group='Leg 1 Top')
+    i = 0
+    while i < len(vert_locs['leg_1_outer']):
+        outer_vert_loc = vert_locs['leg_1_outer'][i]
+        inner_vert_loc = leg_1_inner_reversed[i]
+
+        select_by_loc(
+            lbound=(
+                outer_vert_loc[0],
+                outer_vert_loc[1],
+                outer_vert_loc[2] + obj.dimensions[2]),
+            ubound=(
+                outer_vert_loc[0],
+                outer_vert_loc[1],
+                outer_vert_loc[2] + obj.dimensions[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+        select_by_loc(
+            lbound=(
+                inner_vert_loc[0],
+                inner_vert_loc[1],
+                inner_vert_loc[2] + obj.dimensions[2]),
+            ubound=(
+                inner_vert_loc[0],
+                inner_vert_loc[1],
+                inner_vert_loc[2] + obj.dimensions[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+        bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
+        bpy.ops.object.vertex_group_assign(ctx)
+        deselect_all()
+        i += 1
+
+    # Leg 2 outer
+    for vert_loc in vert_locs['leg_2_outer']:
+        select_by_loc(
+            lbound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2]),
+            ubound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+
+    for vert_loc in vert_locs['leg_2_outer']:
+        select_by_loc(
+            lbound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2] + obj.dimensions[2]),
+            ubound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2] + obj.dimensions[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+
+    subdiv_dist = (obj.dimensions[2] - 0.002) / native_subdivisions[3]
+    i = 0
+    while i <= native_subdivisions[3]:
+        for vert_loc in vert_locs['leg_2_outer']:
+            select_by_loc(
+                lbound=(
+                    vert_loc[0],
+                    vert_loc[1],
+                    vert_loc[2] + 0.001 + (subdiv_dist * i)),
+                ubound=(
+                    vert_loc[0],
+                    vert_loc[1],
+                    vert_loc[2] + 0.001 + (subdiv_dist * i)),
+                select_mode='VERT',
+                coords='LOCAL',
+                additive=True,
+                buffer=0.0001
+            )
+        i += 1
+
+    bpy.ops.object.vertex_group_set_active(ctx, group='Leg 2 Outer')
+    bpy.ops.object.vertex_group_assign(ctx)
+    deselect_all()
+
+    # Leg 2 inner
+    for vert_loc in vert_locs['leg_2_inner']:
+        select_by_loc(
+            lbound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2]),
+            ubound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+    for vert_loc in vert_locs['leg_2_inner']:
+        select_by_loc(
+            lbound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2] + obj.dimensions[2]),
+            ubound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2] + obj.dimensions[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+
+    subdiv_dist = (obj.dimensions[2] - 0.002) / native_subdivisions[3]
+    i = 0
+    while i <= native_subdivisions[3]:
+        for vert_loc in vert_locs['leg_2_inner']:
+            select_by_loc(
+                lbound=(
+                    vert_loc[0],
+                    vert_loc[1],
+                    vert_loc[2] + 0.001 + (subdiv_dist * i)),
+                ubound=(
+                    vert_loc[0],
+                    vert_loc[1],
+                    vert_loc[2] + 0.001 + (subdiv_dist * i)),
+                select_mode='VERT',
+                coords='LOCAL',
+                additive=True,
+                buffer=0.0001
+            )
+        i += 1
+
+    bpy.ops.object.vertex_group_set_active(ctx, group='Leg 2 Inner')
+    bpy.ops.object.vertex_group_assign(ctx)
+    deselect_all()
+
+    bpy.ops.object.vertex_group_set_active(ctx, group='Leg 2 End')
+    # Leg 2 end #
+    for vert_loc in vert_locs['leg_2_end']:
+        select_by_loc(
+            lbound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2]),
+            ubound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+    bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
+    bpy.ops.object.vertex_group_assign(ctx)
+    deselect_all()
+
+    subdiv_dist = (obj.dimensions[2] - 0.002) / native_subdivisions[3]
+    i = 0
+    while i <= native_subdivisions[3]:
+        for vert_loc in vert_locs['leg_2_end']:
+            select_by_loc(
+                lbound=(
+                    vert_loc[0],
+                    vert_loc[1],
+                    vert_loc[2] + 0.001 + (subdiv_dist * i)),
+                ubound=(
+                    vert_loc[0],
+                    vert_loc[1],
+                    vert_loc[2] + 0.001 + (subdiv_dist * i)),
+                select_mode='VERT',
+                coords='LOCAL',
+                additive=True,
+                buffer=0.0001
+            )
+        i += 1
+        bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
+        bpy.ops.object.vertex_group_assign(ctx)
+        deselect_all()
+
+    for vert_loc in vert_locs['leg_2_end']:
+        select_by_loc(
+            lbound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2] + obj.dimensions[2]),
+            ubound=(
+                vert_loc[0],
+                vert_loc[1],
+                vert_loc[2] + obj.dimensions[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+    bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
+    bpy.ops.object.vertex_group_assign(ctx)
+    deselect_all()
+
+    # Leg 2 bottom
+    bpy.ops.object.vertex_group_set_active(ctx, group='Leg 2 Bottom')
+    leg_2_inner_reversed = vert_locs['leg_2_inner'][::-1]
+    i = 0
+    while i < len(vert_locs['leg_2_outer']):
+        outer_vert_loc = vert_locs['leg_2_outer'][i]
+        inner_vert_loc = leg_2_inner_reversed[i]
+
+        select_by_loc(
+            lbound=(
+                outer_vert_loc[0],
+                outer_vert_loc[1],
+                outer_vert_loc[2]),
+            ubound=(
+                outer_vert_loc[0],
+                outer_vert_loc[1],
+                outer_vert_loc[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+        select_by_loc(
+            lbound=(
+                inner_vert_loc[0],
+                inner_vert_loc[1],
+                inner_vert_loc[2]),
+            ubound=(
+                inner_vert_loc[0],
+                inner_vert_loc[1],
+                inner_vert_loc[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+        bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
+        bpy.ops.object.vertex_group_assign(ctx)
+        deselect_all()
+        i += 1
+
+    # Leg 2 top
+    bpy.ops.object.vertex_group_set_active(ctx, group='Leg 2 Top')
+    i = 0
+    while i < len(vert_locs['leg_2_outer']):
+        outer_vert_loc = vert_locs['leg_2_outer'][i]
+        inner_vert_loc = leg_2_inner_reversed[i]
+
+        select_by_loc(
+            lbound=(
+                outer_vert_loc[0],
+                outer_vert_loc[1],
+                outer_vert_loc[2] + obj.dimensions[2]),
+            ubound=(
+                outer_vert_loc[0],
+                outer_vert_loc[1],
+                outer_vert_loc[2] + obj.dimensions[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+        select_by_loc(
+            lbound=(
+                inner_vert_loc[0],
+                inner_vert_loc[1],
+                inner_vert_loc[2] + obj.dimensions[2]),
+            ubound=(
+                inner_vert_loc[0],
+                inner_vert_loc[1],
+                inner_vert_loc[2] + obj.dimensions[2]),
+            select_mode='VERT',
+            coords='LOCAL',
+            additive=True,
+            buffer=0.0001
+        )
+        bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
+        bpy.ops.object.vertex_group_assign(ctx)
+        deselect_all()
+        i += 1
+
+    mode('OBJECT')
+
+    # remove side verts from top groups
+    leg_1_side_groups = ['Leg 1 Inner', 'Leg 1 Outer', 'Leg 1 End']
+    leg_1_side_vert_indices = []
+
+    for group in leg_1_side_groups:
+        verts = get_vert_indexes_in_vert_group(group, obj)
+        leg_1_side_vert_indices.extend(verts)
+
+    remove_verts_from_group('Leg 1 Top', obj, leg_1_side_vert_indices)
+
+    leg_2_side_groups = ['Leg 2 Inner', 'Leg 2 Outer', 'Leg 2 End']
+    leg_2_side_vert_indices = []
+
+    for group in leg_2_side_groups:
+        verts = get_vert_indexes_in_vert_group(group, obj)
+        leg_2_side_vert_indices.extend(verts)
+
+    remove_verts_from_group('Leg 2 Top', obj, leg_2_side_vert_indices)

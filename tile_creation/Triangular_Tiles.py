@@ -9,9 +9,10 @@ from .. lib.turtle.scripts.triangular_tile import (
     draw_openlock_tri_floor_base)
 from .. lib.utils.collections import add_object_to_collection
 from .. lib.utils.utils import mode
-from .. lib.utils.selection import select, deselect_all
+from .. lib.utils.selection import select, deselect_all, select_by_loc
 from .. lib.utils.vertex_groups import (
-    tri_floor_to_vert_groups)
+    get_vert_indexes_in_vert_group,
+    remove_verts_from_group)
 
 
 class MT_Triangular_Floor_Tile(MT_Tile):
@@ -139,11 +140,18 @@ class MT_Triangular_Floor_Tile(MT_Tile):
             mode('OBJECT')
             deselect_all()
             preferences = get_prefs()
-            booleans_path = os.path.join(preferences.assets_path, "meshes", "booleans", "openlock.blend")
+            booleans_path = os.path.join(
+                preferences.assets_path,
+                "meshes",
+                "booleans",
+                "openlock.blend")
 
             cutters = []
             with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
-                data_to.objects = ['openlock.wall.base.cutter.clip', 'openlock.wall.base.cutter.clip.cap.start', 'openlock.wall.base.cutter.clip.cap.end']
+                data_to.objects = [
+                    'openlock.wall.base.cutter.clip',
+                    'openlock.wall.base.cutter.clip.cap.start',
+                    'openlock.wall.base.cutter.clip.cap.end']
 
             for obj in data_to.objects:
                 add_object_to_collection(obj, tile_props.tile_name)
@@ -279,3 +287,137 @@ class MT_Triangular_Floor_Tile(MT_Tile):
             return cutters
         else:
             return None
+
+
+def tri_floor_to_vert_groups(obj, dim, height, base_height, native_subdivisions):
+    # make vertex groups
+    obj.vertex_groups.new(name='Top')
+    obj.vertex_groups.new(name='Bottom')
+    obj.vertex_groups.new(name='Side a')
+    obj.vertex_groups.new(name='Side b')
+    obj.vertex_groups.new(name='Side c')
+
+    mode('EDIT')
+
+    deselect_all()
+    select_by_loc(
+        lbound=(
+            dim['loc_A'][0],
+            dim['loc_A'][1],
+            dim['loc_A'][2] + height),
+        ubound=(
+            dim['loc_B'][0] + dim['a'],
+            dim['loc_B'][1],
+            dim['loc_B'][2] + height),
+        buffer=0.0001,
+        select_mode='FACE'
+    )
+
+    bpy.ops.object.vertex_group_set_active(group='Top')
+    bpy.ops.object.vertex_group_assign()
+    deselect_all()
+
+    select_by_loc(
+        lbound=(
+            dim['loc_A'][0],
+            dim['loc_A'][1],
+            dim['loc_A'][2]),
+        ubound=(
+            dim['loc_B'][0] + dim['a'],
+            dim['loc_B'][1],
+            dim['loc_B'][2]),
+    )
+    bpy.ops.object.vertex_group_set_active(group='Bottom')
+    bpy.ops.object.vertex_group_assign()
+    deselect_all()
+
+    subdivided_height = height / native_subdivisions[1]
+    bpy.ops.object.vertex_group_set_active(group='Side a')
+    i = 0
+    while i <= native_subdivisions[1]:
+        select_by_loc(
+            lbound=(
+                dim['loc_C'][0],
+                dim['loc_C'][1],
+                dim['loc_C'][2] + (subdivided_height * i)),
+            ubound=(
+                dim['loc_C'][0],
+                dim['loc_C'][1],
+                dim['loc_C'][2] + (subdivided_height * i)),
+            buffer=0.0001,
+            additive=True
+        )
+
+        select_by_loc(
+            lbound=(
+                dim['loc_B'][0],
+                dim['loc_B'][1],
+                dim['loc_B'][2] + (subdivided_height * i)),
+            ubound=(
+                dim['loc_B'][0],
+                dim['loc_B'][1],
+                dim['loc_B'][2] + (subdivided_height * i)),
+            buffer=0.0001,
+            additive=True
+        )
+        bpy.ops.mesh.shortest_path_select(edge_mode='SELECT')
+        bpy.ops.object.vertex_group_assign()
+        deselect_all()
+        i += 1
+
+    bpy.ops.object.vertex_group_set_active(group='Side b')
+
+    i = 0
+    while i <= native_subdivisions[1]:
+        select_by_loc(
+            lbound=(
+                dim['loc_A'][0],
+                dim['loc_A'][1],
+                dim['loc_A'][2] + (subdivided_height * i)),
+            ubound=(
+                dim['loc_A'][0],
+                dim['loc_A'][1],
+                dim['loc_A'][2] + (subdivided_height * i)),
+            additive=True,
+            buffer=0.0001
+        )
+
+        select_by_loc(
+            lbound=(
+                dim['loc_C'][0],
+                dim['loc_C'][1],
+                dim['loc_C'][2] + (subdivided_height * i)),
+            ubound=(
+                dim['loc_C'][0],
+                dim['loc_C'][1],
+                dim['loc_C'][2] + (subdivided_height * i)),
+            buffer=0.0001,
+            additive=True
+        )
+        bpy.ops.mesh.shortest_path_select(edge_mode='SELECT')
+        bpy.ops.object.vertex_group_assign()
+        deselect_all()
+        i += 1
+
+    select_by_loc(
+        lbound=dim['loc_A'],
+        ubound=(
+            dim['loc_B'][0],
+            dim['loc_B'][1],
+            dim['loc_B'][2] + base_height),
+        buffer=0.0001
+    )
+    bpy.ops.object.vertex_group_set_active(group='Side c')
+    bpy.ops.object.vertex_group_assign()
+
+    deselect_all()
+    mode('OBJECT')
+
+    side_verts = []
+    sides = ['Side a', 'Side b', 'Side c']
+
+    for side in sides:
+        verts = get_vert_indexes_in_vert_group(side, bpy.context.object)
+        side_verts.extend(verts)
+
+    remove_verts_from_group('Top', bpy.context.object, side_verts)

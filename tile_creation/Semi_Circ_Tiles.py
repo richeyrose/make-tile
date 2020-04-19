@@ -12,10 +12,11 @@ from .. lib.turtle.scripts.L_tile import (
     move_cursor_to_wall_start,
     draw_corner_3D)
 from .. lib.utils.vertex_groups import (
-    curved_floor_to_vert_groups,
-    neg_curved_floor_to_vert_groups)
+    get_vert_indexes_in_vert_group,
+    remove_verts_from_group
+)
 from .. utils.registration import get_prefs
-from .. lib.utils.selection import select, deselect_all
+from .. lib.utils.selection import select, deselect_all, select_by_loc, select_inverse_by_loc
 from .. lib.utils.utils import mode
 from .. lib.utils.collections import add_object_to_collection
 
@@ -328,13 +329,24 @@ class MT_Semi_Circ_Floor_Tile(MT_Semi_Circ_Tile, MT_Tile):
         )
 
         if curve_type == 'POS':
-            core = draw_pos_curved_slab(radius, segments, angle, height, native_subdivisions)
+            core = draw_pos_curved_slab(
+                radius,
+                segments,
+                angle,
+                height,
+                native_subdivisions)
             curved_floor_to_vert_groups(
                 core,
                 height,
                 radius)
         else:
-            core, vert_locs = draw_neg_curved_slab(radius, segments, angle, height, native_subdivisions, return_vert_locs=True)
+            core, vert_locs = draw_neg_curved_slab(
+                radius,
+                segments,
+                angle,
+                height,
+                native_subdivisions,
+                return_vert_locs=True)
             neg_curved_floor_to_vert_groups(
                 core,
                 height,
@@ -359,3 +371,214 @@ class MT_Semi_Circ_Floor_Tile(MT_Semi_Circ_Tile, MT_Tile):
         obj_props.is_mt_object = True
         obj_props.tile_name = tile_props.tile_name
         return core
+
+
+def neg_curved_floor_to_vert_groups(obj, height, side_length, vert_locs):
+    ctx = {
+        'object': obj,
+        'active_object': obj,
+        'selected_objects': [obj]
+    }
+
+    obj.vertex_groups.new(name='Side a')
+    obj.vertex_groups.new(name='Side b')
+    obj.vertex_groups.new(name='Side c')
+    obj.vertex_groups.new(name='Bottom')
+    obj.vertex_groups.new(name='Top')
+    select(obj.name)
+    mode('EDIT')
+    deselect_all()
+
+    select_by_loc(
+        lbound=(obj.location),
+        ubound=(
+            obj.location[0] + side_length,
+            obj.location[1] + side_length,
+            obj.location[2]),
+        buffer=0.0001,
+        coords='GLOBAL'
+    )
+    bpy.ops.object.vertex_group_set_active(group='Bottom')
+    bpy.ops.object.vertex_group_assign()
+    deselect_all()
+
+    select_by_loc(
+        lbound=(
+            obj.location[0],
+            obj.location[1],
+            obj.location[2] + height),
+        ubound=(
+            obj.location[0] + side_length,
+            obj.location[1] + side_length,
+            obj.location[2] + height),
+        buffer=0.0001,
+        coords='GLOBAL'
+    )
+    bpy.ops.object.vertex_group_set_active(group='Top')
+    bpy.ops.object.vertex_group_assign()
+    deselect_all()
+
+    for key, value in vert_locs.items():
+        if key == 'side_a':
+            for v in value:
+                select_by_loc(
+                    lbound=v,
+                    ubound=(v[0], v[1], v[2] + height),
+                    select_mode='VERT',
+                    coords='GLOBAL',
+                    additive=True,
+                    buffer=0.0001
+                )
+
+    select_by_loc(
+        lbound=(
+            obj.location[0],
+            obj.location[1] + side_length,
+            obj.location[2]),
+        ubound=(
+            obj.location[0],
+            obj.location[1] + side_length,
+            obj.location[2] + height),
+        buffer=0.0001,
+        additive=True,
+        coords='GLOBAL'
+    )
+
+    bpy.ops.object.vertex_group_set_active(ctx, group='Side a')
+    bpy.ops.object.vertex_group_assign(ctx)
+    deselect_all()
+
+    # side b
+    select_by_loc(
+        lbound=(
+            obj.location[0],
+            obj.location[1],
+            obj.location[2]),
+        ubound=(
+            obj.location[0],
+            obj.location[1] + side_length,
+            obj.location[2] + height),
+        buffer=0.0001,
+        coords='GLOBAL'
+    )
+
+    bpy.ops.object.vertex_group_set_active(group='Side b')
+    bpy.ops.object.vertex_group_assign()
+    deselect_all()
+
+    select_by_loc(
+        lbound=(
+            obj.location[0],
+            obj.location[1],
+            obj.location[2]),
+        ubound=(
+            obj.location[0] + side_length,
+            obj.location[1],
+            obj.location[2] + height),
+        buffer=0.0001,
+        coords='GLOBAL'
+    )
+    bpy.ops.object.vertex_group_set_active(group='Side c')
+    bpy.ops.object.vertex_group_assign()
+    deselect_all()
+
+    mode('OBJECT')
+
+    # get verts in side groups
+    side_groups = ['Side a', 'Side b', 'Side c']
+    side_vert_indices = []
+
+    for group in side_groups:
+        verts = get_vert_indexes_in_vert_group(group, bpy.context.object)
+        side_vert_indices.extend(verts)
+
+    remove_verts_from_group('Top', bpy.context.object, side_vert_indices)
+
+
+def curved_floor_to_vert_groups(obj, height, side_length):
+    obj.vertex_groups.new(name='Side a')
+    obj.vertex_groups.new(name='Side b')
+    obj.vertex_groups.new(name='Side c')
+    obj.vertex_groups.new(name='Bottom')
+    obj.vertex_groups.new(name='Top')
+    select(obj.name)
+    mode('EDIT')
+
+    deselect_all()
+    select_by_loc(
+        lbound=(obj.location),
+        ubound=(
+            obj.location[0] + side_length,
+            obj.location[1] + side_length,
+            obj.location[2]),
+        buffer=0.0001,
+        coords='GLOBAL'
+    )
+    bpy.ops.object.vertex_group_set_active(group='Bottom')
+    bpy.ops.object.vertex_group_assign()
+
+    deselect_all()
+    select_by_loc(
+        lbound=(
+            obj.location[0],
+            obj.location[1],
+            obj.location[2] + height),
+        ubound=(
+            obj.location[0] + side_length,
+            obj.location[1] + side_length,
+            obj.location[2] + height),
+        buffer=0.0001,
+        coords='GLOBAL'
+    )
+    bpy.ops.object.vertex_group_set_active(group='Top')
+    bpy.ops.object.vertex_group_assign()
+
+    deselect_all()
+    select_by_loc(
+        lbound=(
+            obj.location[0],
+            obj.location[1],
+            obj.location[2]),
+        ubound=(
+            obj.location[0] + side_length,
+            obj.location[1],
+            obj.location[2] + height),
+        buffer=0.0001,
+        coords='GLOBAL'
+    )
+    bpy.ops.object.vertex_group_set_active(group='Side c')
+    bpy.ops.object.vertex_group_assign()
+
+    deselect_all()
+    select_by_loc(
+        lbound=(
+            obj.location[0],
+            obj.location[1],
+            obj.location[2]),
+        ubound=(
+            obj.location[0],
+            obj.location[1] + side_length,
+            obj.location[2] + height),
+        buffer=0.0001,
+        coords='GLOBAL'
+    )
+    bpy.ops.object.vertex_group_set_active(group='Side b')
+    bpy.ops.object.vertex_group_assign()
+
+    deselect_all()
+    select_inverse_by_loc(
+        lbound=(
+            obj.location[0],
+            obj.location[1],
+            obj.location[2]),
+        ubound=(
+            obj.location[0],
+            obj.location[1],
+            obj.location[2] + height),
+        buffer=0.0001,
+        coords='GLOBAL'
+    )
+    bpy.ops.object.vertex_group_set_active(group='Side a')
+    bpy.ops.object.vertex_group_assign()
+
+    mode('OBJECT')

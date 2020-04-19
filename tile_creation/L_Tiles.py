@@ -211,7 +211,7 @@ class MT_L_Floor(MT_L_Tile, MT_Tile):
         return base
 
     def create_plain_cores(self, base, tile_props):
-        textured_vertex_groups = ['Top']
+        textured_vertex_groups = ['Leg 1 Top', 'Leg 2 Top']
         preview_core, displacement_core = self.create_cores(
             base,
             tile_props,
@@ -231,7 +231,11 @@ class MT_L_Floor(MT_L_Tile, MT_Tile):
         leg_1_len = tile_props.leg_1_len
         leg_2_len = tile_props.leg_2_len
         angle = tile_props.angle
-        native_subdivisions = tile_props.native_subdivisions
+        native_subdivisions = (
+            tile_props.leg_1_native_subdivisions,
+            tile_props.leg_2_native_subdivisions,
+            tile_props.width_native_subdivisions,
+            tile_props.z_native_subdivisions)
         thickness_diff = base_thickness - core_thickness
 
         # first work out where we're going to start drawing our wall
@@ -261,21 +265,28 @@ class MT_L_Floor(MT_L_Tile, MT_Tile):
 
         # store the vertex locations for turning
         # into vert groups as we draw outline
+        core, vert_locs = draw_corner_wall_core(
+            core_triangles_2,
+            angle,
+            core_thickness,
+            floor_height - base_height,
+            native_subdivisions
+        )
+        '''
         core, vert_locs = draw_corner_floor(
             core_triangles_2,
             angle,
             core_thickness,
             floor_height,
             base_height)
-
+        '''
         core.name = tile_props.tile_name + '.core'
         obj_props = core.mt_object_props
         obj_props.is_mt_object = True
         obj_props.tile_name = tile_props.tile_name
 
         # create vert groups
-        corner_floor_to_vert_groups(core, vert_locs)
-        self.subdivide_corner_floor(core, native_subdivisions)
+        corner_floor_to_vert_groups(core, vert_locs, native_subdivisions)
         
         ctx = {
             'object': core,
@@ -288,47 +299,7 @@ class MT_L_Floor(MT_L_Tile, MT_Tile):
         bpy.context.scene.cursor.location = (0, 0, 0)
         bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
         return core
-
-    # although this is a slow method of subdividing it allows us to preserve
-    # vertex groups easily in this case and is worth the hit
-    def subdivide_corner_floor(self, core, native_subdivisions):
-        mode('EDIT')
-        region, rv3d, v3d, area = view3d_find(True)
-
-        ctx = {
-            'object': core,
-            'active_object': core,
-            'selected_objects': [core],
-            'scene': bpy.context.scene,
-            'region': region,
-            'area': area,
-            'space': v3d
-        }
-
-        bpy.ops.mesh.loopcut(
-            ctx,
-            number_cuts=native_subdivisions[0],
-            smoothness=0,
-            falloff='INVERSE_SQUARE',
-            object_index=0,
-            edge_index=51)
-
-        bpy.ops.mesh.loopcut(
-            ctx,
-            number_cuts=native_subdivisions[1],
-            smoothness=0,
-            falloff='INVERSE_SQUARE',
-            object_index=0,
-            edge_index=53)
-
-        bpy.ops.mesh.loopcut(
-            ctx,
-            number_cuts=native_subdivisions[0],
-            smoothness=0,
-            falloff='INVERSE_SQUARE',
-            object_index=0,
-            edge_index=49)
-        
+      
 
 class MT_L_Wall(MT_L_Tile, MT_Tile):
     def __init__(self, tile_props):
@@ -343,7 +314,7 @@ class MT_L_Wall(MT_L_Tile, MT_Tile):
         return base
 
     def create_plain_cores(self, base, tile_props):
-        textured_vertex_groups = ['X Pos', 'Y Pos', 'X Neg', 'Y Neg']
+        textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner']
         preview_core, displacement_core = self.create_cores(
             base,
             tile_props,
@@ -482,7 +453,6 @@ class MT_L_Wall(MT_L_Tile, MT_Tile):
         # create vert groups
         corner_wall_to_vert_groups(core, vert_locs, native_subdivisions)
 
-        # subdivide textured areas
         ctx = {
             'object': core,
             'active_object': core,
@@ -495,70 +465,6 @@ class MT_L_Wall(MT_L_Tile, MT_Tile):
         
         bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
         return core
-
-    def subdivide_corner_wall(self, core, native_subdivisions=5):
-        mode('EDIT')
-        region, rv3d, v3d, area = view3d_find(True)
-
-        ctx = {
-            'object': core,
-            'active_object': core,
-            'selected_objects': [core],
-            'scene': bpy.context.scene,
-            'region': region,
-            'area': area,
-            'space': v3d
-        }
-
-        bpy.ops.mesh.loopcut(
-            ctx,
-            number_cuts=native_subdivisions[0],
-            smoothness=0,
-            falloff='INVERSE_SQUARE',
-            object_index=0,
-            edge_index=68)
-
-        bpy.ops.mesh.loopcut(
-            ctx,
-            number_cuts=native_subdivisions[0],
-            smoothness=0,
-            falloff='INVERSE_SQUARE',
-            object_index=0,
-            edge_index=89)
-
-        bpy.ops.mesh.loopcut(
-            ctx,
-            number_cuts=native_subdivisions[2],
-            smoothness=0,
-            falloff='INVERSE_SQUARE',
-            object_index=0,
-            edge_index=88)
-
-        bpy.ops.mesh.loopcut(
-            ctx,
-            number_cuts=native_subdivisions[1],
-            smoothness=0,
-            falloff='INVERSE_SQUARE',
-            object_index=0,
-            edge_index=92)
-        
-        bpy.ops.mesh.loopcut(
-            ctx,
-            number_cuts=native_subdivisions[1],
-            smoothness=0,
-            falloff='INVERSE_SQUARE',
-            object_index=0,
-            edge_index=57)
-
-        bpy.ops.mesh.loopcut(
-            ctx,
-            number_cuts=native_subdivisions[1],
-            smoothness=0,
-            falloff='INVERSE_SQUARE',
-            object_index=0,
-            edge_index=51)
-
-        mode('OBJECT')  
 
     def create_openlock_wall_cutters(self, core, tile_props):
         """Creates the cutters for the wall and positions them correctly

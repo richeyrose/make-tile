@@ -136,12 +136,14 @@ class MT_Scene_Properties(PropertyGroup):
             scene_props.mt_y_native_subdivisions = 3
             scene_props.mt_z_native_subdivisions = 1
         elif scene_props.mt_tile_type == 'CORNER_WALL':
-            scene_props.mt_x_native_subdivisions = 15
-            scene_props.mt_y_native_subdivisions = 2
+            scene_props.mt_leg_1_native_subdivisions = 15
+            scene_props.mt_leg_2_native_subdivisions = 15
+            scene_props.mt_width_native_subdivisions = 3
             scene_props.mt_z_native_subdivisions = 15
         elif scene_props.mt_tile_type == 'CORNER_FLOOR':
-            scene_props.mt_x_native_subdivisions = 15
-            scene_props.mt_y_native_subdivisions = 2
+            scene_props.mt_leg_1_native_subdivisions = 15
+            scene_props.mt_leg_2_native_subdivisions = 15
+            scene_props.mt_width_native_subdivisions = 3
             scene_props.mt_z_native_subdivisions = 1
         elif scene_props.mt_tile_type == 'RECTANGULAR_FLOOR':
             scene_props.mt_x_native_subdivisions = 15
@@ -300,13 +302,31 @@ class MT_Scene_Properties(PropertyGroup):
     mt_opposite_native_subdivisions: bpy.props.IntProperty(
         name="Opposite Side",
         description="The number of times to subdivide the edge opposite the root angle on triangular tile creation",
-        default=1
+        default=15
     )
 
     mt_curve_native_subdivisions: bpy.props.IntProperty(
         name="Curved Side",
         description="The number of times to subdivide the curved side of a tile",
-        default=1
+        default=15
+    )
+    
+    mt_leg_1_native_subdivisions: bpy.props.IntProperty(
+        name="Leg 1",
+        description="The number of times to subdivide the length of leg 1 of the tile",
+        default=15
+    )
+    
+    mt_leg_2_native_subdivisions: bpy.props.IntProperty(
+        name="Leg 2",
+        description="The number of times to subdivide the length of leg 2 of the tile",
+        default=15
+    )
+    
+    mt_width_native_subdivisions: bpy.props.IntProperty(
+        name="Width",
+        description="The number of times to subdivide each leg along its width",
+        default=3
     )
 
     mt_material_mapping_method: bpy.props.EnumProperty(
@@ -561,6 +581,24 @@ class MT_Tile_Properties(PropertyGroup):
         name="Curved Side",
         description="The number of times to subdivide the curved side of a tile",
         default=1
+    )
+
+    leg_1_native_subdivisions: bpy.props.IntProperty(
+        name="Leg 1",
+        description="The number of times to subdivide the length of leg 1 of the tile",
+        default=15
+    )
+
+    leg_2_native_subdivisions: bpy.props.IntProperty(
+        name="Leg 2",
+        description="The number of times to subdivide the length of leg 2 of the tile",
+        default=15
+    )
+
+    width_native_subdivisions: bpy.props.IntProperty(
+        name="Width",
+        description="The number of times to subdivide each leg along its width",
+        default=3
     )
 
     # Subsurf modifier subdivisions #

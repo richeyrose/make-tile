@@ -81,6 +81,153 @@ def draw_corner_3D(triangles, angle, thickness, height, inc_vert_locs=False):
         return obj, vert_loc
 
 
+def draw_corner_wall_core(triangles, angle, thickness, height, native_subdivisions):
+    mode('OBJECT')
+    obj = bpy.context.object
+    ctx = {
+        'object': obj,
+        'active_object': obj,
+        'selected_objects': [obj]
+    }
+    turtle = bpy.context.scene.cursor
+    t = bpy.ops.turtle
+    t.add_turtle()
+
+    verts = bpy.context.object.data.vertices
+
+    vert_locs = {}
+    leg_1_outer_vert_locs = []
+    leg_1_end_vert_locs = []
+    leg_1_inner_vert_locs = []
+
+    # draw leg_1 #
+    # outer
+    t.pd()
+    t.rt(d=angle)
+    subdiv_dist = (triangles['a_adj'] - 0.001) / native_subdivisions[0]
+    i = 0
+    while i < native_subdivisions[0]:
+        t.fd(d=subdiv_dist)
+        i += 1
+    t.fd(d=0.001)
+    for v in verts:
+        leg_1_outer_vert_locs.append(v.co.copy())
+    vert_locs['leg_1_outer'] = leg_1_outer_vert_locs
+
+    # end #
+    t.pu()
+    t.deselect_all()
+    t.lt(d=90)
+    leg_1_end_vert_locs.append(verts[verts.values()[-1].index].co.copy())
+    t.fd(d=thickness)
+    t.pd()
+    t.add_vert()
+    leg_1_end_vert_locs.append(verts[verts.values()[-1].index].co.copy())
+    vert_locs['leg_1_end'] = leg_1_end_vert_locs
+
+    # inner #
+    subdiv_dist = (triangles['b_adj'] - 0.001) / native_subdivisions[0]
+    t.lt(d=90)
+    t.fd(d=0.001)
+    start_index = verts.values()[-1].index
+    i = 0
+    while i < native_subdivisions[0]:
+        t.fd(d=subdiv_dist)
+        i += 1
+
+    i = start_index + 1
+    while i <= verts.values()[-1].index:
+        leg_1_inner_vert_locs.append(verts[i].co.copy())
+        i += 1
+    t.deselect_all()    
+    leg_1_inner_vert_locs.append(verts[verts.values()[-1].index].co.copy())
+    vert_locs['leg_1_inner'] = leg_1_inner_vert_locs
+
+    # home #
+    t.pu()
+    t.deselect_all()
+    t.home()
+    t.select_at_cursor(buffer=0.0001)
+
+    t.pd()
+
+    # draw leg 2 #
+    leg_2_outer_vert_locs = []
+    leg_2_end_vert_locs = []
+    leg_2_inner_vert_locs = []
+
+    # outer #
+    leg_2_outer_vert_locs.append(verts[0].co.copy())
+
+    subdiv_dist = (triangles['c_adj'] - 0.001) / native_subdivisions[1]
+    start_index = verts.values()[-1].index
+    i = 0
+    while i < native_subdivisions[1]:
+        t.fd(d=subdiv_dist)
+        i += 1
+    t.fd(d=0.001)
+
+    i = start_index + 1
+    while i <= verts.values()[-1].index:
+        leg_2_outer_vert_locs.append(verts[i].co.copy())
+        i += 1
+
+    t.deselect_all()
+    vert_locs['leg_2_outer'] = leg_2_outer_vert_locs
+
+    # end #
+    t.pu()
+    t.rt(d=90)
+    leg_2_end_vert_locs.append(verts[verts.values()[-1].index].co.copy())
+    t.fd(d=thickness)
+    t.pd()
+    t.add_vert()
+    leg_2_end_vert_locs.append(verts[verts.values()[-1].index].co.copy())
+    vert_locs['leg_2_end'] = leg_2_end_vert_locs
+
+    # inner #
+    t.rt(d=90)
+
+    subdiv_dist = (triangles['d_adj'] - 0.001) / native_subdivisions[1]
+    t.fd(d=0.001)
+    start_index = verts.values()[-1].index
+    i = 0
+    while i < native_subdivisions[1]:
+        t.fd(d=subdiv_dist)
+        i += 1
+
+    i = start_index + 1
+    while i <= verts.values()[-1].index:
+        leg_2_inner_vert_locs.append(verts[i].co.copy())
+        i += 1
+    t.deselect_all()
+    leg_2_inner_vert_locs.append(verts[verts.values()[-1].index].co.copy())
+    vert_locs['leg_2_inner'] = leg_2_inner_vert_locs
+    t.select_all()
+    t.merge()
+    t.pu()
+    t.home()
+    bpy.ops.mesh.bridge_edge_loops(ctx, interpolation='LINEAR', number_cuts=native_subdivisions[2])
+    t.select_all()
+    bpy.ops.mesh.inset(ctx, thickness=0.001, depth=0)
+    t.select_all()
+    bpy.ops.mesh.remove_doubles(ctx)
+
+    # Z #
+    subdiv_dist = (height - 0.002) / native_subdivisions[3]
+    t.pd()
+    t.up(d=0.001)
+
+    i = 0
+    while i < native_subdivisions[3]:
+        t.up(d=subdiv_dist)
+        i += 1
+    t.up(d=0.001)
+
+    mode('OBJECT')
+    return bpy.context.object, vert_locs
+
+
 def draw_corner_2D(triangles, angle, thickness, return_object=False):
     '''Draws a 2D corner mesh in which is an "L" shape
     and returns a dict containing the location of the verts for making vert
@@ -104,6 +251,7 @@ def draw_corner_2D(triangles, angle, thickness, return_object=False):
     t.fd(d=triangles['a_adj'] - 0.001)
     vert_loc['x_outer_1'] = turtle.location.copy()
     t.fd(d=0.001)
+    
     vert_loc['x_outer_2'] = turtle.location.copy()
     t.lt(d=90)
     t.fd(d=0.001)

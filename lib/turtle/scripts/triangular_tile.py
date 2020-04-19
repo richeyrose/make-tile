@@ -20,23 +20,6 @@ def draw_plain_triangular_base(tile_props):
     return base, dimensions
 
 
-def draw_triangular_floor_core(tile_props):
-    t = bpy.ops.turtle
-    t.add_turtle()
-    t.add_vert()
-    t.pd()
-    core, dimensions = draw_tri_prism(
-        tile_props.leg_1_len,
-        tile_props.leg_2_len,
-        tile_props.angle,
-        tile_props.tile_size[2] - tile_props.base_size[2])
-    t.pu()
-    t.home()
-    mode('OBJECT')
-
-    return core, dimensions
-
-
 def draw_openlock_tri_floor_base(x_leg, y_leg, height, angle_1):
     '''Returns an openlock rectangular floor base'''
     turtle = bpy.context.scene.cursor

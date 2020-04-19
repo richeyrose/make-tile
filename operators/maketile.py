@@ -125,7 +125,9 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         tile_props.z_native_subdivisions = scene_props.mt_z_native_subdivisions
         tile_props.opposite_native_subdivisions = scene_props.mt_opposite_native_subdivisions
         tile_props.curve_native_subdivisions = scene_props.mt_curve_native_subdivisions
-
+        tile_props.leg_1_native_subdivisions = scene_props.mt_leg_1_native_subdivisions
+        tile_props.leg_2_native_subdivisions = scene_props.mt_leg_2_native_subdivisions
+        tile_props.width_native_subdivisions = scene_props.mt_width_native_subdivisions
         ###############
         # Create Tile #
         ###############

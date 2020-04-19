@@ -14,6 +14,7 @@ from .. lib.utils.selection import (
 from .. lib.turtle.scripts.L_tile import (
     draw_corner_3D,
     draw_corner_wall,
+    draw_corner_wall_core,
     draw_corner_floor,
     calculate_corner_wall_triangles,
     move_cursor_to_wall_start)
@@ -356,7 +357,7 @@ class MT_L_Wall(MT_L_Tile, MT_Tile):
             0.3149,
             tile_props.tile_size[2]))
 
-        textured_vertex_groups = ['X Pos', 'Y Pos', 'X Neg', 'Y Neg']
+        textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner']
 
         preview_core, displacement_core = self.create_cores(
             base,
@@ -431,7 +432,11 @@ class MT_L_Wall(MT_L_Tile, MT_Tile):
         leg_1_len = tile_props.leg_1_len
         leg_2_len = tile_props.leg_2_len
         angle = tile_props.angle
-        native_subdivisions = tile_props.native_subdivisions
+        native_subdivisions = (
+            tile_props.leg_1_native_subdivisions,
+            tile_props.leg_2_native_subdivisions,
+            tile_props.width_native_subdivisions,
+            tile_props.z_native_subdivisions)
         thickness_diff = base_thickness - wall_thickness
 
         # first work out where we're going to start drawing our wall
@@ -461,12 +466,13 @@ class MT_L_Wall(MT_L_Tile, MT_Tile):
 
         # store the vertex locations for turning
         # into vert groups as we draw outline
-        core, vert_locs = draw_corner_wall(
+        core, vert_locs = draw_corner_wall_core(
             core_triangles_2,
             angle,
             wall_thickness,
-            wall_height,
-            base_height)
+            wall_height - base_height,
+            native_subdivisions
+        )
 
         core.name = tile_props.tile_name + '.core'
         obj_props = core.mt_object_props
@@ -474,10 +480,9 @@ class MT_L_Wall(MT_L_Tile, MT_Tile):
         obj_props.tile_name = tile_props.tile_name
 
         # create vert groups
-        corner_wall_to_vert_groups(core, vert_locs)
+        corner_wall_to_vert_groups(core, vert_locs, native_subdivisions)
 
         # subdivide textured areas
-        self.subdivide_corner_wall(core, native_subdivisions)
         ctx = {
             'object': core,
             'active_object': core,
@@ -485,8 +490,9 @@ class MT_L_Wall(MT_L_Tile, MT_Tile):
         }
 
         mode('OBJECT')
-        bpy.ops.uv.smart_project(ctx, island_margin=0.05)
         bpy.context.scene.cursor.location = (0, 0, 0)
+        bpy.ops.uv.smart_project(ctx, island_margin=0.01)
+        
         bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
         return core
 

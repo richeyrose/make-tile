@@ -25,12 +25,10 @@ class MT_PT_Tile_Generator_Panel(Panel):
 
             if obj.mt_object_props.geometry_type == 'PREVIEW':
                 layout.operator('scene.mt_make_3d', text='Make 3D')
-
             if obj.mt_object_props.geometry_type == 'DISPLACEMENT':
                 layout.operator(
                     'scene.mt_return_to_preview',
                     text='Return to Preview')
-            layout.prop(scene_props, 'mt_subdivisions')
 
         layout.operator('scene.delete_tiles', text="Delete Tiles")
 
@@ -46,6 +44,7 @@ class MT_PT_Tile_Options_Panel(Panel):
         scene = context.scene
         scene_props = scene.mt_scene_props
         blueprint = scene_props.mt_tile_blueprint
+        layout = self.layout
 
         if blueprint == 'PLAIN':
             self.draw_plain_main_part_panel(context)
@@ -57,6 +56,11 @@ class MT_PT_Tile_Options_Panel(Panel):
         if blueprint == 'CUSTOM':
             self.draw_custom_panel(context)
 
+        self.draw_native_subdiv_panel(context)
+
+        layout.label(text='Modifier Subdivisions')
+        layout.prop(scene_props, 'mt_subdivisions')
+
     def draw_plain_base_panel(self, context):
         pass
 
@@ -64,6 +68,9 @@ class MT_PT_Tile_Options_Panel(Panel):
         pass
 
     def draw_openlock_panel(self, context):
+        pass
+
+    def draw_native_subdiv_panel(self, context):
         pass
 
     def draw_custom_panel(self, context):
@@ -136,6 +143,17 @@ class MT_PT_Straight_Tile_Options_Panel(MT_PT_Tile_Options_Panel):
             row.prop(scene_props, 'mt_tile_x')
             row.prop(scene_props, 'mt_tile_y')
 
+    def draw_native_subdiv_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Native Subdivisions:")
+        row = layout.row()
+        row.prop(scene_props, 'mt_x_native_subdivisions')
+        row.prop(scene_props, 'mt_y_native_subdivisions')
+        row.prop(scene_props, 'mt_z_native_subdivisions')
+
 
 class MT_PT_Curved_Tile_Options_Panel(MT_PT_Tile_Options_Panel):
     bl_idname = 'MT_PT_Curved_Tile_Options'
@@ -186,6 +204,17 @@ class MT_PT_Curved_Tile_Options_Panel(MT_PT_Tile_Options_Panel):
         layout.prop(scene_props, 'mt_degrees_of_arc', text="Degrees of Arc")
         layout.prop(scene_props, 'mt_base_socket_side')
 
+    def draw_native_subdiv_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Native Subdivisions:")
+        row = layout.row()
+        row.prop(scene_props, 'mt_curve_native_subdivisions')
+        row.prop(scene_props, 'mt_y_native_subdivisions')
+        row.prop(scene_props, 'mt_z_native_subdivisions')
+
 
 class MT_PT_L_Tiles_Options_Panel(MT_PT_Tile_Options_Panel):
     bl_idname = 'MT_PT_L_Tiles_Options'
@@ -235,6 +264,18 @@ class MT_PT_L_Tiles_Options_Panel(MT_PT_Tile_Options_Panel):
         layout.prop(scene_props, 'mt_leg_2_len', text='Leg 2 Length')
         layout.prop(scene_props, 'mt_angle', text='Angle')
 
+    def draw_native_subdiv_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Native Subdivisions:")
+        row = layout.row()
+        row.prop(scene_props, 'mt_leg_1_native_subdivisions')
+        row.prop(scene_props, 'mt_leg_2_native_subdivisions')
+        row.prop(scene_props, 'mt_width_native_subdivisions')
+        row.prop(scene_props, 'mt_z_native_subdivisions')
+
 
 class MT_PT_Semi_Circ_Tiles_Options_Panel(MT_PT_Tile_Options_Panel):
     bl_idname = 'MT_PT_Semi_Circ_Tiles_Options'
@@ -278,6 +319,18 @@ class MT_PT_Semi_Circ_Tiles_Options_Panel(MT_PT_Tile_Options_Panel):
         layout.prop(scene_props, 'mt_angle', text="Angle")
         layout.prop(scene_props, 'mt_curve_type', text="Curve Type")
 
+    def draw_native_subdiv_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Native Subdivisions:")
+        row = layout.row()
+        row.prop(scene_props, 'mt_x_native_subdivisions')
+        row.prop(scene_props, 'mt_y_native_subdivisions')
+        row.prop(scene_props, 'mt_z_native_subdivisions')
+        row.prop(scene_props, 'mt_curve_native_subdivisions')
+
 
 class MT_PT_Triangular_Tiles_Options_Panel(MT_PT_Tile_Options_Panel):
     bl_idname = 'MT_PT_Triangular_Tiles_Options'
@@ -320,6 +373,16 @@ class MT_PT_Triangular_Tiles_Options_Panel(MT_PT_Tile_Options_Panel):
         layout.prop(scene_props, 'mt_leg_1_len', text='Leg 1 Length')
         layout.prop(scene_props, 'mt_leg_2_len', text='Leg 2 Length')
         layout.prop(scene_props, 'mt_angle', text='Angle')
+
+    def draw_native_subdiv_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Native Subdivisions:")
+        row = layout.row()
+        row.prop(scene_props, 'mt_opposite_native_subdivisions')
+        row.prop(scene_props, 'mt_z_native_subdivisions')
 
 
 class MT_PT_Converter_Panel(Panel):

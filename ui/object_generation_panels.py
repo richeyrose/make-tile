@@ -7,29 +7,19 @@ class MT_PT_Tile_Generator_Panel(Panel):
     bl_category = "Make Tile"
     bl_idname = "MT_PT_Main_Panel"
     bl_label = "Make Tile"
-    bl_description = "Options to configure the type and dimensions of tile"
+    bl_description = "Options to configure the type of tile"
 
     def draw(self, context):
         scene = context.scene
         scene_props = scene.mt_scene_props
-        layout = self.layout
         obj = context.object
-
-        layout.operator('scene.make_tile', text="Make Tile")
+        layout = self.layout
 
         layout.prop(scene_props, 'mt_tile_blueprint')
         layout.prop(scene_props, 'mt_tile_type')
         layout.prop(scene_props, 'mt_tile_material_1', text="Main Material")
-        
-        if scene_props.mt_tile_blueprint == 'PLAIN':
-            self.draw_plain_base_panel(context)
-            self.draw_plain_main_part_panel(context)
 
-        if scene_props.mt_tile_blueprint == 'OPENLOCK':
-            self.draw_openlock_panel(context)
-
-        if scene_props.mt_tile_blueprint == 'CUSTOM':
-            self.draw_custom_panel(context)
+        layout.operator('scene.make_tile', text="Make Tile")
 
         if obj is not None and obj.type == 'MESH':
 
@@ -44,243 +34,292 @@ class MT_PT_Tile_Generator_Panel(Panel):
 
         layout.operator('scene.delete_tiles', text="Delete Tiles")
 
-    def draw_openlock_panel(self, context):
+
+class MT_PT_Tile_Options_Panel(Panel):
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Make Tile"
+    bl_label = "Tile Options"
+    bl_description = "Options to configure the dimensions of a tile"
+
+    def draw(self, context):
         scene = context.scene
         scene_props = scene.mt_scene_props
-        layout = self.layout
-        obj = context.object
+        blueprint = scene_props.mt_tile_blueprint
 
-        if scene_props.mt_tile_type == 'STRAIGHT_WALL':
-            layout.label(text="Tile Size:")
-            row = layout.row()
-            row.prop(scene_props, 'mt_tile_x')
-            row.prop(scene_props, 'mt_tile_z')
+        if blueprint == 'PLAIN':
+            self.draw_plain_main_part_panel(context)
+            self.draw_plain_base_panel(context)
 
-        if scene_props.mt_tile_type == 'STRAIGHT_FLOOR':
-            layout.label(text="Tile Size:")
-            row = layout.row()
-            row.prop(scene_props, 'mt_tile_x')
-            row.prop(scene_props, 'mt_tile_z')
+        if blueprint == 'OPENLOCK':
+            self.draw_openlock_panel(context)
 
-        if scene_props.mt_tile_type in (
-                'CURVED_WALL',
-                'CURVED_FLOOR'):
-            layout.label(text="Tile Properties:")
-            layout.prop(scene_props, 'mt_base_radius')
-            layout.prop(scene_props, 'mt_degrees_of_arc')
-            layout.prop(scene_props, 'mt_base_socket_side')
-            layout.label(text="Height")
-            layout.prop(scene_props, 'mt_tile_z')
-
-        if scene_props.mt_tile_type == 'CORNER_WALL':
-            layout.label(text="Wall Height")
-            row = layout.row()
-            row.prop(scene_props, 'mt_tile_z')
-
-            layout.label(text="Corner Properties")
-            layout.prop(scene_props, 'mt_leg_1_len')
-            layout.prop(scene_props, 'mt_leg_2_len')
-            layout.prop(scene_props, 'mt_angle')
-
-        if scene_props.mt_tile_type == 'CORNER_FLOOR':
-            layout.label(text="Floor Height")
-            row = layout.row()
-            row.prop(scene_props, 'mt_tile_z')
-
-            layout.label(text="Corner Properties")
-            layout.prop(scene_props, 'mt_leg_1_len')
-            layout.prop(scene_props, 'mt_leg_2_len')
-            layout.prop(scene_props, 'mt_angle')
-
-        if scene_props.mt_tile_type == 'RECTANGULAR_FLOOR':
-            layout.label(text="Tile Size")
-            row = layout.row()
-            row.prop(scene_props, 'mt_tile_x')
-            row.prop(scene_props, 'mt_tile_y')
-
-        if scene_props.mt_tile_type == 'TRIANGULAR_FLOOR':
-            layout.label(text="Tile Properties:")
-            layout.prop(scene_props, 'mt_leg_1_len')
-            layout.prop(scene_props, 'mt_leg_2_len')
-            layout.prop(scene_props, 'mt_angle')
-
-        if scene_props.mt_tile_type == 'SEMI_CIRC_FLOOR':
-            layout.label(text="Tile Properties")
-            layout.prop(scene_props, 'mt_base_radius', text="Radius")
-            layout.prop(scene_props, 'mt_angle', text="Angle")
-            layout.prop(scene_props, 'mt_curve_type')
-
-        if scene_props.mt_tile_type in (
-                'STRAIGHT_WALL',
-                'CURVED_WALL',
-                'CORNER_WALL'):
-            if obj is not None and obj.mt_object_props.is_mt_object is True:
-                layout.label(text="Side Sockets:")
-                for item in obj.mt_object_props.cutters_collection:
-                    seperator = '.'
-                    stripped_name = item.name.split(seperator, 1)[0]
-                    row = layout.row()
-                    row.prop(item, "value", text=stripped_name)
+        if blueprint == 'CUSTOM':
+            self.draw_custom_panel(context)
 
     def draw_plain_base_panel(self, context):
-        scene = context.scene
-        scene_props = scene.mt_scene_props
-        layout = self.layout
-
-        if scene_props.mt_tile_type in (
-                'STRAIGHT_WALL',
-                'RECTANGULAR_FLOOR',
-                'STRAIGHT_FLOOR'):
-
-            layout.label(text="Base Size")
-            row = layout.row()
-            row.prop(scene_props, 'mt_base_x')
-            row.prop(scene_props, 'mt_base_y')
-            row.prop(scene_props, 'mt_base_z')
-
-        if scene_props.mt_tile_type in (
-                'CORNER_WALL',
-                'CORNER_FLOOR'):
-            layout.label(text="Base Size")
-            row = layout.row()
-            row.prop(scene_props, 'mt_base_y')
-            row.prop(scene_props, 'mt_base_z')
-
-            layout.label(text="Corner Properties")
-            layout.prop(scene_props, 'mt_leg_1_len')
-            layout.prop(scene_props, 'mt_leg_2_len')
-            layout.prop(scene_props, 'mt_angle')
-
-        if scene_props.mt_tile_type == 'TRIANGULAR_FLOOR':
-            layout.label(text="Base Height")
-            layout.prop(scene_props, 'mt_base_z')
-
-            layout.label(text="Triangle Properties")
-            layout.prop(scene_props, 'mt_leg_1_len')
-            layout.prop(scene_props, 'mt_leg_2_len')
-            layout.prop(scene_props, 'mt_angle')
-
-        if scene_props.mt_tile_type == 'SEMI_CIRC_FLOOR':
-            layout.label(text="Base Height")
-            layout.prop(scene_props, 'mt_base_z')
-
-            layout.label(text="Curve Properties")
-            layout.prop(scene_props, 'mt_base_radius', text="Radius")
-            layout.prop(scene_props, 'mt_angle', text="Angle")
-            layout.prop(scene_props, 'mt_curve_type')
-
-        if scene_props.mt_tile_type in ('CURVED_WALL', 'CURVED_FLOOR'):
-            layout.label(text="Base Size")
-            row = layout.row()
-            row.prop(scene_props, 'mt_base_y')
-            row.prop(scene_props, 'mt_base_z')
-
-            layout.label(text="Curve Properties")
-            layout.prop(scene_props, 'mt_base_radius', text="Radius")
-            layout.prop(scene_props, 'mt_degrees_of_arc')
+        pass
 
     def draw_plain_main_part_panel(self, context):
-        scene = context.scene
-        scene_props = scene.mt_scene_props
-        layout = self.layout
+        pass
 
-        if scene_props.mt_tile_type in (
-                'STRAIGHT_WALL',
-                'STRAIGHT_FLOOR',
-                'RECTANGULAR_FLOOR'):
-            layout.label(text="Tile Size")
-            row = layout.row()
-            row.prop(scene_props, 'mt_tile_x')
-            row.prop(scene_props, 'mt_tile_y')
-            row.prop(scene_props, 'mt_tile_z')
-
-        elif scene_props.mt_tile_type == 'SEMI_CIRC_FLOOR':
-            layout.label(text="Tile Height")
-            layout.prop(scene_props, 'mt_tile_z')
-
-            if scene_props.mt_base_blueprint == 'NONE':
-                layout.label(text="Curve Properties")
-                layout.prop(scene_props, 'mt_base_radius', text="Base Radius")
-                layout.prop(scene_props, 'mt_angle', text="Angle")
-                layout.prop(scene_props, 'mt_curve_type')
-
-        elif scene_props.mt_tile_type == 'TRIANGULAR_FLOOR':
-            layout.label(text="Tile Height")
-            row = layout.row()
-            row.prop(scene_props, 'mt_tile_z')
-
-            if scene_props.mt_base_blueprint == 'NONE':
-                layout.label(text="Triangle Properties")
-                layout.prop(scene_props, 'mt_leg_1_len')
-                layout.prop(scene_props, 'mt_leg_2_len')
-                layout.prop(scene_props, 'mt_angle')
-
-        elif scene_props.mt_tile_type == 'CURVED_WALL':
-            layout.label(text="Tile Properties")
-            row = layout.row()
-            row.prop(scene_props, 'mt_tile_y')
-            row.prop(scene_props, 'mt_tile_z')
-            layout.prop(scene_props, 'mt_wall_radius')
-
-            if scene_props.mt_base_blueprint == 'NONE':
-                layout.label(text="Curve Properties")
-                layout.prop(scene_props, 'mt_degrees_of_arc')
-
-        elif scene_props.mt_tile_type == 'CURVED_FLOOR':
-            layout.label(text="Floor Properties")
-            row = layout.row()
-            row.prop(scene_props, 'mt_tile_y')
-            row.prop(scene_props, 'mt_tile_z')
-            layout.prop(scene_props, 'mt_wall_radius', text='Radius')
-
-            if scene_props.mt_base_blueprint == 'NONE':
-                layout.label(text="Curve Properties")
-                layout.prop(scene_props, 'mt_degrees_of_arc')
-
-        elif scene_props.mt_tile_type == 'CORNER_WALL':
-            layout.label(text="Tile Properties")
-            row = layout.row()
-            row.prop(scene_props, 'mt_tile_y')
-            row.prop(scene_props, 'mt_tile_z')
-
-            if scene_props.mt_base_blueprint == 'NONE':
-                layout.label(text="Corner Properties")
-                layout.prop(scene_props, 'mt_leg_1_len')
-                layout.prop(scene_props, 'mt_leg_2_len')
-                layout.prop(scene_props, 'mt_angle')
-
-        elif scene_props.mt_tile_type == 'CORNER_FLOOR':
-
-            layout.label(text="Tile Properties")
-            row = layout.row()
-            row.prop(scene_props, 'mt_tile_y')
-            row.prop(scene_props, 'mt_tile_z')
-
-            if scene_props.mt_base_blueprint == 'NONE':
-                layout.label(text="Corner Properties")
-                layout.prop(scene_props, 'mt_leg_1_len')
-                layout.prop(scene_props, 'mt_leg_2_len')
-                layout.prop(scene_props, 'mt_angle')
+    def draw_openlock_panel(self, context):
+        pass
 
     def draw_custom_panel(self, context):
         scene = context.scene
         scene_props = scene.mt_scene_props
         layout = self.layout
-
-        layout.row()
+        layout.label(text="Part Blueprints:")
 
         layout.prop(scene_props, 'mt_base_blueprint')
         layout.prop(scene_props, 'mt_main_part_blueprint')
 
         if scene_props.mt_base_blueprint == 'PLAIN':
             self.draw_plain_base_panel(context)
-        if scene_props.mt_base_blueprint == 'OPENLOCK':
-            self.draw_openlock_panel(context)
+
         if scene_props.mt_main_part_blueprint == 'PLAIN':
             self.draw_plain_main_part_panel(context)
+
+        if scene_props.mt_base_blueprint == 'OPENLOCK':
+            self.draw_openlock_panel(context)
+
         if scene_props.mt_main_part_blueprint == 'OPENLOCK' \
                 and scene_props.mt_base_blueprint != 'OPENLOCK':
             self.draw_openlock_panel(context)
+
+
+class MT_PT_Straight_Tile_Options_Panel(MT_PT_Tile_Options_Panel):
+    bl_idname = 'MT_PT_Straight_Tile_Options'
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene.mt_scene_props.mt_tile_type in (
+            'STRAIGHT_WALL',
+            'STRAIGHT_FLOOR',
+            'RECTANGULAR_FLOOR')
+
+    def draw_plain_base_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Base Size")
+        row = layout.row()
+        row.prop(scene_props, 'mt_base_x')
+        row.prop(scene_props, 'mt_base_y')
+        row.prop(scene_props, 'mt_base_z')
+
+    def draw_plain_main_part_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Tile Size")
+        row = layout.row()
+        row.prop(scene_props, 'mt_tile_x')
+        row.prop(scene_props, 'mt_tile_y')
+        row.prop(scene_props, 'mt_tile_z')
+
+    def draw_openlock_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Tile Size:")
+        row = layout.row()
+
+        if scene_props.mt_tile_type == 'STRAIGHT_WALL':
+            row.prop(scene_props, 'mt_tile_x')
+            row.prop(scene_props, 'mt_tile_z')
+        else:
+            row.prop(scene_props, 'mt_tile_x')
+            row.prop(scene_props, 'mt_tile_y')
+
+
+class MT_PT_Curved_Tile_Options_Panel(MT_PT_Tile_Options_Panel):
+    bl_idname = 'MT_PT_Curved_Tile_Options'
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene.mt_scene_props.mt_tile_type in (
+            'CURVED_WALL',
+            'CURVED_FLOOR')
+
+    def draw_plain_base_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Base Properties")
+        layout.prop(scene_props, 'mt_base_y', text='Base Thickness')
+        layout.prop(scene_props, 'mt_base_z', text='Base Height')
+        layout.prop(scene_props, 'mt_base_radius', text="Base Radius")
+        layout.prop(scene_props, 'mt_degrees_of_arc', text="Degrees of Arc")
+
+    def draw_plain_main_part_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Tile Properties")
+
+        layout.prop(scene_props, 'mt_tile_y', text='Tile Thickness')
+        layout.prop(scene_props, 'mt_tile_z', text='Tile Height')
+
+        if scene_props.mt_tile_type == 'CURVED_WALL':
+            layout.prop(scene_props, 'mt_wall_radius', text='Radius')
+
+        if scene_props.mt_base_blueprint == 'NONE':
+            layout.prop(scene_props, 'mt_degrees_of_arc', text="Degrees of Arc")
+            layout.prop(scene_props, 'mt_wall_radius', text='Radius')
+
+    def draw_openlock_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Tile Properties:")
+
+        layout.prop(scene_props, 'mt_tile_z', text='Tile Height')
+        layout.prop(scene_props, 'mt_base_radius', text="Base Radius")
+        layout.prop(scene_props, 'mt_degrees_of_arc', text="Degrees of Arc")
+        layout.prop(scene_props, 'mt_base_socket_side')
+
+
+class MT_PT_L_Tiles_Options_Panel(MT_PT_Tile_Options_Panel):
+    bl_idname = 'MT_PT_L_Tiles_Options'
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene.mt_scene_props.mt_tile_type in (
+            'CORNER_WALL',
+            'CORNER_FLOOR')
+
+    def draw_plain_base_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Base Properties")
+
+        layout.prop(scene_props, 'mt_base_y', text='Base Thickness')
+        layout.prop(scene_props, 'mt_base_z', text='Base Height')
+        layout.prop(scene_props, 'mt_leg_1_len', text='Leg 1 Length')
+        layout.prop(scene_props, 'mt_leg_2_len', text='Leg 2 Length')
+        layout.prop(scene_props, 'mt_angle', text='Angle')
+
+    def draw_plain_main_part_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Tile Properties")
+
+        layout.prop(scene_props, 'mt_tile_y', text='Tile Thickness')
+        layout.prop(scene_props, 'mt_tile_z', text='Tile Height')
+
+        if scene_props.mt_base_blueprint == 'NONE':
+            layout.prop(scene_props, 'mt_leg_1_len', text='Leg 1 Length')
+            layout.prop(scene_props, 'mt_leg_2_len', text='Leg 2 Length')
+            layout.prop(scene_props, 'mt_angle', text='Angle')
+
+    def draw_openlock_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Tile Properties:")
+        layout.prop(scene_props, 'mt_tile_z', text='Tile Height')
+        layout.prop(scene_props, 'mt_leg_1_len', text='Leg 1 Length')
+        layout.prop(scene_props, 'mt_leg_2_len', text='Leg 2 Length')
+        layout.prop(scene_props, 'mt_angle', text='Angle')
+
+
+class MT_PT_Semi_Circ_Tiles_Options_Panel(MT_PT_Tile_Options_Panel):
+    bl_idname = 'MT_PT_Semi_Circ_Tiles_Options'
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene.mt_scene_props.mt_tile_type == 'SEMI_CIRC_FLOOR'
+
+    def draw_plain_base_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Base Properties")
+        layout.prop(scene_props, 'mt_base_z', text='Base Height')
+        layout.prop(scene_props, 'mt_base_radius', text="Base Radius")
+        layout.prop(scene_props, 'mt_angle', text="Angle")
+        layout.prop(scene_props, 'mt_curve_type', text="Curve Type")
+
+    def draw_plain_main_part_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Tile Properties")
+
+        layout.prop(scene_props, 'mt_tile_z', text='Tile Height')
+
+        if scene_props.mt_base_blueprint == 'NONE':
+            layout.prop(scene_props, 'mt_base_radius', text="Base Radius")
+            layout.prop(scene_props, 'mt_angle', text="Angle")
+            layout.prop(scene_props, 'mt_curve_type', text="Curve Type")
+
+    def draw_openlock_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Tile Properties:")
+        layout.prop(scene_props, 'mt_base_radius', text="Base Radius")
+        layout.prop(scene_props, 'mt_angle', text="Angle")
+        layout.prop(scene_props, 'mt_curve_type', text="Curve Type")
+
+
+class MT_PT_Triangular_Tiles_Options_Panel(MT_PT_Tile_Options_Panel):
+    bl_idname = 'MT_PT_Triangular_Tiles_Options'
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene.mt_scene_props.mt_tile_type == 'TRIANGULAR_FLOOR'
+
+    def draw_plain_base_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Base Properties")
+        layout.prop(scene_props, 'mt_base_z', text='Base Height')
+        layout.prop(scene_props, 'mt_leg_1_len', text='Leg 1 Length')
+        layout.prop(scene_props, 'mt_leg_2_len', text='Leg 2 Length')
+        layout.prop(scene_props, 'mt_angle', text='Angle')
+
+    def draw_plain_main_part_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Tile Properties")
+
+        layout.prop(scene_props, 'mt_tile_z', text='Tile Height')
+
+        if scene_props.mt_base_blueprint == 'NONE':
+            layout.prop(scene_props, 'mt_leg_1_len', text='Leg 1 Length')
+            layout.prop(scene_props, 'mt_leg_2_len', text='Leg 2 Length')
+            layout.prop(scene_props, 'mt_angle', text='Angle')
+
+    def draw_openlock_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Tile Properties:")
+        layout.prop(scene_props, 'mt_leg_1_len', text='Leg 1 Length')
+        layout.prop(scene_props, 'mt_leg_2_len', text='Leg 2 Length')
+        layout.prop(scene_props, 'mt_angle', text='Angle')
 
 
 class MT_PT_Converter_Panel(Panel):

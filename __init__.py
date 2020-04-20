@@ -18,6 +18,11 @@ from . preferences import MT_MakeTilePreferences
 
 from . ui.object_generation_panels import (
     MT_PT_Converter_Panel,
+    MT_PT_Straight_Tile_Options_Panel,
+    MT_PT_Curved_Tile_Options_Panel,
+    MT_PT_L_Tiles_Options_Panel,
+    MT_PT_Semi_Circ_Tiles_Options_Panel,
+    MT_PT_Triangular_Tiles_Options_Panel,
     MT_PT_Tile_Generator_Panel)
 
 from . ui.material_panels import (
@@ -126,6 +131,11 @@ classes = (
     MT_OT_AutoVTX,
     MT_OT_IntersectAllEdges,
     MT_PT_Tile_Generator_Panel,
+    MT_PT_Straight_Tile_Options_Panel,
+    MT_PT_Curved_Tile_Options_Panel,
+    MT_PT_L_Tiles_Options_Panel,
+    MT_PT_Semi_Circ_Tiles_Options_Panel,
+    MT_PT_Triangular_Tiles_Options_Panel,
     MT_PT_Display_Panel,
     MT_PT_Material_Slots_Panel,
     MT_PT_Vertex_Groups_Panel,

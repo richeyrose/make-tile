@@ -11,16 +11,26 @@ from ... materials.materials import (
 def load_materials_on_addon_activation(dummy):
     bpy.app.handlers.depsgraph_update_pre.remove(load_materials_on_addon_activation)
     prefs = get_prefs()
-    materials_path = os.path.join(prefs.assets_path, "materials")
-    blend_filenames = get_blend_filenames(materials_path)
-    load_materials(materials_path, blend_filenames)
+    default_materials_path = os.path.join(prefs.assets_path, "materials")
+    user_materials_path = os.path.join(prefs.user_assets_path, "materials")
+
+    blend_filenames = get_blend_filenames(default_materials_path)
+    load_materials(default_materials_path, blend_filenames)
+
+    blend_filenames = get_blend_filenames(user_materials_path)
+    load_materials(user_materials_path, blend_filenames)
 
 @persistent
 def load_material_libraries(dummy):
     prefs = get_prefs()
-    materials_path = os.path.join(prefs.assets_path, "materials")
-    blend_filenames = get_blend_filenames(materials_path)
-    load_materials(materials_path, blend_filenames)
+    default_materials_path = os.path.join(prefs.assets_path, "materials")
+    user_materials_path = os.path.join(prefs.user_assets_path, "materials")
+
+    blend_filenames = get_blend_filenames(default_materials_path)
+    load_materials(default_materials_path, blend_filenames)
+
+    blend_filenames = get_blend_filenames(user_materials_path)
+    load_materials(user_materials_path, blend_filenames)
 
 @persistent
 def update_mt_scene_props_handler(dummy):

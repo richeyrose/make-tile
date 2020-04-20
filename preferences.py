@@ -14,6 +14,7 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
     path = get_path()
     user_path = os.path.expanduser('~')
     export_path = os.path.join(user_path, 'MakeTile')
+    user_assets_path = os.path.join(user_path, 'MakeTile', 'UserAssets')
 
     # asset libraries
     def update_assetspath(self, context):
@@ -43,11 +44,18 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
             reload_asset_libraries()
 
     assets_path: StringProperty(
-        name="Assets Libraries",
-        description="Path to Assets Libraries",
+        name="Default Asset Libraries",
+        description="Path to Default Asset Libraries",
         subtype='DIR_PATH',
         default=os.path.join(path, "assets"),
         update=update_assetspath
+    )
+
+    user_assets_path: StringProperty(
+        name="User Asset Libraries",
+        subtype='DIR_PATH',
+        description="Path to User Asset Libraries",
+        default=user_assets_path,
     )
 
     secondary_material: StringProperty(
@@ -98,8 +106,8 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
 
     def draw(self, context):
         layout = self.layout
-        row = layout.row()
         layout.prop(self, 'assets_path')
+        layout.prop(self, 'user_assets_path')
         layout.prop(self, 'default_export_path')
         layout.prop(self, 'default_units')
         layout.prop(self, 'default_tile_blueprint')

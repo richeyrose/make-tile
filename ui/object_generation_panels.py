@@ -202,6 +202,7 @@ class MT_PT_Curved_Tile_Options_Panel(MT_PT_Tile_Options_Panel):
 
         if scene_props.mt_base_blueprint == 'NONE':
             layout.prop(scene_props, 'mt_degrees_of_arc', text="Degrees of Arc")
+            layout.prop(scene_props, 'mt_base_radius', text="Base Radius")
 
     def draw_openlock_base_panel(self, context):
         scene = context.scene

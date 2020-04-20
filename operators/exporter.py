@@ -281,10 +281,9 @@ class MT_OT_Export_Tile(bpy.types.Operator):
 
             export_objects = []
 
-            for obj in visible_objects:
-                if obj.visible_get() == True:
-                    export_objects.append(obj)
-                    export_objects.extend(copies)
+            for obj in copies:
+                export_objects.append(obj)
+                    
 
             ctx = {
                 'selected_objects': export_objects,

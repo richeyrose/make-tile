@@ -28,11 +28,18 @@ class MT_Semi_Circ_Tile:
         angle = tile_props.angle
         height = tile_props.base_size[2]
         curve_type = tile_props.curve_type
+        native_subdivisions = (
+            tile_props.x_native_subdivisions,
+            tile_props.y_native_subdivisions,
+            tile_props.z_native_subdivisions,
+            tile_props.curve_native_subdivisions
+        )
+
 
         if curve_type == 'POS':
-            base = draw_pos_curved_slab(radius, segments, angle, height)
+            base = draw_pos_curved_slab(radius, segments, angle, height, native_subdivisions)
         else:
-            base = draw_neg_curved_slab(radius, segments, angle, height)
+            base = draw_neg_curved_slab(radius, segments, angle, height, native_subdivisions)
 
         ctx = {
             'selected_objects': [base],
@@ -283,10 +290,8 @@ class MT_Semi_Circ_Floor_Tile(MT_Semi_Circ_Tile, MT_Tile):
     def __init__(self, tile_props):
         MT_Tile.__init__(self, tile_props)
 
-        if 'OPENLOCK' in (
-                tile_props.tile_blueprint,
-                tile_props.base_blueprint,
-                tile_props.main_part_blueprint):
+        if tile_props.tile_blueprint == 'OPENLOCK' or \
+                tile_props.base_blueprint == 'OPENLOCK':
 
             tile_props.base_size = (
                 tile_props.tile_size[0],

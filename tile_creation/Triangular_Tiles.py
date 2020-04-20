@@ -21,7 +21,7 @@ class MT_Triangular_Floor_Tile(MT_Tile):
 
     def create_plain_base(self, tile_props):
         tile_name = tile_props.tile_name
-        base = draw_plain_triangular_base
+        base, dimensions = draw_plain_triangular_base(tile_props)
         base.name = tile_name + '.base'
         add_object_to_collection(base, tile_name)
 

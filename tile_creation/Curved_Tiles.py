@@ -258,6 +258,7 @@ class MT_Curved_Wall_Tile(MT_Curved_Tile, MT_Tile):
 
     def create_openlock_cores(self, base, tile_props):
         tile_props.tile_size[1] = 0.3149
+        
         offset = (tile_props.base_size[1] - tile_props.tile_size[1]) / 2
         tile_props.wall_radius = tile_props.base_radius + offset
         textured_vertex_groups = ['Front', 'Back']
@@ -303,6 +304,7 @@ class MT_Curved_Wall_Tile(MT_Curved_Tile, MT_Tile):
         angle = tile_props.degrees_of_arc
         radius = tile_props.wall_radius
         width = tile_props.tile_size[1]
+        height = tile_props.tile_size[2] - tile_props.base_size[2]
         inner_circumference = 2 * pi * radius
         wall_length = inner_circumference / (360 / angle)
         tile_name = tile_props.tile_name
@@ -319,7 +321,7 @@ class MT_Curved_Wall_Tile(MT_Curved_Tile, MT_Tile):
         core = draw_straight_wall_core(
             (wall_length,
              width,
-             tile_props.tile_size[2]),
+             height),
             native_subdivisions)
 
         core.name = tile_name + '.core'
@@ -380,11 +382,11 @@ class MT_Curved_Wall_Tile(MT_Curved_Tile, MT_Tile):
 
         add_object_to_collection(left_cutter_bottom, tile_props.tile_name)
 
-        # move cutter to origin up by 0.63 inches
+        # move cutter to origin up by 0.63 inches - base height
         left_cutter_bottom.location = Vector((
             core_location[0],
             core_location[1] + (tile_props.tile_size[1] / 2),
-            core_location[2] + 0.63))
+            core_location[2] + 0.63 - tile_props.base_size[2]))
 
         # add array mod
         array_mod = left_cutter_bottom.modifiers.new('Array', 'ARRAY')

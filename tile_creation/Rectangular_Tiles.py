@@ -203,22 +203,6 @@ class MT_Rectangular_Floor_Tile(MT_Rectangular_Tile, MT_Tile):
     def __init__(self, tile_props):
         MT_Tile.__init__(self, tile_props)
 
-        if 'OPENLOCK' in (
-                tile_props.tile_blueprint,
-                tile_props.base_blueprint,
-                tile_props.main_part_blueprint):
-
-            tile_props.base_size = Vector((
-                tile_props.tile_size[0],
-                tile_props.tile_size[1],
-                0.2755))
-
-        elif tile_props.base_blueprint != 'NONE':
-            tile_props.base_size = (
-                tile_props.tile_size[0],
-                tile_props.tile_size[1],
-                tile_props.base_size[2])
-
     def create_empty_base(self, tile_props):
         tile_props.base_size = (
             tile_props.tile_size[0],
@@ -228,6 +212,13 @@ class MT_Rectangular_Floor_Tile(MT_Rectangular_Tile, MT_Tile):
         base = bpy.data.objects.new(tile_props.tile_name + '.base', None)
         add_object_to_collection(base, tile_props.tile_name)
         return base
+
+    def create_openlock_base(self, tile_props):
+        tile_props.base_size = Vector((
+            tile_props.tile_size[0],
+            tile_props.tile_size[1],
+            0.2755))
+        return MT_Rectangular_Tile.create_openlock_base(self, tile_props)
 
     def create_plain_cores(self, base, tile_props):
         textured_vertex_groups = ['Top']

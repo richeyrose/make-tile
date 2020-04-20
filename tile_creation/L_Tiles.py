@@ -43,12 +43,22 @@ class MT_L_Tile:
         obj_props.geometry_type = 'BASE'
         obj_props.tile_name = tile_props.tile_name
 
-        return base, triangles
+        return base
 
     def create_openlock_base(self, tile_props):
         tile_props.base_size = Vector((1, 0.5, 0.2755))
+        leg_1_len = tile_props.leg_1_len
+        leg_2_len = tile_props.leg_2_len
+        angle = tile_props.angle
+        thickness = tile_props.base_size[1]
 
-        base, base_triangles = self.create_plain_base(tile_props)
+        base = self.create_plain_base(tile_props)
+
+        base_triangles = calculate_corner_wall_triangles(
+            leg_1_len,
+            leg_2_len,
+            thickness,
+            angle)
 
         slot_cutter = self.create_openlock_base_slot_cutter(tile_props)
 
@@ -209,6 +219,15 @@ class MT_L_Floor(MT_L_Tile, MT_Tile):
         base = MT_L_Tile.create_openlock_base(self, tile_props)
         return base
 
+    def create_empty_base(self, tile_props):
+        tile_props.base_size = (
+            tile_props.tile_size[0],
+            tile_props.tile_size[1],
+            0)
+        base = bpy.data.objects.new(tile_props.tile_name + '.base', None)
+        add_object_to_collection(base, tile_props.tile_name)
+        return base
+
     def create_plain_cores(self, base, tile_props):
         textured_vertex_groups = ['Leg 1 Top', 'Leg 2 Top']
         preview_core, displacement_core = self.create_cores(
@@ -224,7 +243,7 @@ class MT_L_Floor(MT_L_Tile, MT_Tile):
 
     def create_core(self, tile_props):
         base_thickness = tile_props.base_size[1]
-        core_thickness = tile_props.base_size[1]
+        core_thickness = tile_props.tile_size[1]
         base_height = tile_props.base_size[2]
         floor_height = tile_props.tile_size[2]
         leg_1_len = tile_props.leg_1_len
@@ -245,7 +264,7 @@ class MT_L_Floor(MT_L_Tile, MT_Tile):
             leg_2_len,
             thickness_diff / 2,
             angle)
-
+        
         move_cursor_to_wall_start(
             core_triangles_1,
             angle,
@@ -305,6 +324,15 @@ class MT_L_Wall(MT_L_Tile, MT_Tile):
         base = MT_L_Tile.create_openlock_base(self, tile_props)
         return base
 
+    def create_empty_base(self, tile_props):
+        tile_props.base_size = (
+            tile_props.tile_size[0],
+            tile_props.tile_size[1],
+            0)
+        base = bpy.data.objects.new(tile_props.tile_name + '.base', None)
+        add_object_to_collection(base, tile_props.tile_name)
+        return base
+
     def create_plain_cores(self, base, tile_props):
         textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner']
         preview_core, displacement_core = self.create_cores(
@@ -349,8 +377,8 @@ class MT_L_Wall(MT_L_Tile, MT_Tile):
 
         for cutter in left_cutters:
             cutter.location = (
-                cutter.location[0] + 0.25,
-                cutter.location[1] + tile_props.leg_2_len - 0.25,
+                cutter.location[0] + (tile_props.base_size[1] / 2),
+                cutter.location[1] + tile_props.leg_2_len - (tile_props.base_size[1] / 2),
                 cutter.location[2])
             cutter.rotation_euler = (0, 0, radians(-90))
 

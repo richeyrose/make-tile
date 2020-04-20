@@ -253,7 +253,7 @@ def draw_openlock_pos_curved_base(length, segments, angle, height):
     return base
 
 
-def draw_pos_curved_slab(length, segments, angle, height, native_subdivisions=1):
+def draw_pos_curved_slab(length, segments, angle, height, native_subdivisions):
     t = bpy.ops.turtle
 
     mode('OBJECT')

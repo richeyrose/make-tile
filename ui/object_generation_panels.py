@@ -47,11 +47,12 @@ class MT_PT_Tile_Options_Panel(Panel):
         layout = self.layout
 
         if blueprint == 'PLAIN':
-            self.draw_plain_main_part_panel(context)
             self.draw_plain_base_panel(context)
+            self.draw_plain_main_part_panel(context)
 
         if blueprint == 'OPENLOCK':
-            self.draw_openlock_panel(context)
+            self.draw_openlock_base_panel(context)
+            self.draw_openlock_main_part_panel(context)
 
         if blueprint == 'CUSTOM':
             self.draw_custom_panel(context)
@@ -67,7 +68,10 @@ class MT_PT_Tile_Options_Panel(Panel):
     def draw_plain_main_part_panel(self, context):
         pass
 
-    def draw_openlock_panel(self, context):
+    def draw_openlock_base_panel(self, context):
+        pass
+
+    def draw_openlock_main_part_panel(self, context):
         pass
 
     def draw_native_subdiv_panel(self, context):
@@ -85,15 +89,14 @@ class MT_PT_Tile_Options_Panel(Panel):
         if scene_props.mt_base_blueprint == 'PLAIN':
             self.draw_plain_base_panel(context)
 
+        if scene_props.mt_base_blueprint == 'OPENLOCK':
+            self.draw_openlock_base_panel(context)
+
         if scene_props.mt_main_part_blueprint == 'PLAIN':
             self.draw_plain_main_part_panel(context)
 
-        if scene_props.mt_base_blueprint == 'OPENLOCK':
-            self.draw_openlock_panel(context)
-
-        if scene_props.mt_main_part_blueprint == 'OPENLOCK' \
-                and scene_props.mt_base_blueprint != 'OPENLOCK':
-            self.draw_openlock_panel(context)
+        if scene_props.mt_main_part_blueprint == 'OPENLOCK':
+            self.draw_openlock_main_part_panel(context)
 
 
 class MT_PT_Straight_Tile_Options_Panel(MT_PT_Tile_Options_Panel):
@@ -128,7 +131,16 @@ class MT_PT_Straight_Tile_Options_Panel(MT_PT_Tile_Options_Panel):
         row.prop(scene_props, 'mt_tile_y')
         row.prop(scene_props, 'mt_tile_z')
 
-    def draw_openlock_panel(self, context):
+    def draw_openlock_base_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        if scene_props.mt_main_part_blueprint == 'NONE':
+            layout.label(text="Base Size")
+            layout.prop(scene_props, 'mt_tile_x')
+
+    def draw_openlock_main_part_panel(self, context):
         scene = context.scene
         scene_props = scene.mt_scene_props
         layout = self.layout
@@ -186,23 +198,32 @@ class MT_PT_Curved_Tile_Options_Panel(MT_PT_Tile_Options_Panel):
         layout.prop(scene_props, 'mt_tile_z', text='Tile Height')
 
         if scene_props.mt_tile_type == 'CURVED_WALL':
-            layout.prop(scene_props, 'mt_wall_radius', text='Radius')
+            layout.prop(scene_props, 'mt_wall_radius', text='Wall Radius')
 
         if scene_props.mt_base_blueprint == 'NONE':
             layout.prop(scene_props, 'mt_degrees_of_arc', text="Degrees of Arc")
-            layout.prop(scene_props, 'mt_wall_radius', text='Radius')
 
-    def draw_openlock_panel(self, context):
+    def draw_openlock_base_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Base Properties:")
+        layout.prop(scene_props, 'mt_base_radius', text="Base Radius")
+        layout.prop(scene_props, 'mt_degrees_of_arc', text="Degrees of Arc")
+        layout.prop(scene_props, 'mt_base_socket_side')
+
+    def draw_openlock_main_part_panel(self, context):
         scene = context.scene
         scene_props = scene.mt_scene_props
         layout = self.layout
 
         layout.label(text="Tile Properties:")
-
         layout.prop(scene_props, 'mt_tile_z', text='Tile Height')
-        layout.prop(scene_props, 'mt_base_radius', text="Base Radius")
-        layout.prop(scene_props, 'mt_degrees_of_arc', text="Degrees of Arc")
-        layout.prop(scene_props, 'mt_base_socket_side')
+
+        if scene_props.mt_base_blueprint == 'NONE':
+            layout.prop(scene_props, 'mt_base_radius', text="Tile Radius")
+            layout.prop(scene_props, 'mt_degrees_of_arc', text="Degrees of Arc")
 
     def draw_native_subdiv_panel(self, context):
         scene = context.scene
@@ -253,16 +274,29 @@ class MT_PT_L_Tiles_Options_Panel(MT_PT_Tile_Options_Panel):
             layout.prop(scene_props, 'mt_leg_2_len', text='Leg 2 Length')
             layout.prop(scene_props, 'mt_angle', text='Angle')
 
-    def draw_openlock_panel(self, context):
+    def draw_openlock_base_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Base Properties")
+
+        layout.prop(scene_props, 'mt_leg_1_len', text='Leg 1 Length')
+        layout.prop(scene_props, 'mt_leg_2_len', text='Leg 2 Length')
+        layout.prop(scene_props, 'mt_angle', text='Angle')
+
+    def draw_openlock_main_part_panel(self, context):
         scene = context.scene
         scene_props = scene.mt_scene_props
         layout = self.layout
 
         layout.label(text="Tile Properties:")
         layout.prop(scene_props, 'mt_tile_z', text='Tile Height')
-        layout.prop(scene_props, 'mt_leg_1_len', text='Leg 1 Length')
-        layout.prop(scene_props, 'mt_leg_2_len', text='Leg 2 Length')
-        layout.prop(scene_props, 'mt_angle', text='Angle')
+
+        if scene_props.mt_base_blueprint == 'NONE':
+            layout.prop(scene_props, 'mt_leg_1_len', text='Leg 1 Length')
+            layout.prop(scene_props, 'mt_leg_2_len', text='Leg 2 Length')
+            layout.prop(scene_props, 'mt_angle', text='Angle')
 
     def draw_native_subdiv_panel(self, context):
         scene = context.scene
@@ -305,19 +339,30 @@ class MT_PT_Semi_Circ_Tiles_Options_Panel(MT_PT_Tile_Options_Panel):
         layout.prop(scene_props, 'mt_tile_z', text='Tile Height')
 
         if scene_props.mt_base_blueprint == 'NONE':
-            layout.prop(scene_props, 'mt_base_radius', text="Base Radius")
+            layout.prop(scene_props, 'mt_base_radius', text="Radius")
             layout.prop(scene_props, 'mt_angle', text="Angle")
             layout.prop(scene_props, 'mt_curve_type', text="Curve Type")
 
-    def draw_openlock_panel(self, context):
+    def draw_openlock_base_panel(self, context):
         scene = context.scene
         scene_props = scene.mt_scene_props
         layout = self.layout
 
-        layout.label(text="Tile Properties:")
+        layout.label(text="Base Properties:")
         layout.prop(scene_props, 'mt_base_radius', text="Base Radius")
         layout.prop(scene_props, 'mt_angle', text="Angle")
         layout.prop(scene_props, 'mt_curve_type', text="Curve Type")
+
+    def draw_openlock_main_part_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        if scene_props.mt_base_blueprint == 'NONE':
+            layout.label(text="Tile Properties:")
+            layout.prop(scene_props, 'mt_base_radius', text="Radius")
+            layout.prop(scene_props, 'mt_angle', text="Angle")
+            layout.prop(scene_props, 'mt_curve_type', text="Curve Type")
 
     def draw_native_subdiv_panel(self, context):
         scene = context.scene
@@ -364,15 +409,26 @@ class MT_PT_Triangular_Tiles_Options_Panel(MT_PT_Tile_Options_Panel):
             layout.prop(scene_props, 'mt_leg_2_len', text='Leg 2 Length')
             layout.prop(scene_props, 'mt_angle', text='Angle')
 
-    def draw_openlock_panel(self, context):
+    def draw_openlock_base_panel(self, context):
         scene = context.scene
         scene_props = scene.mt_scene_props
         layout = self.layout
 
-        layout.label(text="Tile Properties:")
+        layout.label(text="Base Properties")
         layout.prop(scene_props, 'mt_leg_1_len', text='Leg 1 Length')
         layout.prop(scene_props, 'mt_leg_2_len', text='Leg 2 Length')
         layout.prop(scene_props, 'mt_angle', text='Angle')
+
+    def draw_openlock_main_part_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        if scene_props.mt_base_blueprint == 'NONE':
+            layout.label(text="Tile Properties:")
+            layout.prop(scene_props, 'mt_leg_1_len', text='Leg 1 Length')
+            layout.prop(scene_props, 'mt_leg_2_len', text='Leg 2 Length')
+            layout.prop(scene_props, 'mt_angle', text='Angle')
 
     def draw_native_subdiv_panel(self, context):
         scene = context.scene
@@ -381,7 +437,7 @@ class MT_PT_Triangular_Tiles_Options_Panel(MT_PT_Tile_Options_Panel):
 
         layout.label(text="Native Subdivisions:")
         row = layout.row()
-        row.prop(scene_props, 'mt_opposite_native_subdivisions')
+        row.prop(scene_props, 'mt_opposite_native_subdivisions', text='Sides')
         row.prop(scene_props, 'mt_z_native_subdivisions')
 
 

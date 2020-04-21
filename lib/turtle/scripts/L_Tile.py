@@ -112,7 +112,7 @@ def draw_corner_wall_core(triangles, angle, thickness, height, native_subdivisio
     t.fd(d=0.001)
     for v in verts:
         leg_1_outer_vert_locs.append(v.co.copy())
-    vert_locs['leg_1_outer'] = leg_1_outer_vert_locs
+    vert_locs['Leg 1 Outer'] = leg_1_outer_vert_locs
 
     # end #
     t.pu()
@@ -123,7 +123,7 @@ def draw_corner_wall_core(triangles, angle, thickness, height, native_subdivisio
     t.pd()
     t.add_vert()
     leg_1_end_vert_locs.append(verts[verts.values()[-1].index].co.copy())
-    vert_locs['leg_1_end'] = leg_1_end_vert_locs
+    vert_locs['Leg 1 End'] = leg_1_end_vert_locs
 
     # inner #
     subdiv_dist = (triangles['b_adj'] - 0.001) / native_subdivisions[0]
@@ -141,7 +141,7 @@ def draw_corner_wall_core(triangles, angle, thickness, height, native_subdivisio
         i += 1
     t.deselect_all()    
     leg_1_inner_vert_locs.append(verts[verts.values()[-1].index].co.copy())
-    vert_locs['leg_1_inner'] = leg_1_inner_vert_locs
+    vert_locs['Leg 1 Inner'] = leg_1_inner_vert_locs
 
     # home #
     t.pu()
@@ -173,7 +173,7 @@ def draw_corner_wall_core(triangles, angle, thickness, height, native_subdivisio
         i += 1
 
     t.deselect_all()
-    vert_locs['leg_2_outer'] = leg_2_outer_vert_locs
+    vert_locs['Leg 2 Outer'] = leg_2_outer_vert_locs
 
     # end #
     t.pu()
@@ -183,7 +183,7 @@ def draw_corner_wall_core(triangles, angle, thickness, height, native_subdivisio
     t.pd()
     t.add_vert()
     leg_2_end_vert_locs.append(verts[verts.values()[-1].index].co.copy())
-    vert_locs['leg_2_end'] = leg_2_end_vert_locs
+    vert_locs['Leg 2 End'] = leg_2_end_vert_locs
 
     # inner #
     t.rt(d=90)
@@ -202,7 +202,7 @@ def draw_corner_wall_core(triangles, angle, thickness, height, native_subdivisio
         i += 1
     t.deselect_all()
     leg_2_inner_vert_locs.append(verts[verts.values()[-1].index].co.copy())
-    vert_locs['leg_2_inner'] = leg_2_inner_vert_locs
+    vert_locs['Leg 2 Inner'] = leg_2_inner_vert_locs
     t.select_all()
     t.merge()
     t.pu()

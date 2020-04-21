@@ -68,8 +68,9 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                     disp_obj = obj.mt_object_props.linked_object
 
                     for item in obj.material_slots.items():
-                        material = bpy.data.materials[item[0]]
-                        tree = material.node_tree
+                        if item[0]:
+                            material = bpy.data.materials[item[0]]
+                            tree = material.node_tree
                         if 'Seed' in tree.nodes:
                             seed_node = tree.nodes['Seed']
                             rand_seed = random()

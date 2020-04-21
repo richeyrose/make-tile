@@ -180,38 +180,39 @@ def bake_displacement_map(preview_obj, disp_obj):
 
     disp_materials = []
     for item in preview_obj.material_slots.items():
-        material = bpy.data.materials[item[0]]
-        tree = material.node_tree
+        if item[0]:
+            material = bpy.data.materials[item[0]]
+            tree = material.node_tree
 
-        if 'disp_emission' in tree.nodes:
-            # plug emission node into output for baking
-            disp_materials.append(material)
-            displacement_emission_node = tree.nodes['disp_emission']
-            mat_output_node = tree.nodes['Material Output']
+            if 'disp_emission' in tree.nodes:
+                # plug emission node into output for baking
+                disp_materials.append(material)
+                displacement_emission_node = tree.nodes['disp_emission']
+                mat_output_node = tree.nodes['Material Output']
 
-            tree.links.new(
-                displacement_emission_node.outputs['Emission'],
-                mat_output_node.inputs['Surface'])
+                tree.links.new(
+                    displacement_emission_node.outputs['Emission'],
+                    mat_output_node.inputs['Surface'])
 
-            # sever displacement node link because otherwise it screws up baking
-            displacement_node = tree.nodes['final_disp']
-            link = displacement_node.outputs[0].links[0]
-            tree.links.remove(link)
+                # sever displacement node link because otherwise it screws up baking
+                displacement_node = tree.nodes['final_disp']
+                link = displacement_node.outputs[0].links[0]
+                tree.links.remove(link)
 
-            # save displacement strength
-            strength_node = tree.nodes['Strength']
+                # save displacement strength
+                strength_node = tree.nodes['Strength']
 
-            if 'disp_dir' in disp_obj:
-                if disp_obj['disp_dir'] == 'neg':
-                    disp_obj['disp_strength'] = -strength_node.outputs[0].default_value
+                if 'disp_dir' in disp_obj:
+                    if disp_obj['disp_dir'] == 'neg':
+                        disp_obj['disp_strength'] = -strength_node.outputs[0].default_value
+                    else:
+                        disp_obj['disp_strength'] = strength_node.outputs[0].default_value
                 else:
                     disp_obj['disp_strength'] = strength_node.outputs[0].default_value
-            else:
-                disp_obj['disp_strength'] = strength_node.outputs[0].default_value
 
-            # assign image to image node
-            texture_node = tree.nodes['disp_texture_node']
-            texture_node.image = disp_image
+                # assign image to image node
+                texture_node = tree.nodes['disp_texture_node']
+                texture_node.image = disp_image
 
     # project from preview to displacement mesh when baking
     preview_mesh = disp_obj.mt_object_props.linked_object

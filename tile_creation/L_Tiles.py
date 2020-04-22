@@ -265,7 +265,7 @@ class MT_L_Floor(MT_L_Tile, MT_Tile):
             leg_2_len,
             thickness_diff / 2,
             angle)
-        
+
         move_cursor_to_wall_start(
             core_triangles_1,
             angle,
@@ -588,7 +588,7 @@ def select_verts_by_vert_coords(vert_coords):
     bm = bmesh.from_edit_mesh(bpy.context.object.data)
     bm.faces.ensure_lookup_table()
 
-    for v in bm.verts:    
+    for v in bm.verts:
         if v.co in vert_coords:
             v.select = True
     bmesh.update_edit_mesh(bpy.context.object.data)
@@ -787,16 +787,16 @@ def corner_wall_to_vert_groups(obj, vert_locs, native_subdivisions):
             v.select = False
 
         i += 1
-   
+
     # leg 1 top
-    bpy.ops.object.vertex_group_set_active(ctx, group='Leg 1 Top')  
+    bpy.ops.object.vertex_group_set_active(ctx, group='Leg 1 Top')
 
     inner_vert_locs = vert_locs['Leg 1 Inner'][::-1].copy()
     outer_vert_locs = vert_locs['Leg 1 Outer'].copy()
 
     for index, coord in enumerate(inner_vert_locs):
         inner_vert_locs[index] = Vector((0, 0, obj.dimensions[2])) + coord
-        
+
     for index, coord in enumerate(outer_vert_locs):
         outer_vert_locs[index] = Vector((0, 0, obj.dimensions[2])) + coord
 
@@ -819,14 +819,14 @@ def corner_wall_to_vert_groups(obj, vert_locs, native_subdivisions):
         i += 1
 
     # leg 2 top
-    bpy.ops.object.vertex_group_set_active(ctx, group='Leg 2 Top')  
+    bpy.ops.object.vertex_group_set_active(ctx, group='Leg 2 Top')
 
     inner_vert_locs = vert_locs['Leg 2 Inner'][::-1].copy()
     outer_vert_locs = vert_locs['Leg 2 Outer'].copy()
 
     for index, coord in enumerate(inner_vert_locs):
         inner_vert_locs[index] = Vector((0, 0, obj.dimensions[2])) + coord
-        
+
     for index, coord in enumerate(outer_vert_locs):
         outer_vert_locs[index] = Vector((0, 0, obj.dimensions[2])) + coord
 
@@ -1041,16 +1041,16 @@ def corner_floor_to_vert_groups(obj, vert_locs, native_subdivisions):
             v.select = False
 
         i += 1
-   
+
     # leg 1 top
-    bpy.ops.object.vertex_group_set_active(ctx, group='Leg 1 Top')  
+    bpy.ops.object.vertex_group_set_active(ctx, group='Leg 1 Top')
 
     inner_vert_locs = vert_locs['Leg 1 Inner'][::-1].copy()
     outer_vert_locs = vert_locs['Leg 1 Outer'].copy()
 
     for index, coord in enumerate(inner_vert_locs):
         inner_vert_locs[index] = Vector((0, 0, obj.dimensions[2])) + coord
-        
+
     for index, coord in enumerate(outer_vert_locs):
         outer_vert_locs[index] = Vector((0, 0, obj.dimensions[2])) + coord
 
@@ -1073,14 +1073,14 @@ def corner_floor_to_vert_groups(obj, vert_locs, native_subdivisions):
         i += 1
 
     # leg 2 top
-    bpy.ops.object.vertex_group_set_active(ctx, group='Leg 2 Top')  
+    bpy.ops.object.vertex_group_set_active(ctx, group='Leg 2 Top')
 
     inner_vert_locs = vert_locs['Leg 2 Inner'][::-1].copy()
     outer_vert_locs = vert_locs['Leg 2 Outer'].copy()
 
     for index, coord in enumerate(inner_vert_locs):
         inner_vert_locs[index] = Vector((0, 0, obj.dimensions[2])) + coord
-        
+
     for index, coord in enumerate(outer_vert_locs):
         outer_vert_locs[index] = Vector((0, 0, obj.dimensions[2])) + coord
 

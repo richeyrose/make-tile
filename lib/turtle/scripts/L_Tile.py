@@ -89,7 +89,6 @@ def draw_corner_wall_core(triangles, angle, thickness, height, native_subdivisio
         'active_object': obj,
         'selected_objects': [obj]
     }
-    turtle = bpy.context.scene.cursor
     t = bpy.ops.turtle
     t.add_turtle()
 

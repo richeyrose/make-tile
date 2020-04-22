@@ -34,12 +34,13 @@ tile_types = [
     ("STRAIGHT_WALL", "Straight Wall", "", 1),
     ("CURVED_WALL", "Curved Wall", "", 2),
     ("CORNER_WALL", "Corner Wall", "", 3),
-    ("RECTANGULAR_FLOOR", "Rectangular Floor", "", 4),
-    ("TRIANGULAR_FLOOR", "Triangular Floor", "", 5),
-    ("CURVED_FLOOR", "Curved Floor", "", 6),
-    ("CORNER_FLOOR", "Corner Floor", "", 7),
-    ("STRAIGHT_FLOOR", "Straight Floor", "", 8),
-    ("SEMI_CIRC_FLOOR", "Semi Circular Floor", "", 9)
+    ("U_WALL", "U Wall", "", 4),
+    ("RECTANGULAR_FLOOR", "Rectangular Floor", "", 5),
+    ("TRIANGULAR_FLOOR", "Triangular Floor", "", 6),
+    ("CURVED_FLOOR", "Curved Floor", "", 7),
+    ("CORNER_FLOOR", "Corner Floor", "", 8),
+    ("STRAIGHT_FLOOR", "Straight Floor", "", 9),
+    ("SEMI_CIRC_FLOOR", "Semi Circular Floor", "", 10)
 ]
 
 geometry_types = [

@@ -12,6 +12,7 @@ from .. tile_creation.Curved_Tiles import MT_Curved_Wall_Tile, MT_Curved_Floor_T
 from .. tile_creation.Rectangular_Tiles import MT_Rectangular_Floor_Tile
 from .. tile_creation.Triangular_Tiles import MT_Triangular_Floor_Tile
 from .. tile_creation.Semi_Circ_Tiles import MT_Semi_Circ_Floor_Tile
+from .. tile_creation.U_Tiles import MT_U_Wall_Tile
 
 from .. property_groups.property_groups import (
     MT_Tile_Properties,
@@ -70,7 +71,8 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         if tile_type in (
                 'STRAIGHT_WALL',
                 'CURVED_WALL',
-                'CORNER_WALL'):
+                'CORNER_WALL',
+                'U_WALL'):
             # create walls collection if it doesn't already exist
             create_collection('Walls', tiles_collection)
 
@@ -158,6 +160,9 @@ class MT_OT_Make_Tile(bpy.types.Operator):
 
         if tile_type == 'CURVED_FLOOR':
             MT_Curved_Floor_Tile(tile_props)
+
+        if tile_type == 'U_WALL':
+            MT_U_Wall_Tile(tile_props)
 
         return {'FINISHED'}
 

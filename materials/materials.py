@@ -59,10 +59,9 @@ def assign_mat_to_vert_group(vert_group, obj, material):
 
 
 def add_preview_mesh_subsurf(obj):
-    '''Adds a triangulate modifier so that sockets etc. appear correctly
-    then adds an adaptive subdivison modifier'''
+    '''Adds an adaptive subdivison modifier'''
 
-    obj.modifiers.new('Triangulate', 'TRIANGULATE')
+    #obj.modifiers.new('Triangulate', 'TRIANGULATE')
 
     obj_subsurf = obj.modifiers.new('Subsurf', 'SUBSURF')
     obj_subsurf.subdivision_type = 'SIMPLE'

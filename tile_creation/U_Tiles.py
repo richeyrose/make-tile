@@ -1,10 +1,11 @@
 import os
 from math import radians
 import bpy
+import bmesh
 from mathutils import Vector
 from .. lib.utils.collections import add_object_to_collection
 
-from .. lib.utils.utils import mode
+from .. lib.utils.utils import mode, vectors_are_close
 from .. utils.registration import get_prefs
 from .. lib.utils.selection import (
     deselect_all,
@@ -113,6 +114,8 @@ class MT_U_Wall_Tile(MT_U_Tile, MT_Tile):
         obj_props.is_mt_object = True
         obj_props.tile_name = tile_props.tile_name
 
+        self.create_vertex_groups(core, vert_locs, native_subdivisions)
+
         ctx = {
             'object': core,
             'active_object': core,
@@ -124,6 +127,80 @@ class MT_U_Wall_Tile(MT_U_Tile, MT_Tile):
         bpy.context.scene.cursor.location = (0, 0, 0)
         bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
         return core
+
+    def create_vertex_groups(self, obj, vert_locs, native_subdivisions):
+        ctx = {
+            'object': obj,
+            'active_object': obj,
+            'selected_objects': [obj]
+        }
+        select(obj.name)
+        mode('EDIT')
+        deselect_all()
+
+        # make vertex groups
+        obj.vertex_groups.new(name='Leg 1 Inner')
+        obj.vertex_groups.new(name='Leg 1 Outer')
+        obj.vertex_groups.new(name='Leg 1 End')
+        obj.vertex_groups.new(name='Leg 1 Top')
+        obj.vertex_groups.new(name='Leg 1 Bottom')
+
+        obj.vertex_groups.new(name='Leg 2 Inner')
+        obj.vertex_groups.new(name='Leg 2 Outer')
+        obj.vertex_groups.new(name='Leg 2 End')
+        obj.vertex_groups.new(name='Leg 2 Top')
+        obj.vertex_groups.new(name='Leg 2 Bottom')
+
+        obj.vertex_groups.new(name='End Wall Inner')
+        obj.vertex_groups.new(name='End Wall Outer')
+        obj.vertex_groups.new(name='End Wall Top')
+        obj.vertex_groups.new(name='End Wall Bottom')
+
+        bm = bmesh.from_edit_mesh(bpy.context.object.data)
+        bm.faces.ensure_lookup_table()
+
+        # inner and outer faces
+        groups = ('Leg 1 Inner', 'Leg 1 Outer', 'Leg 2 Inner', 'Leg 2 Outer', 'End Wall Inner', 'End Wall Outer')
+
+        for vert_group in groups:
+            for v in bm.verts:
+                v.select = False
+
+            bpy.ops.object.vertex_group_set_active(ctx, group=vert_group)
+            vert_coords = vert_locs[vert_group].copy()
+            subdiv_dist = (obj.dimensions[2] - 0.002) / native_subdivisions[4]
+
+            for coord in vert_coords:
+                for v in bm.verts:
+                    if (vectors_are_close(v.co, coord, 0.0001)):
+                        v.select = True
+                        break
+
+            for index, coord in enumerate(vert_coords):
+                vert_coords[index] = Vector((0, 0, 0.001)) + coord
+
+            for coord in vert_coords:
+                for v in bm.verts:
+                    if (vectors_are_close(v.co, coord, 0.0001)):
+                        v.select = True
+                        break
+
+            i = 0
+            while i <= native_subdivisions[4]:
+                for index, coord in enumerate(vert_coords):
+                    vert_coords[index] = Vector((0, 0, subdiv_dist)) + coord
+
+                for coord in vert_coords:
+                    for v in bm.verts:
+                        if (vectors_are_close(v.co, coord, 0.0001)):
+                            v.select = True
+                            break
+                i += 1
+            bpy.ops.object.vertex_group_assign(ctx)
+
+        bmesh.update_edit_mesh(bpy.context.object.data)
+
+        mode('OBJECT')
 
 
 def draw_plain_base(leg_1_inner_len, leg_2_inner_len, x_inner_len, thickness, z_height):
@@ -204,12 +281,14 @@ def draw_core(leg_1_inner_len, leg_2_inner_len, x_inner_len, thickness, z_height
 
     leg_1_outer_verts = []
     leg_1_inner_verts = []
+    leg_1_end_verts = []
 
     x_outer_verts = []
     x_inner_verts = []
 
     leg_2_outer_verts = []
     leg_2_inner_verts = []
+    leg_2_end_verts = []
 
     bottom_verts = []
     inset_verts = []
@@ -225,18 +304,20 @@ def draw_core(leg_1_inner_len, leg_2_inner_len, x_inner_len, thickness, z_height
 
     for v in range(native_subdivisions[0]):
         t.fd(d=subdiv_dist)
+    t.fd(d=0.001)
 
     for v in verts:
         leg_1_outer_verts.append(v.co.copy())
 
-    t.fd(d=0.001)
-
     # draw leg 1 end
     t.rt(d=90)
     t.pu()
+    leg_1_end_verts.append(verts[verts.values()[-1].index].co.copy())
     t.fd(d=thickness)
     t.pd()
     t.add_vert()
+    leg_1_end_verts.append(verts[verts.values()[-1].index].co.copy())
+
     # draw leg 1 inner
     subdiv_dist = (leg_1_inner_len - 0.001) / native_subdivisions[0]
     t.rt(d=90)
@@ -246,15 +327,18 @@ def draw_core(leg_1_inner_len, leg_2_inner_len, x_inner_len, thickness, z_height
     for v in range(native_subdivisions[0]):
         t.fd(d=subdiv_dist)
 
-    i = start_index
+    i = start_index + 1
     while i <= verts.values()[-1].index:
         leg_1_inner_verts.append(verts[i].co.copy())
         i += 1
+    t.deselect_all()
+    leg_1_inner_verts.append(verts[i].co.copy())
 
     # draw x inner
     subdiv_dist = x_inner_len / native_subdivisions[2]
     t.lt(d=90)
 
+    t.add_vert()
     start_index = verts.values()[-1].index
     for v in range(native_subdivisions[2]):
         t.fd(d=subdiv_dist)
@@ -339,8 +423,10 @@ def draw_core(leg_1_inner_len, leg_2_inner_len, x_inner_len, thickness, z_height
     vert_locs = {
         'Leg 1 Outer': leg_1_outer_verts,
         'Leg 1 Inner': leg_1_inner_verts,
+        'Leg 1 End': leg_1_end_verts,
         'Leg 2 Outer': leg_2_outer_verts,
         'Leg 2 Inner': leg_2_inner_verts,
+        'Leg 2 End': leg_2_end_verts,
         'End Wall Inner': x_inner_verts,
         'End Wall Outer': x_outer_verts
     }

@@ -7,7 +7,7 @@ from .. lib.utils.collections import add_object_to_collection
 from .. lib.utils.vertex_groups import (
     get_vert_indexes_in_vert_group,
     remove_verts_from_group)
-from .. lib.utils.utils import mode
+from .. lib.utils.utils import mode, vectors_are_close
 from .. utils.registration import get_prefs
 from .. lib.utils.selection import (
     deselect_all,
@@ -584,20 +584,11 @@ class MT_L_Wall(MT_L_Tile, MT_Tile):
         return cutters
 
 
-def select_verts_by_vert_coords(vert_coords):
-    bm = bmesh.from_edit_mesh(bpy.context.object.data)
-    bm.faces.ensure_lookup_table()
-
+def select_verts_by_vert_coords(bm, vert_coords):
     for v in bm.verts:
         if v.co in vert_coords:
             v.select = True
     bmesh.update_edit_mesh(bpy.context.object.data)
-
-
-def vectors_are_close(vec_1, vec_2, tolerance=0.0001):
-    return isclose(vec_1[0], vec_2[0], abs_tol=tolerance) and \
-        isclose(vec_1[1], vec_2[1], abs_tol=tolerance) and \
-        isclose(vec_1[2], vec_2[2], abs_tol=tolerance)
 
 
 def corner_wall_to_vert_groups(obj, vert_locs, native_subdivisions):

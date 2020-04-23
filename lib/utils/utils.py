@@ -1,4 +1,4 @@
-from math import radians, sqrt, cos, acos, degrees
+from math import radians, sqrt, cos, acos, degrees, isclose
 import bpy
 import bmesh
 from mathutils import Vector, Euler, Matrix
@@ -180,3 +180,9 @@ def clear_parent_and_apply_transformation(ctx, ob):
     # which the mat_out can't represent.
     for v in ob.data.vertices:
         v.co = mat_h @ v.co
+
+def vectors_are_close(vec_1, vec_2, tolerance=0.0001):
+    '''Tests whether two vectors are almost equal to each other'''
+    return isclose(vec_1[0], vec_2[0], abs_tol=tolerance) and \
+        isclose(vec_1[1], vec_2[1], abs_tol=tolerance) and \
+        isclose(vec_1[2], vec_2[2], abs_tol=tolerance)

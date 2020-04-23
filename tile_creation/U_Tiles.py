@@ -1,24 +1,14 @@
 import os
-from math import radians
 import bpy
 import bmesh
 from mathutils import Vector
-from .. lib.utils.collections import add_object_to_collection
-from .. lib.utils.vertex_groups import (
-    get_vert_indexes_in_vert_group,
-    remove_verts_from_group)
 from .. lib.utils.utils import mode, vectors_are_close
 from .. utils.registration import get_prefs
 from .. lib.utils.selection import (
     deselect_all,
     select)
 from . create_tile import MT_Tile
-from .. lib.turtle.scripts.U_tile import (
-    draw_u_3D)
-from .. lib.turtle.scripts.L_tile import (
-    calculate_corner_wall_triangles,
-    move_cursor_to_wall_start)
-
+from .. lib.utils.collections import add_object_to_collection
 
 #MIXIN
 class MT_U_Tile:
@@ -48,9 +38,50 @@ class MT_U_Tile:
 
         return base
 
+    def create_openlock_base_slot_cutter(self, tile_props):
+        leg_1_inner_len = tile_props.leg_1_len
+        leg_2_inner_len = tile_props.leg_2_len
+        thickness = tile_props.base_size[1]
+        z_height = tile_props.base_size[2]
+        x_inner_len = tile_props.tile_size[0]
+
+        leg_1_outer_len = leg_1_inner_len + thickness
+        leg_2_outer_len = leg_2_inner_len + thickness
+        x_outer_len = x_inner_len + (thickness * 2)
+
+        preferences = get_prefs()
+
+        booleans_path = os.path.join(
+            preferences.assets_path,
+            "meshes",
+            "booleans",
+            "openlock.blend")
+
+        with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
+            data_to.objects = [
+                'openlock.u_tile.base.cutter.slot.root',
+                'openlock.u_tile.base.cutter.slot.start_cap.root',
+                'openlock.u_tile.base.cutter.slot.end_cap.root']
+
+
+        for obj in data_to.objects:
+            add_object_to_collection(obj, tile_props.tile_name)
+            obj.hide_viewport = True
+
+        slot_cutter = data_to.objects[0]
+        cutter_start_cap = data_to.objects[1]
+        cutter_end_cap = data_to.objects[2]
+
+        slot_cutter.hide_viewport = False
+
+        return slot_cutter
+
     def create_openlock_base(self, tile_props):
         tile_props.base_size = Vector((1, 0.5, 0.2755))
+
         base = self.create_plain_base(tile_props)
+
+        slot_cutter = self.create_openlock_base_slot_cutter(tile_props)
         return base
 
     def draw_plain_base(self, leg_1_inner_len, leg_2_inner_len, x_inner_len, thickness, z_height):
@@ -371,7 +402,6 @@ class MT_U_Wall_Tile(MT_U_Tile, MT_Tile):
         }
 
         return obj, vert_locs
-
 
     def create_vertex_groups(self, obj, vert_locs, native_subdivisions):
         ctx = {

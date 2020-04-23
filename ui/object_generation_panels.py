@@ -312,6 +312,82 @@ class MT_PT_L_Tiles_Options_Panel(MT_PT_Tile_Options_Panel):
         row.prop(scene_props, 'mt_z_native_subdivisions')
 
 
+class MT_PT_U_Tiles_Options_Panel(MT_PT_Tile_Options_Panel):
+    bl_idname = 'MT_PT_U_Tiles_Options'
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene.mt_scene_props.mt_tile_type in (
+            'U_WALL')
+
+    def draw_plain_base_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Base Properties")
+
+        layout.prop(scene_props, 'mt_base_y', text='Base Thickness')
+        layout.prop(scene_props, 'mt_base_z', text='Base Height')
+        layout.prop(scene_props, 'mt_tile_x', text='End Wall Length')
+        layout.prop(scene_props, 'mt_leg_1_len', text='Leg 1 Length')
+        layout.prop(scene_props, 'mt_leg_2_len', text='Leg 2 Length')
+
+
+    def draw_plain_main_part_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Tile Properties")
+
+        layout.prop(scene_props, 'mt_tile_y', text='Tile Thickness')
+        layout.prop(scene_props, 'mt_tile_z', text='Tile Height')
+
+        if scene_props.mt_base_blueprint == 'NONE':
+            layout.prop(scene_props, 'mt_leg_1_len', text='Leg 1 Length')
+            layout.prop(scene_props, 'mt_leg_2_len', text='Leg 2 Length')
+            layout.prop(scene_props, 'mt_tile_x', text='End Wall Length')
+
+
+    def draw_openlock_base_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Base Properties")
+
+        layout.prop(scene_props, 'mt_leg_1_len', text='Leg 1 Length')
+        layout.prop(scene_props, 'mt_leg_2_len', text='Leg 2 Length')
+        layout.prop(scene_props, 'mt_tile_x', text='End Wall Length')
+
+    def draw_openlock_main_part_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Tile Properties:")
+        layout.prop(scene_props, 'mt_tile_z', text='Tile Height')
+
+        if scene_props.mt_base_blueprint == 'NONE':
+            layout.prop(scene_props, 'mt_leg_1_len', text='Leg 1 Length')
+            layout.prop(scene_props, 'mt_leg_2_len', text='Leg 2 Length')
+            layout.prop(scene_props, 'mt_tile_x', text='End Wall Length')
+
+    def draw_native_subdiv_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Native Subdivisions:")
+        row = layout.row()
+        row.prop(scene_props, 'mt_leg_1_native_subdivisions')
+        row.prop(scene_props, 'mt_leg_2_native_subdivisions')
+        row.prop(scene_props, 'mt_x_native_subdivisions')
+        row.prop(scene_props, 'mt_width_native_subdivisions')
+        row.prop(scene_props, 'mt_z_native_subdivisions')
+
+
 class MT_PT_Semi_Circ_Tiles_Options_Panel(MT_PT_Tile_Options_Panel):
     bl_idname = 'MT_PT_Semi_Circ_Tiles_Options'
 

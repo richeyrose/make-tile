@@ -41,13 +41,14 @@ class MT_U_Tile:
     def create_openlock_base_slot_cutter(self, tile_props):
         leg_1_inner_len = tile_props.leg_1_len
         leg_2_inner_len = tile_props.leg_2_len
-        thickness = tile_props.base_size[1]
-        z_height = tile_props.base_size[2]
         x_inner_len = tile_props.tile_size[0]
+        thickness = tile_props.base_size[1]
 
+        x_outer_len = x_inner_len + thickness * 2
         leg_1_outer_len = leg_1_inner_len + thickness
         leg_2_outer_len = leg_2_inner_len + thickness
-        x_outer_len = x_inner_len + (thickness * 2)
+
+        base_socket_side = tile_props.base_socket_side
 
         preferences = get_prefs()
 
@@ -68,12 +69,51 @@ class MT_U_Tile:
             add_object_to_collection(obj, tile_props.tile_name)
             obj.hide_viewport = True
 
+        # The slot cutter is a 0.1 wide rectangle with an array modifier
         slot_cutter = data_to.objects[0]
+
+        # the start and end caps are both made of objects with their own modifier
         cutter_start_cap = data_to.objects[1]
         cutter_end_cap = data_to.objects[2]
 
-        slot_cutter.hide_viewport = False
+        if base_socket_side == 'OUTER':
+            # gap between slot end and side
+            slot_end_gap = 0.246
 
+            # main cutter array
+            array_mod = slot_cutter.modifiers['Array']
+            array_mod.fit_length = x_inner_len - 0.01
+
+            # start piece array
+            array_mod = cutter_start_cap.modifiers['Array']
+            array_mod.fit_length = leg_1_inner_len - slot_end_gap
+
+            # end piece array
+            array_mod = cutter_end_cap.modifiers['Array']
+            array_mod.fit_length = leg_2_inner_len - slot_end_gap
+
+            slot_cutter.hide_viewport = False
+
+        else:
+            offset = Vector((-0.1529, -0.1529, 0))
+            slot_cutter.location = slot_cutter.location + offset
+
+            # gap between slot end and side
+            slot_end_gap = 0.246
+
+            # main cutter array
+            array_mod = slot_cutter.modifiers['Array']
+            array_mod.fit_length = x_inner_len - 0.01 + 0.1529 * 2
+
+            # start piece array
+            array_mod = cutter_start_cap.modifiers['Array']
+            array_mod.fit_length = leg_1_outer_len - slot_end_gap - 0.1529
+
+            # end piece array
+            array_mod = cutter_end_cap.modifiers['Array']
+            array_mod.fit_length = leg_2_outer_len - slot_end_gap - 0.1529
+
+            slot_cutter.hide_viewport = False
         return slot_cutter
 
     def create_openlock_base(self, tile_props):
@@ -82,6 +122,11 @@ class MT_U_Tile:
         base = self.create_plain_base(tile_props)
 
         slot_cutter = self.create_openlock_base_slot_cutter(tile_props)
+        slot_boolean = base.modifiers.new(slot_cutter.name, 'BOOLEAN')
+        slot_boolean.operation = 'DIFFERENCE'
+        slot_boolean.object = slot_cutter
+        slot_cutter.parent = base
+        slot_cutter.display_type = 'BOUNDS'
         return base
 
     def draw_plain_base(self, leg_1_inner_len, leg_2_inner_len, x_inner_len, thickness, z_height):
@@ -201,7 +246,6 @@ class MT_U_Wall_Tile(MT_U_Tile, MT_Tile):
         bpy.context.scene.cursor.location = (0, 0, 0)
         bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
         return core
-
 
     def draw_core(self, leg_1_inner_len, leg_2_inner_len, x_inner_len, thickness, z_height, native_subdivisions, thickness_diff):
         '''

@@ -52,14 +52,12 @@ class MT_Curved_Tile:
         return base
 
     def create_openlock_base(self, tile_props):
-        scene = bpy.context.scene
-
         radius = tile_props.base_radius
         segments = tile_props.curve_native_subdivisions
         angle = tile_props.degrees_of_arc
         tile_props.base_size[2] = 0.2755
         tile_props.base_size[1] = 0.5
-        clip_side = scene.mt_scene_props.mt_base_socket_side
+        clip_side = tile_props.base_socket_side
 
         base = draw_openlock_curved_base(
             radius,
@@ -67,7 +65,7 @@ class MT_Curved_Tile:
             angle,
             tile_props.base_size[2],
             clip_side)
-        self.create_openlock_base_clip_cutter(base, tile_props, clip_side)
+        self.create_openlock_base_clip_cutter(base, tile_props)
 
         base.name = tile_props.tile_name + '.base'
         obj_props = base.mt_object_props
@@ -77,9 +75,11 @@ class MT_Curved_Tile:
 
         return base
 
-    def create_openlock_base_clip_cutter(self, base, tile_props, clip_side):
+    def create_openlock_base_clip_cutter(self, base, tile_props):
         scene = bpy.context.scene
         cursor_orig_loc = scene.cursor.location.copy()
+        clip_side = tile_props.base_socket_side
+
         # load base cutter
         preferences = get_prefs()
         booleans_path = os.path.join(
@@ -87,6 +87,7 @@ class MT_Curved_Tile:
             "meshes",
             "booleans",
             "openlock.blend")
+
 
         with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
             data_to.objects = ['openlock.wall.base.cutter.clip_single']
@@ -255,7 +256,7 @@ class MT_Curved_Wall_Tile(MT_Curved_Tile, MT_Tile):
     def create_openlock_base(self, tile_props):
         base = MT_Curved_Tile.create_openlock_base(self, tile_props)
         return base
-    
+
     def create_empty_base(self, tile_props):
         tile_props.base_size = (
             tile_props.tile_size[0],

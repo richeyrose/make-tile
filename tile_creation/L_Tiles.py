@@ -738,12 +738,15 @@ def corner_wall_to_vert_groups(obj, vert_locs, native_subdivisions):
     i = 0
     while i < len(outer_vert_locs):
         for v in bm.verts:
-            if v.co == inner_vert_locs[i]:
+            if vectors_are_close(v.co, inner_vert_locs[i], 0.0001):
                 v.select = True
+                break
 
         for v in bm.verts:
-            if v.co == outer_vert_locs[i]:
+            if vectors_are_close(v.co, outer_vert_locs[i], 0.0001):
                 v.select = True
+                break
+
         bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
         bpy.ops.object.vertex_group_assign(ctx)
         for v in bm.verts:
@@ -797,12 +800,13 @@ def corner_wall_to_vert_groups(obj, vert_locs, native_subdivisions):
     i = 0
     while i < len(outer_vert_locs):
         for v in bm.verts:
-            if v.co == inner_vert_locs[i]:
+            if vectors_are_close(v.co, inner_vert_locs[i], 0.0001):
                 v.select = True
 
         for v in bm.verts:
-            if v.co == outer_vert_locs[i]:
+            if vectors_are_close(v.co, outer_vert_locs[i], 0.0001):
                 v.select = True
+
         bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
         bpy.ops.object.vertex_group_assign(ctx)
         for v in bm.verts:
@@ -992,12 +996,15 @@ def corner_floor_to_vert_groups(obj, vert_locs, native_subdivisions):
     i = 0
     while i < len(outer_vert_locs):
         for v in bm.verts:
-            if v.co == inner_vert_locs[i]:
+            if vectors_are_close(v.co, inner_vert_locs[i], 0.0001):
                 v.select = True
+                break
 
         for v in bm.verts:
-            if v.co == outer_vert_locs[i]:
+            if vectors_are_close(v.co, outer_vert_locs[i], 0.0001):
                 v.select = True
+                break
+
         bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
         bpy.ops.object.vertex_group_assign(ctx)
         for v in bm.verts:
@@ -1051,12 +1058,15 @@ def corner_floor_to_vert_groups(obj, vert_locs, native_subdivisions):
     i = 0
     while i < len(outer_vert_locs):
         for v in bm.verts:
-            if v.co == inner_vert_locs[i]:
+            if (vectors_are_close(v.co, inner_vert_locs[i], 0.0005)):
                 v.select = True
+                break
 
         for v in bm.verts:
-            if v.co == outer_vert_locs[i]:
+            if (vectors_are_close(v.co, outer_vert_locs[i], 0.0005)):
                 v.select = True
+                break
+
         bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
         bpy.ops.object.vertex_group_assign(ctx)
         for v in bm.verts:
@@ -1081,11 +1091,11 @@ def corner_floor_to_vert_groups(obj, vert_locs, native_subdivisions):
     i = 0
     while i < len(outer_vert_locs):
         for v in bm.verts:
-            if vectors_are_close(v.co, inner_vert_locs[i], 0.0001):
+            if vectors_are_close(v.co, inner_vert_locs[i], 0.0005):
                 v.select = True
 
         for v in bm.verts:
-            if vectors_are_close(v.co, outer_vert_locs[i], 0.0001):
+            if vectors_are_close(v.co, outer_vert_locs[i], 0.0005):
                 v.select = True
 
         bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')

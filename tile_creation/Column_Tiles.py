@@ -38,4 +38,3 @@ class MT_Column_Tile(MT_Tile):
 
     def finalise_tile(self, base, preview_core, cursor_orig_loc, cursor_orig_rot):
         return super().finalise_tile(base, preview_core, cursor_orig_loc, cursor_orig_rot)
-

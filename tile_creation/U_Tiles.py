@@ -185,6 +185,7 @@ class MT_U_Tile:
             clip_cutter_leg_1.location = (0.25, thickness * 2, clip_cutter_leg_1.location[2])
             clip_cutter_leg_1.modifiers['Array'].fit_length = leg_1_inner_len - 1
 
+
             clip_cutter_x_leg.rotation_euler = (clip_cutter_x_leg.rotation_euler[0], clip_cutter_x_leg.rotation_euler[1], radians(180))
             clip_cutter_x_leg.location = (x_inner_len, 0.25, clip_cutter_x_leg.location[2])
             clip_cutter_x_leg.modifiers['Array'].fit_length = x_inner_len - 1

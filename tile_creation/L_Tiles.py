@@ -732,11 +732,13 @@ def corner_wall_to_vert_groups(obj, vert_locs, native_subdivisions):
     inner_vert_locs = vert_locs['Leg 1 Inner'][::-1]
     outer_vert_locs = vert_locs['Leg 1 Outer']
 
+    print('inner_vert_locs: ' + str(len(inner_vert_locs)))
+    print('outer_vert_locs: ' + str(len(outer_vert_locs)))
     for v in bm.verts:
         v.select = False
 
     i = 0
-    while i < len(outer_vert_locs):
+    while i < len(outer_vert_locs) and i < len(inner_vert_locs):
         for v in bm.verts:
             if vectors_are_close(v.co, inner_vert_locs[i], 0.0001):
                 v.select = True
@@ -763,7 +765,7 @@ def corner_wall_to_vert_groups(obj, vert_locs, native_subdivisions):
         v.select = False
 
     i = 0
-    while i < len(outer_vert_locs):
+    while i < len(outer_vert_locs) and i < len(inner_vert_locs):
         for v in bm.verts:
             if (vectors_are_close(v.co, inner_vert_locs[i], 0.0001)):
                 v.select = True
@@ -798,7 +800,7 @@ def corner_wall_to_vert_groups(obj, vert_locs, native_subdivisions):
         v.select = False
 
     i = 0
-    while i < len(outer_vert_locs):
+    while i < len(outer_vert_locs) and i < len(inner_vert_locs):
         for v in bm.verts:
             if vectors_are_close(v.co, inner_vert_locs[i], 0.0001):
                 v.select = True
@@ -829,7 +831,7 @@ def corner_wall_to_vert_groups(obj, vert_locs, native_subdivisions):
         v.select = False
 
     i = 0
-    while i < len(outer_vert_locs):
+    while i < len(outer_vert_locs) and i < len(outer_vert_locs):
         for v in bm.verts:
             if vectors_are_close(v.co, inner_vert_locs[i], 0.0001):
                 v.select = True

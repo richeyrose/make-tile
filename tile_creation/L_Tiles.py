@@ -1,5 +1,5 @@
 import os
-from math import radians, isclose
+from math import radians
 import bpy
 import bmesh
 from mathutils import Vector
@@ -11,8 +11,7 @@ from .. lib.utils.utils import mode, vectors_are_close
 from .. utils.registration import get_prefs
 from .. lib.utils.selection import (
     deselect_all,
-    select,
-    select_by_loc)
+    select)
 from .. lib.turtle.scripts.L_tile import (
     draw_corner_3D,
     draw_corner_wall_core,

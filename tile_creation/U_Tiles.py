@@ -1,4 +1,5 @@
 import os
+from math import radians
 import bpy
 import bmesh
 from mathutils import Vector
@@ -44,7 +45,6 @@ class MT_U_Tile:
         x_inner_len = tile_props.tile_size[0]
         thickness = tile_props.base_size[1]
 
-        x_outer_len = x_inner_len + thickness * 2
         leg_1_outer_len = leg_1_inner_len + thickness
         leg_2_outer_len = leg_2_inner_len + thickness
 
@@ -63,7 +63,6 @@ class MT_U_Tile:
                 'openlock.u_tile.base.cutter.slot.root',
                 'openlock.u_tile.base.cutter.slot.start_cap.root',
                 'openlock.u_tile.base.cutter.slot.end_cap.root']
-
 
         for obj in data_to.objects:
             add_object_to_collection(obj, tile_props.tile_name)
@@ -116,17 +115,84 @@ class MT_U_Tile:
             slot_cutter.hide_viewport = False
         return slot_cutter
 
+    def create_openlock_base_clip_cutter(self, tile_props):
+        preferences = get_prefs()
+        booleans_path = os.path.join(
+            preferences.assets_path,
+            "meshes",
+            "booleans",
+            "openlock.blend")
+
+        # load base cutters
+        with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
+            data_to.objects = [
+                'openlock.wall.base.cutter.clip',
+                'openlock.wall.base.cutter.clip.cap.start',
+                'openlock.wall.base.cutter.clip.cap.end']
+
+        for obj in data_to.objects:
+            add_object_to_collection(obj, tile_props.tile_name)
+
+        clip_cutter = data_to.objects[0]
+        cutter_start_cap = data_to.objects[1]
+        cutter_end_cap = data_to.objects[2]
+
+        cutter_start_cap.hide_viewport = True
+        cutter_end_cap.hide_viewport = True
+
+        array_mod = clip_cutter.modifiers.new('Array', 'ARRAY')
+        array_mod.start_cap = cutter_start_cap
+        array_mod.end_cap = cutter_end_cap
+        array_mod.use_merge_vertices = True
+        array_mod.fit_type = 'FIT_LENGTH'
+
+        return clip_cutter
+
     def create_openlock_base(self, tile_props):
-        tile_props.base_size = Vector((1, 0.5, 0.2755))
+        tile_props.base_size = Vector((tile_props.tile_size[0], 0.5, 0.2755))
+        base_socket_side = tile_props.base_socket_side
+        leg_1_inner_len = tile_props.leg_1_len
+        leg_2_inner_len = tile_props.leg_2_len
+        x_inner_len = tile_props.base_size[0]
+        thickness = tile_props.base_size[1]
 
         base = self.create_plain_base(tile_props)
 
+        # create base slot cutter
         slot_cutter = self.create_openlock_base_slot_cutter(tile_props)
         slot_boolean = base.modifiers.new(slot_cutter.name, 'BOOLEAN')
         slot_boolean.operation = 'DIFFERENCE'
         slot_boolean.object = slot_cutter
         slot_cutter.parent = base
         slot_cutter.display_type = 'BOUNDS'
+        slot_cutter.hide_viewport = True
+
+        # clip cutters
+        clip_cutter_leg_1 = self.create_openlock_base_clip_cutter(tile_props)
+        clip_cutter_leg_2 = self.create_openlock_base_clip_cutter(tile_props)
+        clip_cutter_x_leg = self.create_openlock_base_clip_cutter(tile_props)
+
+        cutters = [clip_cutter_leg_1, clip_cutter_leg_2, clip_cutter_x_leg]
+        for cutter in cutters:
+            cutter_boolean = base.modifiers.new(cutter.name, 'BOOLEAN')
+            cutter_boolean.operation = 'DIFFERENCE'
+            cutter_boolean.object = cutter
+            cutter.parent = base
+            cutter.display_type = 'WIRE'
+
+        if base_socket_side == 'INNER':
+            clip_cutter_leg_1.rotation_euler = (clip_cutter_leg_1.rotation_euler[0], clip_cutter_leg_1.rotation_euler[1], radians(90))
+            clip_cutter_leg_1.location = (0.25, thickness * 2, clip_cutter_leg_1.location[2])
+            clip_cutter_leg_1.modifiers['Array'].fit_length = leg_1_inner_len - 1
+
+            clip_cutter_x_leg.rotation_euler = (clip_cutter_x_leg.rotation_euler[0], clip_cutter_x_leg.rotation_euler[1], radians(180))
+            clip_cutter_x_leg.location = (x_inner_len, 0.25, clip_cutter_x_leg.location[2])
+            clip_cutter_x_leg.modifiers['Array'].fit_length = x_inner_len - 1
+
+            clip_cutter_leg_2.rotation_euler = (clip_cutter_leg_2.rotation_euler[0], clip_cutter_leg_2.rotation_euler[1], radians(-90))
+            clip_cutter_leg_2.location = (x_inner_len + thickness + 0.25, leg_2_inner_len, clip_cutter_leg_2.location[2])
+            clip_cutter_leg_2.modifiers['Array'].fit_length = leg_2_inner_len - 1
+
         return base
 
     def draw_plain_base(self, leg_1_inner_len, leg_2_inner_len, x_inner_len, thickness, z_height):

@@ -138,7 +138,7 @@ def draw_corner_wall_core(triangles, angle, thickness, height, native_subdivisio
     while i <= verts.values()[-1].index:
         leg_1_inner_vert_locs.append(verts[i].co.copy())
         i += 1
-    t.deselect_all()    
+    t.deselect_all()
     leg_1_inner_vert_locs.append(verts[verts.values()[-1].index].co.copy())
     vert_locs['Leg 1 Inner'] = leg_1_inner_vert_locs
 
@@ -223,6 +223,8 @@ def draw_corner_wall_core(triangles, angle, thickness, height, native_subdivisio
         i += 1
     t.up(d=0.001)
 
+    t.deselect_all()
+
     mode('OBJECT')
     return bpy.context.object, vert_locs
 
@@ -250,7 +252,7 @@ def draw_corner_2D(triangles, angle, thickness, return_object=False):
     t.fd(d=triangles['a_adj'] - 0.001)
     vert_loc['x_outer_1'] = turtle.location.copy()
     t.fd(d=0.001)
-    
+
     vert_loc['x_outer_2'] = turtle.location.copy()
     t.lt(d=90)
     t.fd(d=0.001)

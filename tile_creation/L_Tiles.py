@@ -307,7 +307,7 @@ class MT_L_Floor(MT_L_Tile, MT_Tile):
         }
 
         mode('OBJECT')
-        bpy.ops.uv.smart_project(ctx, island_margin=0.05)
+        bpy.ops.uv.smart_project(ctx, island_margin=0.012)
         bpy.context.scene.cursor.location = (0, 0, 0)
         bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
         return core
@@ -335,7 +335,7 @@ class MT_L_Wall(MT_L_Tile, MT_Tile):
         return base
 
     def create_plain_cores(self, base, tile_props):
-        textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner']
+        textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner', 'Leg 1 Top', 'Leg 2 Top']
         preview_core, displacement_core = self.create_cores(
             base,
             tile_props,
@@ -349,7 +349,7 @@ class MT_L_Wall(MT_L_Tile, MT_Tile):
             0.3149,
             tile_props.tile_size[2]))
 
-        textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner']
+        textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner', 'Leg 1 Top', 'Leg 2 Top']
 
         preview_core, displacement_core = self.create_cores(
             base,
@@ -482,7 +482,7 @@ class MT_L_Wall(MT_L_Tile, MT_Tile):
 
         mode('OBJECT')
         bpy.context.scene.cursor.location = (0, 0, 0)
-        bpy.ops.uv.smart_project(ctx, island_margin=0.01)
+        bpy.ops.uv.smart_project(ctx, island_margin=0.012)
 
         bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
         return core
@@ -804,10 +804,12 @@ def corner_wall_to_vert_groups(obj, vert_locs, native_subdivisions):
         for v in bm.verts:
             if vectors_are_close(v.co, inner_vert_locs[i], 0.0001):
                 v.select = True
+                break
 
         for v in bm.verts:
             if vectors_are_close(v.co, outer_vert_locs[i], 0.0001):
                 v.select = True
+                break
 
         bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
         bpy.ops.object.vertex_group_assign(ctx)
@@ -835,11 +837,11 @@ def corner_wall_to_vert_groups(obj, vert_locs, native_subdivisions):
         for v in bm.verts:
             if vectors_are_close(v.co, inner_vert_locs[i], 0.0001):
                 v.select = True
-
+                break
         for v in bm.verts:
             if vectors_are_close(v.co, outer_vert_locs[i], 0.0001):
                 v.select = True
-
+                break
         bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
         bpy.ops.object.vertex_group_assign(ctx)
         for v in bm.verts:

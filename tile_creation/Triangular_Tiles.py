@@ -128,7 +128,7 @@ class MT_Triangular_Floor_Tile(MT_Tile):
         }
 
         bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-        bpy.ops.uv.smart_project(ctx, island_margin=0.05)
+        bpy.ops.uv.smart_project(ctx, island_margin=0.012)
         obj_props = core.mt_object_props
         obj_props.is_mt_object = True
         obj_props.tile_name = tile_props.tile_name

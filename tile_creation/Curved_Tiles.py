@@ -221,7 +221,7 @@ class MT_Curved_Floor_Tile(MT_Curved_Tile, MT_Tile):
         }
 
         bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-        bpy.ops.uv.smart_project(ctx, island_margin=0.05)
+        bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
 
         tile_props.tile_size[0] = wall_length
         rect_floor_to_vert_groups(core)
@@ -267,7 +267,7 @@ class MT_Curved_Wall_Tile(MT_Curved_Tile, MT_Tile):
         return base
 
     def create_plain_cores(self, base, tile_props):
-        textured_vertex_groups = ['Front', 'Back']
+        textured_vertex_groups = ['Front', 'Back', 'Top']
         preview_core, displacement_core = self.create_cores(
             base,
             tile_props,
@@ -280,7 +280,7 @@ class MT_Curved_Wall_Tile(MT_Curved_Tile, MT_Tile):
 
         offset = (tile_props.base_size[1] - tile_props.tile_size[1]) / 2
         tile_props.wall_radius = tile_props.base_radius + offset
-        textured_vertex_groups = ['Front', 'Back']
+        textured_vertex_groups = ['Front', 'Back', 'Top']
 
         preview_core, displacement_core = self.create_cores(
             base,
@@ -353,7 +353,7 @@ class MT_Curved_Wall_Tile(MT_Curved_Tile, MT_Tile):
             'selected_objects': [core]
         }
 
-        bpy.ops.uv.smart_project(ctx, island_margin=0.05)
+        bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
 
         straight_wall_to_vert_groups(core)
 

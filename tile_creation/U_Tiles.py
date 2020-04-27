@@ -252,7 +252,7 @@ class MT_U_Wall_Tile(MT_U_Tile, MT_Tile):
         return base
 
     def create_plain_cores(self, base, tile_props):
-        textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'End Wall Inner', 'End Wall Outer', 'Leg 2 Inner', 'Leg 2 Outer']
+        textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'Leg 1 Top', 'End Wall Inner', 'End Wall Outer', 'End Wall Top', 'Leg 2 Inner', 'Leg 2 Outer', 'Leg 2 Top']
         preview_core, displacement_core = self.create_cores(
             base,
             tile_props,
@@ -262,7 +262,7 @@ class MT_U_Wall_Tile(MT_U_Tile, MT_Tile):
 
     def create_openlock_cores(self, base, tile_props):
         tile_props.tile_size[1] = 0.3149
-        textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'End Wall Inner', 'End Wall Outer', 'Leg 2 Inner', 'Leg 2 Outer']
+        textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'Leg 1 Top', 'End Wall Inner', 'End Wall Outer', 'End Wall Top', 'Leg 2 Inner', 'Leg 2 Outer', 'Leg 2 Top']
         preview_core, displacement_core = self.create_cores(
             base,
             tile_props,
@@ -309,7 +309,7 @@ class MT_U_Wall_Tile(MT_U_Tile, MT_Tile):
         }
 
         mode('OBJECT')
-        bpy.ops.uv.smart_project(ctx, island_margin=0.2)
+        bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
         bpy.context.scene.cursor.location = (0, 0, 0)
         bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
         return core

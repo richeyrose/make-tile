@@ -369,7 +369,7 @@ class MT_Semi_Circ_Floor_Tile(MT_Semi_Circ_Tile, MT_Tile):
             'active_object': core
         }
 
-        bpy.ops.uv.smart_project(ctx, island_margin=0.05)
+        bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
         bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
 
         obj_props = core.mt_object_props

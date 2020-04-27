@@ -99,7 +99,7 @@ class MT_Scene_Properties(PropertyGroup):
         '''updates tile and base size defaults depending on what we are generating'''
         scene_props = context.scene.mt_scene_props
         if scene_props.mt_tile_type in (
-                'RECTANGULAR_FLOOR', 
+                'RECTANGULAR_FLOOR',
                 'TRIANGULAR_FLOOR',
                 'CURVED_FLOOR',
                 'STRAIGHT_FLOOR',
@@ -221,9 +221,38 @@ class MT_Scene_Properties(PropertyGroup):
                     map_type_node.outputs['Color'],
                     mapping_node.inputs['Vector'])
 
+    def update_UV_island_margin(self, context):
+        '''Reruns UV smart project for preview and displacement object'''
+
+        if len(bpy.context.selected_editable_objects) > 0:
+            obj = bpy.context.object
+            if obj.type == 'MESH':
+                obj_props = obj.mt_object_props
+                if obj_props.geometry_type in ('DISPLACEMENT', 'PREVIEW'):
+                    linked_obj = obj_props.linked_object
+
+                    tile = bpy.data.collections[obj_props.tile_name]
+                    tile_props = tile.mt_tile_props
+
+                    scene_props = context.scene.mt_scene_props
+                    UV_island_margin = scene_props.mt_UV_island_margin
+                    tile_props.UV_island_margin = UV_island_margin
+
+                    for ob in (obj, linked_obj):
+                        ctx = {
+                            'object': ob,
+                            'active_object': ob,
+                            'selected_objects': [ob]
+                        }
+                        bpy.ops.uv.smart_project(ctx, island_margin=UV_island_margin)
+
+                    if obj_props.geometry_type == 'DISPLACEMENT':
+                        bpy.ops.scene.mt_return_to_preview()
+                        bpy.ops.scene.mt_make_3d()
+
     def load_material_enums(self, context):
         '''Constructs a material Enum from materials found in the materials asset folder'''
-        enum_items = []    
+        enum_items = []
         if context is None:
             return enum_items
 
@@ -286,6 +315,16 @@ class MT_Scene_Properties(PropertyGroup):
         default='OPENLOCK'
     )
 
+    mt_UV_island_margin: bpy.props.FloatProperty(
+        name="UV Margin",
+        default=0.012,
+        precision=4,
+        min=0,
+        step=0.1,
+        description="Tweak this if you have gaps in material at edges of tiles when you Make3D",
+        update=update_UV_island_margin
+    )
+
     # Native Subdivisions #
     mt_x_native_subdivisions: bpy.props.IntProperty(
         name="X",
@@ -316,19 +355,19 @@ class MT_Scene_Properties(PropertyGroup):
         description="The number of times to subdivide the curved side of a tile",
         default=15
     )
-    
+
     mt_leg_1_native_subdivisions: bpy.props.IntProperty(
         name="Leg 1",
         description="The number of times to subdivide the length of leg 1 of the tile",
         default=15
     )
-    
+
     mt_leg_2_native_subdivisions: bpy.props.IntProperty(
         name="Leg 2",
         description="The number of times to subdivide the length of leg 2 of the tile",
         default=15
     )
-    
+
     mt_width_native_subdivisions: bpy.props.IntProperty(
         name="Width",
         description="The number of times to subdivide each leg along its width",
@@ -612,6 +651,15 @@ class MT_Tile_Properties(PropertyGroup):
         name="Subdivisions",
         description="Subsurf modifier subdivision levels",
         default=3
+    )
+
+    # UV smart projection correction
+    UV_island_margin: bpy.props.FloatProperty(
+        name="UV Margin",
+        default=0.012,
+        min=0,
+        step=0.001,
+        description="Tweak this if you have gaps at edges of tiles when you Make3D"
     )
 
     # Dimensions #

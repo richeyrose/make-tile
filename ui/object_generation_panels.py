@@ -18,6 +18,7 @@ class MT_PT_Tile_Generator_Panel(Panel):
         layout.prop(scene_props, 'mt_tile_blueprint')
         layout.prop(scene_props, 'mt_tile_type')
         layout.prop(scene_props, 'mt_tile_material_1', text="Main Material")
+        layout.prop(scene_props, 'mt_UV_island_margin')
 
         layout.operator('scene.make_tile', text="Make Tile")
 
@@ -29,6 +30,7 @@ class MT_PT_Tile_Generator_Panel(Panel):
                 layout.operator(
                     'scene.mt_return_to_preview',
                     text='Return to Preview')
+
 
         layout.operator('scene.delete_tiles', text="Delete Tiles")
 

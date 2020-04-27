@@ -82,6 +82,7 @@ def draw_corner_3D(triangles, angle, thickness, height, inc_vert_locs=False):
 
 
 def draw_corner_wall_core(triangles, angle, thickness, height, native_subdivisions):
+    mode('OBJECT')
     deselect_all()
 
     t = bpy.ops.turtle

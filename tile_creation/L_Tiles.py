@@ -307,7 +307,7 @@ class MT_L_Floor(MT_L_Tile, MT_Tile):
         }
 
         mode('OBJECT')
-        bpy.ops.uv.smart_project(ctx, island_margin=0.012)
+        bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
         bpy.context.scene.cursor.location = (0, 0, 0)
         bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
         return core
@@ -482,7 +482,7 @@ class MT_L_Wall(MT_L_Tile, MT_Tile):
 
         mode('OBJECT')
         bpy.context.scene.cursor.location = (0, 0, 0)
-        bpy.ops.uv.smart_project(ctx, island_margin=0.012)
+        bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
 
         bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
         return core
@@ -732,11 +732,10 @@ def corner_wall_to_vert_groups(obj, vert_locs, native_subdivisions):
     inner_vert_locs = vert_locs['Leg 1 Inner'][::-1]
     outer_vert_locs = vert_locs['Leg 1 Outer']
 
-    print('inner_vert_locs: ' + str(len(inner_vert_locs)))
-    print('outer_vert_locs: ' + str(len(outer_vert_locs)))
     for v in bm.verts:
         v.select = False
 
+    # TODO: Work out why, if we create a corner in Cycles mode, the two lists end up different lengths!
     i = 0
     while i < len(outer_vert_locs) and i < len(inner_vert_locs):
         for v in bm.verts:
@@ -833,7 +832,7 @@ def corner_wall_to_vert_groups(obj, vert_locs, native_subdivisions):
         v.select = False
 
     i = 0
-    while i < len(outer_vert_locs) and i < len(outer_vert_locs):
+    while i < len(outer_vert_locs) and i < len(inner_vert_locs):
         for v in bm.verts:
             if vectors_are_close(v.co, inner_vert_locs[i], 0.0001):
                 v.select = True
@@ -998,7 +997,7 @@ def corner_floor_to_vert_groups(obj, vert_locs, native_subdivisions):
         v.select = False
 
     i = 0
-    while i < len(outer_vert_locs):
+    while i < len(outer_vert_locs) and i < len(inner_vert_locs):
         for v in bm.verts:
             if vectors_are_close(v.co, inner_vert_locs[i], 0.0001):
                 v.select = True
@@ -1025,7 +1024,7 @@ def corner_floor_to_vert_groups(obj, vert_locs, native_subdivisions):
         v.select = False
 
     i = 0
-    while i < len(outer_vert_locs):
+    while i < len(outer_vert_locs) and i < len(inner_vert_locs):
         for v in bm.verts:
             if (vectors_are_close(v.co, inner_vert_locs[i], 0.0001)):
                 v.select = True
@@ -1060,7 +1059,7 @@ def corner_floor_to_vert_groups(obj, vert_locs, native_subdivisions):
         v.select = False
 
     i = 0
-    while i < len(outer_vert_locs):
+    while i < len(outer_vert_locs) and i < len(inner_vert_locs):
         for v in bm.verts:
             if (vectors_are_close(v.co, inner_vert_locs[i], 0.0005)):
                 v.select = True
@@ -1093,7 +1092,7 @@ def corner_floor_to_vert_groups(obj, vert_locs, native_subdivisions):
         v.select = False
 
     i = 0
-    while i < len(outer_vert_locs):
+    while i < len(outer_vert_locs) and i < len(inner_vert_locs):
         for v in bm.verts:
             if vectors_are_close(v.co, inner_vert_locs[i], 0.0005):
                 v.select = True

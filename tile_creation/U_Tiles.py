@@ -197,7 +197,7 @@ class MT_U_Wall_Tile(MT_U_Tile, MT_Tile):
         }
 
         mode('OBJECT')
-        bpy.ops.uv.smart_project(ctx, island_margin=0.012)
+        bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
         bpy.context.scene.cursor.location = (0, 0, 0)
         bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
         return core

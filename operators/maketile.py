@@ -107,6 +107,8 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         tile_props.tile_type = tile_type
         tile_props.main_part_blueprint = scene_props.mt_main_part_blueprint
         tile_props.base_blueprint = scene_props.mt_base_blueprint
+        tile_props.UV_island_margin = scene_props.mt_UV_island_margin
+
         tile_props.tile_size = (scene_props.mt_tile_x, scene_props.mt_tile_y, scene_props.mt_tile_z)
         tile_props.base_size = (scene_props.mt_base_x, scene_props.mt_base_y, scene_props.mt_base_z)
         tile_props.base_radius = scene_props.mt_base_radius

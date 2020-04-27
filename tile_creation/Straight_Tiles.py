@@ -262,7 +262,7 @@ class MT_Straight_Floor_Tile(MT_Straight_Tile, MT_Tile):
         }
 
         bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-        bpy.ops.uv.smart_project(ctx, island_margin=0.012)
+        bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
 
         rect_floor_to_vert_groups(core)
 
@@ -383,7 +383,7 @@ class MT_Straight_Wall_Tile(MT_Straight_Tile, MT_Tile):
         }
 
         bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-        bpy.ops.uv.smart_project(ctx, island_margin=0.012)
+        bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
 
         straight_wall_to_vert_groups(core)
 

@@ -267,7 +267,7 @@ class MT_Curved_Wall_Tile(MT_Curved_Tile, MT_Tile):
         return base
 
     def create_plain_cores(self, base, tile_props):
-        textured_vertex_groups = ['Front', 'Back', 'Top']
+        textured_vertex_groups = ['Front', 'Back']
         preview_core, displacement_core = self.create_cores(
             base,
             tile_props,
@@ -280,7 +280,7 @@ class MT_Curved_Wall_Tile(MT_Curved_Tile, MT_Tile):
 
         offset = (tile_props.base_size[1] - tile_props.tile_size[1]) / 2
         tile_props.wall_radius = tile_props.base_radius + offset
-        textured_vertex_groups = ['Front', 'Back', 'Top']
+        textured_vertex_groups = ['Front', 'Back']
 
         preview_core, displacement_core = self.create_cores(
             base,

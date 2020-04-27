@@ -334,7 +334,7 @@ class MT_L_Wall(MT_L_Tile, MT_Tile):
         return base
 
     def create_plain_cores(self, base, tile_props):
-        textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner', 'Leg 1 Top', 'Leg 2 Top']
+        textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner']
         preview_core, displacement_core = self.create_cores(
             base,
             tile_props,
@@ -348,7 +348,7 @@ class MT_L_Wall(MT_L_Tile, MT_Tile):
             0.3149,
             tile_props.tile_size[2]))
 
-        textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner', 'Leg 1 Top', 'Leg 2 Top']
+        textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner']
 
         preview_core, displacement_core = self.create_cores(
             base,

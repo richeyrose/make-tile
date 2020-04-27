@@ -292,7 +292,7 @@ class MT_Straight_Wall_Tile(MT_Straight_Tile, MT_Tile):
         return base
 
     def create_plain_cores(self, base, tile_props):
-        textured_vertex_groups = ['Front', 'Back', 'Top']
+        textured_vertex_groups = ['Front', 'Back']
         preview_core, displacement_core = self.create_cores(
             base,
             tile_props,
@@ -307,7 +307,7 @@ class MT_Straight_Wall_Tile(MT_Straight_Tile, MT_Tile):
             0.3149,
             tile_props.tile_size[2]))
 
-        textured_vertex_groups = ['Front', 'Back', 'Top']
+        textured_vertex_groups = ['Front', 'Back']
 
         preview_core, displacement_core = self.create_cores(
             base,

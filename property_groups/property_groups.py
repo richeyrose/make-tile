@@ -317,7 +317,7 @@ class MT_Scene_Properties(PropertyGroup):
 
     mt_UV_island_margin: bpy.props.FloatProperty(
         name="UV Margin",
-        default=0.012,
+        default=0.01,
         precision=4,
         min=0,
         step=0.1,

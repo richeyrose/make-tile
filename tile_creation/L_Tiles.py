@@ -482,9 +482,6 @@ class MT_L_Wall(MT_L_Tile, MT_Tile):
         mode('OBJECT')
         bpy.context.scene.cursor.location = (0, 0, 0)
 
-        if tile_props[0] == 2 and tile_props[1] == 2:
-            tile_props.UV_island_margin = 0.01
-
         bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
         bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
         return core

@@ -34,7 +34,7 @@ tile_types = [
     ("STRAIGHT_WALL", "Straight Wall", "", 1),
     ("CURVED_WALL", "Curved Wall", "", 2),
     ("CORNER_WALL", "Corner Wall", "", 3),
-    # ("U_WALL", "U Wall", "", 4),
+    ("U_WALL", "U Wall", "", 4),
     ("RECTANGULAR_FLOOR", "Rectangular Floor", "", 5),
     ("TRIANGULAR_FLOOR", "Triangular Floor", "", 6),
     ("CURVED_FLOOR", "Curved Floor", "", 7),

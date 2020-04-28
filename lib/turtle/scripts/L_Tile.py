@@ -118,7 +118,7 @@ def draw_corner_wall_core(triangles, angle, thickness, height, native_subdivisio
         i += 1
 
     vert_locs['Leg 1 Outer'] = leg_1_outer_vert_locs
-    print('Leg 1 Outer Verts num: ' + str(len(vert_locs['Leg 1 Outer'])))
+
     # end #
     t.pu()
     t.deselect_all()

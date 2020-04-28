@@ -179,14 +179,16 @@ def bake_displacement_map(preview_obj, disp_obj):
         float_buffer=False)
 
     disp_materials = []
+    mat_set = set()
     for item in preview_obj.material_slots.items():
         if item[0]:
             material = bpy.data.materials[item[0]]
             tree = material.node_tree
 
-            if 'disp_emission' in tree.nodes:
+            if 'disp_emission' in tree.nodes and material not in mat_set:
                 # plug emission node into output for baking
                 disp_materials.append(material)
+                mat_set.add(material)
                 displacement_emission_node = tree.nodes['disp_emission']
                 mat_output_node = tree.nodes['Material Output']
 

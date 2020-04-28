@@ -35,12 +35,26 @@ class MT_OT_Make_Tile(bpy.types.Operator):
 
     def execute(self, context):
         deselect_all()
-
         scene = context.scene
         scene_props = scene.mt_scene_props
 
+        ##########################################################
+        # Switch renderer to Eevee. This is a hack to compensate #
+        # for an issue where the tile generators sometimes       #
+        # produce different results depending on what            #
+        # renderer we are using. Hopefully when the turtle       #
+        # is rewritten to work on a bmesh this will no longer    #
+        # be an issue                                            #
+        ##########################################################
+        original_renderer = scene.render.engine
+        if original_renderer != 'BLENDER_EEVEE':
+            scene.render.engine = 'BLENDER_EEVEE'
+
+
+
+
         ############################################
-        # Set defaults for different tile systems #
+        # Set defaults for different tile systems  #
         ############################################
         tile_blueprint = scene_props.mt_tile_blueprint
         tile_type = scene_props.mt_tile_type
@@ -166,6 +180,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         if tile_type == 'U_WALL':
             MT_U_Wall_Tile(tile_props)
 
+        scene.render.engine = original_renderer
         return {'FINISHED'}
 
     @classmethod

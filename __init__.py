@@ -24,7 +24,8 @@ from . ui.object_generation_panels import (
     MT_PT_U_Tiles_Options_Panel,
     MT_PT_Semi_Circ_Tiles_Options_Panel,
     MT_PT_Triangular_Tiles_Options_Panel,
-    MT_PT_Tile_Generator_Panel)
+    MT_PT_Tile_Generator_Panel,
+    MT_PT_Openlock_Socket_Panel)
 
 from . ui.material_panels import (
     MT_PT_Material_Mapping_Options_Panel,
@@ -132,6 +133,7 @@ classes = (
     MT_OT_AutoVTX,
     MT_OT_IntersectAllEdges,
     MT_PT_Tile_Generator_Panel,
+    MT_PT_Openlock_Socket_Panel,
     MT_PT_Straight_Tile_Options_Panel,
     MT_PT_Curved_Tile_Options_Panel,
     MT_PT_L_Tiles_Options_Panel,

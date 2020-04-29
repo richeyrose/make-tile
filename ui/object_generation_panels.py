@@ -1,3 +1,4 @@
+import bpy
 from bpy.types import Panel
 
 
@@ -34,6 +35,37 @@ class MT_PT_Tile_Generator_Panel(Panel):
 
         layout.operator('scene.delete_tiles', text="Delete Tiles")
 
+
+class MT_PT_Openlock_Socket_Panel(bpy.types.Panel):
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Make Tile"
+    bl_label = "Sockets"
+    bl_description = "Openlock Sockets"
+
+    @classmethod
+    def poll(cls, context):
+
+        if len(context.selected_objects) > 0:
+            obj = context.object
+            if obj is not None and obj.type == 'MESH':
+                if obj.mt_object_props.is_mt_object and obj.mt_object_props.geometry_type in ('PREVIEW', 'DISPLACEMENT'):
+                    tile_name = obj.mt_object_props.tile_name
+                    tile = bpy.data.collections[tile_name]
+                    tile_props = tile.mt_tile_props
+                    main_part_blueprint = tile_props.main_part_blueprint
+                    if main_part_blueprint == 'OPENLOCK':
+                        return True
+        return False
+
+    def draw(self, context):
+        obj = context.object
+        layout = self.layout
+
+        for cutter in obj.mt_object_props.cutters_collection:
+            seperator = '.'
+            stripped_name = cutter.name.split(seperator, 1)[0]
+            layout.prop(cutter, "value", text=stripped_name)
 
 class MT_PT_Tile_Options_Panel(Panel):
     bl_space_type = "VIEW_3D"
@@ -101,6 +133,7 @@ class MT_PT_Tile_Options_Panel(Panel):
             self.draw_openlock_main_part_panel(context)
 
 
+
 class MT_PT_Straight_Tile_Options_Panel(MT_PT_Tile_Options_Panel):
     bl_idname = 'MT_PT_Straight_Tile_Options'
 
@@ -156,6 +189,7 @@ class MT_PT_Straight_Tile_Options_Panel(MT_PT_Tile_Options_Panel):
         else:
             row.prop(scene_props, 'mt_tile_x')
             row.prop(scene_props, 'mt_tile_y')
+
 
     def draw_native_subdiv_panel(self, context):
         scene = context.scene

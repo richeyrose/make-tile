@@ -112,7 +112,7 @@ class MT_U_Tile:
             array_mod = cutter_end_cap.modifiers['Array']
             array_mod.fit_length = leg_2_outer_len - slot_end_gap - 0.1529
 
-            slot_cutter.hide_viewport = False
+            slot_cutter.hide_viewport = True
         return slot_cutter
 
     def create_openlock_base_clip_cutter(self, tile_props):
@@ -146,6 +146,8 @@ class MT_U_Tile:
         array_mod.use_merge_vertices = True
         array_mod.fit_type = 'FIT_LENGTH'
 
+        clip_cutter.hide_viewport = True
+
         return clip_cutter
 
     def create_openlock_base(self, tile_props):
@@ -155,6 +157,10 @@ class MT_U_Tile:
         leg_2_inner_len = tile_props.leg_2_len
         x_inner_len = tile_props.base_size[0]
         thickness = tile_props.base_size[1]
+
+        leg_1_outer_len = leg_1_inner_len + thickness
+        leg_2_outer_len = leg_2_inner_len + thickness
+        x_outer_len = x_inner_len + (thickness * 2)
 
         base = self.create_plain_base(tile_props)
 
@@ -182,9 +188,8 @@ class MT_U_Tile:
 
         if base_socket_side == 'INNER':
             clip_cutter_leg_1.rotation_euler = (clip_cutter_leg_1.rotation_euler[0], clip_cutter_leg_1.rotation_euler[1], radians(90))
-            clip_cutter_leg_1.location = (0.25, thickness * 2, clip_cutter_leg_1.location[2])
+            clip_cutter_leg_1.location = (clip_cutter_leg_1.location[0] + 0.25, thickness * 2, clip_cutter_leg_1.location[2])
             clip_cutter_leg_1.modifiers['Array'].fit_length = leg_1_inner_len - 1
-
 
             clip_cutter_x_leg.rotation_euler = (clip_cutter_x_leg.rotation_euler[0], clip_cutter_x_leg.rotation_euler[1], radians(180))
             clip_cutter_x_leg.location = (x_inner_len, 0.25, clip_cutter_x_leg.location[2])
@@ -193,6 +198,17 @@ class MT_U_Tile:
             clip_cutter_leg_2.rotation_euler = (clip_cutter_leg_2.rotation_euler[0], clip_cutter_leg_2.rotation_euler[1], radians(-90))
             clip_cutter_leg_2.location = (x_inner_len + thickness + 0.25, leg_2_inner_len, clip_cutter_leg_2.location[2])
             clip_cutter_leg_2.modifiers['Array'].fit_length = leg_2_inner_len - 1
+        else:
+            clip_cutter_leg_1.rotation_euler[2] = radians(-90)
+            clip_cutter_leg_1.location = (clip_cutter_leg_1.location[0] + 0.25, clip_cutter_leg_1.location[1] + leg_1_outer_len - 0.5, clip_cutter_leg_1.location[2])
+            clip_cutter_leg_1.modifiers['Array'].fit_length = leg_1_outer_len - 1
+
+            clip_cutter_x_leg.location = (clip_cutter_x_leg.location[0] + 0.5, clip_cutter_x_leg.location[1] + 0.25, clip_cutter_x_leg.location[2])
+            clip_cutter_x_leg.modifiers['Array'].fit_length = x_outer_len - 1
+
+            clip_cutter_leg_2.rotation_euler[2] = radians(90)
+            clip_cutter_leg_2.location = (clip_cutter_leg_2.location[0] + x_outer_len - 0.25, clip_cutter_leg_2.location[1] + 0.5, clip_cutter_leg_2.location[2])
+            clip_cutter_leg_2.modifiers['Array'].fit_length = leg_2_outer_len - 1
 
         return base
 

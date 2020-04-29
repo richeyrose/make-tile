@@ -176,7 +176,8 @@ def bake_displacement_map(preview_obj, disp_obj):
         disp_obj.name + '.image',
         width=image_resolution,
         height=image_resolution,
-        float_buffer=False)
+        float_buffer=False,
+        alpha=True)
 
     disp_materials = []
     mat_set = set()
@@ -223,7 +224,7 @@ def bake_displacement_map(preview_obj, disp_obj):
 
     context.scene.render.bake.use_selected_to_active = True
     context.scene.render.bake.cage_extrusion = 1
-    context.scene.render.bake.margin = 0
+    context.scene.render.bake.margin = 10
 
     # temporarily assign a displacement material so we can bake to an image
     for material in disp_obj.data.materials:

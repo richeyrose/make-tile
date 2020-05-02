@@ -53,7 +53,7 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
             'object': obj,
             'active_object': obj
         }
-        bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
+        bpy.ops.uv.smart_project(ctx, island_margin=0.01)
 
         # duplicate object and make local
         new_obj = obj.copy()

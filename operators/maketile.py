@@ -13,6 +13,7 @@ from .. tile_creation.Rectangular_Tiles import MT_Rectangular_Floor_Tile
 from .. tile_creation.Triangular_Tiles import MT_Triangular_Floor_Tile
 from .. tile_creation.Semi_Circ_Tiles import MT_Semi_Circ_Floor_Tile
 from .. tile_creation.U_Tiles import MT_U_Wall_Tile
+from .. tile_creation.Connecting_Column_Tiles import MT_Connecting_Column_Tile
 
 from .. property_groups.property_groups import (
     MT_Tile_Properties,
@@ -108,6 +109,12 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             tile_collection = bpy.data.collections.new(tile_name)
             bpy.data.collections['Floors'].children.link(tile_collection)
 
+        elif tile_type in (
+                'CONNECTING_COLUMN'):
+            create_collection('Columns', tiles_collection)
+            tile_collection = bpy.data.collections.new(tile_name)
+            bpy.data.collections['Columns'].children.link(tile_collection)
+
         # activate collection so objects are added to it
         activate_collection(tile_collection.name)
 
@@ -179,6 +186,9 @@ class MT_OT_Make_Tile(bpy.types.Operator):
 
         if tile_type == 'U_WALL':
             MT_U_Wall_Tile(tile_props)
+
+        if tile_type == 'CONNECTING_COLUMN':
+            MT_Connecting_Column_Tile(tile_props)
 
         scene.render.engine = original_renderer
         return {'FINISHED'}

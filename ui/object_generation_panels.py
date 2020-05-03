@@ -133,6 +133,43 @@ class MT_PT_Tile_Options_Panel(Panel):
             self.draw_openlock_main_part_panel(context)
 
 
+class MT_PT_Connecting_Column_Tile_Options_Panel(MT_PT_Tile_Options_Panel):
+    bl_idname = 'MT_PT_Connecting_Column_Tile_Options'
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene.mt_scene_props.mt_tile_type == 'CONNECTING_COLUMN'
+
+    def draw_plain_base_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Base Size")
+        row = layout.row()
+        row.prop(scene_props, 'mt_base_x')
+        row.prop(scene_props, 'mt_base_y')
+        row.prop(scene_props, 'mt_base_z')
+
+    def draw_plain_main_part_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Tile Size")
+        row = layout.row()
+        row.prop(scene_props, 'mt_tile_x')
+        row.prop(scene_props, 'mt_tile_y')
+        row.prop(scene_props, 'mt_tile_z')
+
+    def draw_openlock_main_part_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Tile Size:")
+        layout.prop(scene_props, 'mt_tile_z', text='Tile Height')
+
 
 class MT_PT_Straight_Tile_Options_Panel(MT_PT_Tile_Options_Panel):
     bl_idname = 'MT_PT_Straight_Tile_Options'
@@ -189,7 +226,6 @@ class MT_PT_Straight_Tile_Options_Panel(MT_PT_Tile_Options_Panel):
         else:
             row.prop(scene_props, 'mt_tile_x')
             row.prop(scene_props, 'mt_tile_y')
-
 
     def draw_native_subdiv_panel(self, context):
         scene = context.scene

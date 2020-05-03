@@ -78,6 +78,7 @@ def update_mt_scene_props_handler(dummy):
             scene_props.mt_leg_2_native_subdivisions = tile_props.leg_2_native_subdivisions
             scene_props.mt_width_native_subdivisions = tile_props.width_native_subdivisions
 
+            scene_props.mt_openlock_column_type = tile_props.openlock_column_type
 
 bpy.app.handlers.depsgraph_update_post.append(update_mt_scene_props_handler)
 bpy.app.handlers.load_post.append(load_material_libraries)

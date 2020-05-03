@@ -24,6 +24,7 @@ from . ui.object_generation_panels import (
     MT_PT_U_Tiles_Options_Panel,
     MT_PT_Semi_Circ_Tiles_Options_Panel,
     MT_PT_Triangular_Tiles_Options_Panel,
+    MT_PT_Connecting_Column_Tile_Options_Panel,
     MT_PT_Tile_Generator_Panel,
     MT_PT_Openlock_Socket_Panel)
 
@@ -140,6 +141,7 @@ classes = (
     MT_PT_U_Tiles_Options_Panel,
     MT_PT_Semi_Circ_Tiles_Options_Panel,
     MT_PT_Triangular_Tiles_Options_Panel,
+    MT_PT_Connecting_Column_Tile_Options_Panel,
     MT_PT_Display_Panel,
     MT_PT_Material_Slots_Panel,
     MT_PT_Vertex_Groups_Panel,

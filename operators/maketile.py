@@ -141,6 +141,8 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         tile_props.leg_1_len = scene_props.mt_leg_1_len
         tile_props.leg_2_len = scene_props.mt_leg_2_len
         tile_props.curve_type = scene_props.mt_curve_type
+        tile_props.openlock_column_type = scene_props.mt_openlock_column_type
+
         tile_props.tile_units = scene_props.mt_tile_units
         tile_props.displacement_strength = scene_props.mt_displacement_strength
         tile_props.tile_resolution = scene_props.mt_tile_resolution

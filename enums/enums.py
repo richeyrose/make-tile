@@ -77,3 +77,11 @@ material_mapping = [
     ("GENERATED", "Generated", "", 4),
     ("UV", "UV", "", 5)
 ]
+
+openlock_column_types = [
+    ("I", "I Column", "", 1),
+    ("L", "L Column", "", 2),
+    ("O", "O Column", "", 3),
+    ("T", "T Column", "", 4),
+    ("X", "X Column", "", 5)
+]

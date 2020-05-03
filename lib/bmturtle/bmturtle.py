@@ -45,30 +45,30 @@ def pd(bm):
 
 
 def fd(bm, distance, del_original=True):
-    translate(bm, (0.0, distance, 0.0), del_original)
+    extrude_translate(bm, (0.0, distance, 0.0), del_original)
 
 
 def bk(bm, distance, del_original=True):
-    translate(bm, (0.0, -distance, 0.0), del_original)
+    extrude_translate(bm, (0.0, -distance, 0.0), del_original)
 
 
 def up(bm, distance, del_original=True):
-    translate(bm, (0.0, 0.0, distance), del_original)
+    extrude_translate(bm, (0.0, 0.0, distance), del_original)
 
 
 def dn(bm, distance, del_original=True):
-    translate(bm, (0.0, 0.0, -distance), del_original)
+    extrude_translate(bm, (0.0, 0.0, -distance), del_original)
 
 
 def ri(bm, distance, del_original=True):
-    translate(bm, (distance, 0.0, 0.0), del_original)
+    extrude_translate(bm, (distance, 0.0, 0.0), del_original)
 
 
 def lf(bm, distance, del_original=True):
-    translate(bm, (-distance, 0.0, 0.0), del_original)
+    extrude_translate(bm, (-distance, 0.0, 0.0), del_original)
 
 
-def translate(bm, local_trans, del_original=True):
+def extrude_translate(bm, local_trans, del_original=True):
     # use cursor as turtle
     turtle = bpy.context.scene.cursor
 
@@ -181,3 +181,22 @@ def bm_deselect_all(bm):
     for v in bm.verts:
         v.select_set(False)
     bm.select_flush(False)
+
+
+def draw_cuboid(dimensions, name):
+    bm, obj = create_turtle(name=name)
+
+    bm.select_mode = {'VERT'}
+
+    fd(bm, dimensions[1])
+    bm.select_mode = {'EDGE'}
+    bm_select_all(bm)
+    ri(bm, dimensions[0])
+    bm.select_mode = {'FACE'}
+    bm_select_all(bm)
+    up(bm, dimensions[2], False)
+    pu(bm)
+    home(obj)
+    finalise_turtle(bm, obj)
+
+    return obj

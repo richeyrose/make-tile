@@ -12,7 +12,8 @@ from .. enums.enums import (
     geometry_types,
     base_socket_side,
     units,
-    material_mapping)
+    material_mapping,
+    openlock_column_types)
 
 from .. lib.utils.update_scene_props import load_material_libraries
 
@@ -117,11 +118,22 @@ class MT_Scene_Properties(PropertyGroup):
             scene_props.mt_tile_y = 0.5
             scene_props.mt_base_x = 2
             scene_props.mt_base_y = 0.5
-        else:
-            scene_props.mt_tile_z = 2
-            scene_props.mt_base_z = 0.2755
+        elif scene_props.mt_tile_type == 'CONNECTING_COLUMN':
+            scene_props.mt_base_x = 0.5
             scene_props.mt_base_y = 0.5
+            scene_props.mt_base_z = 0.2755
+            scene_props.mt_tile_x = 0.5
+            scene_props.mt_tile_y = 0.5
+            scene_props.mt_tile_z = 2
+        else:
+            scene_props.mt_tile_x = 2
             scene_props.mt_tile_y = 0.3149
+            scene_props.mt_tile_z = 2
+            scene_props.mt_base_x = 2
+            scene_props.mt_base_y = 0.5
+            scene_props.mt_base_z = 0.2755
+
+
 
     def update_subdiv_defaults(self, context):
         scene_props = context.scene.mt_scene_props
@@ -165,6 +177,10 @@ class MT_Scene_Properties(PropertyGroup):
             scene_props.mt_y_native_subdivisions = 15
             scene_props.mt_z_native_subdivisions = 1
             scene_props.mt_curve_native_subdivisions = 20
+        elif scene_props.mt_tile_type == 'CONNECTING_COLUMN':
+            scene_props.mt_x_native_subdivisions = 3
+            scene_props.mt_y_native_subdivisions = 3
+            scene_props.mt_z_native_subdivisions = 15
 
     def update_disp_strength(self, context):
         obj = bpy.context.object
@@ -523,6 +539,13 @@ class MT_Scene_Properties(PropertyGroup):
         description="Whether the tile has a positive or negative curvature"
     )
 
+    # Openlock connecting column specific
+    mt_openlock_column_type: bpy.props.EnumProperty(
+        items=openlock_column_types,
+        name="Column type",
+        default="O"
+    )
+
     # TODO: Fix hack to make 360 curved wall work. Ideally this should merge everything
     mt_degrees_of_arc: bpy.props.FloatProperty(
         name="Degrees of arc",
@@ -703,6 +726,11 @@ class MT_Tile_Properties(PropertyGroup):
     curve_type: bpy.props.EnumProperty(
         name="Curve Type",
         items=curve_types
+    )
+
+    openlock_column_type: bpy.props.EnumProperty(
+        items=openlock_column_types,
+        name="Column type"
     )
 
     tile_units: bpy.props.EnumProperty(

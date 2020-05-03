@@ -183,8 +183,8 @@ def bm_deselect_all(bm):
     bm.select_flush(False)
 
 
-def draw_cuboid(dimensions, name):
-    bm, obj = create_turtle(name=name)
+def draw_cuboid(dimensions):
+    bm, obj = create_turtle(name='cuboid')
 
     bm.select_mode = {'VERT'}
 

@@ -169,6 +169,8 @@ class MT_U_Tile:
         slot_boolean = base.modifiers.new(slot_cutter.name, 'BOOLEAN')
         slot_boolean.operation = 'DIFFERENCE'
         slot_boolean.object = slot_cutter
+        slot_boolean.show_render = False
+
         slot_cutter.parent = base
         slot_cutter.display_type = 'BOUNDS'
         slot_cutter.hide_viewport = True
@@ -187,6 +189,7 @@ class MT_U_Tile:
             cutter_boolean = base.modifiers.new(cutter.name, 'BOOLEAN')
             cutter_boolean.operation = 'DIFFERENCE'
             cutter_boolean.object = cutter
+            cutter_boolean.show_render = False
             cutter.parent = base
             cutter.display_type = 'WIRE'
 
@@ -318,7 +321,12 @@ class MT_U_Wall_Tile(MT_U_Tile, MT_Tile):
         leg_2_top_cutter.data = leg_2_top_cutter.data.copy()
         leg_2_top_cutter.name = 'Leg 2 Top.cutter.' + tile_props.tile_name
 
-        cutters = [leg_1_bottom_cutter, leg_1_top_cutter, leg_2_bottom_cutter, leg_2_top_cutter]
+        cutters = [
+            leg_1_bottom_cutter,
+            leg_1_top_cutter,
+            leg_2_bottom_cutter,
+            leg_2_top_cutter]
+
         for cutter in cutters:
             add_object_to_collection(cutter, tile_props.tile_name)
 

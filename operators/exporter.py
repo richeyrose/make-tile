@@ -84,7 +84,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
 
 
                     # Bake displacement map and apply to displacement obj
-                    disp_image, disp_obj = bake_displacement_map(obj, disp_obj)                  
+                    disp_image, disp_obj = bake_displacement_map(obj, disp_obj)
                     disp_texture = disp_obj['disp_texture']
                     disp_texture.image = disp_image
                     disp_mod = disp_obj.modifiers[disp_obj['disp_mod_name']]
@@ -127,7 +127,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                         ctx = {
                             'object': obj,
                             'active_object': obj,
-                            'selected_objects': [obj]    
+                            'selected_objects': [obj]
                         }
 
                         bpy.ops.object.voxel_remesh(ctx)
@@ -242,7 +242,7 @@ class MT_OT_Export_Tile(bpy.types.Operator):
                     if obj.visible_get() is True:
                         visible_objects.append(obj)
 
-            copies = []
+            displacement_copies = []
             depsgraph = context.evaluated_depsgraph_get()
 
             # create copy of any displacement objects and flatten
@@ -258,21 +258,21 @@ class MT_OT_Export_Tile(bpy.types.Operator):
                     dup_obj.scale = obj.scale
                     dup_obj.parent = obj.parent
                     tile_collection.objects.link(dup_obj)
-                    copies.append(dup_obj)
+                    displacement_copies.append(dup_obj)
                     obj.hide_viewport = True
 
-            # join all objects
-            if len(copies) > 1:
+            # join displacement copies together
+            if len(displacement_copies) > 1:
                 ctx = {
-                    'object': copies[0],
-                    'active_object': copies[0],
-                    'selected_objects': copies,
-                    'selected_editable_objects': copies
+                    'object': displacement_copies[0],
+                    'active_object': displacement_copies[0],
+                    'selected_objects': displacement_copies,
+                    'selected_editable_objects': displacement_copies
                 }
                 bpy.ops.object.join(ctx)
 
-            # voxelise if neccessary
-            for obj in copies:
+            # voxelise displacement copies if neccessary
+            for obj in displacement_copies:
                 if context.scene.mt_voxelise_on_export is True:
                     voxelise(obj)
 
@@ -280,11 +280,15 @@ class MT_OT_Export_Tile(bpy.types.Operator):
                 context.scene.mt_export_path,
                 tile_collection.name + '.' + str(random()) + '.stl')
 
+            # create array of objects to export
             export_objects = []
 
-            for obj in copies:
+            for obj in displacement_copies:
                 export_objects.append(obj)
-                    
+
+            for obj in visible_objects:
+                if obj.mt_object_props.geometry_type != 'DISPLACEMENT':
+                    export_objects.append(obj)
 
             ctx = {
                 'selected_objects': export_objects,
@@ -302,7 +306,7 @@ class MT_OT_Export_Tile(bpy.types.Operator):
                 global_scale=unit_multiplier,
                 use_mesh_modifiers=True)
 
-            for obj in copies:
+            for obj in displacement_copies:
                 objects.remove(objects[obj.name], do_unlink=True)
 
             for obj in visible_objects:

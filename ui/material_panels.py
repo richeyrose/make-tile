@@ -74,7 +74,7 @@ class MT_PT_Material_Options_Panel(Panel):
             image_node = nodes['mt_custom_image']
             layout.template_ID(image_node, "image", new="image.new", open="image.open")
             layout.prop(image_node, "extension", text="Tiling")
-            
+
 
         # get all frame nodes in material that are within the 'editable_inputs' frame
         frame_names = []
@@ -118,13 +118,6 @@ class MT_PT_Material_Mapping_Options_Panel(Panel):
             return obj
         return False
 
-    @classmethod
-    def register(cls):
-        # Property group containing radio buttons
-        bpy.types.WindowManager.mt_radio_buttons = bpy.props.PointerProperty(
-            type=MT_Radio_Buttons,
-        )
-
     def draw(self, context):
         scene_props = context.scene.mt_scene_props
         layout = self.layout
@@ -141,9 +134,14 @@ class MT_PT_Material_Mapping_Options_Panel(Panel):
             texture_node = nodes['Texture Coordinate']
             layout.prop(texture_node, "object", text="")
 
-    @classmethod
-    def unregister(cls):
-        del bpy.types.WindowManager.mt_radio_buttons
+def register():
+    # Property group containing radio buttons
+    bpy.types.WindowManager.mt_radio_buttons = bpy.props.PointerProperty(
+        type=MT_Radio_Buttons
+    )
+
+def unregister():
+    del bpy.types.WindowManager.mt_radio_buttons
 
 
 class MT_PT_Vertex_Groups_Panel(bpy.types.Panel):

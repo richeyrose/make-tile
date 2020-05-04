@@ -195,26 +195,24 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         scene.render.engine = original_renderer
         return {'FINISHED'}
 
-    @classmethod
-    def register(cls):
-        # Property group that contains properties relating to a tile on the tile collection
-        bpy.types.Collection.mt_tile_props = bpy.props.PointerProperty(
-            type=MT_Tile_Properties
-        )
+def register():
+    # Property group that contains properties relating to a tile on the tile collection
+    bpy.types.Collection.mt_tile_props = bpy.props.PointerProperty(
+        type=MT_Tile_Properties
+    )
 
-        # Property group that contains properties of an object stored on the object
-        bpy.types.Object.mt_object_props = bpy.props.PointerProperty(
-            type=MT_Object_Properties
-        )
+    # Property group that contains properties of an object stored on the object
+    bpy.types.Object.mt_object_props = bpy.props.PointerProperty(
+        type=MT_Object_Properties
+    )
 
-        # Property group that contains properties set in UI
-        bpy.types.Scene.mt_scene_props = bpy.props.PointerProperty(
-            type=MT_Scene_Properties
-        )
+    # Property group that contains properties set in UI
+    bpy.types.Scene.mt_scene_props = bpy.props.PointerProperty(
+        type=MT_Scene_Properties
+    )
 
 
-    @classmethod
-    def unregister(cls):
-        del bpy.types.Scene.mt_scene_props
-        del bpy.types.Object.mt_object_props
-        del bpy.types.Collection.mt_tile_props
+def unregister():
+    del bpy.types.Scene.mt_scene_props
+    del bpy.types.Object.mt_object_props
+    del bpy.types.Collection.mt_tile_props

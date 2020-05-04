@@ -322,44 +322,42 @@ class MT_OT_Export_Tile(bpy.types.Operator):
 
         return {'FINISHED'}
 
-    @classmethod
-    def register(cls):
 
-        preferences = get_prefs()
+def register():
+    preferences = get_prefs()
 
-        bpy.types.Scene.mt_export_path = bpy.props.StringProperty(
-            name="Export Path",
-            description="Path to export tiles to",
-            subtype="DIR_PATH",
-            default=preferences.default_export_path,
-        )
+    bpy.types.Scene.mt_export_path = bpy.props.StringProperty(
+        name="Export Path",
+        description="Path to export tiles to",
+        subtype="DIR_PATH",
+        default=preferences.default_export_path,
+    )
 
-        bpy.types.Scene.mt_units = bpy.props.EnumProperty(
-            name="Units",
-            items=units,
-            description="Export units",
-            default=preferences.default_units
-        )
+    bpy.types.Scene.mt_units = bpy.props.EnumProperty(
+        name="Units",
+        items=units,
+        description="Export units",
+        default=preferences.default_units
+    )
 
-        bpy.types.Scene.mt_voxelise_on_export = bpy.props.BoolProperty(
-            name="Voxelise",
-            default=False
-        )
+    bpy.types.Scene.mt_voxelise_on_export = bpy.props.BoolProperty(
+        name="Voxelise",
+        default=False
+    )
 
-        bpy.types.Scene.mt_randomise_on_export = bpy.props.BoolProperty(
-            name="Randomise",
-            description="Create random variant on export?",
-            default=True
-        )
+    bpy.types.Scene.mt_randomise_on_export = bpy.props.BoolProperty(
+        name="Randomise",
+        description="Create random variant on export?",
+        default=True
+    )
 
-        bpy.types.Scene.mt_num_variants = bpy.props.IntProperty(
-            name="Variants",
-            description="Number of variants of tile to export",
-            default=1
-        )
+    bpy.types.Scene.mt_num_variants = bpy.props.IntProperty(
+        name="Variants",
+        description="Number of variants of tile to export",
+        default=1
+    )
 
-    @classmethod
-    def unregister(cls):
-        del bpy.types.Scene.mt_voxelise_on_export
-        del bpy.types.Scene.mt_units
-        del bpy.types.Scene.mt_export_path
+def unregister():
+    del bpy.types.Scene.mt_voxelise_on_export
+    del bpy.types.Scene.mt_units
+    del bpy.types.Scene.mt_export_path

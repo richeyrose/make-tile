@@ -3,6 +3,7 @@ from bpy.types import Panel
 
 
 class MT_PT_Tile_Generator_Panel(Panel):
+    bl_order = 0
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Make Tile"
@@ -36,38 +37,7 @@ class MT_PT_Tile_Generator_Panel(Panel):
         layout.operator('scene.delete_tiles', text="Delete Tiles")
 
 
-class MT_PT_Openlock_Socket_Panel(bpy.types.Panel):
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = "Make Tile"
-    bl_label = "Sockets"
-    bl_description = "Openlock Sockets"
-
-    @classmethod
-    def poll(cls, context):
-
-        if len(context.selected_objects) > 0:
-            obj = context.object
-            if obj is not None and obj.type == 'MESH':
-                if obj.mt_object_props.is_mt_object and obj.mt_object_props.geometry_type in ('PREVIEW', 'DISPLACEMENT'):
-                    tile_name = obj.mt_object_props.tile_name
-                    tile = bpy.data.collections[tile_name]
-                    tile_props = tile.mt_tile_props
-                    main_part_blueprint = tile_props.main_part_blueprint
-                    if main_part_blueprint == 'OPENLOCK':
-                        return True
-        return False
-
-    def draw(self, context):
-        obj = context.object
-        layout = self.layout
-
-        for cutter in obj.mt_object_props.cutters_collection:
-            seperator = '.'
-            stripped_name = cutter.name.split(seperator, 1)[0]
-            layout.prop(cutter, "value", text=stripped_name)
-
-class MT_PT_Tile_Options_Panel(Panel):
+class MT_PT_Tile_Options_Panel():
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Make Tile"
@@ -133,9 +103,42 @@ class MT_PT_Tile_Options_Panel(Panel):
             self.draw_openlock_main_part_panel(context)
 
 
-class MT_PT_Connecting_Column_Tile_Options_Panel(MT_PT_Tile_Options_Panel):
-    bl_idname = 'MT_PT_Connecting_Column_Tile_Options'
+class MT_PT_Openlock_Socket_Panel(bpy.types.Panel):
+    bl_order = 3
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Make Tile"
+    bl_label = "Sockets"
+    bl_description = "Openlock Sockets"
 
+    @classmethod
+    def poll(cls, context):
+
+        if len(context.selected_objects) > 0:
+            obj = context.object
+            if obj is not None and obj.type == 'MESH':
+                if obj.mt_object_props.is_mt_object and obj.mt_object_props.geometry_type in ('PREVIEW', 'DISPLACEMENT'):
+                    tile_name = obj.mt_object_props.tile_name
+                    tile = bpy.data.collections[tile_name]
+                    tile_props = tile.mt_tile_props
+                    main_part_blueprint = tile_props.main_part_blueprint
+                    if main_part_blueprint == 'OPENLOCK':
+                        return True
+        return False
+
+    def draw(self, context):
+        obj = context.object
+        layout = self.layout
+
+        for cutter in obj.mt_object_props.cutters_collection:
+            seperator = '.'
+            stripped_name = cutter.name.split(seperator, 1)[0]
+            layout.prop(cutter, "value", text=stripped_name)
+
+
+class MT_PT_Connecting_Column_Tile_Options_Panel(bpy.types.Panel, MT_PT_Tile_Options_Panel):
+    bl_idname = 'MT_PT_Connecting_Column_Tile_Options'
+    bl_order = 2
     @classmethod
     def poll(cls, context):
         return context.scene.mt_scene_props.mt_tile_type == 'CONNECTING_COLUMN'
@@ -171,9 +174,9 @@ class MT_PT_Connecting_Column_Tile_Options_Panel(MT_PT_Tile_Options_Panel):
         layout.prop(scene_props, 'mt_tile_z', text='Tile Height')
 
 
-class MT_PT_Straight_Tile_Options_Panel(MT_PT_Tile_Options_Panel):
+class MT_PT_Straight_Tile_Options_Panel(bpy.types.Panel, MT_PT_Tile_Options_Panel):
     bl_idname = 'MT_PT_Straight_Tile_Options'
-
+    bl_order = 2
     @classmethod
     def poll(cls, context):
         return context.scene.mt_scene_props.mt_tile_type in (
@@ -238,9 +241,9 @@ class MT_PT_Straight_Tile_Options_Panel(MT_PT_Tile_Options_Panel):
         layout.prop(scene_props, 'mt_z_native_subdivisions')
 
 
-class MT_PT_Curved_Tile_Options_Panel(MT_PT_Tile_Options_Panel):
+class MT_PT_Curved_Tile_Options_Panel(bpy.types.Panel, MT_PT_Tile_Options_Panel):
     bl_idname = 'MT_PT_Curved_Tile_Options'
-
+    bl_order = 2
     @classmethod
     def poll(cls, context):
         return context.scene.mt_scene_props.mt_tile_type in (
@@ -308,9 +311,9 @@ class MT_PT_Curved_Tile_Options_Panel(MT_PT_Tile_Options_Panel):
         layout.prop(scene_props, 'mt_z_native_subdivisions')
 
 
-class MT_PT_L_Tiles_Options_Panel(MT_PT_Tile_Options_Panel):
+class MT_PT_L_Tiles_Options_Panel(bpy.types.Panel, MT_PT_Tile_Options_Panel):
     bl_idname = 'MT_PT_L_Tiles_Options'
-
+    bl_order = 2
     @classmethod
     def poll(cls, context):
         return context.scene.mt_scene_props.mt_tile_type in (
@@ -381,9 +384,9 @@ class MT_PT_L_Tiles_Options_Panel(MT_PT_Tile_Options_Panel):
         layout.prop(scene_props, 'mt_z_native_subdivisions')
 
 
-class MT_PT_U_Tiles_Options_Panel(MT_PT_Tile_Options_Panel):
+class MT_PT_U_Tiles_Options_Panel(bpy.types.Panel, MT_PT_Tile_Options_Panel):
     bl_idname = 'MT_PT_U_Tiles_Options'
-
+    bl_order = 2
     @classmethod
     def poll(cls, context):
         return context.scene.mt_scene_props.mt_tile_type in (
@@ -456,9 +459,9 @@ class MT_PT_U_Tiles_Options_Panel(MT_PT_Tile_Options_Panel):
         layout.prop(scene_props, 'mt_z_native_subdivisions')
 
 
-class MT_PT_Semi_Circ_Tiles_Options_Panel(MT_PT_Tile_Options_Panel):
+class MT_PT_Semi_Circ_Tiles_Options_Panel(bpy.types.Panel, MT_PT_Tile_Options_Panel):
     bl_idname = 'MT_PT_Semi_Circ_Tiles_Options'
-
+    bl_order = 2
     @classmethod
     def poll(cls, context):
         return context.scene.mt_scene_props.mt_tile_type == 'SEMI_CIRC_FLOOR'
@@ -521,9 +524,9 @@ class MT_PT_Semi_Circ_Tiles_Options_Panel(MT_PT_Tile_Options_Panel):
         layout.prop(scene_props, 'mt_curve_native_subdivisions')
 
 
-class MT_PT_Triangular_Tiles_Options_Panel(MT_PT_Tile_Options_Panel):
+class MT_PT_Triangular_Tiles_Options_Panel(bpy.types.Panel, MT_PT_Tile_Options_Panel):
     bl_idname = 'MT_PT_Triangular_Tiles_Options'
-
+    bl_order = 2
     @classmethod
     def poll(cls, context):
         return context.scene.mt_scene_props.mt_tile_type == 'TRIANGULAR_FLOOR'
@@ -586,6 +589,7 @@ class MT_PT_Triangular_Tiles_Options_Panel(MT_PT_Tile_Options_Panel):
 
 class MT_PT_Converter_Panel(Panel):
     '''Allows you to convert any mesh object into a MakeTile object'''
+    bl_order = 9
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Make Tile"

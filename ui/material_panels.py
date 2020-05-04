@@ -4,11 +4,11 @@ from .. property_groups.property_groups import MT_Radio_Buttons
 
 
 class MT_PT_Material_Slots_Panel(Panel):
+    bl_order = 5
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Make Tile"
     bl_label = "Materials"
-    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -43,6 +43,7 @@ class MT_PT_Material_Slots_Panel(Panel):
 
 
 class MT_PT_Material_Options_Panel(Panel):
+    bl_order = 7
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Make Tile"
@@ -104,6 +105,7 @@ class MT_PT_Material_Options_Panel(Panel):
 
 
 class MT_PT_Material_Mapping_Options_Panel(Panel):
+    bl_order = 8
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Make Tile"
@@ -134,22 +136,13 @@ class MT_PT_Material_Mapping_Options_Panel(Panel):
             texture_node = nodes['Texture Coordinate']
             layout.prop(texture_node, "object", text="")
 
-def register():
-    # Property group containing radio buttons
-    bpy.types.WindowManager.mt_radio_buttons = bpy.props.PointerProperty(
-        type=MT_Radio_Buttons
-    )
-
-def unregister():
-    del bpy.types.WindowManager.mt_radio_buttons
-
 
 class MT_PT_Vertex_Groups_Panel(bpy.types.Panel):
+    bl_order = 6
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Make Tile"
     bl_label = "Textured Areas"
-    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'CYCLES', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
     @classmethod

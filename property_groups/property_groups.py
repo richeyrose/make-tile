@@ -745,3 +745,12 @@ class MT_Tile_Properties(PropertyGroup):
     tile_resolution: bpy.props.IntProperty(
         name="Tile Resolution"
     )
+
+def register():
+    # Property group containing radio buttons
+    bpy.types.WindowManager.mt_radio_buttons = bpy.props.PointerProperty(
+        type=MT_Radio_Buttons
+    )
+
+def unregister():
+    del bpy.types.WindowManager.mt_radio_buttons

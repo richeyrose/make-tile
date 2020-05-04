@@ -3,6 +3,7 @@ from bpy.types import Panel
 
 
 class MT_PT_Display_Panel(Panel):
+    bl_order = 4
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Make Tile"

@@ -3,6 +3,7 @@ from bpy.types import Panel
 
 
 class MT_PT_Voxelise_Panel(Panel):
+    bl_order = 9
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Make Tile"
@@ -26,6 +27,7 @@ class MT_PT_Voxelise_Panel(Panel):
 
 
 class MT_PT_Export_Panel(Panel):
+    bl_order = 10
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Make Tile"

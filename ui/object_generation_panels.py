@@ -605,6 +605,13 @@ class MT_PT_Converter_Panel(Panel):
     def draw(self, context):
         layout = self.layout
         scene = context.scene
+        scene_props = scene.mt_scene_props
+
+        layout.label(text="Rescale Object")
+        row = layout.row()
+        row.prop(scene_props, 'mt_base_unit', text="Tile Unit")
+
+        layout.operator('object.mt_rescale_object')
 
         layout.label(text="Convert Object")
         layout.operator('object.convert_to_make_tile', text='Convert to MakeTile Object')

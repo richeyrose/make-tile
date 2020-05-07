@@ -31,10 +31,7 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
 
     def execute(self, context):
         obj = context.object
-        self.convert_to_make_tile_obj(context, obj)
-        return {'FINISHED'}
 
-    def convert_to_make_tile_obj(self, context, obj):
         scene = context.scene
         scene_props = scene.mt_scene_props
         scene_collection = scene.collection
@@ -141,3 +138,5 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
         add_preview_mesh_subsurf(preview_obj)
 
         displacement_obj.hide_viewport = True
+
+        return {'FINISHED'}

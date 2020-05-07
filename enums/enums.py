@@ -40,8 +40,8 @@ tile_types = [
     ("CURVED_FLOOR", "Curved Floor", "", 7),
     ("CORNER_FLOOR", "Corner Floor", "", 8),
     ("STRAIGHT_FLOOR", "Straight Floor", "", 9),
-    ("SEMI_CIRC_FLOOR", "Semi Circular Floor", "", 10),
-    ("CONNECTING_COLUMN", "Connecting Column", "", 11)
+    ("SEMI_CIRC_FLOOR", "Semi Circular Floor", "", 10)
+    #("CONNECTING_COLUMN", "Connecting Column", "", 11)
 ]
 
 geometry_types = [

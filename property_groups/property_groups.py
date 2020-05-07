@@ -556,6 +556,17 @@ class MT_Scene_Properties(PropertyGroup):
         min=0
     )
 
+    # used for rescaling objects
+    mt_base_unit: bpy.props.EnumProperty(
+        name="Base Unit",
+        items=units
+    )
+
+    mt_target_unit: bpy.props.EnumProperty(
+        name="Target Unit",
+        items=units
+    )
+
 
 class MT_Object_Properties(PropertyGroup):
     is_mt_object: bpy.props.BoolProperty(

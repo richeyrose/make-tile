@@ -1,0 +1,114 @@
+{
+    "Objects": [
+        {
+            "Type": "Tile",
+            "SubType": "Wall",
+            "System": "OpenLOCK",
+            "Tags": "Straight Wall, OpenLOCK",
+            "Name": "Straight Wall Tile",
+            "Generator": "straight_wall_tile_generator",
+            "Dimensions": {
+                "z": 2
+            },
+            "Parts": [
+                {
+                    "Name": "Base",
+                    "Generator": "openlock_straight_wall_base",
+                    "Dimensions": {
+                        "x": 2,
+                        "y": 0.5,
+                        "z": 0.275
+                        },
+                    "AssetsFile": "openlock.blend",
+                    "Cutter": "openlock.wall.base.cutter.clip"
+                },
+                {
+                    "Name": "Core",
+                    "Generator": "openlock_straight_wall_core",
+                    "Dimensions": {
+                        "x": 2,
+                        "y": 0.315
+                    },
+                    "AssetsFile": "openlock.blend",
+                    "Cutter": "openlock.wall.cutter.side"
+                }
+            ]
+        },
+        {
+            "Type": "Tile",
+            "SubType": "Wall",
+            "System": "Plain",
+            "Tags": "Straight Wall, Plain",
+            "Name": "Straight Wall Tile",
+            "Generator": "straight_wall_tile_generator",
+            "Dimensions": {
+                "z": 2
+            },
+            "Parts": [
+                {
+                    "Name": "Base",
+                    "Generator": "plain_straight_wall_base",
+                    "Dimensions": {
+                        "x": 2,
+                        "y": 0.5,
+                        "z": 0.275
+                    }
+                },
+                {
+                    "Name": "Core",
+                    "Generator": "plain_straight_wall_core",
+                    "Dimensions": {
+                        "x": 2,
+                        "y": 0.315
+                    }
+                }
+            ]
+        },
+        {
+            "Type": "Column",
+            "SubType": "Round Column",
+            "System": "Plain",
+            "Name": "Round Classical Column",
+            "Generator": "column_generator",
+            "Dimensions": {
+                "x": 1,
+                "y": 1,
+                "z": 2
+            },
+            "Parts": [
+                {
+                    "Name": "Base",
+                    "Generator": "plain_rectangular_base",
+                    "Dimensions": {
+                        "x": 1,
+                        "y:": 1,
+                        "z": 0.275
+                    }
+                },
+                {
+                    "Name": "Column Base",
+                    "Generator": "column_base",
+                    "Dimensions": {
+                        "radius": 0.4,
+                        "z": 0.3
+                    }
+                },
+                {
+                    "Name": "Shaft",
+                    "Generator": "column_shaft",
+                    "Dimensions": {
+                        "radius": 0.3
+                    }
+                },
+                {
+                    "Name": "Capital",
+                    "Generator": "column_capital",
+                    "Dimensions": {
+                        "radius": 0.4,
+                        "z": 0.3
+                    }
+                }
+            ]
+        }
+    ]
+}

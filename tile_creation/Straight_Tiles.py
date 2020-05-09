@@ -1,5 +1,6 @@
 " Contains functions for creating wall tiles """
 import os
+import json
 from math import radians
 from mathutils import Vector
 import bpy
@@ -192,6 +193,7 @@ class MT_Straight_Floor_Tile(MT_Straight_Tile, MT_Tile):
 
     def create_openlock_base(self, tile_props):
         '''Returns an openlock style base with clip sockets'''
+
         tile_props.base_size = Vector((
             tile_props.tile_size[0],
             0.5,
@@ -350,6 +352,7 @@ class MT_Straight_Wall_Tile(MT_Straight_Tile, MT_Tile):
     def create_core(self, tile_props):
         '''Returns the core (vertical) part of a wall tile
         '''
+
         cursor = bpy.context.scene.cursor
         cursor_start_loc = cursor.location.copy()
         tile_size = tile_props.tile_size

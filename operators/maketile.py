@@ -52,8 +52,6 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             scene.render.engine = 'BLENDER_EEVEE'
 
 
-
-
         ############################################
         # Set defaults for different tile systems  #
         ############################################

@@ -1,114 +1,186 @@
 {
-    "Objects": [
+    "ObjectTypes": [
         {
             "Type": "Tile",
-            "SubType": "Wall",
-            "System": "OpenLOCK",
-            "Tags": "Straight Wall, OpenLOCK",
-            "Name": "Straight Wall Tile",
-            "Generator": "straight_wall_tile_generator",
-            "Dimensions": {
-                "z": 2
-            },
-            "Parts": [
-                {
-                    "Name": "Base",
-                    "Generator": "openlock_straight_wall_base",
-                    "Dimensions": {
-                        "x": 2,
-                        "y": 0.5,
-                        "z": 0.275
-                        },
-                    "AssetsFile": "openlock.blend",
-                    "Cutter": "openlock.wall.base.cutter.clip"
-                },
-                {
-                    "Name": "Core",
-                    "Generator": "openlock_straight_wall_core",
-                    "Dimensions": {
-                        "x": 2,
-                        "y": 0.315
-                    },
-                    "AssetsFile": "openlock.blend",
-                    "Cutter": "openlock.wall.cutter.side"
-                }
-            ]
-        },
-        {
-            "Type": "Tile",
-            "SubType": "Wall",
-            "System": "Plain",
-            "Tags": "Straight Wall, Plain",
-            "Name": "Straight Wall Tile",
-            "Generator": "straight_wall_tile_generator",
-            "Dimensions": {
-                "z": 2
-            },
-            "Parts": [
-                {
-                    "Name": "Base",
-                    "Generator": "plain_straight_wall_base",
-                    "Dimensions": {
-                        "x": 2,
-                        "y": 0.5,
-                        "z": 0.275
-                    }
-                },
-                {
-                    "Name": "Core",
-                    "Generator": "plain_straight_wall_core",
-                    "Dimensions": {
-                        "x": 2,
-                        "y": 0.315
-                    }
-                }
-            ]
+            "ParentType": null
         },
         {
             "Type": "Column",
-            "SubType": "Round Column",
-            "System": "Plain",
-            "Name": "Round Classical Column",
-            "Generator": "column_generator",
-            "Dimensions": {
-                "x": 1,
-                "y": 1,
+            "ParentType": null
+        },
+        {
+            "Type": "Tile Part",
+            "ParentType": null
+        },
+        {
+            "Type": "Mesh",
+            "ParentType": null
+        },
+        {
+            "Type": "Tile Base",
+            "ParentType": "Tile Part"
+        },
+        {
+            "Type": "Tile Core",
+            "ParentType": "Tile Part"
+        },
+        {
+            "Type": "Wall Tile",
+            "ParentType": "Tile"
+        },
+        {
+            "Type": "Straight Wall Tile",
+            "ParentType": "Wall Tile"
+        },
+        {
+            "Type": "Curved Wall Tile",
+            "ParentType": "Wall Tile"
+        },
+        {
+            "Type": "L Wall Tile",
+            "ParentType": "Wall Tile"
+        },
+        {
+            "Type": "U Wall Tile",
+            "ParentType": "Wall Tile"
+        },
+        {
+            "Type": "Floor Tile",
+            "ParentType": "Tile"
+        },
+        {
+            "Type": "Rectangular Floor Tile",
+            "ParentType": "Floor Tile"
+        },
+        {
+            "Type": "Straight Floor Tile",
+            "ParentType": "Floor Tile"
+        },
+        {
+            "Type": "Curved Floor Tile",
+            "ParentType": "Floor Tile"
+        },
+        {
+            "Type": "L Floor Tile",
+            "ParentType": "Floor Tile"
+        },
+        {
+            "Type": "Semi Circular Floor TIle",
+            "ParentType": "Floor Tile"
+        },
+        {
+            "Type": "Classical Column",
+            "ParentType": "Column"
+        }
+    ],
+
+    "Prefabs": [
+        {
+            "Name": "OpenLOCK Straight Wall Tile",
+            "Type": "Straight Wall Tile",
+            "TileSystem": "OpenLOCK",
+            "Generator": "straight_wall_tile_generator",
+            "CustomisableProperties": {
+                "x": 2,
                 "z": 2
             },
-            "Parts": [
-                {
-                    "Name": "Base",
-                    "Generator": "plain_rectangular_base",
-                    "Dimensions": {
-                        "x": 1,
-                        "y:": 1,
-                        "z": 0.275
-                    }
-                },
-                {
-                    "Name": "Column Base",
-                    "Generator": "column_base",
-                    "Dimensions": {
-                        "radius": 0.4,
-                        "z": 0.3
-                    }
-                },
-                {
-                    "Name": "Shaft",
-                    "Generator": "column_shaft",
-                    "Dimensions": {
-                        "radius": 0.3
-                    }
-                },
-                {
-                    "Name": "Capital",
-                    "Generator": "column_capital",
-                    "Dimensions": {
-                        "radius": 0.4,
-                        "z": 0.3
-                    }
-                }
-            ]
+            "Constants": {
+                "y": 0.5
+            },
+            "Parts": ["OpenLOCK Straight Wall Base", "OpenLOCK Straight Wall Core"]
+        },
+        {
+            "Name": "OpenLOCK Straight Wall Base",
+            "Type": "Tile Base",
+            "TileSystem": "OpenLOCK",
+            "Generator": "openlock_straight_wall_base",
+            "CustomisableProperties": {
+                "Cutter": "With Supports"
+            },
+            "Constants": {
+                "y": 0.5,
+                "z": 0.275
+            }
+        },
+        {
+            "Name": "OpenLOCK Straight Wall Core",
+            "Type": "Tile Core",
+            "TileSystem": "OpenLOCK",
+            "Generator": "openlock_straight_wall_core",
+            "Constants": {
+                "y": 0.315
+            }
+        },
+        {
+            "Name": "Plain Straight Wall Tile",
+            "Type": "Straight Wall Tile",
+            "TileSystem": "Plain",
+            "Generator": "straight_wall_tile_generator",
+            "Parts": ["Plain Straight Wall Base", "Plain Straight Wall Core"],
+            "CustomisableProperties": {
+                "x": 2,
+                "y": 0.5,
+                "z": 2
+            }
+        },
+        {
+            "Name": "Plain Straight Wall Base",
+            "Type": "Tile Base",
+            "TileSystem": "Plain",
+            "Generator": "plain_straight_wall_base",
+            "CustomisableProperties": {
+                "z": 0.275
+            }
+        },
+        {
+            "Name": "Plain Straight Wall Core",
+            "Type": "Tile Core",
+            "TileSystem": "Plain",
+            "Generator": "plain_straight_wall_core",
+            "CustomisableProperties": {
+                "y": 0.315
+            }
+
+        },
+        {
+            "Name": "Round Classical Column",
+            "Type": "Column",
+            "Generator": "column_generator",
+            "CustomisableProperties": {
+                "z": 2
+            },
+            "Parts": [ "Column Base", "Column Shaft", "Column Capital"]
+        },
+        {
+            "Name": "Column Base",
+            "Type": "Mesh",
+            "FileName": "columns.blend",
+            "ObjectName": "column_base_1",
+            "CustomisableProperties": {
+                "x": 1,
+                "y": 1,
+                "z": 0.3
+            }
+        },
+        {
+            "Name": "Column Shaft",
+            "Type": "Mesh",
+            "FileName": "columns.blend",
+            "ObjectName": "column_shaft_1",
+            "CustomisableProperties":{
+                "radius": 0.3
+            }
+        },
+        {
+            "Name": "Column Capital",
+            "Type": "Mesh",
+            "FileName": "columns.blend",
+            "ObjectName": "column_capital_1",
+            "CustomisableProperties":{
+                "x": 0.75,
+                "y": 0.75,
+                "z": 0.3
+            }
         }
     ]
 }

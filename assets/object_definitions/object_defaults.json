@@ -1,19 +1,23 @@
 {
     "ObjectTypes": [
         {
-            "Type": "Tile",
+            "Type": "Template",
             "ParentType": null
         },
         {
+            "Type": "Tile",
+            "ParentType": "Template"
+        },
+        {
             "Type": "Column",
+            "ParentType": "Template"
+        },
+        {
+            "Type": "Mesh",
             "ParentType": null
         },
         {
             "Type": "Tile Part",
-            "ParentType": null
-        },
-        {
-            "Type": "Mesh",
             "ParentType": null
         },
         {
@@ -81,11 +85,15 @@
             "TileSystem": "OpenLOCK",
             "Generator": "straight_wall_tile_generator",
             "CustomisableProperties": {
-                "x": 2,
-                "z": 2
+                "Dimensions": {
+                    "x": 2,
+                    "z": 2
+                }
             },
             "Constants": {
-                "y": 0.5
+                "Dimensions": {
+                    "y": 0.5
+                }
             },
             "Parts": ["OpenLOCK Straight Wall Base", "OpenLOCK Straight Wall Core"]
         },
@@ -98,8 +106,10 @@
                 "Cutter": "With Supports"
             },
             "Constants": {
-                "y": 0.5,
-                "z": 0.275
+                "Dimensions": {
+                    "y": 0.5,
+                    "z": 0.275
+                }
             }
         },
         {
@@ -108,7 +118,9 @@
             "TileSystem": "OpenLOCK",
             "Generator": "openlock_straight_wall_core",
             "Constants": {
-                "y": 0.315
+                "Dimensions": {
+                    "y": 0.315
+                }
             }
         },
         {
@@ -118,9 +130,12 @@
             "Generator": "straight_wall_tile_generator",
             "Parts": ["Plain Straight Wall Base", "Plain Straight Wall Core"],
             "CustomisableProperties": {
-                "x": 2,
-                "y": 0.5,
-                "z": 2
+                "Dimensions": {
+                    "x": 2,
+                    "y": 0.5,
+                    "z": 2
+                }
+
             }
         },
         {
@@ -129,7 +144,9 @@
             "TileSystem": "Plain",
             "Generator": "plain_straight_wall_base",
             "CustomisableProperties": {
-                "z": 0.275
+                "Dimensions": {
+                    "z": 0.275
+                }
             }
         },
         {
@@ -138,7 +155,14 @@
             "TileSystem": "Plain",
             "Generator": "plain_straight_wall_core",
             "CustomisableProperties": {
-                "y": 0.315
+                "Dimensions": {
+                    "y": 0.315
+                },
+                "Native Subdivisions": {
+                    "x": 15,
+                    "y": 3,
+                    "z": 15
+                }
             }
 
         },

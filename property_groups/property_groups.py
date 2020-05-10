@@ -287,34 +287,6 @@ class MT_Scene_Properties(PropertyGroup):
                 enum_items.append(enum)
         return enum_items
 
-    def create_object_type_enums(self, context):
-        prefs = get_prefs()
-
-        object_defaults = os.path.join(
-            prefs.assets_path,
-            "object_definitions",
-            "object_defaults.json"
-        )
-
-        items = set()
-        enum_items = []
-
-        with open(object_defaults) as json_file:
-            data = json.load(json_file)
-            for i in data['Objects']:
-                items.add(i['Type'])
-
-        for item in items:
-            enum = (item, item, "")
-            enum_items.append(enum)
-
-        return enum_items
-
-    mt_object_types: bpy.props.EnumProperty(
-        items=create_object_type_enums,
-        name="Object Type"
-    )
-
     mt_is_just_activated: bpy.props.BoolProperty(
         description="Has the add-on just been activated. Used to populate materials list first time round",
         default=False

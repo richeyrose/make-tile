@@ -14,7 +14,8 @@ from .. lib.utils.selection import (
 from .. lib.utils.collections import (
     create_collection,
     activate_collection,
-    add_object_to_collection)
+    add_object_to_collection,
+    get_collection)
 from .. lib.utils.vertex_groups import construct_displacement_mod_vert_group
 
 
@@ -41,8 +42,10 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
 
         # create a new collection named after our object as a sub collection
         # of the converted objects collection
-        obj_collection = create_collection(obj.name, converted_obj_collection)
-        activate_collection(obj_collection.name)
+        new_collection = bpy.data.collections.new(obj.name)
+        converted_obj_collection.children.link(new_collection)
+        collection = get_collection(context.view_layer.layer_collection, new_collection.name)
+        bpy.context.view_layer.active_layer_collection = collection
 
         # UV Project
         ctx = {
@@ -60,19 +63,19 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
         obj.hide_viewport = True
 
         # move new object to new collection
-        add_object_to_collection(new_obj, obj_collection.name)
+        add_object_to_collection(new_obj, new_collection.name)
 
         # set some object props
-        new_obj.name = obj_collection.name + '.converted'
+        new_obj.name = new_collection.name + '.converted'
         obj_props = new_obj.mt_object_props
         obj_props.is_mt_object = True
 
         # Yeah it might not be a tile technically. Deal with it :P
-        obj_props.tile_name = obj_collection.name
+        obj_props.tile_name = new_collection.name
 
         # set some props on the "Tile" collection
-        tile_props = obj_collection.mt_tile_props
-        tile_props.tile_name = obj_collection.name
+        tile_props = new_collection.mt_tile_props
+        tile_props.tile_name = new_collection.name
         tile_props.is_mt_collection = True
         tile_props.displacement_strength = scene_props.mt_displacement_strength
         tile_props.tile_resolution = scene_props.mt_tile_resolution
@@ -94,7 +97,7 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
 
         # create an empty that we will parent our object to
         object_empty = bpy.data.objects.new(new_obj.name + ".empty", None)
-        add_object_to_collection(object_empty, obj_collection.name)
+        add_object_to_collection(object_empty, new_collection.name)
         object_empty.location = preview_obj.location
         object_empty.rotation_euler = preview_obj.rotation_euler
         object_empty.show_in_front = True

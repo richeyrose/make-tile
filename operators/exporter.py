@@ -122,7 +122,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                 # Voxelise if necessary
                 if context.scene.mt_voxelise_on_export is True:
                     for obj in disp_obj_copies:
-                        obj.data.remesh_voxel_size = bpy.context.scene.mt_voxel_quality
+                        obj.data.remesh_voxel_size = bpy.context.scene.mt_voxel_size
                         obj.data.remesh_voxel_adaptivity = bpy.context.scene.mt_voxel_adaptivity
                         ctx = {
                             'object': obj,

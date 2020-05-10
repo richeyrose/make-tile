@@ -40,7 +40,7 @@ class MT_OT_Object_Voxeliser(bpy.types.Operator):
 
         for obj in context.selected_objects:
             if obj.type == 'MESH':
-                obj.data.remesh_voxel_size = bpy.context.scene.mt_voxel_quality
+                obj.data.remesh_voxel_size = bpy.context.scene.mt_voxel_size
                 obj.data.remesh_voxel_adaptivity = bpy.context.scene.mt_voxel_adaptivity
                 ctx = {
                     'selected_objects': context.selected_objects,
@@ -136,7 +136,7 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
                 }
 
                 obj = collection.all_objects[0]
-                obj.data.remesh_voxel_size = bpy.context.scene.mt_voxel_quality
+                obj.data.remesh_voxel_size = bpy.context.scene.mt_voxel_size
                 obj.data.remesh_voxel_adaptivity = bpy.context.scene.mt_voxel_adaptivity
 
                 obj.select_set(True)
@@ -147,7 +147,7 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
 
             else:
                 for obj in collection.all_objects:
-                    obj.data.remesh_voxel_size = bpy.context.scene.mt_voxel_quality
+                    obj.data.remesh_voxel_size = bpy.context.scene.mt_voxel_size
                     obj.data.remesh_voxel_adaptivity = bpy.context.scene.mt_voxel_adaptivity
                     ctx['active_object'] = obj
                     ctx['object'] = obj
@@ -161,8 +161,8 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
 
     @classmethod
     def register(cls):
-        bpy.types.Scene.mt_voxel_quality = bpy.props.FloatProperty(
-            name="Quality",
+        bpy.types.Scene.mt_voxel_size = bpy.props.FloatProperty(
+            name="Voxel Size",
             description="Quality of the voxelisation. Smaller = Better",
             soft_min=0.005,
             default=0.0101,
@@ -186,7 +186,7 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
     def unregister(cls):
         del bpy.types.Scene.mt_merge
         del bpy.types.Scene.mt_voxel_adaptivity
-        del bpy.types.Scene.mt_voxel_quality
+        del bpy.types.Scene.mt_voxel_size
 
 
 def voxelise(obj):
@@ -196,7 +196,7 @@ def voxelise(obj):
     obj -- bpy.types.Mesh
     """
 
-    obj.data.remesh_voxel_size = bpy.context.scene.mt_voxel_quality
+    obj.data.remesh_voxel_size = bpy.context.scene.mt_voxel_size
     obj.data.remesh_voxel_adaptivity = bpy.context.scene.mt_voxel_adaptivity
 
     ctx = {

@@ -21,7 +21,7 @@ class MT_PT_Voxelise_Panel(Panel):
         layout = self.layout
 
         layout.operator('scene.mt_voxelise_objects', text='Voxelise Objects')
-        layout.prop(scene, 'mt_voxel_quality')
+        layout.prop(scene, 'mt_voxel_size')
         layout.prop(scene, 'mt_voxel_adaptivity')
         layout.prop(scene, 'mt_merge')
 

@@ -17,6 +17,7 @@ class MT_PT_Tile_Generator_Panel(Panel):
         obj = context.object
         layout = self.layout
 
+        layout.prop(scene_props, 'mt_object_types')
         layout.prop(scene_props, 'mt_tile_blueprint')
         layout.prop(scene_props, 'mt_tile_type')
         layout.prop(scene_props, 'mt_tile_material_1', text="Main Material")

@@ -213,8 +213,10 @@ class MT_OT_Export_Tile(bpy.types.Operator):
 
         objects = bpy.data.objects
         selected_objects = context.selected_objects.copy()
-        obj = context.active_object
-        obj_props = obj.mt_object_props
+        for obj in bpy.data.objects:
+            obj.select_set(False)
+
+        tile_collections = set()
 
         # set up exporter options
         blend_units = bpy.context.scene.mt_units
@@ -229,91 +231,94 @@ class MT_OT_Export_Tile(bpy.types.Operator):
         if not os.path.exists(export_path):
             os.mkdir(export_path)
 
-        # check if active object is a MT object, if so we export everything
-        # in the collection corresponding to the object's mt_object_props.tile_name
-        if obj_props.is_mt_object is True:
-            tile_name = obj_props.tile_name
-            tile_collection = bpy.data.collections[tile_name]
+        for obj in selected_objects:
+            obj_collections = get_objects_owning_collections(obj.name)
 
-            # save list of visible objects in tile collection
-            visible_objects = []
-            for obj in tile_collection.all_objects:
-                if obj.type == 'MESH':
-                    if obj.visible_get() is True:
+            for collection in obj_collections:
+                tile_collections.add(collection)
+
+        for collection in tile_collections:
+            # check if collection is a MakeTile collection
+            if collection.mt_tile_props.is_mt_collection is True:
+                visible_objects = []
+                for obj in collection.objects:
+                    if obj.type == 'MESH' and obj.visible_get() is True:
                         visible_objects.append(obj)
 
-            displacement_copies = []
-            depsgraph = context.evaluated_depsgraph_get()
+                # create copy of any displacement objects and flatten
+                displacement_copies = []
+                depsgraph = context.evaluated_depsgraph_get()
 
-            # create copy of any displacement objects and flatten
-            for obj in visible_objects:
-                if obj.mt_object_props.geometry_type == 'DISPLACEMENT':
-                    object_eval = obj.evaluated_get(depsgraph)
-                    mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
+                for obj in visible_objects:
+                    if obj.mt_object_props.geometry_type == 'DISPLACEMENT':
+                        object_eval = obj.evaluated_get(depsgraph)
+                        mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
 
-                    dup_obj = bpy.data.objects.new("dupe", mesh_from_eval)
-                    dup_obj.mt_object_props.geometry_type = 'DISPLACEMENT'
-                    dup_obj.location = obj.location
-                    dup_obj.rotation_euler = obj.rotation_euler
-                    dup_obj.scale = obj.scale
-                    dup_obj.parent = obj.parent
-                    tile_collection.objects.link(dup_obj)
-                    displacement_copies.append(dup_obj)
-                    obj.hide_viewport = True
+                        dup_obj = bpy.data.objects.new("dupe", mesh_from_eval)
+                        dup_obj.mt_object_props.geometry_type = 'DISPLACEMENT'
+                        dup_obj.location = obj.location
+                        dup_obj.rotation_euler = obj.rotation_euler
+                        dup_obj.scale = obj.scale
+                        dup_obj.parent = obj.parent
+                        collection.objects.link(dup_obj)
+                        displacement_copies.append(dup_obj)
+                        obj.hide_viewport = True
 
-            # join displacement copies together
-            if len(displacement_copies) > 1:
-                ctx = {
-                    'object': displacement_copies[0],
-                    'active_object': displacement_copies[0],
-                    'selected_objects': displacement_copies,
-                    'selected_editable_objects': displacement_copies
-                }
-                bpy.ops.object.join(ctx)
+                # join displacement copies together
+                if len(displacement_copies) > 1:
+                    ctx = {
+                        'object': displacement_copies[0],
+                        'active_object': displacement_copies[0],
+                        'selected_objects': displacement_copies,
+                        'selected_editable_objects': displacement_copies
+                    }
+                    bpy.ops.object.join(ctx)
 
-            # voxelise displacement copies if neccessary
-            for obj in displacement_copies:
-                if context.scene.mt_voxelise_on_export is True:
-                    voxelise(obj)
+                # voxelise displacement copies if neccessary
+                for obj in displacement_copies:
+                    if context.scene.mt_voxelise_on_export is True:
+                        voxelise(obj)
 
-            file_path = os.path.join(
-                context.scene.mt_export_path,
-                tile_collection.name + '.' + str(random()) + '.stl')
+                # create array of objects to export from this collection
+                export_objects = []
 
-            # create array of objects to export
-            export_objects = []
-
-            for obj in displacement_copies:
-                export_objects.append(obj)
-
-            for obj in visible_objects:
-                if obj.mt_object_props.geometry_type != 'DISPLACEMENT':
+                for obj in displacement_copies:
                     export_objects.append(obj)
 
-            ctx = {
-                'selected_objects': export_objects,
-                'active_object': export_objects[0],
-                'object': export_objects[0]
-            }
+                for obj in visible_objects:
+                    if obj.mt_object_props.geometry_type != 'DISPLACEMENT':
+                        export_objects.append(obj)
 
-            # export our object
-            bpy.ops.export_mesh.stl(
-                ctx,
-                filepath=file_path,
-                check_existing=True,
-                filter_glob="*.stl",
-                use_selection=True,
-                global_scale=unit_multiplier,
-                use_mesh_modifiers=True)
+                ctx = {
+                    'selected_objects': export_objects,
+                    'active_object': export_objects[0],
+                    'object': export_objects[0]
+                }
 
-            for obj in displacement_copies:
-                objects.remove(objects[obj.name], do_unlink=True)
+                # construct a random name for our object
+                file_path = os.path.join(
+                context.scene.mt_export_path,
+                collection.name + '.' + str(random()) + '.stl')
 
-            for obj in visible_objects:
-                obj.hide_viewport = False
+                # export our object
+                bpy.ops.export_mesh.stl(
+                    ctx,
+                    filepath=file_path,
+                    check_existing=True,
+                    filter_glob="*.stl",
+                    use_selection=True,
+                    global_scale=unit_multiplier,
+                    use_mesh_modifiers=True)
 
-            for obj in selected_objects:
-                obj.select_set(True)
+
+                for obj in displacement_copies:
+                    objects.remove(objects[obj.name], do_unlink=True)
+
+                for obj in visible_objects:
+                    obj.hide_viewport = False
+
+        for obj in selected_objects:
+            obj.select_set(True)
 
         # clean up orphaned meshes
         for mesh in bpy.data.meshes:
@@ -321,7 +326,6 @@ class MT_OT_Export_Tile(bpy.types.Operator):
                 bpy.data.meshes.remove(mesh)
 
         return {'FINISHED'}
-
 
 def register():
     preferences = get_prefs()

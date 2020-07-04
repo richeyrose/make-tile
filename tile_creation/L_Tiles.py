@@ -96,7 +96,7 @@ class MT_L_Tile:
             orient_type='GLOBAL',
             center_override=corner_loc)
         bpy.ops.transform.mirror(orient_type='LOCAL', constraint_axis=(False, True, False))
-        clip_cutter_2.location[0] = clip_cutter_2.location[0] + 0.5
+        #clip_cutter_2.location[0] = clip_cutter_2.location[0] + 0.5
 
         cutters = [clip_cutter_1, clip_cutter_2]
         for cutter in cutters:

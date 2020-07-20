@@ -7,7 +7,6 @@ from ... materials.materials import (
     load_materials)
 
 
-# revolting, disgusting hack to get around the fucking stupid _RestrictData bullshit
 def load_materials_on_addon_activation(dummy):
     bpy.app.handlers.depsgraph_update_pre.remove(load_materials_on_addon_activation)
     prefs = get_prefs()

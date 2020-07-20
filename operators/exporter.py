@@ -95,10 +95,9 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                     subsurf_mod.levels = bpy.context.scene.mt_scene_props.mt_subdivisions
                     disp_obs.append(disp_obj)
 
-                disp_obj_copies = []
+                obj_copies = []
 
                 depsgraph = context.evaluated_depsgraph_get()
-
                 # create copy of each displacement object and apply modifiers
                 for obj in disp_obs:
                     object_eval = obj.evaluated_get(depsgraph)
@@ -112,22 +111,51 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                     dup_obj.scale = obj.scale
                     dup_obj.parent = obj.parent
                     collection.objects.link(dup_obj)
-                    disp_obj_copies.append(dup_obj)
+                    obj_copies.append(dup_obj)
 
                     # hide original, resetting disp modifiers if disp_object was not originally visible
                     if disp_obj_is_visible is False:
                         reset_displacement_modifiers(obj)
                     obj.hide_viewport = True
 
-                # Voxelise if necessary
+
+                # create copy of visible objects that are not displacement or preview objects and apply modifiers
+                depsgraph = context.evaluated_depsgraph_get()
+                for obj in collection.all_objects:
+                    if obj.mt_object_props.geometry_type not in ('PREVIEW', 'DISPLACEMENT') and obj.visible_get() is True:
+                        object_eval = obj.evaluated_get(depsgraph)
+                        mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
+                        dup_obj = bpy.data.objects.new("dupe", mesh_from_eval)
+                        dup_obj.location = obj.location
+                        dup_obj.rotation_euler = obj.rotation_euler
+                        dup_obj.scale = obj.scale
+                        dup_obj.parent = obj.parent
+                        collection.objects.link(dup_obj)
+                        obj_copies.append(dup_obj)
+
+                # Voxelise
                 if context.scene.mt_voxelise_on_export is True:
-                    for obj in disp_obj_copies:
+                    # Merge
+                    if context.scene.mt_merge:
+                        ctx = {
+                            'object': obj_copies[0],
+                            'active_object': obj_copies[0],
+                            'selected_objects': obj_copies,
+                            'selected_editable_objects': obj_copies
+                        }
+
+                        #TODO: Optimise join https://blender.stackexchange.com/questions/50160/scripting-low-level-join-meshes-elements-hopefully-with-bmesh
+                        bpy.ops.object.join(ctx)
+                        del obj_copies[1:]
+
+                    for obj in obj_copies:
                         obj.data.remesh_voxel_size = bpy.context.scene.mt_voxel_quality
                         obj.data.remesh_voxel_adaptivity = bpy.context.scene.mt_voxel_adaptivity
                         ctx = {
                             'object': obj,
                             'active_object': obj,
-                            'selected_objects': [obj]
+                            'selected_objects': [obj],
+                            'selected_editable_objects': [obj]
                         }
 
                         bpy.ops.object.voxel_remesh(ctx)
@@ -138,20 +166,22 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                     context.scene.mt_export_path,
                     collection.name + '.' + str(random()) + '.stl')
 
+                '''
                 export_objects = []
-                export_objects.extend(disp_obj_copies)
+                export_objects.extend(obj_copies)
 
                 for obj in collection.all_objects:
                     if obj.mt_object_props.geometry_type not in ('PREVIEW', 'DISPLACEMENT') and \
-                            obj not in disp_obj_copies and \
+                            obj not in obj_copies and \
                             obj.visible_get() is True:
 
                         export_objects.append(obj)
+                '''
 
                 ctx = {
-                    'selected_objects': export_objects,
-                    'object': export_objects[0],
-                    'active_object': export_objects[0]
+                    'selected_objects': obj_copies,
+                    'object': obj_copies[0],
+                    'active_object': obj_copies[0]
                 }
 
                 # export our tile
@@ -165,7 +195,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                     use_mesh_modifiers=True)
 
                 # Delete copies
-                for obj in disp_obj_copies:
+                for obj in obj_copies:
                     # obj.select_set(False)
                     objects.remove(obj, do_unlink=True)
 

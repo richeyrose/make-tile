@@ -194,6 +194,7 @@ class MT_Semi_Circ_Tile:
                 add_object_to_collection(obj, tile_props.tile_name)
 
             clip_cutter_1 = data_to.objects[0]
+            clip_cutter_1.name = "cutter_1"
             cutter_start_cap = data_to.objects[1]
             cutter_end_cap = data_to.objects[2]
 
@@ -226,7 +227,7 @@ class MT_Semi_Circ_Tile:
             select(clip_cutter_1.name)
 
             bpy.ops.transform.rotate(
-                value=(radians(angle - 90)),
+                value=(radians(-angle + 90)),
                 orient_axis='Z',
                 orient_type='GLOBAL',
                 center_override=cursor_orig_loc)
@@ -234,6 +235,7 @@ class MT_Semi_Circ_Tile:
             cutters.append(clip_cutter_1)
             # cutter 2
             clip_cutter_2 = clip_cutter_1.copy()
+            clip_cutter_2.name = "cutter_2"
             add_object_to_collection(clip_cutter_2, tile_props.tile_name)
 
             array_mod = clip_cutter_2.modifiers['Array']
@@ -262,6 +264,7 @@ class MT_Semi_Circ_Tile:
             with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
                 data_to.objects = ['openlock.wall.base.cutter.clip_single']
             clip_cutter_3 = data_to.objects[0]
+            clip_cutter_3.name = "cutter_3"
             add_object_to_collection(clip_cutter_3, tile_props.tile_name)
 
             deselect_all()
@@ -270,7 +273,7 @@ class MT_Semi_Circ_Tile:
             clip_cutter_3.rotation_euler = (0, 0, radians(180))
             clip_cutter_3.location[1] = cursor_orig_loc[1] + radius - 0.25
             bpy.ops.transform.rotate(
-                value=(radians(angle / 2)),
+                value=(radians(-angle / 2)),
                 orient_axis='Z',
                 orient_type='GLOBAL',
                 center_override=cursor_orig_loc)

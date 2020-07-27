@@ -166,20 +166,9 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                     context.scene.mt_export_path,
                     collection.name + '.' + str(random()) + '.stl')
 
-                '''
-                export_objects = []
-                export_objects.extend(obj_copies)
-
-                for obj in collection.all_objects:
-                    if obj.mt_object_props.geometry_type not in ('PREVIEW', 'DISPLACEMENT') and \
-                            obj not in obj_copies and \
-                            obj.visible_get() is True:
-
-                        export_objects.append(obj)
-                '''
-
                 ctx = {
                     'selected_objects': obj_copies,
+                    'selected_editable_objects': obj_copies,
                     'object': obj_copies[0],
                     'active_object': obj_copies[0]
                 }

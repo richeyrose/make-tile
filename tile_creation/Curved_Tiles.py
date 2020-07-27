@@ -109,10 +109,10 @@ class MT_Curved_Tile:
         circle_center = cursor_orig_loc
 
         if num_cutters[1] == 1:
-            initial_rot = (tile_props.degrees_of_arc / 2)
+            initial_rot = (-tile_props.degrees_of_arc / 2)
 
         else:
-            initial_rot = 22.5
+            initial_rot = -22.5
 
         bpy.ops.transform.rotate(
             value=radians(initial_rot),
@@ -440,7 +440,7 @@ class MT_Curved_Wall_Tile(MT_Curved_Tile, MT_Tile):
         activate(right_cutter_bottom.name)
 
         bpy.ops.transform.rotate(
-            value=radians(tile_props.degrees_of_arc),
+            value=radians(-tile_props.degrees_of_arc),
             orient_axis='Z',
             orient_type='GLOBAL',
             center_override=circle_center)

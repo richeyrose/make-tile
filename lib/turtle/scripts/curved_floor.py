@@ -2,6 +2,7 @@ from math import sqrt, radians, degrees, cos, acos
 import bpy
 from ...utils.utils import mode
 from ...utils.selection import deselect_all
+from ...utils.tinycad.V2X import add_vertex_to_intersection
 
 outer_w = 0.2362                 # outer ring width
 slot_w = 0.1811                # slot width
@@ -80,7 +81,7 @@ def draw_openlock_pos_curved_base(length, segments, angle, height):
     t.select_path()
 
     # add vert at projected intersection of last two edges
-    bpy.ops.maketile.vertintersect()
+    add_vertex_to_intersection()
     bpy.ops.object.editmode_toggle()
     bpy.ops.object.editmode_toggle()
 
@@ -149,7 +150,7 @@ def draw_openlock_pos_curved_base(length, segments, angle, height):
     t.add_vert()
     t.fd(d=0.01)
     t.select_path()
-    bpy.ops.maketile.vertintersect()
+    add_vertex_to_intersection()
     bpy.ops.object.editmode_toggle()
     bpy.ops.object.editmode_toggle()
     new_vert_2_loc = bpy.context.object.data.vertices[len(bpy.context.object.data.vertices) - 1].co.copy()
@@ -372,7 +373,7 @@ def draw_neg_curved_slab(length, segments, angle, height, native_subdivisions, r
     t.merge(t=0.01)
     bpy.ops.mesh.edge_face_add()
     t.pd()
-    t.up(d=height)  
+    t.up(d=height)
     bpy.ops.mesh.inset(thickness=0.001, depth=0)
     t.select_all()
     bpy.ops.mesh.normals_make_consistent()

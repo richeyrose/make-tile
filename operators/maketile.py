@@ -193,6 +193,7 @@ class MT_OT_Make_Tile(bpy.types.Operator):
         scene.render.engine = original_renderer
         return {'FINISHED'}
 
+
 def register():
     # Property group that contains properties relating to a tile on the tile collection
     bpy.types.Collection.mt_tile_props = bpy.props.PointerProperty(

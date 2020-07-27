@@ -176,8 +176,11 @@ def bake_displacement_map(preview_obj, disp_obj):
         disp_obj.name + '.image',
         width=image_resolution,
         height=image_resolution,
-        float_buffer=False,
-        alpha=True)
+        alpha=True,
+        float_buffer=True,
+        is_data=True
+    )
+    disp_image.file_format = 'OPEN_EXR'
 
     disp_materials = []
     mat_set = set()
@@ -223,8 +226,10 @@ def bake_displacement_map(preview_obj, disp_obj):
     disp_obj.hide_viewport = False
 
     context.scene.render.bake.use_selected_to_active = True
+    context.scene.render.use_bake_lores_mesh = True
     context.scene.render.bake.cage_extrusion = 1
-    context.scene.render.bake.margin = 10
+    context.scene.render.bake_type = 'DISPLACEMENT'
+    context.scene.render.bake_margin = 10
 
     # temporarily assign a displacement material so we can bake to an image
     for material in disp_obj.data.materials:
@@ -232,7 +237,7 @@ def bake_displacement_map(preview_obj, disp_obj):
     disp_obj.data.materials.append(disp_materials[0])
 
     ctx = {
-        'selected_objects':[preview_mesh, disp_obj],
+        'selected_objects': [preview_mesh, disp_obj],
         'active_object': disp_obj,
         'object': disp_obj
     }

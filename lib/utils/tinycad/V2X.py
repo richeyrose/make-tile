@@ -45,12 +45,12 @@ def add_vertex_to_intersection():
             bm.verts[-1].select = True
             bmesh.update_edit_mesh(me)
 
-
+'''
 class MT_OT_Vert2Intersection(bpy.types.Operator):
-    '''Add a vertex at the intersection (projected or real) of two selected edges'''
+    Add a vertex at the intersection (projected or real) of two selected edges
     bl_idname = 'maketile.vertintersect'
     bl_label = 'V2X vertex to intersection'
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'INTERNAL'}
 
     @classmethod
     def poll(cls, context):
@@ -60,3 +60,4 @@ class MT_OT_Vert2Intersection(bpy.types.Operator):
     def execute(self, context):
         add_vertex_to_intersection()
         return {'FINISHED'}
+'''

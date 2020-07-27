@@ -74,7 +74,7 @@ class MT_Tile:
         preview_core = self.create_core(tile_props)
         preview_core.parent = base
 
-        preview_core, displacement_core = create_displacement_object(preview_core)      
+        preview_core, displacement_core = create_displacement_object(preview_core)
 
         primary_material = bpy.data.materials[scene.mt_scene_props.mt_tile_material_1]
         secondary_material = bpy.data.materials[preferences.secondary_material]
@@ -121,4 +121,3 @@ class MT_Tile:
         deselect_all()
         select(base.name)
         activate(base.name)
-

@@ -371,7 +371,7 @@ class MT_L_Wall(MT_L_Tile, MT_Tile):
                 cutter.location[2])
             select(cutter.name)
         bpy.ops.transform.rotate(
-            value=radians(tile_props.angle - 90),
+            value=radians(-tile_props.angle + 90),
             orient_axis='Z',
             center_override=cursor.location)
 

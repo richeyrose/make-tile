@@ -157,6 +157,7 @@ class MT_Triangular_Floor_Tile(MT_Tile):
                 add_object_to_collection(obj, tile_props.tile_name)
 
             clip_cutter_1 = data_to.objects[0]
+            clip_cutter_1.name = "cutter_1"
             cutter_start_cap = data_to.objects[1]
             cutter_end_cap = data_to.objects[2]
 
@@ -198,8 +199,9 @@ class MT_Triangular_Floor_Tile(MT_Tile):
 
                 deselect_all()
                 select(clip_cutter_1.name)
+
                 bpy.ops.transform.rotate(
-                    value=(radians(dimensions['A'] - 90)),
+                    value=(radians(-dimensions['A'] + 90)),
                     orient_axis='Z',
                     orient_type='GLOBAL',
                     center_override=dimensions['loc_A'])
@@ -208,6 +210,7 @@ class MT_Triangular_Floor_Tile(MT_Tile):
 
                 # cutter 2
                 clip_cutter_2 = clip_cutter_1.copy()
+                clip_cutter_2.name = "cutter_2"
                 add_object_to_collection(clip_cutter_2, tile_props.tile_name)
                 cutters.append(clip_cutter_1)
             else:
@@ -240,6 +243,7 @@ class MT_Triangular_Floor_Tile(MT_Tile):
                 cutters.append(clip_cutter_2)
                 if dimensions['a'] >= 2:
                     clip_cutter_3 = clip_cutter_2.copy()
+                    clip_cutter_3.name = "cutter_3"
                     add_object_to_collection(clip_cutter_3, tile_props.tile_name)
                 else:
                     bpy.ops.object.make_single_user(type='ALL', object=True, obdata=True)
@@ -275,7 +279,7 @@ class MT_Triangular_Floor_Tile(MT_Tile):
                 select(clip_cutter_3.name)
 
                 bpy.ops.transform.rotate(
-                    value=(-radians(90 + dimensions['C'])),
+                    value=(radians(90 + dimensions['C'])),
                     orient_axis='Z',
                     orient_type='GLOBAL',
                     center_override=dimensions['loc_C'])

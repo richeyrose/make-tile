@@ -110,7 +110,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                     dup_obj.rotation_euler = obj.rotation_euler
                     dup_obj.scale = obj.scale
                     dup_obj.parent = obj.parent
-                    collection.objects.link(dup_obj)
+                    # collection.objects.link(dup_obj)
                     obj_copies.append(dup_obj)
 
                     # hide original, resetting disp modifiers if disp_object was not originally visible
@@ -130,15 +130,14 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                         dup_obj.rotation_euler = obj.rotation_euler
                         dup_obj.scale = obj.scale
                         dup_obj.parent = obj.parent
-                        collection.objects.link(dup_obj)
+                        # collection.objects.link(dup_obj)
                         obj_copies.append(dup_obj)
+
+                for obj in obj_copies:
+                    collection.objects.link(obj)
 
                 # Voxelise
                 if context.scene.mt_voxelise_on_export is True:
-<<<<<<< HEAD
-                    for obj in disp_obj_copies:
-                        obj.data.remesh_voxel_size = bpy.context.scene.mt_voxel_size
-=======
                     # Merge
                     if context.scene.mt_merge:
                         ctx = {
@@ -153,8 +152,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                         del obj_copies[1:]
 
                     for obj in obj_copies:
-                        obj.data.remesh_voxel_size = bpy.context.scene.mt_voxel_quality
->>>>>>> tilefactory
+                        obj.data.remesh_voxel_size = bpy.context.scene.mt_voxel_size
                         obj.data.remesh_voxel_adaptivity = bpy.context.scene.mt_voxel_adaptivity
                         ctx = {
                             'object': obj,

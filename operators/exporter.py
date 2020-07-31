@@ -368,7 +368,7 @@ def register():
 
     bpy.types.Scene.mt_voxelise_on_export = bpy.props.BoolProperty(
         name="Voxelise",
-        default=False
+        default=True
     )
 
     bpy.types.Scene.mt_randomise_on_export = bpy.props.BoolProperty(

@@ -45,10 +45,10 @@ class MT_Tile:
         self.finalise_tile(base, preview_core, cursor_orig_loc, cursor_orig_rot)
 
     def create_plain_base(self, tile_props):
-        return False
+        pass
 
     def create_openlock_base(self, tile_props):
-        return False
+        pass
 
     def create_empty_base(self, tile_props):
         tile_props.base_size = (0, 0, 0)
@@ -58,13 +58,13 @@ class MT_Tile:
         return base
 
     def create_plain_cores(self, base, tile_props):
-        return False
+        pass
 
     def create_openlock_cores(self, base, tile_props):
-        return False
+        pass
 
     def create_core(self, tile_props):
-        return False
+        pass
 
     def create_cores(self, base, tile_props, textured_vertex_groups):
         '''Returns the preview and displacement cores'''
@@ -72,9 +72,24 @@ class MT_Tile:
         preferences = get_prefs()
 
         preview_core = self.create_core(tile_props)
+
+        # For some reason iterating doesn't work here so lock these individually so user
+        # can only transform base
+
+        preview_core.lock_location[0] = True
+        preview_core.lock_location[1] = True
+        preview_core.lock_location[2] = True
+        preview_core.lock_rotation[0] = True
+        preview_core.lock_rotation[1] = True
+        preview_core.lock_rotation[2] = True
+        preview_core.lock_scale[0] = True
+        preview_core.lock_scale[1] = True
+        preview_core.lock_scale[2] = True
+
         preview_core.parent = base
 
         preview_core, displacement_core = create_displacement_object(preview_core)
+
 
         primary_material = bpy.data.materials[scene.mt_scene_props.mt_tile_material_1]
         secondary_material = bpy.data.materials[preferences.secondary_material]

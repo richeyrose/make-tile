@@ -16,18 +16,18 @@ If you back MakeTile on [Kickstarter](https://www.kickstarter.com/projects/modmo
 ### Quickstart guide
 MakeTile lives in its own tab in the right hand menu. Press **N** to show or hide this menu and click on the MakeTile tab to access its options.
 
-![Right hand menu](/docs/images/NMenu.png)
+![Right hand menu](./images/NMenu.png)
 
 1. To create your first tile select the default cube by left clicking and press **delete**. In the right hand menu leave the defaults as they are and click on the **MakeTile** button. Congratulations, you have just made your first tile!
 2. Currently your tile will be blank, so in the **Display Settings** panel click on **Create lighting setup.** Blender should think for a second or two and now your tile should be in glorious 3D!
 
     You will notice that as you rotate around the scene the viewport doesn't update instantaneously. This is because we are currently in Cycles mode, which is Blender's none real time renderer, which we need to use to preview our tiles in 3D. When we're in Cycles mode the 3D displacement is being calculated in the shader and it is not yet "real" geometry.
 
-    ![Cycles Tile](/docs/images/CyclesTile.png)
+    ![Cycles Tile](./images/CyclesTile.png)
 
     To switch to Blender's realtime renderer, Eevee, either select **Eevee** in the drop down menu in the **Display Settings** panel or click on the **Material Preview** icon in the horizontal menu bar above the MakeTile menu.
 
-    ![Material Preview Button](/docs/images/MaterialPreviewButton.png)
+    ![Material Preview Button](./images/MaterialPreviewButton.png)
 
     You should still be able to see the material on your tile, but it should now be a flat texture rather than being 3D and the viewport should be updating smoothly now.
 

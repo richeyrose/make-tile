@@ -7,6 +7,36 @@ Make sure you download the latest release by going to https://github.com/richeyr
 
 You can back MakeTile on Kickstarter from 4th August! https://www.kickstarter.com/projects/modmodterrain/maketile-custom-dungeon-tile-creator
 
+# Feature Roadmap
+Features tagged **Community** will be available for download from this public repository.
+
+Features tagged **Core** will be available to Kickstarter backers who have supported the core tier.
+
+Features tagged **Plus** will be available to Kickstarter backers who have supported the plus tier.
+## Phase 1
+- [ ] Basic user documentation - Community
+- [ ] Optimise existing materials - Community
+- [ ] Implement pegs so tiles can be stacked - Community
+- [ ] OpenLOCK I, L, O, T, X column tiles - Core
+
+## Phase 2
+- [ ] OpenLOCK roof and chimney pack 1 - Plus
+- [ ] Static window, door and stair models - Core
+- [ ] Basic version of asset manager - Core
+- [ ] OpenLOCK compatible T and X wall tiles - Core
+- [ ] Additional materials pack pt. 1 - Plus
+
+## Phase 3
+- [ ] Windows and doors generator - Plus
+- [ ] OpenLOCK S-Walls pack - Plus
+- [ ] Stairs generator - Plus
+- [ ] Additional materials pack pt. 2 - Plus
+
+## Phase 4
+- [ ] OpenLOCK roof and chimney pack 2 - Plus
+- [ ] OpenLOCK secondary and weird walls and floors pack - Plus
+- [ ] OpenLOCK roof and chimney pack 3 - Plus
+
 # FAQ
 
 ## Moving Tiles
@@ -65,3 +95,14 @@ Go to **Edit** > **Preferences** > **Add-ons** > **MakeTile** and choose the new
 
 ### I've created a building and now I want to export it as a single mesh rather than individual tiles. How can I do this?
 Check out this video on how to do this: https://youtu.be/x95RjKsU4Qg
+
+## Licensing and copyright info
+MakeTile is licensed under the GNU GPLv3 http://www.gnu.org/licenses/
+
+All objects, materials and images bundled with MakeTile in the form of a .blend file are copyright ModMod Terrain Ltd under the [Creative Commons-Attribution-Non-Commercial](https://creativecommons.org/licenses/by-nc/4.0/) license unless otherwise noted.
+
+Current exceptions are any meshes required for the generation of OpenLOCK tiles which are copyright Printablescenery under the [Creative Commons-Attribution-Non-Commercial](https://creativecommons.org/licenses/by-nc/4.0/) license
+
+If you would like to use the materials or meshes bundled with MakeTile for commercial purposes and have backed MakeTile through Kickstarter please [contact me](https://github.com/richeyrose/make-tile/issues) by raising an issue for a free commercial license.
+
+If you would like to produce OpenLOCK compatible tiles for commercial purposes please contact [Printablescenery]( https://www.printablescenery.com) for a free commercial license

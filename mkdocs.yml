@@ -1,0 +1,4 @@
+site_name: MakeTile Docs
+nav:
+  - Home: index.md
+theme: readthedocs

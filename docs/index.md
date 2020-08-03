@@ -51,8 +51,7 @@ If you want to delete a tile you should use the **Delete Tiles** button in the t
 
 ![Outliner](images/Outliner.png)
 
-## Tile Blueprints and Tile Types
-### Tile Blueprints
+## Tile Blueprints
 When creating a tile you can choose the tile blueprint and the tile type from the MakeTile panel drop down. There are currently three tile blueprints supported: OpenLOCK tiles, plain tiles and custom tiles.
 
 ![Outliner](images/MainPanel.png)
@@ -61,37 +60,36 @@ OpenLOCK tiles are fully compatible with the OpenLOCK system from Printable Scen
 
 If you create a tile without a base MakeTile will create an empty which it will parent the rest of the tile to. This will appear as a black cross and it is this you should select in order to move your tile.
 
-### Tile Types
+## Tile Types
 The tile type (Straight wall, Rectangular floor, Curved wall etc.) can be chosen in the **Type** drop down. Each tile type is customisable and a set of different options will appear in the **Tile Options** panel allowing you to set the size of your tile on creation, along with other parameters such as base angle and leg length for corner tiles or triangular floor tiles. Currently once you have created a tile you cannot change its dimensions.
 
 ![Tile Options Panel](images/TileOptions.png)
 
-## Materials
-### Swapping Materials
+## Swapping Materials
 You can choose what material to add to your tile on creation in the **Main Material** drop down in the main panel. If you want to change this after creation then  make sure the main part of your tile is selected, go to the **Materials** panel, click on the name of the material that is currently on your tile and select a new material from the drop down menu.
 
 ![Change Material](images/ChangeMaterial.gif)
 
-### Adding a Material to part of a tile
+## Adding a Material to part of a tile
 Select the main bit of your tile then click **+** in the **Materials** panel. Select your material from the drop down menu and then in the **Textured Areas** panel select the area you want the material to be applied to. Click on **Assign Material**. Removing a material works in the same way.
 
 ![Assign Material](images/AssignMaterial.gif)
 
-### Customising your Material
+## Customising your Material
 The materials in MakeTile are procedural which means you can change the parameters to alter the way they look. Clicking on the **Material Options** drop down will show all the different parameters you can change for a given material. As well as being able to change the location, rotation and scale of all the materials you will be able to change different parameters for different materials, such as the width of mortar on bricks, or the closeness of the grain on wood.
 
 All materials have at least one **Seed** parameter in the **Randomise** subheading. Changing this number will generate a new random variant of that material. Changing the **Strength** parameter will change the amount the material projects from the surface before you press the Make3D button and the **Displacement Strength** will alter this after you have made your tile 3D.
 
 ![Randomise](images/Randomise.gif)
 
-### Duplicating and saving materials
+## Duplicating and saving materials
 Before editing a material it is a good idea to duplicate it and then work on the duplicate. Don't worry if you've forgotten to do this, you can't overwrite the included materials and the originals will be there when you restart blender.
 
 To copy a material, select the material in the **Materials** panel and click **Copy Material**. You can then either assign this new material to different areas of your tile or you can select the original material slot and change it to your new material. To save a material click on the **Save Material** button.
 
 ![Copy and Save Material](images/CopyAndSaveMaterial.gif)
 
-### Material Mapping and Material Errors
+## Material Mapping and Material Errors
 ![Image of material rotation error](images/MaterialRotationError.png)
 
 If your material is distorted and looks something like this don't worry! This happens because a tile has been rotated. To fix this make sure one of the tiles with that material on is selected and go to the **Materials** panel in the MakeTile menu. Select the material that is showing incorrectly and then come down to the **Material Mapping** panel. Select the eye dropper in the **Reference Object** box and select an object in the scene that has not been rotated. If you need to add an object to do this press **shift + a** or click on **Add** in the top left of the main window and add an empty.
@@ -103,22 +101,22 @@ MakeTile treats 1 Blender unit (one grid square) as 1 inch or cm because of how 
 
 ![Export Panel](images/ExportPanel.png)
 
-### Random Variants
+## Random Variants
 On export MakeTile can generate random variants. You can choose how many variants to create by ensuring the **Randomise** box is checked and entering the number of variants in the **Variants** box.
 
-### Voxelising
+## Voxelising
 By default MakeTile will also voxelise and simplify your tiles on export. It does this because in order for MakeTile to work it needs to subdivide the tile many times which creates meshes with millions of polygons. MakeTile also needs to fuse the base and main parts of the mesh together and doing this by voxelisation is less likely to create geometry errors that will prevent you from printing than using the usual method of booleaning objects together.
 
 You can set the Voxel size in the **Voxelise Settings** panel. Smaller voxels mean higher quality, but take longer. **Adaptivity** is the amount of post voxelisation simplification that is applied. The higher this number is the more the resulting mesh will be simplified and the lower the final polygon count will be.
 
 If you have **Randomise** unchecked and you have not clciked on **Make3D** MakeTile will export a blank tile without any material applied to it.
 
-### Exporting multiple tiles
+## Exporting multiple tiles
 You can export multiple tiles (and multiple variants of each tile) at once by selecting multiple tiles before clicking **Export Tile.**
 
 If you have chosen to export a large number of variants, or have selected many tiles to export at once, the exporter may take several minutes to run and Blender may have appeared to have crashed. You can check that the exporter is still working by opening up the folder which you have selected to export to and check that files are being created in it by MakeTile.
 
-### Changing the export path
+## Changing the export path
 You can choose the export path in the **Export Path** box before exporting your tiles. You can change the default export path by going to **Edit** > **Preferences** > **Add-Ons** > **Object: MakeTile** clicking on the down arrow and then setting the **Export Path**
 
 ![Addon Prefs](images/AddOnPrefs.png)
@@ -126,12 +124,12 @@ You can choose the export path in the **Export Path** box before exporting your 
 ## Importing
 You can use the MakeTile material system with your own meshes and also add props to your tiles. To import a mesh go to **File** > **Import** and choose the file format of the mesh you wish to import (usually .stl or .obj).
 
-### Rescaling imported objects
+## Rescaling imported objects
 You will probably need to rescale your imported object as MakeTile and Blender use a different default scale to many 3D programs with 1 Blender unit (default grid square) equalling 1 Inch or cm. You can rescale objects manually by pressing **s** or using the scale tool in the left hand menu ![Scale Icon](images/ScaleIcon.png).
 
 If you have imported an object that you know is the correct size in a slicer, you can rescale it automatically to either inches or cm by going to the **Object Converter** panel in the MakeTile menu, selecting the **Tile Units**, selecting your object, and clicking on **Rescale Object.**
 
-### Using MakeTile's material system with imported objects
+## Using MakeTile's material system with imported objects
 You can use MakeTile's material system with an imported object by selecting it and clicking on the **Convert to MakeTile Object** button in the **Object Converter** panel in the MakeTile menu. For a guide on how to convert a blank tile template for use with MakeTile that will take you through the whole process see this video.
 
 [![Covert a Tile for use with MakeTile](images/ConvertTileVideo.png)](https://www.youtube.com/watch?v=h-Ayb_r4dls)

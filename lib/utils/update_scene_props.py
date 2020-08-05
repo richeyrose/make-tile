@@ -1,11 +1,11 @@
 import os
+import json
 import bpy
 from bpy.app.handlers import persistent
-from ... utils.registration import get_prefs
+from ... utils.registration import get_prefs, get_path
 from ... materials.materials import (
     get_blend_filenames,
     load_materials)
-
 
 def load_materials_on_addon_activation(dummy):
     bpy.app.handlers.depsgraph_update_pre.remove(load_materials_on_addon_activation)
@@ -78,6 +78,36 @@ def update_mt_scene_props_handler(dummy):
             scene_props.mt_width_native_subdivisions = tile_props.width_native_subdivisions
 
             scene_props.mt_openlock_column_type = tile_props.openlock_column_type
+
+
+def create_properties_on_activation(dummy):
+    bpy.app.handlers.depsgraph_update_pre.remove(create_properties_on_activation)
+    load_tile_defaults()
+
+
+@persistent
+def create_properties_on_load(dummy):
+    load_tile_defaults()
+
+
+def load_tile_defaults():
+    """Loads tile defaults into memory."""
+    scene_props = bpy.context.scene.mt_scene_props
+    addon_path = get_path()
+    json_path = os.path.join(
+        addon_path,
+        "assets",
+        "data",
+        "tile_defaults.json"
+    )
+
+    if os.path.exists(json_path):
+        with open(json_path) as json_file:
+            tile_defaults = json.load(json_file)
+        scene_props['tile_defaults'] = tile_defaults
+
+bpy.app.handlers.depsgraph_update_pre.append(create_properties_on_activation)
+bpy.app.handlers.load_post.append(create_properties_on_load)
 
 bpy.app.handlers.depsgraph_update_post.append(update_mt_scene_props_handler)
 bpy.app.handlers.load_post.append(load_material_libraries)

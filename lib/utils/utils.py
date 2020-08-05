@@ -181,8 +181,29 @@ def clear_parent_and_apply_transformation(ctx, ob):
     for v in ob.data.vertices:
         v.co = mat_h @ v.co
 
+
 def vectors_are_close(vec_1, vec_2, tolerance=0.0001):
     '''Tests whether two vectors are almost equal to each other'''
     return isclose(vec_1[0], vec_2[0], abs_tol=tolerance) and \
         isclose(vec_1[1], vec_2[1], abs_tol=tolerance) and \
         isclose(vec_1[2], vec_2[2], abs_tol=tolerance)
+
+
+def get_all_subclasses(python_class):
+    """
+    Helper function to get all the subclasses of a class.
+    :param python_class: Any Python class that implements __subclasses__()
+    """
+    python_class.__subclasses__()
+
+    subclasses = set()
+    check_these = [python_class]
+
+    while check_these:
+        parent = check_these.pop()
+        for child in parent.__subclasses__():
+            if child not in subclasses:
+                subclasses.add(child)
+                check_these.append(child)
+
+    return sorted(subclasses, key=lambda x: x.__name__)

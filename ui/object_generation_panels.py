@@ -1,6 +1,24 @@
 import bpy
 from bpy.types import Panel
 
+class MT_PT_Test_Panel(Panel):
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Make Tile"
+    bl_idname = "MT_PT_Test_Panel"
+    bl_label = "Test Panel"
+    bl_description = "Test"
+
+    def draw(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        obj = context.object
+        layout = self.layout
+
+        layout.prop(scene_props, 'mt_tile_type_new')
+        #layout.operator('object.test_child_1')
+        layout.operator(scene_props.mt_tile_type_new)
+
 
 class MT_PT_Tile_Generator_Panel(Panel):
     bl_order = 0
@@ -22,7 +40,7 @@ class MT_PT_Tile_Generator_Panel(Panel):
         layout.prop(scene_props, 'mt_tile_material_1', text="Main Material")
         layout.prop(scene_props, 'mt_UV_island_margin')
 
-        layout.operator('scene.make_tile', text="Make Tile")
+        #layout.operator('scene.make_tile', text="Make Tile")
 
         if obj is not None and obj.type == 'MESH':
 
@@ -61,7 +79,7 @@ class MT_PT_Tile_Options_Panel():
         if blueprint == 'CUSTOM':
             self.draw_custom_panel(context)
 
-        self.draw_native_subdiv_panel(context)
+        # self.draw_native_subdiv_panel(context)
 
         layout.label(text='Modifier Subdivisions')
         layout.prop(scene_props, 'mt_subdivisions')
@@ -181,8 +199,7 @@ class MT_PT_Straight_Tile_Options_Panel(bpy.types.Panel, MT_PT_Tile_Options_Pane
     def poll(cls, context):
         return context.scene.mt_scene_props.mt_tile_type in (
             'STRAIGHT_WALL',
-            'STRAIGHT_FLOOR',
-            'RECTANGULAR_FLOOR')
+            'STRAIGHT_FLOOR')
 
     def draw_plain_base_panel(self, context):
         scene = context.scene

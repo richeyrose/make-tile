@@ -1,0 +1,16 @@
+[
+    {
+        "bl_idname": "object.make_rect_floor",
+        "defaults": {
+            "mt_x_native_subdivisions": 15,
+            "mt_y_native_subdivisions": 15,
+            "mt_z_native_subdivisions": 0,
+            "mt_tile_x": 2,
+            "mt_tile_y": 2,
+            "mt_tile_z": 0.3,
+            "mt_base_x": 2,
+            "mt_base_y": 2,
+            "mt_base_z": 0.2756
+        }
+    }
+]

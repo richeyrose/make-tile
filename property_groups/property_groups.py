@@ -2,7 +2,7 @@ import os
 import json
 import bpy
 from bpy.types import PropertyGroup
-from .. utils.registration import get_prefs
+from .. utils.registration import get_prefs, get_path
 
 from .. enums.enums import (
     tile_main_systems,
@@ -17,7 +17,7 @@ from .. enums.enums import (
     openlock_column_types)
 
 from .. lib.utils.update_scene_props import load_material_libraries
-
+from ..lib.utils.utils import get_all_subclasses
 
 # Radio buttons used in menus
 class MT_Radio_Buttons(PropertyGroup):
@@ -98,6 +98,21 @@ class MT_Scene_Properties(PropertyGroup):
         self.update_size_defaults(context)
         self.update_subdiv_defaults(context)
 
+    def change_tile_type_new(self, context):
+        scene_props = context.scene.mt_scene_props
+        tile_type = scene_props.mt_tile_type_new
+        tile_defaults = scene_props['tile_defaults']
+        defaults = None
+
+        for tile in tile_defaults:
+            if tile['bl_idname'] == tile_type:
+                defaults = tile['defaults']
+                break
+
+        if defaults:
+            for key, value in defaults.items():
+                setattr(scene_props, key, value)
+
     def update_size_defaults(self, context):
         '''updates tile and base size defaults depending on what we are generating'''
         scene_props = context.scene.mt_scene_props
@@ -134,8 +149,6 @@ class MT_Scene_Properties(PropertyGroup):
             scene_props.mt_base_x = 2
             scene_props.mt_base_y = 0.5
             scene_props.mt_base_z = 0.2755
-
-
 
     def update_subdiv_defaults(self, context):
         scene_props = context.scene.mt_scene_props
@@ -268,6 +281,20 @@ class MT_Scene_Properties(PropertyGroup):
                         bpy.ops.scene.mt_return_to_preview()
                         bpy.ops.scene.mt_make_3d()
 
+    def create_tile_type_enums(self, context):
+        '''Creates an enum of tile types out of subclasses of MT_OT_Make_Tile'''
+        from ..operators.maketile import MT_OT_Make_Tile
+        enum_items = []
+        if context is None:
+            return enum_items
+
+        subclasses = get_all_subclasses(MT_OT_Make_Tile)
+        for subclass in subclasses:
+            enum = (subclass.bl_idname, subclass.bl_label, "")
+            enum_items.append(enum)
+
+        return sorted(enum_items)
+
     def load_material_enums(self, context):
         '''Constructs a material Enum from materials found in the materials asset folder'''
         enum_items = []
@@ -318,6 +345,12 @@ class MT_Scene_Properties(PropertyGroup):
         items=tile_main_systems,
         name="Main System",
         default='OPENLOCK'
+    )
+
+    mt_tile_type_new: bpy.props.EnumProperty(
+        items=create_tile_type_enums,
+        name="Tile Type",
+        update=change_tile_type_new
     )
 
     mt_tile_type: bpy.props.EnumProperty(

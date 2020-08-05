@@ -1,11 +1,12 @@
 """Operator class to make tiles"""
 import bpy
-
+from bpy.types import Operator
 from .. lib.utils.selection import deselect_all
 from .. lib.utils.collections import (
     create_collection,
-    activate_collection)
-
+    activate_collection,
+    add_object_to_collection)
+'''
 from .. tile_creation.L_Tiles import MT_L_Wall, MT_L_Floor
 from .. tile_creation.Straight_Tiles import MT_Straight_Wall_Tile, MT_Straight_Floor_Tile
 from .. tile_creation.Curved_Tiles import MT_Curved_Wall_Tile, MT_Curved_Floor_Tile
@@ -14,16 +15,59 @@ from .. tile_creation.Triangular_Tiles import MT_Triangular_Floor_Tile
 from .. tile_creation.Semi_Circ_Tiles import MT_Semi_Circ_Floor_Tile
 from .. tile_creation.U_Tiles import MT_U_Wall_Tile
 from .. tile_creation.Connecting_Column_Tiles import MT_Connecting_Column_Tile
-
+'''
 from .. property_groups.property_groups import (
     MT_Tile_Properties,
     MT_Object_Properties,
     MT_Scene_Properties)
 
 
-class MT_OT_Make_Tile(bpy.types.Operator):
+def initialise_tile_creator(context):
+    deselect_all()
+    scene = context.scene
+    scene_props = scene.mt_scene_props
+
+    # Switch renderer to Eevee. This is a hack to compensate
+    # for an issue where the tile generators sometimes
+    # produce different results depending on what
+    # renderer we are using. Hopefully when the turtle
+    # is rewritten to work on a bmesh this will no longer
+    # be an issue
+
+    original_renderer = scene.render.engine
+    if original_renderer != 'BLENDER_EEVEE':
+        scene.render.engine = 'BLENDER_EEVEE'
+
+    # Set defaults for different tile systems
+    tile_blueprint = scene_props.mt_tile_blueprint
+    tile_type = scene_props.mt_tile_type
+
+    if tile_blueprint == 'OPENLOCK':
+        scene_props.mt_main_part_blueprint = 'OPENLOCK'
+        scene_props.mt_base_blueprint = 'OPENLOCK'
+
+    if tile_blueprint == 'PLAIN':
+        scene_props.mt_main_part_blueprint = 'PLAIN'
+        scene_props.mt_base_blueprint = 'PLAIN'
+
+    # Root collection to which we add all tiles
+    tiles_collection = create_collection('Tiles', scene.collection)
+
+    # Helper object collection
+    helper_collection = create_collection('MT Helpers', scene.collection)
+
+    # Used as a reference object for material projection
+    material_helper = bpy.data.objects.new('Material Helper Empty', None)
+    material_helper.hide_viewport = True
+    add_object_to_collection(material_helper, helper_collection.name)
+
+    tile_name = tile_blueprint.lower() + "." + tile_type.lower()
+    return original_renderer, tile_name, tiles_collection
+
+
+class MT_OT_Make_Tile:
     """Create a Tile"""
-    bl_idname = "scene.make_tile"
+    bl_idname = "object.make_tile"
     bl_label = "Create a tile"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -33,54 +77,11 @@ class MT_OT_Make_Tile(bpy.types.Operator):
             return context.object.mode == 'OBJECT'
         else:
             return True
-
+    '''
     def execute(self, context):
-        deselect_all()
-        scene = context.scene
-        scene_props = scene.mt_scene_props
+        print("Execute")
 
-        ##########################################################
-        # Switch renderer to Eevee. This is a hack to compensate #
-        # for an issue where the tile generators sometimes       #
-        # produce different results depending on what            #
-        # renderer we are using. Hopefully when the turtle       #
-        # is rewritten to work on a bmesh this will no longer    #
-        # be an issue                                            #
-        ##########################################################
-        original_renderer = scene.render.engine
-        if original_renderer != 'BLENDER_EEVEE':
-            scene.render.engine = 'BLENDER_EEVEE'
-
-
-        ############################################
-        # Set defaults for different tile systems  #
-        ############################################
-        tile_blueprint = scene_props.mt_tile_blueprint
-        tile_type = scene_props.mt_tile_type
-
-        if tile_blueprint == 'OPENLOCK':
-            scene_props.mt_main_part_blueprint = 'OPENLOCK'
-            scene_props.mt_base_blueprint = 'OPENLOCK'
-
-        if tile_blueprint == 'PLAIN':
-            scene_props.mt_main_part_blueprint = 'PLAIN'
-            scene_props.mt_base_blueprint = 'PLAIN'
-
-        #######################################
-        # Create our collection and tile name #
-        # 'Tiles' are collections of meshes   #
-        # parented to an empty                #
-        #######################################
-
-        scene_collection = scene.collection
-
-        # Check to see if tile collection exist and create if not
-        tiles_collection = create_collection('Tiles', scene_collection)
-
-        # construct first part of tile name based on system and type
-        tile_name = tile_blueprint.lower() + "." + tile_type.lower()
-        # deselect_all()
-
+        initialise_tile_creator(self, context)
         if tile_type in (
                 'STRAIGHT_WALL',
                 'CURVED_WALL',
@@ -192,10 +193,64 @@ class MT_OT_Make_Tile(bpy.types.Operator):
 
         scene.render.engine = original_renderer
         return {'FINISHED'}
+    '''
+
+
+def create_common_tile_props(scene_props, tile_props, tile_collection):
+    """Creates properties common to all tiles"""
+    tile_props.tile_name = tile_collection.name
+    tile_props.is_mt_collection = True
+    tile_props.tile_blueprint = scene_props.mt_tile_blueprint
+    tile_props.main_part_blueprint = scene_props.mt_main_part_blueprint
+    tile_props.base_blueprint = scene_props.mt_base_blueprint
+    tile_props.UV_island_margin = scene_props.mt_UV_island_margin
+    tile_props.tile_units = scene_props.mt_tile_units
+    tile_props.displacement_strength = scene_props.mt_displacement_strength
+    tile_props.tile_resolution = scene_props.mt_tile_resolution
+
+
+class MT_OT_Make_Corner_Floor_Tile(MT_OT_Make_Tile, Operator):
+    """Create a Corner Floor Tile"""
+    bl_idname = "object.make_corner_floor"
+    bl_label = "Corner Floor"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+
+class MT_OT_Make_Triangle_Floor_Tile(MT_OT_Make_Tile, Operator):
+    """Create a Triangle Floor Tile"""
+    bl_idname = "object.make_triangle_floor"
+    bl_label = "Triangle Floor"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+
+class MT_OT_Make_Curved_Floor_Tile(MT_OT_Make_Tile, Operator):
+    """Create a Curved Floor Tile"""
+    bl_idname = "object.make_curved_floor"
+    bl_label = "Curved Floor"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+
+class MT_OT_Make_Semi_Circ_Floor_Tile(MT_OT_Make_Tile, Operator):
+    """Create a Semi Circular Floor Tile"""
+    bl_idname = "object.make_semi_circ_floor"
+    bl_label = "Semi Circular Floor"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        return {'FINISHED'}
 
 
 def register():
-    # Property group that contains properties relating to a tile on the tile collection
+    # Property group that contains properties relating to a tile stored on the tile collection
     bpy.types.Collection.mt_tile_props = bpy.props.PointerProperty(
         type=MT_Tile_Properties
     )

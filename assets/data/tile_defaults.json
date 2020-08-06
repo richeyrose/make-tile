@@ -1,16 +1,104 @@
 [
     {
-        "bl_idname": "object.make_rect_floor",
-        "defaults": {
+        "bl_idname": "object.make_openlock_rect_floor",
+        "blueprint": "OPENLOCK",
+        "type": "FLOOR",
+        "defaults":
+            {
             "mt_x_native_subdivisions": 15,
             "mt_y_native_subdivisions": 15,
-            "mt_z_native_subdivisions": 0,
+            "mt_z_native_subdivisions": 1,
             "mt_tile_x": 2,
             "mt_tile_y": 2,
             "mt_tile_z": 0.3,
             "mt_base_x": 2,
             "mt_base_y": 2,
-            "mt_base_z": 0.2756
-        }
+            "mt_base_z": 0.2755
+            }
+    },
+    {
+        "bl_idname": "object.make_plain_rect_floor",
+        "blueprint": "PLAIN",
+        "type": "FLOOR",
+        "defaults":
+            {
+            "mt_x_native_subdivisions": 15,
+            "mt_y_native_subdivisions": 15,
+            "mt_z_native_subdivisions": 1,
+            "mt_tile_x": 4,
+            "mt_tile_y": 4,
+            "mt_tile_z": 0.3,
+            "mt_base_x": 2,
+            "mt_base_y": 2,
+            "mt_base_z": 0.2755
+            }
+    },
+    {
+        "bl_idname": "object.make_custom_rect_floor",
+        "blueprint": "CUSTOM",
+        "type": "FLOOR",
+        "defaults":
+            {
+            "mt_x_native_subdivisions": 15,
+            "mt_y_native_subdivisions": 15,
+            "mt_z_native_subdivisions": 1,
+            "mt_tile_x": 4,
+            "mt_tile_y": 4,
+            "mt_tile_z": 0.3,
+            "mt_base_x": 2,
+            "mt_base_y": 2,
+            "mt_base_z": 0.2755
+            }
+    },
+    {
+        "bl_idname": "object.make_openlock_straight_wall",
+        "blueprint":"OPENLOCK",
+        "type": "WALL",
+        "defaults":
+            {
+            "mt_x_native_subdivisions": 15,
+            "mt_y_native_subdivisions": 1,
+            "mt_z_native_subdivisions": 15,
+            "mt_tile_x": 2,
+            "mt_tile_y": 0.315,
+            "mt_tile_z": 2,
+            "mt_base_x": 2,
+            "mt_base_y": 0.5,
+            "mt_base_z": 0.2755
+            }
+    },
+    {
+        "bl_idname": "object.make_plain_straight_wall",
+        "blueprint":"PLAIN",
+        "type": "WALL",
+        "defaults":
+            {
+            "mt_x_native_subdivisions": 15,
+            "mt_y_native_subdivisions": 1,
+            "mt_z_native_subdivisions": 15,
+            "mt_tile_x": 4,
+            "mt_tile_y": 0.315,
+            "mt_tile_z": 2,
+            "mt_base_x": 4,
+            "mt_base_y": 0.5,
+            "mt_base_z": 0.2755
+            }
+    },
+    {
+        "bl_idname": "object.make_custom_straight_wall",
+        "blueprint":"CUSTOM",
+        "type": "WALL",
+        "defaults":
+            {
+            "mt_x_native_subdivisions": 15,
+            "mt_y_native_subdivisions": 1,
+            "mt_z_native_subdivisions": 15,
+            "mt_tile_x": 4,
+            "mt_tile_y": 0.315,
+            "mt_tile_z": 2,
+            "mt_base_x": 4,
+            "mt_base_y": 0.5,
+            "mt_base_z": 0.2755
+            }
     }
 ]

@@ -93,6 +93,24 @@ class MT_Trimmer_Item(PropertyGroup):
         name="")
 
 
+def create_tile_type_enums(self, context):
+    """Creates an enum of tile types out of subclasses of MT_OT_Make_Tile."""
+    from ..operators.maketile import MT_OT_Make_Tile
+    enum_items = []
+    if context is None:
+        return enum_items
+
+    blueprint = context.scene.mt_scene_props.mt_tile_blueprint
+    subclasses = get_all_subclasses(MT_OT_Make_Tile)
+
+    for subclass in subclasses:
+        if hasattr(subclass, 'mt_blueprint'):
+            if subclass.mt_blueprint == blueprint:
+                enum = (subclass.bl_idname, subclass.bl_label, "")
+                enum_items.append(enum)
+
+    return sorted(enum_items)
+
 class MT_Scene_Properties(PropertyGroup):
     def change_tile_type(self, context):
         self.update_size_defaults(context)
@@ -281,20 +299,6 @@ class MT_Scene_Properties(PropertyGroup):
                         bpy.ops.scene.mt_return_to_preview()
                         bpy.ops.scene.mt_make_3d()
 
-    def create_tile_type_enums(self, context):
-        '''Creates an enum of tile types out of subclasses of MT_OT_Make_Tile'''
-        from ..operators.maketile import MT_OT_Make_Tile
-        enum_items = []
-        if context is None:
-            return enum_items
-
-        subclasses = get_all_subclasses(MT_OT_Make_Tile)
-        for subclass in subclasses:
-            enum = (subclass.bl_idname, subclass.bl_label, "")
-            enum_items.append(enum)
-
-        return sorted(enum_items)
-
     def load_material_enums(self, context):
         '''Constructs a material Enum from materials found in the materials asset folder'''
         enum_items = []
@@ -349,8 +353,8 @@ class MT_Scene_Properties(PropertyGroup):
 
     mt_tile_type_new: bpy.props.EnumProperty(
         items=create_tile_type_enums,
-        name="Tile Type",
-        update=change_tile_type_new
+        name="Tile Type"
+        #update=change_tile_type_new
     )
 
     mt_tile_type: bpy.props.EnumProperty(
@@ -791,10 +795,6 @@ class MT_Tile_Properties(PropertyGroup):
     tile_resolution: bpy.props.IntProperty(
         name="Tile Resolution"
     )
-
-
-
-
 
 def register():
     # Property group containing radio buttons

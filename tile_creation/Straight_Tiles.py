@@ -1,17 +1,143 @@
-" Contains functions for creating wall tiles """
 import os
-import json
 from math import radians
 from mathutils import Vector
 import bpy
+
+from bpy.types import Operator, Panel
 from . create_tile import MT_Tile
+from ..ui.object_generation_panels import MT_PT_Tile_Options_Panel
 from .. utils.registration import get_prefs
-from .. lib.utils.collections import add_object_to_collection
+from .. lib.utils.collections import (
+    add_object_to_collection,
+    create_collection,
+    activate_collection)
 from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. lib.turtle.scripts.straight_tile import draw_straight_floor_core, draw_straight_wall_core
 from .. lib.utils.utils import mode
 from .. lib.utils.selection import deselect_all, select_by_loc
 from .Rectangular_Tiles import rect_floor_to_vert_groups
+from ..operators.maketile import (
+    MT_OT_Make_Tile,
+    initialise_tile_creator,
+    create_common_tile_props)
+
+'''
+class MT_PT_Straight_Wall_Options_Panel(Panel, MT_PT_Tile_Options_Panel):
+    """Draw the tile options panel for straight wall tiles."""
+
+    bl_idname = 'MT_PT_Straight_Wall_Options'
+    bl_order = 2
+
+    @classmethod
+    def poll(cls, context):
+        """Check we are in object mode."""
+        return context.scene.mt_scene_props.mt_tile_type_new == "object.make_straight_wall"
+
+    def draw_plain_base_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Base Size")
+        row = layout.row()
+        row.prop(scene_props, 'mt_base_x')
+        row.prop(scene_props, 'mt_base_y')
+        row.prop(scene_props, 'mt_base_z')
+
+    def draw_plain_main_part_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Tile Size")
+        row = layout.row()
+        row.prop(scene_props, 'mt_tile_x')
+        row.prop(scene_props, 'mt_tile_y')
+        row.prop(scene_props, 'mt_tile_z')
+
+    def draw_openlock_base_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        if scene_props.mt_main_part_blueprint == 'NONE':
+            layout.label(text="Base Size")
+            layout.prop(scene_props, 'mt_tile_x')
+
+    def draw_openlock_main_part_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Tile Size:")
+        row = layout.row()
+
+        if scene_props.mt_tile_type == 'STRAIGHT_WALL':
+            row.prop(scene_props, 'mt_tile_x')
+            row.prop(scene_props, 'mt_tile_z')
+        else:
+            row.prop(scene_props, 'mt_tile_x')
+            row.prop(scene_props, 'mt_tile_y')
+
+    def draw_native_subdiv_panel(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Native Subdivisions:")
+        layout.prop(scene_props, 'mt_x_native_subdivisions')
+        layout.prop(scene_props, 'mt_y_native_subdivisions')
+        layout.prop(scene_props, 'mt_z_native_subdivisions')
+'''
+
+class MT_OT_Make_Plain_Straight_Wall_Tile(MT_OT_Make_Tile, Operator):
+    """Operator. Generates a straight wall tile."""
+
+    bl_idname = "object.make_plain_straight_wall"
+    bl_label = "Straight Wall"
+    bl_options = {'REGISTER', 'UNDO'}
+    mt_blueprint = "PLAIN"
+
+    def execute(self, context):
+        """Execute the operator."""
+        print("Make plain straight wall")
+        return {'FINISHED'}
+
+
+class MT_OT_Make_Openlock_Straight_Wall_Tile(MT_OT_Make_Tile, Operator):
+    """Operator. Generates a straight wall tile."""
+
+    bl_idname = "object.make_openlock_straight_wall"
+    bl_label = "Straight Wall"
+    bl_options = {'REGISTER', 'UNDO'}
+    mt_blueprint = "OPENLOCK"
+
+    def execute(self, context):
+        """Execute the operator."""
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        original_renderer, tile_name, tiles_collection = initialise_tile_creator(context)
+
+        create_collection('Walls', tiles_collection)
+        tile_collection = bpy.data.collections.new(tile_name)
+        bpy.data.collections['Walls'].children.link(tile_collection)
+        activate_collection(tile_collection.name)
+
+        tile_props = tile_collection.mt_tile_props
+        create_common_tile_props(scene_props, tile_props, tile_collection)
+
+        tile_props.tile_type = 'STRAIGHT_WALL'
+        tile_props.tile_size = (scene_props.mt_tile_x, scene_props.mt_tile_y, scene_props.mt_tile_z)
+        tile_props.base_size = (scene_props.mt_base_x, scene_props.mt_base_y, scene_props.mt_base_z)
+
+        tile_props.x_native_subdivisions = scene_props.mt_x_native_subdivisions
+        tile_props.y_native_subdivisions = scene_props.mt_y_native_subdivisions
+        tile_props.z_native_subdivisions = scene_props.mt_z_native_subdivisions
+
+        MT_Straight_Wall_Tile(tile_props)
+
+        scene.render.engine = original_renderer
+        return {'FINISHED'}
 
 
 # MIXIN

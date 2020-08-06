@@ -4,8 +4,11 @@ from bpy.types import Operator
 from .. lib.utils.selection import deselect_all
 from .. lib.utils.collections import (
     create_collection,
-    activate_collection,
     add_object_to_collection)
+from .. property_groups.property_groups import (
+    MT_Tile_Properties,
+    MT_Object_Properties,
+    MT_Scene_Properties)
 '''
 from .. tile_creation.L_Tiles import MT_L_Wall, MT_L_Floor
 from .. tile_creation.Straight_Tiles import MT_Straight_Wall_Tile, MT_Straight_Floor_Tile
@@ -16,11 +19,6 @@ from .. tile_creation.Semi_Circ_Tiles import MT_Semi_Circ_Floor_Tile
 from .. tile_creation.U_Tiles import MT_U_Wall_Tile
 from .. tile_creation.Connecting_Column_Tiles import MT_Connecting_Column_Tile
 '''
-from .. property_groups.property_groups import (
-    MT_Tile_Properties,
-    MT_Object_Properties,
-    MT_Scene_Properties)
-
 
 def initialise_tile_creator(context):
     deselect_all()
@@ -62,14 +60,21 @@ def initialise_tile_creator(context):
     add_object_to_collection(material_helper, helper_collection.name)
 
     tile_name = tile_blueprint.lower() + "." + tile_type.lower()
-    return original_renderer, tile_name, tiles_collection
+
+    # We create tile at origin and then move it to original location
+    # this stops us from having to update the view layer every time
+    # we parent an object
+    cursor = scene.cursor
+    cursor_orig_loc = cursor.location.copy()
+    cursor_orig_rot = cursor.rotation_euler.copy()
+    cursor.location = (0, 0, 0)
+    cursor.rotation_euler = (0, 0, 0)
+
+    return original_renderer, tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot
 
 
 class MT_OT_Make_Tile:
-    """Create a Tile"""
-    bl_idname = "object.make_tile"
-    bl_label = "Create a tile"
-    bl_options = {'REGISTER', 'UNDO'}
+    """Create a Tile."""
 
     @classmethod
     def poll(cls, context):
@@ -197,7 +202,7 @@ class MT_OT_Make_Tile:
 
 
 def create_common_tile_props(scene_props, tile_props, tile_collection):
-    """Creates properties common to all tiles"""
+    """Create properties common to all tiles."""
     tile_props.tile_name = tile_collection.name
     tile_props.is_mt_collection = True
     tile_props.tile_blueprint = scene_props.mt_tile_blueprint
@@ -210,7 +215,8 @@ def create_common_tile_props(scene_props, tile_props, tile_collection):
 
 
 class MT_OT_Make_Corner_Floor_Tile(MT_OT_Make_Tile, Operator):
-    """Create a Corner Floor Tile"""
+    """Create a Corner Floor Tile."""
+
     bl_idname = "object.make_corner_floor"
     bl_label = "Corner Floor"
     bl_options = {'REGISTER', 'UNDO'}
@@ -220,7 +226,8 @@ class MT_OT_Make_Corner_Floor_Tile(MT_OT_Make_Tile, Operator):
 
 
 class MT_OT_Make_Triangle_Floor_Tile(MT_OT_Make_Tile, Operator):
-    """Create a Triangle Floor Tile"""
+    """Create a Triangle Floor Tile."""
+
     bl_idname = "object.make_triangle_floor"
     bl_label = "Triangle Floor"
     bl_options = {'REGISTER', 'UNDO'}

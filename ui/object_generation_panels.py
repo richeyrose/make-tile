@@ -198,7 +198,6 @@ class MT_PT_Straight_Tile_Options_Panel(bpy.types.Panel, MT_PT_Tile_Options_Pane
     @classmethod
     def poll(cls, context):
         return context.scene.mt_scene_props.mt_tile_type in (
-            'STRAIGHT_WALL',
             'STRAIGHT_FLOOR')
 
     def draw_plain_base_panel(self, context):

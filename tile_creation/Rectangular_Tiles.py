@@ -1,6 +1,7 @@
 import os
 import math
 import bpy
+
 from bpy.types import Operator, Panel
 from mathutils import Vector
 from . create_tile import MT_Tile
@@ -298,22 +299,31 @@ class MT_OT_Make_Custom_Rect_Floor_Tile(MT_OT_Make_Tile, Operator):
         subclasses = get_all_subclasses(MT_OT_Make_Tile)
 
         original_renderer, cursor_orig_loc, cursor_orig_rot = initialise_floor_creator(context, scene_props)
+
+        # ensure we can only run bpy.ops in our eval statements
+        allowed_names = {k: v for k, v in bpy.__dict__.items() if k == 'ops'}
+
         for subclass in subclasses:
             if hasattr(subclass, 'mt_type') and hasattr(subclass, 'mt_blueprint'):
                 if subclass.mt_type == 'RECT_FLOOR_BASE' and subclass.mt_blueprint == base_type:
-                    exec('bpy.ops.' + subclass.bl_idname + '()')
+                    eval_str = 'ops.' + subclass.bl_idname + '()'
+                    eval(eval_str, {"__builtins__": {}}, allowed_names)
+
         base = context.active_object
 
         for subclass in subclasses:
             if hasattr(subclass, 'mt_type') and hasattr(subclass, 'mt_blueprint'):
                 if subclass.mt_type == 'RECT_FLOOR_CORE' and subclass.mt_blueprint == core_type:
-                    exec('bpy.ops.' + subclass.bl_idname + '()')
+                    eval_str = 'ops.' + subclass.bl_idname + '()'
+                    eval(eval_str, {"__builtins__": {}}, allowed_names)
+
         preview_core = context.active_object
 
         finalise_tile(base, preview_core, cursor_orig_loc, cursor_orig_rot)
 
         scene.render.engine = original_renderer
         print("Make Custom rect floor")
+
         return {'FINISHED'}
 
 

@@ -86,11 +86,9 @@ def create_properties_on_activation(dummy):
     bpy.app.handlers.depsgraph_update_pre.remove(create_properties_on_activation)
     load_tile_defaults()
 
-
 @persistent
 def create_properties_on_load(dummy):
     load_tile_defaults()
-
 
 def load_tile_defaults():
     """Loads tile defaults into memory."""

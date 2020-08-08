@@ -5,10 +5,7 @@ from .. lib.utils.selection import deselect_all
 from .. lib.utils.collections import (
     create_collection,
     add_object_to_collection)
-from .. property_groups.property_groups import (
-    MT_Tile_Properties,
-    MT_Object_Properties,
-    MT_Scene_Properties)
+
 '''
 from .. tile_creation.L_Tiles import MT_L_Wall, MT_L_Floor
 from .. tile_creation.Straight_Tiles import MT_Straight_Wall_Tile, MT_Straight_Floor_Tile
@@ -254,26 +251,3 @@ class MT_OT_Make_Semi_Circ_Floor_Tile(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         return {'FINISHED'}
-
-
-def register():
-    # Property group that contains properties relating to a tile stored on the tile collection
-    bpy.types.Collection.mt_tile_props = bpy.props.PointerProperty(
-        type=MT_Tile_Properties
-    )
-
-    # Property group that contains properties of an object stored on the object
-    bpy.types.Object.mt_object_props = bpy.props.PointerProperty(
-        type=MT_Object_Properties
-    )
-
-    # Property group that contains properties set in UI
-    bpy.types.Scene.mt_scene_props = bpy.props.PointerProperty(
-        type=MT_Scene_Properties
-    )
-
-
-def unregister():
-    del bpy.types.Scene.mt_scene_props
-    del bpy.types.Object.mt_object_props
-    del bpy.types.Collection.mt_tile_props

@@ -17,7 +17,7 @@ from .. lib.utils.utils import mode
 from .. lib.utils.selection import deselect_all, select_by_loc
 from .Rectangular_Tiles import rect_floor_to_vert_groups
 from ..operators.maketile import (
-    MT_OT_Make_Tile,
+    MT_Tile_Generator,
     initialise_tile_creator,
     create_common_tile_props)
 
@@ -90,7 +90,7 @@ class MT_PT_Straight_Wall_Options_Panel(Panel, MT_PT_Tile_Options_Panel):
         layout.prop(scene_props, 'mt_z_native_subdivisions')
 '''
 
-class MT_OT_Make_Plain_Straight_Wall_Tile(MT_OT_Make_Tile, Operator):
+class MT_OT_Make_Plain_Straight_Wall_Tile(MT_Tile_Generator, Operator):
     """Operator. Generates a straight wall tile."""
 
     bl_idname = "object.make_plain_straight_wall"
@@ -104,7 +104,7 @@ class MT_OT_Make_Plain_Straight_Wall_Tile(MT_OT_Make_Tile, Operator):
         return {'FINISHED'}
 
 
-class MT_OT_Make_Openlock_Straight_Wall_Tile(MT_OT_Make_Tile, Operator):
+class MT_OT_Make_Openlock_Straight_Wall_Tile(MT_Tile_Generator, Operator):
     """Operator. Generates a straight wall tile."""
 
     bl_idname = "object.make_openlock_straight_wall"

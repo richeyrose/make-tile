@@ -3,11 +3,8 @@ import math
 import bpy
 
 from bpy.types import Operator, Panel
-from mathutils import Vector
-from . create_tile import MT_Tile
-from ..ui.object_generation_panels import MT_PT_Tile_Options_Panel
 from ..operators.maketile import (
-    MT_OT_Make_Tile,
+    MT_Tile_Generator,
     initialise_tile_creator,
     create_common_tile_props)
 from .. lib.turtle.scripts.primitives import draw_cuboid
@@ -21,83 +18,6 @@ from .. lib.turtle.scripts.straight_tile import draw_rectangular_floor_core
 from .. lib.turtle.scripts.openlock_floor_base import draw_openlock_rect_floor_base
 from .. lib.utils.selection import deselect_all, select_by_loc
 from .create_tile import create_displacement_core, finalise_tile
-
-from bpy.props import (
-    StringProperty,
-    FloatProperty,
-    FloatVectorProperty,
-    IntProperty,
-    EnumProperty,
-    BoolProperty,
-    PointerProperty)
-'''
-class MT_PT_Rect_Floor_Options_Panel(Panel, MT_PT_Tile_Options_Panel):
-    """Draw the tile options panel for rectangular floor tiles."""
-
-    bl_idname = 'MT_PT_Rect_Floor_Options'
-    bl_order = 2
-
-    @classmethod
-    def poll(cls, context):
-        """Check we are in object mode."""
-        return context.scene.mt_scene_props.mt_tile_type_new in ["object.make_openlock_rect_floor", "object.make_plain_rect_floor"]
-
-    def draw_plain_base_panel(self, context):
-        scene = context.scene
-        scene_props = scene.mt_scene_props
-        layout = self.layout
-
-        layout.label(text="Base Size")
-        row = layout.row()
-        row.prop(scene_props, 'mt_base_x')
-        row.prop(scene_props, 'mt_base_y')
-        row.prop(scene_props, 'mt_base_z')
-
-    def draw_plain_main_part_panel(self, context):
-        scene = context.scene
-        scene_props = scene.mt_scene_props
-        layout = self.layout
-
-        layout.label(text="Tile Size")
-        row = layout.row()
-        row.prop(scene_props, 'mt_tile_x')
-        row.prop(scene_props, 'mt_tile_y')
-        row.prop(scene_props, 'mt_tile_z')
-
-    def draw_openlock_base_panel(self, context):
-        scene = context.scene
-        scene_props = scene.mt_scene_props
-        layout = self.layout
-
-        if scene_props.mt_main_part_blueprint == 'NONE':
-            layout.label(text="Base Size")
-            layout.prop(scene_props, 'mt_tile_x')
-
-    def draw_openlock_main_part_panel(self, context):
-        scene = context.scene
-        scene_props = scene.mt_scene_props
-        layout = self.layout
-
-        layout.label(text="Tile Size:")
-        row = layout.row()
-
-        if scene_props.mt_tile_type == 'STRAIGHT_WALL':
-            row.prop(scene_props, 'mt_tile_x')
-            row.prop(scene_props, 'mt_tile_z')
-        else:
-            row.prop(scene_props, 'mt_tile_x')
-            row.prop(scene_props, 'mt_tile_y')
-
-    def draw_native_subdiv_panel(self, context):
-        scene = context.scene
-        scene_props = scene.mt_scene_props
-        layout = self.layout
-
-        layout.label(text="Native Subdivisions:")
-        layout.prop(scene_props, 'mt_x_native_subdivisions')
-        layout.prop(scene_props, 'mt_y_native_subdivisions')
-        layout.prop(scene_props, 'mt_z_native_subdivisions')
-'''
 
 
 class MT_PT_Openlock_Rect_Floor_Panel(Panel):
@@ -214,7 +134,7 @@ class MT_PT_Custom_Rect_Floor_Panel(Panel):
         row.prop(scene_props, 'mt_base_z')
 
 
-class MT_OT_Make_Openlock_Rect_Base(MT_OT_Make_Tile, Operator):
+class MT_OT_Make_Openlock_Rect_Base(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an OpenLOCK rectangular base."""
 
     bl_idname = "object.make_openlock_rect_base"
@@ -231,7 +151,7 @@ class MT_OT_Make_Openlock_Rect_Base(MT_OT_Make_Tile, Operator):
         return{'FINISHED'}
 
 
-class MT_OT_Make_Plain_Rect_Base(MT_OT_Make_Tile, Operator):
+class MT_OT_Make_Plain_Rect_Base(MT_Tile_Generator, Operator):
     """Internal Operator. Generate a plain rectangular base."""
 
     bl_idname = "object.make_plain_rect_base"
@@ -248,7 +168,7 @@ class MT_OT_Make_Plain_Rect_Base(MT_OT_Make_Tile, Operator):
         return{'FINISHED'}
 
 
-class MT_OT_Make_Plain_Rect_Floor_Core(MT_OT_Make_Tile, Operator):
+class MT_OT_Make_Plain_Rect_Floor_Core(MT_Tile_Generator, Operator):
     """Internal Operator. Generate a plain rectangular core."""
 
     bl_idname = "object.make_plain_rect_floor_core"
@@ -266,7 +186,7 @@ class MT_OT_Make_Plain_Rect_Floor_Core(MT_OT_Make_Tile, Operator):
         return{'FINISHED'}
 
 
-class MT_OT_Make_Openlock_Rect_Floor_Core(MT_OT_Make_Tile, Operator):
+class MT_OT_Make_Openlock_Rect_Floor_Core(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an openlock rectangular floor core."""
 
     bl_idname = "object.make_openlock_rect_floor_core"
@@ -281,7 +201,7 @@ class MT_OT_Make_Openlock_Rect_Floor_Core(MT_OT_Make_Tile, Operator):
         return{'FINISHED'}
 
 
-class MT_OT_Make_Custom_Rect_Floor_Tile(MT_OT_Make_Tile, Operator):
+class MT_OT_Make_Custom_Rect_Floor_Tile(MT_Tile_Generator, Operator):
     """Operator. Generates a rectangular floor tile with a customisable base and main part."""
 
     bl_idname = "object.make_custom_rect_floor"
@@ -296,7 +216,7 @@ class MT_OT_Make_Custom_Rect_Floor_Tile(MT_OT_Make_Tile, Operator):
         scene_props = scene.mt_scene_props
         base_type = scene_props.mt_base_blueprint
         core_type = scene_props.mt_main_part_blueprint
-        subclasses = get_all_subclasses(MT_OT_Make_Tile)
+        subclasses = get_all_subclasses(MT_Tile_Generator)
 
         original_renderer, cursor_orig_loc, cursor_orig_rot = initialise_floor_creator(context, scene_props)
 
@@ -327,7 +247,7 @@ class MT_OT_Make_Custom_Rect_Floor_Tile(MT_OT_Make_Tile, Operator):
         return {'FINISHED'}
 
 
-class MT_OT_Make_Plain_Rect_Floor_Tile(MT_OT_Make_Tile, Operator):
+class MT_OT_Make_Plain_Rect_Floor_Tile(MT_Tile_Generator, Operator):
     """Operator. Generates a rectangular floor tile."""
 
     bl_idname = "object.make_plain_rect_floor"
@@ -352,7 +272,7 @@ class MT_OT_Make_Plain_Rect_Floor_Tile(MT_OT_Make_Tile, Operator):
         return {'FINISHED'}
 
 
-class MT_OT_Make_Openlock_Rect_Floor_Tile(MT_OT_Make_Tile, Operator):
+class MT_OT_Make_Openlock_Rect_Floor_Tile(MT_Tile_Generator, Operator):
     """Operator. Generates a rectangular floor tile."""
 
     bl_idname = "object.make_openlock_rect_floor"
@@ -489,11 +409,6 @@ def create_plain_base(tile_props):
 def create_openlock_base(tile_props):
     tile_name = tile_props.tile_name
     base_size = tile_props.base_size
-
-    base_size = (
-        tile_props.tile_size[0],
-        tile_props.tile_size[1],
-        .2756)
 
     base = draw_openlock_rect_floor_base(base_size)
     base.name = tile_props.tile_name + '.base'
@@ -649,7 +564,7 @@ def create_openlock_base_clip_cutter(base, tile_props):
 
     return [clip_cutter, clip_cutter2, clip_cutter3, clip_cutter4]
 
-
+'''
 class MT_Rectangular_Tile:
     """Create a Rectangular Floor Tile."""
 
@@ -920,7 +835,7 @@ class MT_Rectangular_Floor_Tile(MT_Rectangular_Tile, MT_Tile):
 
         return core
 
-
+'''
 def rect_floor_to_vert_groups(obj):
     """makes a vertex group for each side of floor
     and assigns vertices to it. Corrects for displacement map distortion"""

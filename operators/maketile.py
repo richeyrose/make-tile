@@ -73,8 +73,8 @@ def initialise_tile_creator(context):
     return original_renderer, tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot
 
 
-class MT_OT_Make_Tile:
-    """Create a Tile."""
+class MT_Tile_Generator:
+    """Subclass this to create your tile operator."""
 
     @classmethod
     def poll(cls, context):
@@ -214,7 +214,7 @@ def create_common_tile_props(scene_props, tile_props, tile_collection):
     tile_props.tile_resolution = scene_props.mt_tile_resolution
 
 
-class MT_OT_Make_Corner_Floor_Tile(MT_OT_Make_Tile, Operator):
+class MT_OT_Make_Corner_Floor_Tile(MT_Tile_Generator, Operator):
     """Create a Corner Floor Tile."""
 
     bl_idname = "object.make_corner_floor"
@@ -225,7 +225,7 @@ class MT_OT_Make_Corner_Floor_Tile(MT_OT_Make_Tile, Operator):
         return {'FINISHED'}
 
 
-class MT_OT_Make_Triangle_Floor_Tile(MT_OT_Make_Tile, Operator):
+class MT_OT_Make_Triangle_Floor_Tile(MT_Tile_Generator, Operator):
     """Create a Triangle Floor Tile."""
 
     bl_idname = "object.make_triangle_floor"
@@ -236,7 +236,7 @@ class MT_OT_Make_Triangle_Floor_Tile(MT_OT_Make_Tile, Operator):
         return {'FINISHED'}
 
 
-class MT_OT_Make_Curved_Floor_Tile(MT_OT_Make_Tile, Operator):
+class MT_OT_Make_Curved_Floor_Tile(MT_Tile_Generator, Operator):
     """Create a Curved Floor Tile"""
     bl_idname = "object.make_curved_floor"
     bl_label = "Curved Floor"
@@ -246,7 +246,7 @@ class MT_OT_Make_Curved_Floor_Tile(MT_OT_Make_Tile, Operator):
         return {'FINISHED'}
 
 
-class MT_OT_Make_Semi_Circ_Floor_Tile(MT_OT_Make_Tile, Operator):
+class MT_OT_Make_Semi_Circ_Floor_Tile(MT_Tile_Generator, Operator):
     """Create a Semi Circular Floor Tile"""
     bl_idname = "object.make_semi_circ_floor"
     bl_label = "Semi Circular Floor"

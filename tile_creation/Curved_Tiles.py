@@ -14,7 +14,7 @@ from .. lib.utils.selection import (
 
 from .. lib.utils.utils import (add_circle_array)
 from . create_tile import MT_Tile
-from . Rectangular_Tiles import rect_floor_to_vert_groups
+from . Rectangular_Tiles import make_rect_floor_vert_groups
 from . Straight_Tiles import straight_wall_to_vert_groups
 
 
@@ -224,7 +224,7 @@ class MT_Curved_Floor_Tile(MT_Curved_Tile, MT_Tile):
         bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
 
         tile_props.tile_size[0] = wall_length
-        rect_floor_to_vert_groups(core)
+        make_rect_floor_vert_groups(core)
 
         core.location = (
             core.location[0],

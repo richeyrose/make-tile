@@ -15,7 +15,7 @@ from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. lib.turtle.scripts.straight_tile import draw_straight_floor_core, draw_straight_wall_core
 from .. lib.utils.utils import mode
 from .. lib.utils.selection import deselect_all, select_by_loc
-from .Rectangular_Tiles import rect_floor_to_vert_groups
+from .Rectangular_Tiles import make_rect_floor_vert_groups
 from ..operators.maketile import (
     MT_Tile_Generator,
     initialise_tile_creator,
@@ -392,7 +392,7 @@ class MT_Straight_Floor_Tile(MT_Straight_Tile, MT_Tile):
         bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
         bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
 
-        rect_floor_to_vert_groups(core)
+        make_rect_floor_vert_groups(core)
 
         obj_props = core.mt_object_props
         obj_props.is_mt_object = True

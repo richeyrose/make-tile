@@ -147,7 +147,7 @@ class MT_OT_Make_Openlock_Rect_Base(MT_Tile_Generator, Operator):
         """Execute the operator."""
         tile = context.collection
         tile_props = tile.mt_tile_props
-        create_openlock_base(tile_props)
+        spawn_openlock_base(tile_props)
         return{'FINISHED'}
 
 
@@ -164,7 +164,7 @@ class MT_OT_Make_Plain_Rect_Base(MT_Tile_Generator, Operator):
         """Execute the operator."""
         tile = context.collection
         tile_props = tile.mt_tile_props
-        create_plain_base(tile_props)
+        spawn_plain_base(tile_props)
         return{'FINISHED'}
 
 
@@ -182,7 +182,7 @@ class MT_OT_Make_Plain_Rect_Floor_Core(MT_Tile_Generator, Operator):
         tile = context.collection
         tile_props = tile.mt_tile_props
         base = context.active_object
-        create_plain_cores(base, tile_props)
+        create_plain_rect_floor_cores(base, tile_props)
         return{'FINISHED'}
 
 
@@ -298,7 +298,19 @@ class MT_OT_Make_Openlock_Rect_Floor_Tile(MT_Tile_Generator, Operator):
 
 
 def initialise_floor_creator(context, scene_props):
-    """Initialise the floor creator and set common properties."""
+    """Initialise the floor creator and set common properties.
+
+    Args:
+        context (bpy.context): context
+        scene_props (bpy.types.PropertyGroup.mt_scene_props): maketile scene properties
+
+    Returns:
+        enum: enum in {'BLENDER_EEVEE', 'CYCLES', 'WORKBENCH'}
+        list[3]: cursor original location
+        list[3]: cursor original rotation
+
+    """
+
     original_renderer, tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator(context)
     # We store tile properties in the mt_tile_props property group of
     # the collection so we can access them from any object in this
@@ -322,8 +334,17 @@ def initialise_floor_creator(context, scene_props):
     return original_renderer, cursor_orig_loc, cursor_orig_rot
 
 
-def create_plain_cores(base, tile_props):
-    preview_core = create_floor_core(tile_props)
+def create_plain_rect_floor_cores(base, tile_props):
+    """Create preview and displacement cores.
+
+    Args:
+        base (bpy.types.Object): tile base
+        tile_props (bpy.types.PropertyGroup.mt_tile_props): tile properties
+
+    Returns:
+        bpy.types.Object: preview core
+    """
+    preview_core = spawn_floor_core(tile_props)
     textured_vertex_groups = ['Top']
 
     preview_core, displacement_core = create_displacement_core(
@@ -337,8 +358,15 @@ def create_plain_cores(base, tile_props):
     return preview_core
 
 
-def create_floor_core(tile_props):
-    """Return the core (top) part of a floor tile."""
+def spawn_floor_core(tile_props):
+    """Spawn the core (top part) of a floor tile.
+
+    Args:
+        tile_props (bpy.types.PropertyGroup.mt_tile_props): tile properties
+
+    Returns:
+        bpy.types.Object: tile core
+    """
     cursor = bpy.context.scene.cursor
     cursor_start_loc = cursor.location.copy()
     tile_size = tile_props.tile_size
@@ -370,7 +398,7 @@ def create_floor_core(tile_props):
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
     bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
 
-    rect_floor_to_vert_groups(core)
+    make_rect_floor_vert_groups(core)
 
     obj_props = core.mt_object_props
     obj_props.is_mt_object = True
@@ -380,7 +408,15 @@ def create_floor_core(tile_props):
     return core
 
 
-def create_plain_base(tile_props):
+def spawn_plain_base(tile_props):
+    """Spawn a plain base into the scene.
+
+    Args:
+        tile_props (bpy.types.PropertyGroup.mt_tile_props): tile properties
+
+    Returns:
+        bpy.types.Object: tile base
+    """
     base_size = tile_props.base_size
     tile_name = tile_props.tile_name
 
@@ -405,7 +441,15 @@ def create_plain_base(tile_props):
     return base
 
 
-def create_openlock_base(tile_props):
+def spawn_openlock_base(tile_props):
+    """Spawn an openlock base into the scene.
+
+    Args:
+        tile_props (bpy.types.PropertyGroup.mt_tile_props): tile properties
+
+    Returns:
+        bpy.types.Object: tile base
+    """
     tile_name = tile_props.tile_name
     base_size = tile_props.base_size
 
@@ -434,7 +478,7 @@ def create_openlock_base(tile_props):
 
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
 
-    clip_cutters = create_openlock_base_clip_cutter(base, tile_props)
+    clip_cutters = spawn_openlock_base_clip_cutters(base, tile_props)
 
     for clip_cutter in clip_cutters:
         clip_cutter.parent = base
@@ -455,7 +499,7 @@ def create_openlock_base(tile_props):
     return base
 
 
-def create_openlock_base_clip_cutter(base, tile_props):
+def spawn_openlock_base_clip_cutters(base, tile_props):
     """Make cutters for the openlock base clips.
 
     Args:
@@ -567,26 +611,29 @@ def create_openlock_base_clip_cutter(base, tile_props):
     return [clip_cutter, clip_cutter2, clip_cutter3, clip_cutter4]
 
 
-def rect_floor_to_vert_groups(obj):
-    """Makes a vertex group for each side of floor and assigns vertices to it."""
+def make_rect_floor_vert_groups(core):
+    """Make a vertex group for each side of floor and assigns vertices to it.
 
+    Args:
+        core (bpy.types.Object): tile core
+    """
     mode('OBJECT')
-    dim = obj.dimensions / 2
+    dim = core.dimensions / 2
 
     # get original location of object origin and of cursor
-    obj_original_loc = obj.location.copy()
+    obj_original_loc = core.location.copy()
     cursor_original_loc = bpy.context.scene.cursor.location.copy()
 
     # set origin to center of bounds
     bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='BOUNDS')
 
     # make vertex groups
-    obj.vertex_groups.new(name='Left')
-    obj.vertex_groups.new(name='Right')
-    obj.vertex_groups.new(name='Front')
-    obj.vertex_groups.new(name='Back')
-    obj.vertex_groups.new(name='Top')
-    obj.vertex_groups.new(name='Bottom')
+    core.vertex_groups.new(name='Left')
+    core.vertex_groups.new(name='Right')
+    core.vertex_groups.new(name='Front')
+    core.vertex_groups.new(name='Back')
+    core.vertex_groups.new(name='Top')
+    core.vertex_groups.new(name='Bottom')
 
     mode('EDIT')
 

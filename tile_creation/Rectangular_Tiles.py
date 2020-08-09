@@ -392,8 +392,7 @@ def create_plain_base(tile_props):
     ctx = {
         'object': base,
         'active_object': base,
-        'selected_objects': [base]
-    }
+        'selected_objects': [base]}
 
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
 
@@ -457,12 +456,15 @@ def create_openlock_base(tile_props):
 
 
 def create_openlock_base_clip_cutter(base, tile_props):
-    """Make a cutter for the openlock base clip based \
-        on the width of the base and positions it correctly.
+    """Make cutters for the openlock base clips.
 
-    Keyword arguments:
-    base -- base the cutter will be used on
-    tile_name -- the tile name
+    Args:
+        base (bpy.types.Object): tile base
+        tile_props (mt_tile_props): tile properties
+
+    Returns:
+        list of base clip cutters
+
     """
     mode('OBJECT')
 
@@ -564,281 +566,9 @@ def create_openlock_base_clip_cutter(base, tile_props):
 
     return [clip_cutter, clip_cutter2, clip_cutter3, clip_cutter4]
 
-'''
-class MT_Rectangular_Tile:
-    """Create a Rectangular Floor Tile."""
 
-    def create_plain_base(self, tile_props):
-        base_size = tile_props.base_size
-        tile_name = tile_props.tile_name
-
-        # make base
-        base = draw_cuboid(base_size)
-        base.name = tile_name + '.base'
-        add_object_to_collection(base, tile_name)
-
-        ctx = {
-            'object': base,
-            'active_object': base,
-            'selected_objects': [base]
-        }
-
-        bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-
-        obj_props = base.mt_object_props
-        obj_props.is_mt_object = True
-        obj_props.geometry_type = 'BASE'
-        obj_props.tile_name = tile_name
-
-        return base
-
-    def create_openlock_base(self, tile_props):
-        tile_name = tile_props.tile_name
-        base_size = tile_props.base_size
-
-        base_size = (
-            tile_props.tile_size[0],
-            tile_props.tile_size[1],
-            .2756)
-
-        base = draw_openlock_rect_floor_base(base_size)
-        base.name = tile_props.tile_name + '.base'
-        mode('OBJECT')
-
-        add_object_to_collection(base, tile_props.tile_name)
-
-        ctx = {
-            'object': base,
-            'active_object': base,
-            'selected_objects': [base]
-        }
-
-        obj_props = base.mt_object_props
-        obj_props.is_mt_object = True
-        obj_props.geometry_type = 'BASE'
-        obj_props.tile_name = tile_name
-
-        base.location = (
-            base.location[0] + base_size[0] / 2,
-            base.location[1] + base_size[1] / 2,
-            base.location[2]
-        )
-
-        bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-
-        clip_cutters = self.create_openlock_base_clip_cutter(base, tile_props)
-
-        for clip_cutter in clip_cutters:
-            clip_cutter.parent = base
-            clip_cutter.display_type = 'BOUNDS'
-            clip_cutter.hide_viewport = True
-            clip_cutter_bool = base.modifiers.new('Clip Cutter', 'BOOLEAN')
-            clip_cutter_bool.operation = 'DIFFERENCE'
-            clip_cutter_bool.object = clip_cutter
-
-        mode('OBJECT')
-
-        obj_props = base.mt_object_props
-        obj_props.is_mt_object = True
-        obj_props.geometry_type = 'BASE'
-        obj_props.tile_name = tile_props.tile_name
-
-        return base
-
-    def create_openlock_base_clip_cutter(self, base, tile_props):
-        """Makes a cutter for the openlock base clip based
-        on the width of the base and positions it correctly
-
-        Keyword arguments:
-        base -- base the cutter will be used on
-        tile_name -- the tile name
-        """
-        mode('OBJECT')
-
-        base_location = base.location.copy()
-        preferences = get_prefs()
-        booleans_path = os.path.join(
-            preferences.assets_path,
-            "meshes",
-            "booleans",
-            "openlock.blend")
-
-        with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
-            data_to.objects = [
-                'openlock.wall.base.cutter.clip',
-                'openlock.wall.base.cutter.clip.cap.start',
-                'openlock.wall.base.cutter.clip.cap.end']
-
-        for obj in data_to.objects:
-            add_object_to_collection(obj, tile_props.tile_name)
-
-        clip_cutter = data_to.objects[0]
-        cutter_start_cap = data_to.objects[1]
-        cutter_end_cap = data_to.objects[2]
-
-        cutter_start_cap.hide_viewport = True
-        cutter_end_cap.hide_viewport = True
-
-        # get location of bottom front left corner of tile
-        front_left = (
-            base_location[0],
-            base_location[1],
-            base_location[2])
-
-        clip_cutter.location = (
-            front_left[0] + 0.5,
-            front_left[1] + 0.25,
-            front_left[2])
-
-        array_mod = clip_cutter.modifiers.new('Array', 'ARRAY')
-        array_mod.start_cap = cutter_start_cap
-        array_mod.end_cap = cutter_end_cap
-        array_mod.use_merge_vertices = True
-
-        array_mod.fit_type = 'FIT_LENGTH'
-        array_mod.fit_length = base.dimensions[0] - 1
-
-        clip_cutter2 = clip_cutter.copy()
-        clip_cutter2.data = clip_cutter2.data.copy()
-
-        add_object_to_collection(clip_cutter2, tile_props.tile_name)
-        clip_cutter2.rotation_euler = (0, 0, math.radians(90))
-
-        front_right = (
-            base_location[0] + base.dimensions[0],
-            base_location[1],
-            base_location[2])
-
-        clip_cutter2.location = (
-            front_right[0] - 0.25,
-            front_right[1] + 0.5,
-            front_right[2])
-
-        array_mod2 = clip_cutter2.modifiers['Array']
-        array_mod2.fit_type = 'FIT_LENGTH'
-        array_mod2.fit_length = base.dimensions[1] - 1
-
-        clip_cutter3 = clip_cutter.copy()
-        clip_cutter3.data = clip_cutter3.data.copy()
-        add_object_to_collection(clip_cutter3, tile_props.tile_name)
-
-        clip_cutter3.rotation_euler = (0, 0, math.radians(180))
-
-        clip_cutter3.location = (
-            clip_cutter.location[0] + base.dimensions[0] - 1,
-            clip_cutter.location[1] + base.dimensions[1] - 0.5,
-            clip_cutter.location[2]
-        )
-        array_mod3 = clip_cutter3.modifiers['Array']
-        array_mod3.fit_type = 'FIT_LENGTH'
-        array_mod3.fit_length = base.dimensions[0] - 1
-
-        clip_cutter4 = clip_cutter2.copy()
-        clip_cutter4.data = clip_cutter4.data.copy()
-        add_object_to_collection(clip_cutter4, tile_props.tile_name)
-
-        clip_cutter4.rotation_euler = (0, 0, math.radians(-90))
-
-        clip_cutter4.location = (
-            clip_cutter2.location[0] - base.dimensions[0] + 0.5,
-            clip_cutter2.location[1] + base.dimensions[1] - 1,
-            clip_cutter2.location[2]
-        )
-
-        array_mod4 = clip_cutter4.modifiers['Array']
-        array_mod4.fit_type = 'FIT_LENGTH'
-        array_mod4.fit_length = base.dimensions[1] - 1
-
-        bpy.ops.object.make_single_user(type='ALL', object=True, obdata=True)
-
-        return [clip_cutter, clip_cutter2, clip_cutter3, clip_cutter4]
-
-
-class MT_Rectangular_Floor_Tile(MT_Rectangular_Tile, MT_Tile):
-    def __init__(self, tile_props):
-        MT_Tile.__init__(self, tile_props)
-
-    def create_empty_base(self, tile_props):
-        tile_props.base_size = (
-            tile_props.tile_size[0],
-            tile_props.tile_size[1],
-            0
-        )
-        base = bpy.data.objects.new(tile_props.tile_name + '.base', None)
-        add_object_to_collection(base, tile_props.tile_name)
-        return base
-
-    def create_openlock_base(self, tile_props):
-        tile_props.base_size = Vector((
-            tile_props.tile_size[0],
-            tile_props.tile_size[1],
-            0.2755))
-        return MT_Rectangular_Tile.create_openlock_base(self, tile_props)
-
-    def create_plain_cores(self, base, tile_props):
-        textured_vertex_groups = ['Top']
-
-        preview_core, displacement_core = self.create_cores(
-            base,
-            tile_props,
-            textured_vertex_groups)
-        displacement_core.hide_viewport = True
-        return preview_core
-
-    def create_openlock_cores(self, base, tile_props):
-        tile_props.tile_size = Vector((
-            tile_props.tile_size[0],
-            tile_props.tile_size[1],
-            0.3))
-
-        preview_core = self.create_plain_cores(base, tile_props)
-        return preview_core
-
-    def create_core(self, tile_props):
-        """Return the core (top) part of a floor tile."""
-        cursor = bpy.context.scene.cursor
-        cursor_start_loc = cursor.location.copy()
-        tile_size = tile_props.tile_size
-        base_size = tile_props.base_size
-        tile_name = tile_props.tile_name
-        native_subdivisions = (
-            tile_props.x_native_subdivisions,
-            tile_props.y_native_subdivisions,
-            tile_props.z_native_subdivisions
-        )
-
-        core = draw_rectangular_floor_core(
-            [tile_size[0],
-             tile_size[1],
-             tile_size[2] - base_size[2]],
-            native_subdivisions)
-
-        core.name = tile_name + '.core'
-        add_object_to_collection(core, tile_name)
-
-        core.location[2] = cursor_start_loc[2] + base_size[2]
-
-        ctx = {
-            'object': core,
-            'active_object': core,
-            'selected_objects': [core]
-        }
-
-        bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-        bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
-
-        rect_floor_to_vert_groups(core)
-
-        obj_props = core.mt_object_props
-        obj_props.is_mt_object = True
-        obj_props.tile_name = tile_props.tile_name
-
-        return core
-
-'''
 def rect_floor_to_vert_groups(obj):
-    """makes a vertex group for each side of floor
-    and assigns vertices to it. Corrects for displacement map distortion"""
+    """Makes a vertex group for each side of floor and assigns vertices to it."""
 
     mode('OBJECT')
     dim = obj.dimensions / 2

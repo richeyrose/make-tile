@@ -1,25 +1,45 @@
 import bpy
 from bpy.types import Panel
 
-class MT_PT_Test_Panel(Panel):
+
+class MT_PT_Tile_Generator_Panel(Panel):
+    """The main tile generation panel.
+
+    Args:
+        Panel (bpy.types.Panel): Panel parent class
+    """
+
+    bl_order = 0
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Make Tile"
-    bl_idname = "MT_PT_Test_Panel"
-    bl_label = "Test Panel"
-    bl_description = "Test"
+    bl_idname = "MT_PT_Tile_Generator_Panel"
+    bl_label = "MakeTile"
+    bl_description = "The main tile generation panel."
 
     def draw(self, context):
         scene = context.scene
         scene_props = scene.mt_scene_props
-        obj = context.object
+        obj = context.active_object
         layout = self.layout
 
         layout.prop(scene_props, 'tile_type_new')
-        #layout.operator('object.test_child_1')
-        layout.operator(scene_props.tile_type_new)
+        layout.prop(scene_props, 'tile_material_1', text="Main Material")
+        layout.prop(scene_props, 'UV_island_margin')
+        layout.operator(scene_props.tile_type_new, text="MakeTile")
+
+        if obj is not None and obj.type == 'MESH':
+            if obj.mt_object_props.geometry_type == 'PREVIEW':
+                layout.operator('scene.mt_make_3d', text='Make 3D')
+            if obj.mt_object_props.geometry_type == 'DISPLACEMENT':
+                layout.operator(
+                    'scene.mt_return_to_preview',
+                    text='Return to Preview')
+
+        layout.operator('scene.delete_tiles', text="Delete Tiles")
 
 
+'''
 class MT_PT_Tile_Generator_Panel(Panel):
     bl_order = 0
     bl_space_type = "VIEW_3D"
@@ -53,7 +73,7 @@ class MT_PT_Tile_Generator_Panel(Panel):
 
 
         layout.operator('scene.delete_tiles', text="Delete Tiles")
-
+'''
 
 class MT_PT_Tile_Options_Panel():
     bl_space_type = "VIEW_3D"

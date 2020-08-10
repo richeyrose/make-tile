@@ -99,7 +99,7 @@ def create_tile_type_enums(self, context):
     if context is None:
         return enum_items
 
-    blueprint = context.scene.mt_scene_props.mt_tile_blueprint
+    blueprint = context.scene.mt_scene_props.tile_blueprint
     subclasses = get_all_subclasses(MT_Tile_Generator)
 
     for subclass in subclasses:
@@ -110,14 +110,14 @@ def create_tile_type_enums(self, context):
     return sorted(enum_items)
 
 
-def update_mt_tile_blueprint(self, context):
-    blueprint = context.scene.mt_scene_props.mt_tile_blueprint
+def update_tile_blueprint(self, context):
+    blueprint = context.scene.mt_scene_props.tile_blueprint
     subclasses = get_all_subclasses(MT_Tile_Generator)
 
     for subclass in subclasses:
         if hasattr(subclass, 'mt_blueprint'):
             if subclass.mt_blueprint == blueprint and 'INTERNAL' not in subclass.bl_options:
-                context.scene.mt_scene_props.mt_tile_type_new = subclass.bl_idname
+                context.scene.mt_scene_props.tile_type_new = subclass.bl_idname
                 break
 
 class MT_Scene_Properties(PropertyGroup):
@@ -126,9 +126,9 @@ class MT_Scene_Properties(PropertyGroup):
         self.update_subdiv_defaults(context)
 
 
-    def change_tile_type_new(self, context):
+    def update_scene_defaults(self, context):
         scene_props = context.scene.mt_scene_props
-        tile_type = scene_props.mt_tile_type_new
+        tile_type = scene_props.tile_type_new
         tile_defaults = scene_props['tile_defaults']
         defaults = None
 
@@ -144,96 +144,96 @@ class MT_Scene_Properties(PropertyGroup):
     def update_size_defaults(self, context):
         '''updates tile and base size defaults depending on what we are generating'''
         scene_props = context.scene.mt_scene_props
-        if scene_props.mt_tile_type in (
+        if scene_props.tile_type in (
                 'RECTANGULAR_FLOOR',
                 'TRIANGULAR_FLOOR',
                 'CURVED_FLOOR',
                 'STRAIGHT_FLOOR',
                 'SEMI_CIRC_FLOOR'):
-            scene_props.mt_tile_z = 0.3
-            scene_props.mt_base_z = 0.2755
-            scene_props.mt_tile_x = 2
-            scene_props.mt_tile_y = 2
-            scene_props.mt_base_x = 2
-            scene_props.mt_base_y = 2
-        elif scene_props.mt_tile_type == 'CORNER_FLOOR':
-            scene_props.mt_tile_z = 0.3
-            scene_props.mt_base_z = 0.2755
-            scene_props.mt_tile_x = 2
-            scene_props.mt_tile_y = 0.5
-            scene_props.mt_base_x = 2
-            scene_props.mt_base_y = 0.5
-        elif scene_props.mt_tile_type == 'CONNECTING_COLUMN':
-            scene_props.mt_base_x = 0.5
-            scene_props.mt_base_y = 0.5
-            scene_props.mt_base_z = 0.2755
-            scene_props.mt_tile_x = 0.5
-            scene_props.mt_tile_y = 0.5
-            scene_props.mt_tile_z = 2
+            scene_props.tile_z = 0.3
+            scene_props.base_z = 0.2755
+            scene_props.tile_x = 2
+            scene_props.tile_y = 2
+            scene_props.base_x = 2
+            scene_props.base_y = 2
+        elif scene_props.tile_type == 'CORNER_FLOOR':
+            scene_props.tile_z = 0.3
+            scene_props.base_z = 0.2755
+            scene_props.tile_x = 2
+            scene_props.tile_y = 0.5
+            scene_props.base_x = 2
+            scene_props.base_y = 0.5
+        elif scene_props.tile_type == 'CONNECTING_COLUMN':
+            scene_props.base_x = 0.5
+            scene_props.base_y = 0.5
+            scene_props.base_z = 0.2755
+            scene_props.tile_x = 0.5
+            scene_props.tile_y = 0.5
+            scene_props.tile_z = 2
         else:
-            scene_props.mt_tile_x = 2
-            scene_props.mt_tile_y = 0.3149
-            scene_props.mt_tile_z = 2
-            scene_props.mt_base_x = 2
-            scene_props.mt_base_y = 0.5
-            scene_props.mt_base_z = 0.2755
+            scene_props.tile_x = 2
+            scene_props.tile_y = 0.3149
+            scene_props.tile_z = 2
+            scene_props.base_x = 2
+            scene_props.base_y = 0.5
+            scene_props.base_z = 0.2755
 
     def update_subdiv_defaults(self, context):
         scene_props = context.scene.mt_scene_props
-        if scene_props.mt_tile_type == 'STRAIGHT_WALL':
-            scene_props.mt_x_native_subdivisions = 15
-            scene_props.mt_y_native_subdivisions = 3
-            scene_props.mt_z_native_subdivisions = 15
-        elif scene_props.mt_tile_type == 'STRAIGHT_FLOOR':
-            scene_props.mt_x_native_subdivisions = 15
-            scene_props.mt_y_native_subdivisions = 3
-            scene_props.mt_z_native_subdivisions = 1
-        elif scene_props.mt_tile_type == 'CURVED_WALL':
-            scene_props.mt_curve_native_subdivisions = 20
-            scene_props.mt_y_native_subdivisions = 3
-            scene_props.mt_z_native_subdivisions = 15
-        elif scene_props.mt_tile_type == 'CURVED_FLOOR':
-            scene_props.mt_curve_native_subdivisions = 20
-            scene_props.mt_y_native_subdivisions = 3
-            scene_props.mt_z_native_subdivisions = 1
-        elif scene_props.mt_tile_type == 'CORNER_WALL':
-            scene_props.mt_leg_1_native_subdivisions = 15
-            scene_props.mt_leg_2_native_subdivisions = 15
-            scene_props.mt_width_native_subdivisions = 3
-            scene_props.mt_z_native_subdivisions = 15
-        elif scene_props.mt_tile_type == 'CORNER_FLOOR':
-            scene_props.mt_leg_1_native_subdivisions = 15
-            scene_props.mt_leg_2_native_subdivisions = 15
-            scene_props.mt_width_native_subdivisions = 3
-            scene_props.mt_z_native_subdivisions = 1
-        elif scene_props.mt_tile_type == 'RECTANGULAR_FLOOR':
-            scene_props.mt_x_native_subdivisions = 15
-            scene_props.mt_y_native_subdivisions = 15
-            scene_props.mt_z_native_subdivisions = 1
-        elif scene_props.mt_tile_type == 'TRIANGULAR_FLOOR':
-            scene_props.mt_x_native_subdivisions = 15
-            scene_props.mt_y_native_subdivisions = 15
-            scene_props.mt_z_native_subdivisions = 1
-            scene_props.mt_opposite_native_subdivisions = 15
-        elif scene_props.mt_tile_type == 'SEMI_CIRC_FLOOR':
-            scene_props.mt_x_native_subdivisions = 15
-            scene_props.mt_y_native_subdivisions = 15
-            scene_props.mt_z_native_subdivisions = 1
-            scene_props.mt_curve_native_subdivisions = 20
-        elif scene_props.mt_tile_type == 'CONNECTING_COLUMN':
-            scene_props.mt_x_native_subdivisions = 3
-            scene_props.mt_y_native_subdivisions = 3
-            scene_props.mt_z_native_subdivisions = 15
+        if scene_props.tile_type == 'STRAIGHT_WALL':
+            scene_props.x_native_subdivisions = 15
+            scene_props.y_native_subdivisions = 3
+            scene_props.z_native_subdivisions = 15
+        elif scene_props.tile_type == 'STRAIGHT_FLOOR':
+            scene_props.x_native_subdivisions = 15
+            scene_props.y_native_subdivisions = 3
+            scene_props.z_native_subdivisions = 1
+        elif scene_props.tile_type == 'CURVED_WALL':
+            scene_props.curve_native_subdivisions = 20
+            scene_props.y_native_subdivisions = 3
+            scene_props.z_native_subdivisions = 15
+        elif scene_props.tile_type == 'CURVED_FLOOR':
+            scene_props.curve_native_subdivisions = 20
+            scene_props.y_native_subdivisions = 3
+            scene_props.z_native_subdivisions = 1
+        elif scene_props.tile_type == 'CORNER_WALL':
+            scene_props.leg_1_native_subdivisions = 15
+            scene_props.leg_2_native_subdivisions = 15
+            scene_props.width_native_subdivisions = 3
+            scene_props.z_native_subdivisions = 15
+        elif scene_props.tile_type == 'CORNER_FLOOR':
+            scene_props.leg_1_native_subdivisions = 15
+            scene_props.leg_2_native_subdivisions = 15
+            scene_props.width_native_subdivisions = 3
+            scene_props.z_native_subdivisions = 1
+        elif scene_props.tile_type == 'RECTANGULAR_FLOOR':
+            scene_props.x_native_subdivisions = 15
+            scene_props.y_native_subdivisions = 15
+            scene_props.z_native_subdivisions = 1
+        elif scene_props.tile_type == 'TRIANGULAR_FLOOR':
+            scene_props.x_native_subdivisions = 15
+            scene_props.y_native_subdivisions = 15
+            scene_props.z_native_subdivisions = 1
+            scene_props.opposite_native_subdivisions = 15
+        elif scene_props.tile_type == 'SEMI_CIRC_FLOOR':
+            scene_props.x_native_subdivisions = 15
+            scene_props.y_native_subdivisions = 15
+            scene_props.z_native_subdivisions = 1
+            scene_props.curve_native_subdivisions = 20
+        elif scene_props.tile_type == 'CONNECTING_COLUMN':
+            scene_props.x_native_subdivisions = 3
+            scene_props.y_native_subdivisions = 3
+            scene_props.z_native_subdivisions = 15
 
     def update_disp_strength(self, context):
         obj = bpy.context.object
         obj_props = obj.mt_object_props
         tile = bpy.data.collections[obj_props.tile_name]
-        tile.mt_tile_props.displacement_strength = context.scene.mt_scene_props.mt_displacement_strength
+        tile.mt_tile_props.displacement_strength = context.scene.mt_scene_props.displacement_strength
         if obj_props.geometry_type == 'DISPLACEMENT':
             if 'Displacement' in obj.modifiers:
                 mod = obj.modifiers['Displacement']
-                mod.strength = context.scene.mt_scene_props.mt_displacement_strength
+                mod.strength = context.scene.mt_scene_props.displacement_strength
 
     def update_disp_subdivisions(self, context):
         '''Updates the numnber of subdivisions used by the displacement material modifier'''
@@ -242,7 +242,7 @@ class MT_Scene_Properties(PropertyGroup):
         if obj_props.geometry_type == 'DISPLACEMENT':
             if 'Subsurf' in obj.modifiers:
                 modifier = obj.modifiers['Subsurf']
-                modifier.levels = context.scene.mt_scene_props.mt_subdivisions
+                modifier.levels = context.scene.mt_scene_props.subdivisions
 
     def update_material_mapping(self, context):
         '''updates which mapping method to use for a material'''
@@ -250,7 +250,7 @@ class MT_Scene_Properties(PropertyGroup):
         tree = material.node_tree
         nodes = tree.nodes
 
-        map_meth = context.scene.mt_scene_props.mt_material_mapping_method
+        map_meth = context.scene.mt_scene_props.material_mapping_method
 
         if 'master_mapping' in nodes:
             mapping_node = nodes['master_mapping']
@@ -294,7 +294,7 @@ class MT_Scene_Properties(PropertyGroup):
                     tile_props = tile.mt_tile_props
 
                     scene_props = context.scene.mt_scene_props
-                    UV_island_margin = scene_props.mt_UV_island_margin
+                    UV_island_margin = scene_props.UV_island_margin
                     tile_props.UV_island_margin = UV_island_margin
 
                     for ob in (obj, linked_obj):
@@ -338,48 +338,49 @@ class MT_Scene_Properties(PropertyGroup):
         type=bpy.types.Object
     )
 
-    mt_tile_name: bpy.props.StringProperty(
+    tile_name: bpy.props.StringProperty(
         name="Tile Name",
         default="Tile"
     )
 
-    mt_tile_units: bpy.props.EnumProperty(
+    tile_units: bpy.props.EnumProperty(
         items=units,
         name="Units",
         default='INCHES'
     )
 
-    mt_tile_blueprint: bpy.props.EnumProperty(
+    tile_blueprint: bpy.props.EnumProperty(
         items=tile_blueprints,
         name="Blueprint",
-        update=update_mt_tile_blueprint
+        update=update_tile_blueprint
     )
 
-    mt_main_part_blueprint: bpy.props.EnumProperty(
+    main_part_blueprint: bpy.props.EnumProperty(
         items=tile_main_systems,
         name="Main System",
         default='OPENLOCK'
     )
 
-    mt_tile_type_new: bpy.props.EnumProperty(
+    tile_type_new: bpy.props.EnumProperty(
         items=create_tile_type_enums,
-        name="Tile Type"
+        name="Tile Type",
+        update=update_scene_defaults
     )
 
-    mt_tile_type: bpy.props.EnumProperty(
+    tile_type: bpy.props.EnumProperty(
         items=tile_types,
         name="Type",
         default="STRAIGHT_WALL",
         update=change_tile_type
     )
 
-    mt_base_blueprint: bpy.props.EnumProperty(
+    base_blueprint: bpy.props.EnumProperty(
         items=base_systems,
         name="Base Type",
         default='OPENLOCK'
     )
 
-    mt_UV_island_margin: bpy.props.FloatProperty(
+    UV_island_margin: bpy.props.FloatProperty(
         name="UV Margin",
         default=0.01,
         precision=4,
@@ -390,55 +391,55 @@ class MT_Scene_Properties(PropertyGroup):
     )
 
     # Native Subdivisions #
-    mt_x_native_subdivisions: bpy.props.IntProperty(
+    x_native_subdivisions: bpy.props.IntProperty(
         name="X",
         description="The number of times to subdivide the X axis on creation",
         default=15
     )
 
-    mt_y_native_subdivisions: bpy.props.IntProperty(
+    y_native_subdivisions: bpy.props.IntProperty(
         name="Y",
         description="The number of times to subdivide the Y axis on creation",
         default=3
     )
 
-    mt_z_native_subdivisions: bpy.props.IntProperty(
+    z_native_subdivisions: bpy.props.IntProperty(
         name="Z",
         description="The number of times to subdivide the Z axis on creation",
         default=15
     )
 
-    mt_opposite_native_subdivisions: bpy.props.IntProperty(
+    opposite_native_subdivisions: bpy.props.IntProperty(
         name="Opposite Side",
         description="The number of times to subdivide the edge opposite the root angle on triangular tile creation",
         default=15
     )
 
-    mt_curve_native_subdivisions: bpy.props.IntProperty(
+    curve_native_subdivisions: bpy.props.IntProperty(
         name="Curved Side",
         description="The number of times to subdivide the curved side of a tile",
         default=15
     )
 
-    mt_leg_1_native_subdivisions: bpy.props.IntProperty(
+    leg_1_native_subdivisions: bpy.props.IntProperty(
         name="Leg 1",
         description="The number of times to subdivide the length of leg 1 of the tile",
         default=15
     )
 
-    mt_leg_2_native_subdivisions: bpy.props.IntProperty(
+    leg_2_native_subdivisions: bpy.props.IntProperty(
         name="Leg 2",
         description="The number of times to subdivide the length of leg 2 of the tile",
         default=15
     )
 
-    mt_width_native_subdivisions: bpy.props.IntProperty(
+    width_native_subdivisions: bpy.props.IntProperty(
         name="Width",
         description="The number of times to subdivide each leg along its width",
         default=3
     )
 
-    mt_material_mapping_method: bpy.props.EnumProperty(
+    material_mapping_method: bpy.props.EnumProperty(
         items=material_mapping,
         description="How to map the active material onto an object",
         name="Material Mapping Method",
@@ -446,7 +447,7 @@ class MT_Scene_Properties(PropertyGroup):
         default='OBJECT'
     )
 
-    mt_displacement_strength: bpy.props.FloatProperty(
+    displacement_strength: bpy.props.FloatProperty(
         name="Displacement Strength",
         description="Overall Displacement Strength",
         default=0.1,
@@ -455,12 +456,12 @@ class MT_Scene_Properties(PropertyGroup):
         update=update_disp_strength
     )
 
-    mt_tile_material_1: bpy.props.EnumProperty(
+    tile_material_1: bpy.props.EnumProperty(
         items=load_material_enums,
         name="Material"
     )
 
-    mt_tile_resolution: bpy.props.IntProperty(
+    tile_resolution: bpy.props.IntProperty(
         name="Resolution",
         description="Bake resolution of displacement maps. Higher = better quality but slower. Also images are 32 bit so 4K and 8K images can be gigabytes in size",
         default=1024,
@@ -469,7 +470,7 @@ class MT_Scene_Properties(PropertyGroup):
         step=1024,
     )
 
-    mt_subdivisions: bpy.props.IntProperty(
+    subdivisions: bpy.props.IntProperty(
         name="Subdivisions",
         description="How many times to subdivide the displacement mesh with a subsurf modifier. Higher = better but slower.",
         default=3,
@@ -482,7 +483,7 @@ class MT_Scene_Properties(PropertyGroup):
     # in a vector and passed on as tile_size and base_size
 
     # Tile size
-    mt_tile_x: bpy.props.FloatProperty(
+    tile_x: bpy.props.FloatProperty(
         name="X",
         default=2.0,
         step=0.5,
@@ -490,7 +491,7 @@ class MT_Scene_Properties(PropertyGroup):
         min=0
     )
 
-    mt_tile_y: bpy.props.FloatProperty(
+    tile_y: bpy.props.FloatProperty(
         name="Y",
         default=2,
         step=0.5,
@@ -498,7 +499,7 @@ class MT_Scene_Properties(PropertyGroup):
         min=0
     )
 
-    mt_tile_z: bpy.props.FloatProperty(
+    tile_z: bpy.props.FloatProperty(
         name="Z",
         default=2.0,
         step=0.1,
@@ -507,7 +508,7 @@ class MT_Scene_Properties(PropertyGroup):
     )
 
     # Base size
-    mt_base_x: bpy.props.FloatProperty(
+    base_x: bpy.props.FloatProperty(
         name="X",
         default=2.0,
         step=0.5,
@@ -515,7 +516,7 @@ class MT_Scene_Properties(PropertyGroup):
         min=0
     )
 
-    mt_base_y: bpy.props.FloatProperty(
+    base_y: bpy.props.FloatProperty(
         name="Y",
         default=0.5,
         step=0.5,
@@ -523,7 +524,7 @@ class MT_Scene_Properties(PropertyGroup):
         min=0
     )
 
-    mt_base_z: bpy.props.FloatProperty(
+    base_z: bpy.props.FloatProperty(
         name="Z",
         default=0.3,
         step=0.1,
@@ -532,14 +533,14 @@ class MT_Scene_Properties(PropertyGroup):
     )
 
     # Corner wall and triangular base specific
-    mt_angle: bpy.props.FloatProperty(
+    angle: bpy.props.FloatProperty(
         name="Base Angle",
         default=90,
         step=5,
         precision=1
     )
 
-    mt_leg_1_len: bpy.props.FloatProperty(
+    leg_1_len: bpy.props.FloatProperty(
         name="Leg 1 Length",
         description="Length of leg",
         default=2,
@@ -547,7 +548,7 @@ class MT_Scene_Properties(PropertyGroup):
         precision=2
     )
 
-    mt_leg_2_len: bpy.props.FloatProperty(
+    leg_2_len: bpy.props.FloatProperty(
         name="Leg 2 Length",
         description="Length of leg",
         default=2,
@@ -556,14 +557,14 @@ class MT_Scene_Properties(PropertyGroup):
     )
 
     # Openlock curved wall specific
-    mt_base_socket_side: bpy.props.EnumProperty(
+    base_socket_side: bpy.props.EnumProperty(
         items=base_socket_side,
         name="Socket Side",
         default="INNER",
     )
 
     # Used for curved wall tiles
-    mt_base_radius: bpy.props.FloatProperty(
+    base_radius: bpy.props.FloatProperty(
         name="Base inner radius",
         default=2.0,
         step=0.5,
@@ -571,7 +572,7 @@ class MT_Scene_Properties(PropertyGroup):
         min=0,
     )
 
-    mt_wall_radius: bpy.props.FloatProperty(
+    wall_radius: bpy.props.FloatProperty(
         name="Wall inner radius",
         default=2.0,
         step=0.5,
@@ -580,7 +581,7 @@ class MT_Scene_Properties(PropertyGroup):
     )
 
     # used for curved floors
-    mt_curve_type: bpy.props.EnumProperty(
+    curve_type: bpy.props.EnumProperty(
         items=curve_types,
         name="Curve type",
         default="POS",
@@ -588,14 +589,14 @@ class MT_Scene_Properties(PropertyGroup):
     )
 
     # Openlock connecting column specific
-    mt_openlock_column_type: bpy.props.EnumProperty(
+    openlock_column_type: bpy.props.EnumProperty(
         items=openlock_column_types,
         name="Column type",
         default="O"
     )
 
     # TODO: Fix hack to make 360 curved wall work. Ideally this should merge everything
-    mt_degrees_of_arc: bpy.props.FloatProperty(
+    degrees_of_arc: bpy.props.FloatProperty(
         name="Degrees of arc",
         default=90,
         step=45,
@@ -605,12 +606,12 @@ class MT_Scene_Properties(PropertyGroup):
     )
 
     # used for rescaling objects
-    mt_base_unit: bpy.props.EnumProperty(
+    base_unit: bpy.props.EnumProperty(
         name="Base Unit",
         items=units
     )
 
-    mt_target_unit: bpy.props.EnumProperty(
+    target_unit: bpy.props.EnumProperty(
         name="Target Unit",
         items=units
     )

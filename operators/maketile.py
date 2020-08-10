@@ -34,16 +34,16 @@ def initialise_tile_creator(context):
         scene.render.engine = 'BLENDER_EEVEE'
 
     # Set defaults for different tile systems
-    tile_blueprint = scene_props.mt_tile_blueprint
-    tile_type = scene_props.mt_tile_type
+    tile_blueprint = scene_props.tile_blueprint
+    tile_type = scene_props.tile_type
 
     if tile_blueprint == 'OPENLOCK':
-        scene_props.mt_main_part_blueprint = 'OPENLOCK'
-        scene_props.mt_base_blueprint = 'OPENLOCK'
+        scene_props.main_part_blueprint = 'OPENLOCK'
+        scene_props.base_blueprint = 'OPENLOCK'
 
     if tile_blueprint == 'PLAIN':
-        scene_props.mt_main_part_blueprint = 'PLAIN'
-        scene_props.mt_base_blueprint = 'PLAIN'
+        scene_props.main_part_blueprint = 'PLAIN'
+        scene_props.base_blueprint = 'PLAIN'
 
     # Root collection to which we add all tiles
     tiles_collection = create_collection('Tiles', scene.collection)
@@ -127,35 +127,35 @@ class MT_Tile_Generator:
         tile_props.is_mt_collection = True
         tile_props.tile_blueprint = tile_blueprint
         tile_props.tile_type = tile_type
-        tile_props.main_part_blueprint = scene_props.mt_main_part_blueprint
-        tile_props.base_blueprint = scene_props.mt_base_blueprint
-        tile_props.UV_island_margin = scene_props.mt_UV_island_margin
+        tile_props.main_part_blueprint = scene_props.main_part_blueprint
+        tile_props.base_blueprint = scene_props.base_blueprint
+        tile_props.UV_island_margin = scene_props.UV_island_margin
 
-        tile_props.tile_size = (scene_props.mt_tile_x, scene_props.mt_tile_y, scene_props.mt_tile_z)
-        tile_props.base_size = (scene_props.mt_base_x, scene_props.mt_base_y, scene_props.mt_base_z)
-        tile_props.base_radius = scene_props.mt_base_radius
-        tile_props.base_socket_side = scene_props.mt_base_socket_side
-        tile_props.wall_radius = scene_props.mt_wall_radius
-        tile_props.degrees_of_arc = scene_props.mt_degrees_of_arc
-        tile_props.angle = scene_props.mt_angle
+        tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
+        tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
+        tile_props.base_radius = scene_props.base_radius
+        tile_props.base_socket_side = scene_props.base_socket_side
+        tile_props.wall_radius = scene_props.wall_radius
+        tile_props.degrees_of_arc = scene_props.degrees_of_arc
+        tile_props.angle = scene_props.angle
 
-        tile_props.leg_1_len = scene_props.mt_leg_1_len
-        tile_props.leg_2_len = scene_props.mt_leg_2_len
-        tile_props.curve_type = scene_props.mt_curve_type
-        tile_props.openlock_column_type = scene_props.mt_openlock_column_type
+        tile_props.leg_1_len = scene_props.leg_1_len
+        tile_props.leg_2_len = scene_props.leg_2_len
+        tile_props.curve_type = scene_props.curve_type
+        tile_props.openlock_column_type = scene_props.openlock_column_type
 
-        tile_props.tile_units = scene_props.mt_tile_units
-        tile_props.displacement_strength = scene_props.mt_displacement_strength
-        tile_props.tile_resolution = scene_props.mt_tile_resolution
+        tile_props.tile_units = scene_props.tile_units
+        tile_props.displacement_strength = scene_props.displacement_strength
+        tile_props.tile_resolution = scene_props.tile_resolution
 
-        tile_props.x_native_subdivisions = scene_props.mt_x_native_subdivisions
-        tile_props.y_native_subdivisions = scene_props.mt_y_native_subdivisions
-        tile_props.z_native_subdivisions = scene_props.mt_z_native_subdivisions
-        tile_props.opposite_native_subdivisions = scene_props.mt_opposite_native_subdivisions
-        tile_props.curve_native_subdivisions = scene_props.mt_curve_native_subdivisions
-        tile_props.leg_1_native_subdivisions = scene_props.mt_leg_1_native_subdivisions
-        tile_props.leg_2_native_subdivisions = scene_props.mt_leg_2_native_subdivisions
-        tile_props.width_native_subdivisions = scene_props.mt_width_native_subdivisions
+        tile_props.x_native_subdivisions = scene_props.x_native_subdivisions
+        tile_props.y_native_subdivisions = scene_props.y_native_subdivisions
+        tile_props.z_native_subdivisions = scene_props.z_native_subdivisions
+        tile_props.opposite_native_subdivisions = scene_props.opposite_native_subdivisions
+        tile_props.curve_native_subdivisions = scene_props.curve_native_subdivisions
+        tile_props.leg_1_native_subdivisions = scene_props.leg_1_native_subdivisions
+        tile_props.leg_2_native_subdivisions = scene_props.leg_2_native_subdivisions
+        tile_props.width_native_subdivisions = scene_props.width_native_subdivisions
         ###############
         # Create Tile #
         ###############
@@ -202,13 +202,13 @@ def create_common_tile_props(scene_props, tile_props, tile_collection):
     """Create properties common to all tiles."""
     tile_props.tile_name = tile_collection.name
     tile_props.is_mt_collection = True
-    tile_props.tile_blueprint = scene_props.mt_tile_blueprint
-    tile_props.main_part_blueprint = scene_props.mt_main_part_blueprint
-    tile_props.base_blueprint = scene_props.mt_base_blueprint
-    tile_props.UV_island_margin = scene_props.mt_UV_island_margin
-    tile_props.tile_units = scene_props.mt_tile_units
-    tile_props.displacement_strength = scene_props.mt_displacement_strength
-    tile_props.tile_resolution = scene_props.mt_tile_resolution
+    tile_props.tile_blueprint = scene_props.tile_blueprint
+    tile_props.main_part_blueprint = scene_props.main_part_blueprint
+    tile_props.base_blueprint = scene_props.base_blueprint
+    tile_props.UV_island_margin = scene_props.UV_island_margin
+    tile_props.tile_units = scene_props.tile_units
+    tile_props.displacement_strength = scene_props.displacement_strength
+    tile_props.tile_resolution = scene_props.tile_resolution
 
 
 class MT_OT_Make_Corner_Floor_Tile(MT_Tile_Generator, Operator):

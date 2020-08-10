@@ -129,7 +129,7 @@ class MT_OT_Make_3D(bpy.types.Operator):
                 disp_mod.mid_level = 0
                 disp_mod.strength = disp_strength
                 subsurf_mod = disp_obj.modifiers[disp_obj['subsurf_mod_name']]
-                subsurf_mod.levels = bpy.context.scene.mt_scene_props.mt_subdivisions
+                subsurf_mod.levels = bpy.context.scene.mt_scene_props.subdivisions
                 preview_obj.hide_viewport = True
 
         reset_renderer_from_bake(orig_render_settings)
@@ -138,7 +138,7 @@ class MT_OT_Make_3D(bpy.types.Operator):
 
 def set_cycles_to_bake_mode():
     context = bpy.context
-    resolution = context.scene.mt_scene_props.mt_tile_resolution
+    resolution = context.scene.mt_scene_props.tile_resolution
 
     # save original settings
     cycles_settings = {
@@ -171,7 +171,7 @@ def reset_renderer_from_bake(orig_settings):
 def bake_displacement_map(preview_obj, disp_obj):
     context = bpy.context
     prefs = get_prefs()
-    image_resolution = context.scene.mt_scene_props.mt_tile_resolution
+    image_resolution = context.scene.mt_scene_props.tile_resolution
     disp_image = bpy.data.images.new(
         disp_obj.name + '.image',
         width=image_resolution,

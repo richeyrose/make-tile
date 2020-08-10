@@ -5,17 +5,17 @@
         "type": "RECT_FLOOR",
         "defaults":
             {
-            "mt_base_blueprint": "OPENLOCK",
-            "mt_main_part_blueprint": "PLAIN",
-            "mt_x_native_subdivisions": 15,
-            "mt_y_native_subdivisions": 15,
-            "mt_z_native_subdivisions": 1,
-            "mt_tile_x": 2,
-            "mt_tile_y": 2,
-            "mt_tile_z": 0.3,
-            "mt_base_x": 2,
-            "mt_base_y": 2,
-            "mt_base_z": 0.2755
+            "base_blueprint": "OPENLOCK",
+            "main_part_blueprint": "PLAIN",
+            "x_native_subdivisions": 15,
+            "y_native_subdivisions": 15,
+            "z_native_subdivisions": 1,
+            "tile_x": 2,
+            "tile_y": 2,
+            "tile_z": 0.3,
+            "base_x": 2,
+            "base_y": 2,
+            "base_z": 0.2755
 
             }
     },
@@ -25,17 +25,17 @@
         "type": "RECT_FLOOR",
         "defaults":
             {
-            "mt_base_blueprint": "PLAIN",
-            "mt_main_part_blueprint": "PLAIN",
-            "mt_x_native_subdivisions": 15,
-            "mt_y_native_subdivisions": 15,
-            "mt_z_native_subdivisions": 1,
-            "mt_tile_x": 4,
-            "mt_tile_y": 4,
-            "mt_tile_z": 0.3,
-            "mt_base_x": 2,
-            "mt_base_y": 2,
-            "mt_base_z": 0.2755
+            "base_blueprint": "PLAIN",
+            "main_part_blueprint": "PLAIN",
+            "x_native_subdivisions": 15,
+            "y_native_subdivisions": 15,
+            "z_native_subdivisions": 1,
+            "tile_x": 3,
+            "tile_y": 3,
+            "tile_z": 0.3,
+            "base_x": 2,
+            "base_y": 2,
+            "base_z": 0.2755
             }
     },
     {
@@ -44,17 +44,17 @@
         "type": "RECT_FLOOR",
         "defaults":
             {
-            "mt_base_blueprint": "OPENLOCK",
-            "mt_main_part_blueprint": "PLAIN",
-            "mt_x_native_subdivisions": 15,
-            "mt_y_native_subdivisions": 15,
-            "mt_z_native_subdivisions": 1,
-            "mt_tile_x": 4,
-            "mt_tile_y": 4,
-            "mt_tile_z": 0.3,
-            "mt_base_x": 2,
-            "mt_base_y": 2,
-            "mt_base_z": 0.2755
+            "base_blueprint": "OPENLOCK",
+            "main_part_blueprint": "PLAIN",
+            "x_native_subdivisions": 15,
+            "y_native_subdivisions": 15,
+            "z_native_subdivisions": 1,
+            "tile_x": 4,
+            "tile_y": 4,
+            "tile_z": 0.3,
+            "base_x": 2,
+            "base_y": 2,
+            "base_z": 0.2755
             }
     },
     {
@@ -63,17 +63,17 @@
         "type": "STRAIGHT_WALL",
         "defaults":
             {
-            "mt_base_blueprint": "OPENLOCK",
-            "mt_main_part_blueprint": "PLAIN",
-            "mt_x_native_subdivisions": 15,
-            "mt_y_native_subdivisions": 1,
-            "mt_z_native_subdivisions": 15,
-            "mt_tile_x": 2,
-            "mt_tile_y": 0.315,
-            "mt_tile_z": 2,
-            "mt_base_x": 2,
-            "mt_base_y": 0.5,
-            "mt_base_z": 0.2755
+            "base_blueprint": "OPENLOCK",
+            "main_part_blueprint": "PLAIN",
+            "x_native_subdivisions": 15,
+            "y_native_subdivisions": 1,
+            "z_native_subdivisions": 15,
+            "tile_x": 2,
+            "tile_y": 0.315,
+            "tile_z": 2,
+            "base_x": 2,
+            "base_y": 0.5,
+            "base_z": 0.2755
             }
     },
     {
@@ -82,15 +82,15 @@
         "type": "STRAIGHT_WALL",
         "defaults":
             {
-            "mt_x_native_subdivisions": 15,
-            "mt_y_native_subdivisions": 1,
-            "mt_z_native_subdivisions": 15,
-            "mt_tile_x": 4,
-            "mt_tile_y": 0.315,
-            "mt_tile_z": 2,
-            "mt_base_x": 4,
-            "mt_base_y": 0.5,
-            "mt_base_z": 0.2755
+            "x_native_subdivisions": 15,
+            "y_native_subdivisions": 1,
+            "z_native_subdivisions": 15,
+            "tile_x": 4,
+            "tile_y": 0.315,
+            "tile_z": 2,
+            "base_x": 4,
+            "base_y": 0.5,
+            "base_z": 0.2755
             }
     },
     {
@@ -99,15 +99,15 @@
         "type": "STRAIGHT_WALL",
         "defaults":
             {
-            "mt_x_native_subdivisions": 15,
-            "mt_y_native_subdivisions": 1,
-            "mt_z_native_subdivisions": 15,
-            "mt_tile_x": 4,
-            "mt_tile_y": 0.315,
-            "mt_tile_z": 2,
-            "mt_base_x": 4,
-            "mt_base_y": 0.5,
-            "mt_base_z": 0.2755
+            "x_native_subdivisions": 15,
+            "y_native_subdivisions": 1,
+            "z_native_subdivisions": 15,
+            "tile_x": 4,
+            "tile_y": 0.315,
+            "tile_z": 2,
+            "base_x": 4,
+            "base_y": 0.5,
+            "base_z": 0.2755
             }
     }
 ]

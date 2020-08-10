@@ -92,7 +92,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                     disp_mod.mid_level = 0
                     disp_mod.strength = collection.mt_tile_props.displacement_strength
                     subsurf_mod = disp_obj.modifiers[disp_obj['subsurf_mod_name']]
-                    subsurf_mod.levels = bpy.context.scene.mt_scene_props.mt_subdivisions
+                    subsurf_mod.levels = bpy.context.scene.mt_scene_props.subdivisions
                     disp_obs.append(disp_obj)
 
                 obj_copies = []

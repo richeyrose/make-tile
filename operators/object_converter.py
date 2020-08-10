@@ -77,9 +77,9 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
         tile_props = new_collection.mt_tile_props
         tile_props.tile_name = new_collection.name
         tile_props.is_mt_collection = True
-        tile_props.displacement_strength = scene_props.mt_displacement_strength
-        tile_props.tile_resolution = scene_props.mt_tile_resolution
-        tile_props.subdivisions = scene_props.mt_subdivisions
+        tile_props.displacement_strength = scene_props.displacement_strength
+        tile_props.tile_resolution = scene_props.tile_resolution
+        tile_props.subdivisions = scene_props.subdivisions
 
         # We assume we want to add texture to entire object and so create an
         # "All" vertex group if there isn't one already
@@ -113,10 +113,10 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
         # Get prefs from scene
         prefs = get_prefs()
 
-        primary_material = bpy.data.materials[bpy.context.scene.mt_scene_props.mt_tile_material_1]
+        primary_material = bpy.data.materials[bpy.context.scene.mt_scene_props.tile_material_1]
         secondary_material = bpy.data.materials[prefs.secondary_material]
 
-        image_size = bpy.context.scene.mt_scene_props.mt_tile_resolution
+        image_size = bpy.context.scene.mt_scene_props.tile_resolution
 
         # We only apply the displacement modifier to this vertex group which prevents
         # the displacement appearing where we don;t want it to

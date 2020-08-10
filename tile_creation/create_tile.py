@@ -33,10 +33,10 @@ def create_displacement_core(base, preview_core, tile_props, textured_vertex_gro
 
     preview_core, displacement_core = create_displacement_object(preview_core)
 
-    primary_material = bpy.data.materials[scene.mt_scene_props.mt_tile_material_1]
+    primary_material = bpy.data.materials[scene.mt_scene_props.tile_material_1]
     secondary_material = bpy.data.materials[preferences.secondary_material]
 
-    image_size = bpy.context.scene.mt_scene_props.mt_tile_resolution
+    image_size = bpy.context.scene.mt_scene_props.tile_resolution
 
     # create a vertex group for the displacement modifier
     mod_vert_group_name = construct_displacement_mod_vert_group(displacement_core, textured_vertex_groups)
@@ -162,10 +162,10 @@ class MT_Tile:
         preview_core, displacement_core = create_displacement_object(preview_core)
 
 
-        primary_material = bpy.data.materials[scene.mt_scene_props.mt_tile_material_1]
+        primary_material = bpy.data.materials[scene.mt_scene_props.tile_material_1]
         secondary_material = bpy.data.materials[preferences.secondary_material]
 
-        image_size = bpy.context.scene.mt_scene_props.mt_tile_resolution
+        image_size = bpy.context.scene.mt_scene_props.tile_resolution
 
         # create a vertex group for the displacement modifier
         mod_vert_group_name = construct_displacement_mod_vert_group(displacement_core, textured_vertex_groups)

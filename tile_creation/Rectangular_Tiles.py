@@ -33,9 +33,9 @@ class MT_PT_Openlock_Rect_Floor_Panel(Panel):
 
     @classmethod
     def poll(cls, context):
-        """Check mt_tile_type_new."""
+        """Check tile_type_new."""
         if hasattr(context.scene, 'mt_scene_props'):
-            return context.scene.mt_scene_props.mt_tile_type_new == "object.make_openlock_rect_floor"
+            return context.scene.mt_scene_props.tile_type_new == "object.make_openlock_rect_floor"
         return False
 
     def draw(self, context):
@@ -46,15 +46,15 @@ class MT_PT_Openlock_Rect_Floor_Panel(Panel):
 
         layout.label(text="Tile Size")
         row = layout.row()
-        row.prop(scene_props, 'mt_tile_x')
-        row.prop(scene_props, 'mt_tile_y')
-        row.prop(scene_props, 'mt_tile_z')
+        row.prop(scene_props, 'tile_x')
+        row.prop(scene_props, 'tile_y')
+        row.prop(scene_props, 'tile_z')
 
         layout.label(text="Base Size")
         row = layout.row()
-        row.prop(scene_props, 'mt_base_x')
-        row.prop(scene_props, 'mt_base_y')
-        row.prop(scene_props, 'mt_base_z')
+        row.prop(scene_props, 'base_x')
+        row.prop(scene_props, 'base_y')
+        row.prop(scene_props, 'base_z')
 
 
 class MT_PT_Plain_Rect_Floor_Panel(Panel):
@@ -70,9 +70,9 @@ class MT_PT_Plain_Rect_Floor_Panel(Panel):
 
     @classmethod
     def poll(cls, context):
-        """Check mt_tile_type_new."""
+        """Check tile_type_new."""
         if hasattr(context.scene, 'mt_scene_props'):
-            return context.scene.mt_scene_props.mt_tile_type_new == "object.make_plain_rect_floor"
+            return context.scene.mt_scene_props.tile_type_new == "object.make_plain_rect_floor"
         return False
 
     def draw(self, context):
@@ -83,15 +83,15 @@ class MT_PT_Plain_Rect_Floor_Panel(Panel):
 
         layout.label(text="Tile Size")
         row = layout.row()
-        row.prop(scene_props, 'mt_tile_x')
-        row.prop(scene_props, 'mt_tile_y')
-        row.prop(scene_props, 'mt_tile_z')
+        row.prop(scene_props, 'tile_x')
+        row.prop(scene_props, 'tile_y')
+        row.prop(scene_props, 'tile_z')
 
         layout.label(text="Base Size")
         row = layout.row()
-        row.prop(scene_props, 'mt_base_x')
-        row.prop(scene_props, 'mt_base_y')
-        row.prop(scene_props, 'mt_base_z')
+        row.prop(scene_props, 'base_x')
+        row.prop(scene_props, 'base_y')
+        row.prop(scene_props, 'base_z')
 
 
 class MT_PT_Custom_Rect_Floor_Panel(Panel):
@@ -107,9 +107,9 @@ class MT_PT_Custom_Rect_Floor_Panel(Panel):
 
     @classmethod
     def poll(cls, context):
-        """Check mt_tile_type_new."""
+        """Check tile_type_new."""
         if hasattr(context.scene, 'mt_scene_props'):
-            return context.scene.mt_scene_props.mt_tile_type_new == "object.make_custom_rect_floor"
+            return context.scene.mt_scene_props.tile_type_new == "object.make_custom_rect_floor"
         return False
 
     def draw(self, context):
@@ -118,20 +118,20 @@ class MT_PT_Custom_Rect_Floor_Panel(Panel):
         scene_props = scene.mt_scene_props
         layout = self.layout
 
-        layout.prop(scene_props, 'mt_base_blueprint')
-        layout.prop(scene_props, 'mt_main_part_blueprint')
+        layout.prop(scene_props, 'base_blueprint')
+        layout.prop(scene_props, 'main_part_blueprint')
 
         layout.label(text="Tile Size")
         row = layout.row()
-        row.prop(scene_props, 'mt_tile_x')
-        row.prop(scene_props, 'mt_tile_y')
-        row.prop(scene_props, 'mt_tile_z')
+        row.prop(scene_props, 'tile_x')
+        row.prop(scene_props, 'tile_y')
+        row.prop(scene_props, 'tile_z')
 
         layout.label(text="Base Size")
         row = layout.row()
-        row.prop(scene_props, 'mt_base_x')
-        row.prop(scene_props, 'mt_base_y')
-        row.prop(scene_props, 'mt_base_z')
+        row.prop(scene_props, 'base_x')
+        row.prop(scene_props, 'base_y')
+        row.prop(scene_props, 'base_z')
 
 
 class MT_OT_Make_Openlock_Rect_Base(MT_Tile_Generator, Operator):
@@ -214,8 +214,8 @@ class MT_OT_Make_Custom_Rect_Floor_Tile(MT_Tile_Generator, Operator):
         """Execute the operator."""
         scene = context.scene
         scene_props = scene.mt_scene_props
-        base_type = scene_props.mt_base_blueprint
-        core_type = scene_props.mt_main_part_blueprint
+        base_type = scene_props.base_blueprint
+        core_type = scene_props.main_part_blueprint
         subclasses = get_all_subclasses(MT_Tile_Generator)
 
         original_renderer, cursor_orig_loc, cursor_orig_rot = initialise_floor_creator(context, scene_props)
@@ -324,12 +324,12 @@ def initialise_floor_creator(context, scene_props):
     create_common_tile_props(scene_props, tile_props, tile_collection)
 
     tile_props.tile_type = 'RECTANGULAR_FLOOR'
-    tile_props.tile_size = (scene_props.mt_tile_x, scene_props.mt_tile_y, scene_props.mt_tile_z)
-    tile_props.base_size = (scene_props.mt_base_x, scene_props.mt_base_y, scene_props.mt_base_z)
+    tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
+    tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
 
-    tile_props.x_native_subdivisions = scene_props.mt_x_native_subdivisions
-    tile_props.y_native_subdivisions = scene_props.mt_y_native_subdivisions
-    tile_props.z_native_subdivisions = scene_props.mt_z_native_subdivisions
+    tile_props.x_native_subdivisions = scene_props.x_native_subdivisions
+    tile_props.y_native_subdivisions = scene_props.y_native_subdivisions
+    tile_props.z_native_subdivisions = scene_props.z_native_subdivisions
 
     return original_renderer, cursor_orig_loc, cursor_orig_rot
 

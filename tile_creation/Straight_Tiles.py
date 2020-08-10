@@ -31,7 +31,7 @@ class MT_PT_Straight_Wall_Options_Panel(Panel, MT_PT_Tile_Options_Panel):
     @classmethod
     def poll(cls, context):
         """Check we are in object mode."""
-        return context.scene.mt_scene_props.mt_tile_type_new == "object.make_straight_wall"
+        return context.scene.mt_scene_props.tile_type_new == "object.make_straight_wall"
 
     def draw_plain_base_panel(self, context):
         scene = context.scene
@@ -40,9 +40,9 @@ class MT_PT_Straight_Wall_Options_Panel(Panel, MT_PT_Tile_Options_Panel):
 
         layout.label(text="Base Size")
         row = layout.row()
-        row.prop(scene_props, 'mt_base_x')
-        row.prop(scene_props, 'mt_base_y')
-        row.prop(scene_props, 'mt_base_z')
+        row.prop(scene_props, 'base_x')
+        row.prop(scene_props, 'base_y')
+        row.prop(scene_props, 'base_z')
 
     def draw_plain_main_part_panel(self, context):
         scene = context.scene
@@ -51,18 +51,18 @@ class MT_PT_Straight_Wall_Options_Panel(Panel, MT_PT_Tile_Options_Panel):
 
         layout.label(text="Tile Size")
         row = layout.row()
-        row.prop(scene_props, 'mt_tile_x')
-        row.prop(scene_props, 'mt_tile_y')
-        row.prop(scene_props, 'mt_tile_z')
+        row.prop(scene_props, 'tile_x')
+        row.prop(scene_props, 'tile_y')
+        row.prop(scene_props, 'tile_z')
 
     def draw_openlock_base_panel(self, context):
         scene = context.scene
         scene_props = scene.mt_scene_props
         layout = self.layout
 
-        if scene_props.mt_main_part_blueprint == 'NONE':
+        if scene_props.main_part_blueprint == 'NONE':
             layout.label(text="Base Size")
-            layout.prop(scene_props, 'mt_tile_x')
+            layout.prop(scene_props, 'tile_x')
 
     def draw_openlock_main_part_panel(self, context):
         scene = context.scene
@@ -72,12 +72,12 @@ class MT_PT_Straight_Wall_Options_Panel(Panel, MT_PT_Tile_Options_Panel):
         layout.label(text="Tile Size:")
         row = layout.row()
 
-        if scene_props.mt_tile_type == 'STRAIGHT_WALL':
-            row.prop(scene_props, 'mt_tile_x')
-            row.prop(scene_props, 'mt_tile_z')
+        if scene_props.tile_type == 'STRAIGHT_WALL':
+            row.prop(scene_props, 'tile_x')
+            row.prop(scene_props, 'tile_z')
         else:
-            row.prop(scene_props, 'mt_tile_x')
-            row.prop(scene_props, 'mt_tile_y')
+            row.prop(scene_props, 'tile_x')
+            row.prop(scene_props, 'tile_y')
 
     def draw_native_subdiv_panel(self, context):
         scene = context.scene
@@ -85,9 +85,9 @@ class MT_PT_Straight_Wall_Options_Panel(Panel, MT_PT_Tile_Options_Panel):
         layout = self.layout
 
         layout.label(text="Native Subdivisions:")
-        layout.prop(scene_props, 'mt_x_native_subdivisions')
-        layout.prop(scene_props, 'mt_y_native_subdivisions')
-        layout.prop(scene_props, 'mt_z_native_subdivisions')
+        layout.prop(scene_props, 'x_native_subdivisions')
+        layout.prop(scene_props, 'y_native_subdivisions')
+        layout.prop(scene_props, 'z_native_subdivisions')
 '''
 
 class MT_OT_Make_Plain_Straight_Wall_Tile(MT_Tile_Generator, Operator):
@@ -127,12 +127,12 @@ class MT_OT_Make_Openlock_Straight_Wall_Tile(MT_Tile_Generator, Operator):
         create_common_tile_props(scene_props, tile_props, tile_collection)
 
         tile_props.tile_type = 'STRAIGHT_WALL'
-        tile_props.tile_size = (scene_props.mt_tile_x, scene_props.mt_tile_y, scene_props.mt_tile_z)
-        tile_props.base_size = (scene_props.mt_base_x, scene_props.mt_base_y, scene_props.mt_base_z)
+        tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
+        tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
 
-        tile_props.x_native_subdivisions = scene_props.mt_x_native_subdivisions
-        tile_props.y_native_subdivisions = scene_props.mt_y_native_subdivisions
-        tile_props.z_native_subdivisions = scene_props.mt_z_native_subdivisions
+        tile_props.x_native_subdivisions = scene_props.x_native_subdivisions
+        tile_props.y_native_subdivisions = scene_props.y_native_subdivisions
+        tile_props.z_native_subdivisions = scene_props.z_native_subdivisions
 
         MT_Straight_Wall_Tile(tile_props)
 
@@ -414,7 +414,7 @@ class MT_Straight_Wall_Tile(MT_Straight_Tile, MT_Tile):
 
     def create_openlock_base(self, tile_props):
         '''Returns an openlock style base with clip sockets'''
-        if bpy.context.scene.mt_scene_props.mt_main_part_blueprint == 'OPENLOCK':
+        if bpy.context.scene.mt_scene_props.main_part_blueprint == 'OPENLOCK':
             tile_props.base_size[0] = tile_props.tile_size[0]
         base = MT_Straight_Tile.create_openlock_base(self, tile_props)
         return base

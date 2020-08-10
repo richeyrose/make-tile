@@ -52,9 +52,10 @@ def initialise_tile_creator(context):
     helper_collection = create_collection('MT Helpers', scene.collection)
 
     # Used as a reference object for material projection
-    material_helper = bpy.data.objects.new('Material Helper Empty', None)
-    material_helper.hide_viewport = True
-    add_object_to_collection(material_helper, helper_collection.name)
+    if 'Material Helper Empty' not in bpy.data.objects:
+        material_helper = bpy.data.objects.new('Material Helper Empty', None)
+        material_helper.hide_viewport = True
+        add_object_to_collection(material_helper, helper_collection.name)
 
     tile_name = tile_blueprint.lower() + "." + tile_type.lower()
 

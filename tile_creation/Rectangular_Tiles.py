@@ -19,81 +19,6 @@ from .. lib.turtle.scripts.openlock_floor_base import draw_openlock_rect_floor_b
 from .. lib.utils.selection import deselect_all, select_by_loc
 from .create_tile import create_displacement_core, finalise_tile
 
-'''
-class MT_PT_Openlock_Rect_Floor_Panel(Panel):
-    """Draw a tile options panel in UI."""
-
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = "Make Tile"
-    bl_label = "Tile Options"
-    bl_order = 2
-    bl_idname = "MT_PT_Openlock_Rect_Floor_Panel"
-    bl_description = "Options to configure the dimensions of a tile"
-
-    @classmethod
-    def poll(cls, context):
-        """Check tile_type_new."""
-        if hasattr(context.scene, 'mt_scene_props'):
-            return context.scene.mt_scene_props.tile_type_new == "object.make_openlock_rect_floor"
-        return False
-
-    def draw(self, context):
-        """Draw the Panel."""
-        scene = context.scene
-        scene_props = scene.mt_scene_props
-        layout = self.layout
-
-        layout.label(text="Tile Size")
-        row = layout.row()
-        row.prop(scene_props, 'tile_x')
-        row.prop(scene_props, 'tile_y')
-        row.prop(scene_props, 'tile_z')
-
-        layout.label(text="Base Size")
-        row = layout.row()
-        row.prop(scene_props, 'base_x')
-        row.prop(scene_props, 'base_y')
-        row.prop(scene_props, 'base_z')
-
-
-class MT_PT_Plain_Rect_Floor_Panel(Panel):
-    """Draw a tile options panel in UI."""
-
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = "Make Tile"
-    bl_label = "Tile Options"
-    bl_order = 2
-    bl_idname = "MT_PT_Plain_Rect_Floor_Panel"
-    bl_description = "Options to configure the dimensions of a tile"
-
-    @classmethod
-    def poll(cls, context):
-        """Check tile_type_new."""
-        if hasattr(context.scene, 'mt_scene_props'):
-            return context.scene.mt_scene_props.tile_type_new == "object.make_plain_rect_floor"
-        return False
-
-    def draw(self, context):
-        """Draw the Panel."""
-        scene = context.scene
-        scene_props = scene.mt_scene_props
-        layout = self.layout
-
-        layout.label(text="Tile Size")
-        row = layout.row()
-        row.prop(scene_props, 'tile_x')
-        row.prop(scene_props, 'tile_y')
-        row.prop(scene_props, 'tile_z')
-
-        layout.label(text="Base Size")
-        row = layout.row()
-        row.prop(scene_props, 'base_x')
-        row.prop(scene_props, 'base_y')
-        row.prop(scene_props, 'base_z')
-'''
-
 
 class MT_PT_Custom_Rect_Floor_Panel(Panel):
     """Draw a tile options panel in UI."""
@@ -247,56 +172,6 @@ class MT_OT_Make_Custom_Rect_Floor_Tile(MT_Tile_Generator, Operator):
 
         return {'FINISHED'}
 
-'''
-class MT_OT_Make_Plain_Rect_Floor_Tile(MT_Tile_Generator, Operator):
-    """Operator. Generates a rectangular floor tile."""
-
-    bl_idname = "object.make_plain_rect_floor"
-    bl_label = "Rectangular Floor"
-    bl_options = {'REGISTER', 'UNDO'}
-    mt_blueprint = "PLAIN"
-    mt_type = "RECT_FLOOR"
-
-    def execute(self, context):
-        """Execute the operator."""
-        scene = context.scene
-        scene_props = scene.mt_scene_props
-        original_renderer, cursor_orig_loc, cursor_orig_rot = initialise_floor_creator(context, scene_props)
-        bpy.ops.object.make_plain_rect_base()
-        base = context.active_object
-        bpy.ops.object.make_plain_rect_floor_core()
-        preview_core = context.active_object
-        finalise_tile(base, preview_core, cursor_orig_loc, cursor_orig_rot)
-
-        # reset render engine
-        scene.render.engine = original_renderer
-        return {'FINISHED'}
-
-
-class MT_OT_Make_Openlock_Rect_Floor_Tile(MT_Tile_Generator, Operator):
-    """Operator. Generates a rectangular floor tile."""
-
-    bl_idname = "object.make_openlock_rect_floor"
-    bl_label = "Rectangular Floor"
-    bl_options = {'UNDO'}
-    mt_blueprint = "OPENLOCK"
-    mt_type = "RECT_FLOOR"
-
-    def execute(self, context):
-        """Execute the operator."""
-        scene = context.scene
-        scene_props = scene.mt_scene_props
-        original_renderer, cursor_orig_loc, cursor_orig_rot = initialise_floor_creator(context, scene_props)
-        bpy.ops.object.make_openlock_rect_base()
-        base = context.active_object
-        bpy.ops.object.make_plain_rect_floor_core()
-        preview_core = context.active_object
-        finalise_tile(base, preview_core, cursor_orig_loc, cursor_orig_rot)
-
-        # reset render engine
-        scene.render.engine = original_renderer
-        return {'FINISHED'}
-'''
 
 def initialise_floor_creator(context, scene_props):
     """Initialise the floor creator and set common properties.

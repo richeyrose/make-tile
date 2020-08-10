@@ -84,15 +84,19 @@ def update_mt_scene_props_handler(dummy):
 
 def create_properties_on_activation(dummy):
     bpy.app.handlers.depsgraph_update_pre.remove(create_properties_on_activation)
-    load_tile_defaults()
+    context = bpy.context
+    load_tile_defaults(context)
+    refresh_scene_props(context)
 
 @persistent
 def create_properties_on_load(dummy):
-    load_tile_defaults()
+    context = bpy.context
+    load_tile_defaults(context)
+    refresh_scene_props(context)
 
-def load_tile_defaults():
-    """Loads tile defaults into memory."""
-    scene_props = bpy.context.scene.mt_scene_props
+def load_tile_defaults(context):
+    """Load tile defaults into memory."""
+    scene_props = context.scene.mt_scene_props
     addon_path = get_path()
     json_path = os.path.join(
         addon_path,
@@ -105,6 +109,11 @@ def load_tile_defaults():
         with open(json_path) as json_file:
             tile_defaults = json.load(json_file)
         scene_props['tile_defaults'] = tile_defaults
+
+def refresh_scene_props(context):
+    scene_props = context.scene.mt_scene_props
+    prefs = get_prefs()
+    scene_props.tile_type_new = prefs.default_tile_type
 
 bpy.app.handlers.depsgraph_update_pre.append(create_properties_on_activation)
 bpy.app.handlers.load_post.append(create_properties_on_load)

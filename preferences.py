@@ -6,7 +6,7 @@ from . utils.registration import get_path
 from . utils.system import makedir, abspath
 from . enums.enums import tile_main_systems, base_systems, tile_blueprints, units
 from . materials.materials import get_blend_filenames
-
+from .property_groups.property_groups import create_tile_type_enums, create_base_blueprint_enums, create_main_part_blueprint_enums
 
 class MT_MakeTilePreferences(bpy.types.AddonPreferences):
     '''contains methods and properties for setting addon preferences'''
@@ -91,17 +91,20 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
     )
 
     default_tile_main_system: EnumProperty(
-        items=tile_main_systems,
+        items=create_main_part_blueprint_enums,
         description="Default tile system to use for main part of tile for custom tiles",
-        name="Tile System",
-        default="OPENLOCK",
+        name="Default Tile System"
     )
 
     default_base_system: EnumProperty(
-        items=base_systems,
+        items=create_base_blueprint_enums,
         description="Default base system to use for custom tiles",
-        name="Base System",
-        default="OPENLOCK",
+        name="Default Base System"
+    )
+
+    default_tile_type: EnumProperty(
+        items=create_tile_type_enums,
+        name="Default Tile Type"
     )
 
     def draw(self, context):
@@ -119,4 +122,3 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
 # TODO: Stub - reload_asset_libraries
 def reload_asset_libraries():
     print('reload_asset_libraries')
-

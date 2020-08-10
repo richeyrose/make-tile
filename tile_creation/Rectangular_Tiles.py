@@ -19,7 +19,7 @@ from .. lib.turtle.scripts.openlock_floor_base import draw_openlock_rect_floor_b
 from .. lib.utils.selection import deselect_all, select_by_loc
 from .create_tile import create_displacement_core, finalise_tile
 
-
+'''
 class MT_PT_Openlock_Rect_Floor_Panel(Panel):
     """Draw a tile options panel in UI."""
 
@@ -92,6 +92,7 @@ class MT_PT_Plain_Rect_Floor_Panel(Panel):
         row.prop(scene_props, 'base_x')
         row.prop(scene_props, 'base_y')
         row.prop(scene_props, 'base_z')
+'''
 
 
 class MT_PT_Custom_Rect_Floor_Panel(Panel):
@@ -246,7 +247,7 @@ class MT_OT_Make_Custom_Rect_Floor_Tile(MT_Tile_Generator, Operator):
 
         return {'FINISHED'}
 
-
+'''
 class MT_OT_Make_Plain_Rect_Floor_Tile(MT_Tile_Generator, Operator):
     """Operator. Generates a rectangular floor tile."""
 
@@ -295,7 +296,7 @@ class MT_OT_Make_Openlock_Rect_Floor_Tile(MT_Tile_Generator, Operator):
         # reset render engine
         scene.render.engine = original_renderer
         return {'FINISHED'}
-
+'''
 
 def initialise_floor_creator(context, scene_props):
     """Initialise the floor creator and set common properties.
@@ -310,7 +311,6 @@ def initialise_floor_creator(context, scene_props):
         list[3]: cursor original rotation
 
     """
-
     original_renderer, tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator(context)
     # We store tile properties in the mt_tile_props property group of
     # the collection so we can access them from any object in this

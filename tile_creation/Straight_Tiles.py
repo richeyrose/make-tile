@@ -21,6 +21,42 @@ from ..operators.maketile import (
     initialise_tile_creator,
     create_common_tile_props)
 
+class MT_PT_Openlock_Straight_Wall_Panel(Panel):
+    """Draw a tile options panel in UI."""
+
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Make Tile"
+    bl_label = "Tile Options"
+    bl_order = 2
+    bl_idname = "MT_PT_Openlock_Straight_Wall_Panel"
+    bl_description = "Options to configure the dimensions of a tile"
+
+    @classmethod
+    def poll(cls, context):
+        """Check tile_type_new."""
+        if hasattr(context.scene, 'mt_scene_props'):
+            return context.scene.mt_scene_props.tile_type_new == "object.make_openlock_straight_wall"
+        return False
+
+    def draw(self, context):
+        """Draw the Panel."""
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Tile Size")
+        row = layout.row()
+        row.prop(scene_props, 'tile_x')
+        row.prop(scene_props, 'tile_y')
+        row.prop(scene_props, 'tile_z')
+
+        layout.label(text="Base Size")
+        row = layout.row()
+        row.prop(scene_props, 'base_x')
+        row.prop(scene_props, 'base_y')
+        row.prop(scene_props, 'base_z')
+
 '''
 class MT_PT_Straight_Wall_Options_Panel(Panel, MT_PT_Tile_Options_Panel):
     """Draw the tile options panel for straight wall tiles."""

@@ -99,15 +99,60 @@ def create_tile_type_enums(self, context):
     if context is None:
         return enum_items
 
-    blueprint = context.scene.mt_scene_props.tile_blueprint
+    # blueprint = context.scene.mt_scene_props.tile_blueprint
     subclasses = get_all_subclasses(MT_Tile_Generator)
 
     for subclass in subclasses:
-        if hasattr(subclass, 'mt_blueprint'):
-            if subclass.mt_blueprint == blueprint and 'INTERNAL' not in subclass.bl_options:
-                enum = (subclass.bl_idname, subclass.bl_label, "")
-                enum_items.append(enum)
+        # if hasattr(subclass, 'mt_blueprint'):
+        if 'INTERNAL' not in subclass.bl_options:
+            enum = (subclass.bl_idname, subclass.bl_label, "")
+            enum_items.append(enum)
     return sorted(enum_items)
+
+def create_main_part_blueprint_enums(self, context):
+    enum_items = []
+    scene = context.scene
+    scene_props = scene.mt_scene_props
+
+    if context is None:
+        return enum_items
+
+    if 'tile_defaults' not in scene_props:
+        return enum_items
+
+    tile_type = scene_props.tile_type_new
+    tile_defaults = scene_props['tile_defaults']
+
+    for default in tile_defaults:
+        if default['bl_idname'] == tile_type:
+            for key, value in default['main_part_blueprints'].items():
+                enum = (key, value, "")
+                enum_items.append(enum)
+            return sorted(enum_items)
+    return enum_items
+
+
+def create_base_blueprint_enums(self, context):
+    enum_items = []
+    scene = context.scene
+    scene_props = scene.mt_scene_props
+
+    if context is None:
+        return enum_items
+
+    if 'tile_defaults' not in scene_props:
+        return enum_items
+
+    tile_type = scene_props.tile_type_new
+    tile_defaults = scene_props['tile_defaults']
+
+    for default in tile_defaults:
+        if default['bl_idname'] == tile_type:
+            for key, value in default['base_blueprints'].items():
+                enum = (key, value, "")
+                enum_items.append(enum)
+            return sorted(enum_items)
+    return enum_items
 
 
 def update_tile_blueprint(self, context):
@@ -120,26 +165,27 @@ def update_tile_blueprint(self, context):
                 context.scene.mt_scene_props.tile_type_new = subclass.bl_idname
                 break
 
+
+def update_scene_defaults(self, context):
+    scene_props = context.scene.mt_scene_props
+    tile_type = scene_props.tile_type_new
+    tile_defaults = scene_props['tile_defaults']
+    defaults = None
+
+    for tile in tile_defaults:
+        if tile['bl_idname'] == tile_type:
+            defaults = tile['defaults']
+            break
+
+    if defaults:
+        for key, value in defaults.items():
+            setattr(scene_props, key, value)
+
+
 class MT_Scene_Properties(PropertyGroup):
     def change_tile_type(self, context):
         self.update_size_defaults(context)
         self.update_subdiv_defaults(context)
-
-
-    def update_scene_defaults(self, context):
-        scene_props = context.scene.mt_scene_props
-        tile_type = scene_props.tile_type_new
-        tile_defaults = scene_props['tile_defaults']
-        defaults = None
-
-        for tile in tile_defaults:
-            if tile['bl_idname'] == tile_type:
-                defaults = tile['defaults']
-                break
-
-        if defaults:
-            for key, value in defaults.items():
-                setattr(scene_props, key, value)
 
     def update_size_defaults(self, context):
         '''updates tile and base size defaults depending on what we are generating'''
@@ -352,13 +398,18 @@ class MT_Scene_Properties(PropertyGroup):
     tile_blueprint: bpy.props.EnumProperty(
         items=tile_blueprints,
         name="Blueprint",
-        update=update_tile_blueprint
+        update=update_tile_blueprint,
+        default="CUSTOM"
     )
 
     main_part_blueprint: bpy.props.EnumProperty(
-        items=tile_main_systems,
-        name="Main System",
-        default='OPENLOCK'
+        items=create_main_part_blueprint_enums,
+        name="Main System"
+    )
+
+    base_blueprint: bpy.props.EnumProperty(
+        items=create_base_blueprint_enums,
+        name="Base Type",
     )
 
     tile_type_new: bpy.props.EnumProperty(
@@ -372,12 +423,6 @@ class MT_Scene_Properties(PropertyGroup):
         name="Type",
         default="STRAIGHT_WALL",
         update=change_tile_type
-    )
-
-    base_blueprint: bpy.props.EnumProperty(
-        items=base_systems,
-        name="Base Type",
-        default='OPENLOCK'
     )
 
     UV_island_margin: bpy.props.FloatProperty(
@@ -807,18 +852,11 @@ class MT_Tile_Properties(PropertyGroup):
     )
 
 def register():
+
+
     # Property group containing radio buttons
     bpy.types.WindowManager.mt_radio_buttons = bpy.props.PointerProperty(
         type=MT_Radio_Buttons
-    )
-    # Property group that contains properties relating to a tile stored on the tile collection
-    bpy.types.Collection.mt_tile_props = bpy.props.PointerProperty(
-        type=MT_Tile_Properties
-    )
-
-    # Property group that contains properties of an object stored on the object
-    bpy.types.Object.mt_object_props = bpy.props.PointerProperty(
-        type=MT_Object_Properties
     )
 
     # Property group that contains properties set in UI
@@ -826,9 +864,18 @@ def register():
         type=MT_Scene_Properties
     )
 
+    # Property group that contains properties of an object stored on the object
+    bpy.types.Object.mt_object_props = bpy.props.PointerProperty(
+        type=MT_Object_Properties
+    )
+
+    # Property group that contains properties relating to a tile stored on the tile collection
+    bpy.types.Collection.mt_tile_props = bpy.props.PointerProperty(
+        type=MT_Tile_Properties
+    )
 
 def unregister():
     del bpy.types.WindowManager.mt_radio_buttons
-    del bpy.types.Scene.mt_scene_props
     del bpy.types.Object.mt_object_props
     del bpy.types.Collection.mt_tile_props
+    del bpy.types.Scene.mt_scene_props

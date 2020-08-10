@@ -9,8 +9,9 @@ from .. materials.materials import (
     assign_preview_materials,
     add_preview_mesh_subsurf)
 
+
 def create_displacement_core(base, preview_core, tile_props, textured_vertex_groups):
-    '''Returns the preview and displacement cores'''
+    """Return the preview and displacement cores."""
     scene = bpy.context.scene
     preferences = get_prefs()
 

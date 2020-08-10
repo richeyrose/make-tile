@@ -165,21 +165,51 @@ def update_tile_blueprint(self, context):
                 context.scene.mt_scene_props.tile_type_new = subclass.bl_idname
                 break
 
-
 def update_scene_defaults(self, context):
     scene_props = context.scene.mt_scene_props
     tile_type = scene_props.tile_type_new
     tile_defaults = scene_props['tile_defaults']
-    defaults = None
 
     for tile in tile_defaults:
         if tile['bl_idname'] == tile_type:
             defaults = tile['defaults']
+            for key, value in defaults.items():
+                setattr(scene_props, key, value)
             break
 
-    if defaults:
-        for key, value in defaults.items():
-            setattr(scene_props, key, value)
+
+def update_base_defaults(self, context):
+    scene_props = context.scene.mt_scene_props
+    tile_type = scene_props.tile_type_new
+    base_blueprint = scene_props.base_blueprint
+    tile_defaults = scene_props['tile_defaults']
+
+    for tile in tile_defaults:
+        if tile['bl_idname'] == tile_type:
+            defaults = tile['defaults']
+            base_defaults = defaults['base_defaults']
+            for key, value in base_defaults.items():
+                if key == base_blueprint:
+                    for k, v in value.items():
+                        setattr(scene_props, k, v)
+                    break
+
+
+def update_main_part_defaults(self, context):
+    scene_props = context.scene.mt_scene_props
+    tile_type = scene_props.tile_type_new
+    main_part_blueprint = scene_props.main_part_blueprint
+    tile_defaults = scene_props['tile_defaults']
+
+    for tile in tile_defaults:
+        if tile['bl_idname'] == tile_type:
+            defaults = tile['defaults']
+            main_part_defaults = defaults['tile_defaults']
+            for key, value in main_part_defaults.items():
+                if key == main_part_blueprint:
+                    for k, v in value.items():
+                        setattr(scene_props, k, v)
+                    break
 
 
 class MT_Scene_Properties(PropertyGroup):
@@ -404,12 +434,14 @@ class MT_Scene_Properties(PropertyGroup):
 
     main_part_blueprint: bpy.props.EnumProperty(
         items=create_main_part_blueprint_enums,
-        name="Main System"
+        update=update_main_part_defaults,
+        name="Main"
     )
 
     base_blueprint: bpy.props.EnumProperty(
         items=create_base_blueprint_enums,
-        name="Base Type",
+        update=update_base_defaults,
+        name="Base",
     )
 
     tile_type_new: bpy.props.EnumProperty(

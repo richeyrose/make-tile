@@ -17,7 +17,7 @@ from .. utils.registration import get_prefs
 from .. lib.turtle.scripts.straight_tile import draw_rectangular_floor_core
 from .. lib.turtle.scripts.openlock_floor_base import draw_openlock_rect_floor_base
 from .. lib.utils.selection import deselect_all, select_by_loc
-from .create_tile import create_displacement_core, finalise_tile
+from .create_tile import create_displacement_core, finalise_tile, spawn_empty_base
 
 
 class MT_PT_Custom_Rect_Floor_Panel(Panel):
@@ -35,7 +35,7 @@ class MT_PT_Custom_Rect_Floor_Panel(Panel):
     def poll(cls, context):
         """Check tile_type_new."""
         if hasattr(context.scene, 'mt_scene_props'):
-            return context.scene.mt_scene_props.tile_type_new == "object.make_custom_rect_floor"
+            return context.scene.mt_scene_props.tile_type_new == "object.make_rect_floor"
         return False
 
     def draw(self, context):
@@ -44,6 +44,7 @@ class MT_PT_Custom_Rect_Floor_Panel(Panel):
         scene_props = scene.mt_scene_props
         layout = self.layout
 
+        layout.label(text="Blueprints")
         layout.prop(scene_props, 'base_blueprint')
         layout.prop(scene_props, 'main_part_blueprint')
 
@@ -144,10 +145,24 @@ class MT_OT_Make_Openlock_Rect_Floor_Core(MT_Tile_Generator, Operator):
         return{'FINISHED'}
 
 
-class MT_OT_Make_Custom_Rect_Floor_Tile(MT_Tile_Generator, Operator):
+class MT_OT_Make_Empty_Rect_Floor_Core(MT_Tile_Generator, Operator):
+    """Internal Operator. Generate an openlock rectangular floor core."""
+
+    bl_idname = "object.make_empty_rect_floor_core"
+    bl_label = "Rectangular Floor Core"
+    bl_options = {'INTERNAL'}
+    mt_blueprint = "NONE"
+    mt_type = "RECT_FLOOR_CORE"
+
+    def execute(self, context):
+        """Execute the operator."""
+        return {'PASS_THROUGH'}
+
+
+class MT_OT_Make_Rect_Floor_Tile(MT_Tile_Generator, Operator):
     """Operator. Generates a rectangular floor tile with a customisable base and main part."""
 
-    bl_idname = "object.make_custom_rect_floor"
+    bl_idname = "object.make_rect_floor"
     bl_label = "Rectangular Floor"
     bl_options = {'UNDO'}
     mt_blueprint = "CUSTOM"
@@ -180,12 +195,14 @@ class MT_OT_Make_Custom_Rect_Floor_Tile(MT_Tile_Generator, Operator):
                     eval_str = 'ops.' + subclass.bl_idname + '()'
                     eval(eval_str, {"__builtins__": {}}, allowed_names)
 
-        preview_core = context.active_object
+        if core_type == 'NONE':
+            preview_core = None
+        else:
+            preview_core = context.active_object
 
         finalise_tile(base, preview_core, cursor_orig_loc, cursor_orig_rot)
 
         scene.render.engine = original_renderer
-        print("Make Custom rect floor")
 
         return {'FINISHED'}
 

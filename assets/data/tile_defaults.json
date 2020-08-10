@@ -1,162 +1,60 @@
 [
     {
-        "bl_idname": "object.make_openlock_rect_floor",
-        "bl_label": "Rectangular Floor",
-        "blueprint": "OPENLOCK",
-        "type": "RECT_FLOOR",
-        "base_blueprints": {
-            "OPENLOCK": "OpenLOCK",
-            "PLAIN": "Plain",
-            "NONE": "None",
-            "TEST": "Test"
-        },
-        "main_part_blueprints": {
-            "OPENLOCK": "OpenLOCK",
-            "PLAIN": "Plain",
-            "NONE": "None",
-            "TEST": "Test"
-        },
-        "defaults":
-            {
-            "base_blueprint": "OPENLOCK",
-            "main_part_blueprint": "PLAIN",
-            "x_native_subdivisions": 15,
-            "y_native_subdivisions": 15,
-            "z_native_subdivisions": 1,
-            "tile_x": 2,
-            "tile_y": 2,
-            "tile_z": 0.3,
-            "base_x": 2,
-            "base_y": 2,
-            "base_z": 0.2755
-
-            }
-    },
-    {
-        "bl_idname": "object.make_plain_rect_floor",
-        "bl_label": "Rectangular Floor",
-        "blueprint": "PLAIN",
-        "type": "RECT_FLOOR",
-        "base_blueprints": {
-            "OPENLOCK": "OpenLOCK",
-            "PLAIN": "Plain",
-            "NONE": "None",
-            "TEST": "Test"
-        },
-        "main_part_blueprints": {
-            "OPENLOCK": "OpenLOCK",
-            "PLAIN": "Plain",
-            "NONE": "None",
-            "TEST": "Test"
-        },
-        "defaults":
-            {
-            "base_blueprint": "PLAIN",
-            "main_part_blueprint": "PLAIN",
-            "x_native_subdivisions": 15,
-            "y_native_subdivisions": 15,
-            "z_native_subdivisions": 1,
-            "tile_x": 3,
-            "tile_y": 3,
-            "tile_z": 0.3,
-            "base_x": 2,
-            "base_y": 2,
-            "base_z": 0.2755
-            }
-    },
-    {
-        "bl_idname": "object.make_custom_rect_floor",
+        "bl_idname": "object.make_rect_floor",
         "bl_label": "Rectangular Floor",
         "blueprint": "CUSTOM",
         "type": "RECT_FLOOR",
         "base_blueprints": {
             "OPENLOCK": "OpenLOCK",
             "PLAIN": "Plain",
-            "NONE": "None",
-            "TEST": "Test"
+            "NONE": "None"
         },
         "main_part_blueprints": {
             "OPENLOCK": "OpenLOCK",
             "PLAIN": "Plain",
-            "NONE": "None",
-            "TEST": "Test"
+            "NONE": "None"
         },
-        "defaults":
-            {
+        "defaults": {
             "base_blueprint": "OPENLOCK",
             "main_part_blueprint": "OPENLOCK",
             "x_native_subdivisions": 15,
             "y_native_subdivisions": 15,
             "z_native_subdivisions": 1,
-            "tile_x": 4,
-            "tile_y": 4,
-            "tile_z": 0.3,
-            "base_x": 2,
-            "base_y": 2,
-            "base_z": 0.2755
+            "base_defaults": {
+                "OPENLOCK": {
+                    "base_x": 2,
+                    "base_y": 2,
+                    "base_z": 0.2755
+                },
+                "PLAIN": {
+                    "base_x": 3,
+                    "base_y": 3,
+                    "base_z": 0.2755
+                },
+                "NONE": {
+                    "base_x": 0,
+                    "base_y": 0,
+                    "base_z": 0
+                }
+            },
+            "tile_defaults": {
+                "OPENLOCK": {
+                    "tile_x": 2,
+                    "tile_y": 2,
+                    "tile_z": 0.3
+                },
+                "PLAIN": {
+                    "tile_x": 4,
+                    "tile_y": 4,
+                    "tile_z": 0.3
+                },
+                "NONE": {
+                    "tile_x": 0,
+                    "tile_y": 0,
+                    "tile_z": 0
+                }
             }
-    },
-    {
-        "bl_idname": "object.make_openlock_straight_wall",
-        "bl_label": "Straight Wall",
-        "blueprint":"OPENLOCK",
-        "type": "STRAIGHT_WALL",
-        "base_blueprints": {
-            "OPENLOCK": "OpenLOCK",
-            "PLAIN": "Plain",
-            "NONE": "None",
-            "TEST": "Test"
-        },
-        "main_part_blueprints": {
-            "OPENLOCK": "OpenLOCK",
-            "PLAIN": "Plain",
-            "NONE": "None",
-            "TEST": "Test"
-        },
-        "defaults":
-            {
-            "base_blueprint": "OPENLOCK",
-            "main_part_blueprint": "PLAIN",
-            "x_native_subdivisions": 15,
-            "y_native_subdivisions": 1,
-            "z_native_subdivisions": 15,
-            "tile_x": 2,
-            "tile_y": 0.315,
-            "tile_z": 2,
-            "base_x": 2,
-            "base_y": 0.5,
-            "base_z": 0.2755
-            }
-    },
-    {
-        "bl_idname": "object.make_plain_straight_wall",
-        "bl_label": "Straight Wall",
-        "blueprint":"PLAIN",
-        "type": "STRAIGHT_WALL",
-        "base_blueprints": {
-            "OPENLOCK": "OpenLOCK",
-            "PLAIN": "Plain",
-            "NONE": "None",
-            "TEST": "Test"
-        },
-        "main_part_blueprints": {
-            "OPENLOCK": "OpenLOCK",
-            "PLAIN": "Plain",
-            "NONE": "None",
-            "TEST": "Test"
-        },
-        "defaults":
-            {
-            "x_native_subdivisions": 15,
-            "y_native_subdivisions": 1,
-            "z_native_subdivisions": 15,
-            "tile_x": 4,
-            "tile_y": 0.315,
-            "tile_z": 2,
-            "base_x": 4,
-            "base_y": 0.5,
-            "base_z": 0.2755
-            }
+        }
     },
     {
         "bl_idname": "object.make_custom_straight_wall",
@@ -166,26 +64,54 @@
         "base_blueprints": {
             "OPENLOCK": "OpenLOCK",
             "PLAIN": "Plain",
-            "NONE": "None",
-            "TEST": "Test"
+            "NONE": "None"
         },
         "main_part_blueprints": {
             "OPENLOCK": "OpenLOCK",
             "PLAIN": "Plain",
-            "NONE": "None",
-            "TEST": "Test"
+            "NONE": "None"
         },
         "defaults":
             {
+            "base_blueprint": "OPENLOCK",
+            "main_part_blueprint": "OPENLOCK",
             "x_native_subdivisions": 15,
             "y_native_subdivisions": 1,
             "z_native_subdivisions": 15,
-            "tile_x": 4,
-            "tile_y": 0.315,
-            "tile_z": 2,
-            "base_x": 4,
-            "base_y": 0.5,
-            "base_z": 0.2755
+            "base_defaults": {
+                "OPENLOCK": {
+                    "base_x": 2,
+                    "base_y": 0.5,
+                    "base_z": 0.2755
+                },
+                "PLAIN": {
+                    "base_x": 2,
+                    "base_y": 0.5,
+                    "base_z": 0.2755
+                },
+                "NONE": {
+                    "base_x": 0,
+                    "base_y": 0,
+                    "base_z": 0
+                }
+            },
+            "tile_defaults": {
+                "OPENLOCK": {
+                    "tile_x": 2,
+                    "tile_y": 0.315,
+                    "tile_z": 2
+                },
+                "PLAIN": {
+                    "tile_x": 2,
+                    "tile_y": 0.315,
+                    "tile_z": 2
+                },
+                "NONE": {
+                    "tile_x": 0,
+                    "tile_y": 0,
+                    "tile_z": 0
+                }
             }
+        }
     }
 ]

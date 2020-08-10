@@ -94,6 +94,23 @@ class MT_OT_Make_Plain_Rect_Base(MT_Tile_Generator, Operator):
         return{'FINISHED'}
 
 
+class MT_OT_Make_Empty_Rect_Base(MT_Tile_Generator, Operator):
+    """Internal Operator. Generate an empty rectangular base."""
+
+    bl_idname = "object.make_empty_rect_base"
+    bl_label = "Rectangular Base"
+    bl_options = {'INTERNAL'}
+    mt_blueprint = "NONE"
+    mt_type = "RECT_FLOOR_BASE"
+
+    def execute(self, context):
+        """Execute the operator."""
+        tile = context.collection
+        tile_props = tile.mt_tile_props
+        spawn_empty_base(tile_props)
+        return{'FINISHED'}
+
+
 class MT_OT_Make_Plain_Rect_Floor_Core(MT_Tile_Generator, Operator):
     """Internal Operator. Generate a plain rectangular core."""
 

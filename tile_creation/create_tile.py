@@ -81,6 +81,23 @@ def finalise_tile(base, preview_core, cursor_orig_loc, cursor_orig_rot):
     activate(base.name)
 
 
+def spawn_empty_base(tile_props):
+    tile_props.base_size = (0, 0, 0)
+    tile_name = tile_props.tile_name
+
+    base = bpy.data.objects.new(tile_props.tile_name + '.base', None)
+    base.name = tile_name + '.base'
+    add_object_to_collection(base, tile_props.tile_name)
+    obj_props = base.mt_object_props
+    obj_props.is_mt_object = True
+    obj_props.geometry_type = 'BASE'
+    obj_props.tile_name = tile_name
+    base.show_in_front = True
+
+    bpy.context.view_layer.objects.active = base
+    return base
+
+
 class MT_Tile:
     def __init__(self, tile_props):
         self.tile_props = tile_props

@@ -54,11 +54,19 @@ class MT_PT_Custom_Rect_Floor_Panel(Panel):
         row.prop(scene_props, 'tile_y')
         row.prop(scene_props, 'tile_z')
 
+        layout.label(text="Lock Proportions")
+        row = layout.row()
+        row.prop(scene_props, 'x_proportionate_scale')
+        row.prop(scene_props, 'y_proportionate_scale')
+        row.prop(scene_props, 'z_proportionate_scale')
+
         layout.label(text="Base Size")
         row = layout.row()
         row.prop(scene_props, 'base_x')
         row.prop(scene_props, 'base_y')
         row.prop(scene_props, 'base_z')
+
+        layout.operator('scene.reset_tile_defaults')
 
 
 class MT_OT_Make_Openlock_Rect_Base(MT_Tile_Generator, Operator):

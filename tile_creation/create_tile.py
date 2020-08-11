@@ -15,11 +15,8 @@ def create_displacement_core(base, preview_core, tile_props, textured_vertex_gro
     scene = bpy.context.scene
     preferences = get_prefs()
 
-    #preview_core = create_core(tile_props)
-
     # For some reason iterating doesn't work here so lock these individually so user
     # can only transform base
-
     preview_core.lock_location[0] = True
     preview_core.lock_location[1] = True
     preview_core.lock_location[2] = True

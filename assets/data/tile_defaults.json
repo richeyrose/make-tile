@@ -119,5 +119,66 @@
                 }
             }
         }
+    },
+    {
+        "bl_idname": "object.make_straight_floor",
+        "bl_label": "Straight Wall",
+        "blueprint":"CUSTOM",
+        "type": "STRAIGHT_FLOOR",
+        "base_blueprints": {
+            "OPENLOCK": "OpenLOCK",
+            "PLAIN": "Plain",
+            "NONE": "None"
+        },
+        "main_part_blueprints": {
+            "OPENLOCK": "OpenLOCK",
+            "PLAIN": "Plain",
+            "NONE": "None"
+        },
+        "defaults":
+            {
+            "base_blueprint": "OPENLOCK",
+            "main_part_blueprint": "OPENLOCK",
+            "x_native_subdivisions": 15,
+            "y_native_subdivisions": 1,
+            "z_native_subdivisions": 15,
+            "x_proportionate_scale": true,
+            "y_proportionate_scale": false,
+            "z_proportionate_scale": false,
+            "base_defaults": {
+                "OPENLOCK": {
+                    "base_x": 3,
+                    "base_y": 0.5,
+                    "base_z": 0.2755
+                },
+                "PLAIN": {
+                    "base_x": 2,
+                    "base_y": 0.5,
+                    "base_z": 0.2755
+                },
+                "NONE": {
+                    "base_x": 0,
+                    "base_y": 0,
+                    "base_z": 0
+                }
+            },
+            "tile_defaults": {
+                "OPENLOCK": {
+                    "tile_x": 3,
+                    "tile_y": 0.5,
+                    "tile_z": 0.3
+                },
+                "PLAIN": {
+                    "tile_x": 2,
+                    "tile_y": 0.5,
+                    "tile_z": 0.3
+                },
+                "NONE": {
+                    "tile_x": 0,
+                    "tile_y": 0,
+                    "tile_z": 0
+                }
+            }
+        }
     }
 ]

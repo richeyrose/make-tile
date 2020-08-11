@@ -21,7 +21,7 @@ from .create_tile import (
     finalise_tile,
     spawn_empty_base,
     create_displacement_core)
-
+from .Rectangular_Tiles import create_plain_rect_floor_cores as create_plain_floor_cores
 
 class MT_PT_Straight_Wall_Panel(Panel):
     """Draw a tile options panel in UI."""
@@ -38,7 +38,7 @@ class MT_PT_Straight_Wall_Panel(Panel):
     def poll(cls, context):
         """Check tile_type_new."""
         if hasattr(context.scene, 'mt_scene_props'):
-            return context.scene.mt_scene_props.tile_type_new == "object.make_straight_wall"
+            return context.scene.mt_scene_props.tile_type_new in ["object.make_straight_wall", "object.make_straight_floor"]
         return False
 
     def draw(self, context):
@@ -173,6 +173,56 @@ class MT_OT_Make_Empty_Straight_Wall_Core(MT_Tile_Generator, Operator):
         return {'PASS_THROUGH'}
 
 
+class MT_OT_Make_Plain_Straight_Floor_Core(MT_Tile_Generator, Operator):
+    """Internal Operator. Generate a plain straight floor core."""
+
+    bl_idname = "object.make_plain_straight_floor_core"
+    bl_label = "Straight Floor Core"
+    bl_options = {'INTERNAL'}
+    mt_blueprint = "PLAIN"
+    mt_type = "STRAIGHT_FLOOR_CORE"
+
+    def execute(self, context):
+        """Execute the operator."""
+        tile = context.collection
+        tile_props = tile.mt_tile_props
+        base = context.active_object
+        create_plain_floor_cores(base, tile_props)
+        return{'FINISHED'}
+
+
+class MT_OT_Make_Openlock_Straight_Floor_Core(MT_Tile_Generator, Operator):
+    """Internal Operator. Generate an openlock straight floor core."""
+
+    bl_idname = "object.make_openlock_straight_floor_core"
+    bl_label = "Straight Floor Core"
+    bl_options = {'INTERNAL'}
+    mt_blueprint = "OPENLOCK"
+    mt_type = "STRAIGHT_FLOOR_CORE"
+
+    def execute(self, context):
+        """Execute the operator."""
+        tile = context.collection
+        tile_props = tile.mt_tile_props
+        base = context.active_object
+        create_plain_floor_cores(base, tile_props)
+        return{'FINISHED'}
+
+
+class MT_OT_Make_Empty_Straight_Floor_Core(MT_Tile_Generator, Operator):
+    """Internal Operator. Generate an empty straight wall core."""
+
+    bl_idname = "object.make_empty_straight_floor_core"
+    bl_label = "Straight Floor Core"
+    bl_options = {'INTERNAL'}
+    mt_blueprint = "NONE"
+    mt_type = "STRAIGHT_FLOOR_CORE"
+
+    def execute(self, context):
+        """Execute the operator."""
+        return {'PASS_THROUGH'}
+
+
 class MT_OT_Make_Straight_Wall_Tile(MT_Tile_Generator, Operator):
     """Operator. Generates a straight wall tile with a customisable base and main part."""
 
@@ -221,6 +271,54 @@ class MT_OT_Make_Straight_Wall_Tile(MT_Tile_Generator, Operator):
         return {'FINISHED'}
 
 
+class MT_OT_Make_Straight_Floor_Tile(MT_Tile_Generator, Operator):
+    """Operator. Generates a straight wall tile with a customisable base and main part."""
+
+    bl_idname = "object.make_straight_floor"
+    bl_label = "Straight Floor"
+    bl_options = {'UNDO'}
+    mt_blueprint = "CUSTOM"
+    mt_type = "STRAIGHT_FLOOR"
+
+    def execute(self, context):
+        """Execute the operator."""
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        base_type = scene_props.base_blueprint
+        core_type = scene_props.main_part_blueprint
+        subclasses = get_all_subclasses(MT_Tile_Generator)
+
+        original_renderer, cursor_orig_loc, cursor_orig_rot = initialise_floor_creator(context, scene_props)
+
+        # ensure we can only run bpy.ops in our eval statements
+        allowed_names = {k: v for k, v in bpy.__dict__.items() if k == 'ops'}
+
+        for subclass in subclasses:
+            if hasattr(subclass, 'mt_type') and hasattr(subclass, 'mt_blueprint'):
+                if subclass.mt_type == 'STRAIGHT_BASE' and subclass.mt_blueprint == base_type:
+                    eval_str = 'ops.' + subclass.bl_idname + '()'
+                    eval(eval_str, {"__builtins__": {}}, allowed_names)
+
+        base = context.active_object
+
+        for subclass in subclasses:
+            if hasattr(subclass, 'mt_type') and hasattr(subclass, 'mt_blueprint'):
+                if subclass.mt_type == 'STRAIGHT_FLOOR_CORE' and subclass.mt_blueprint == core_type:
+                    eval_str = 'ops.' + subclass.bl_idname + '()'
+                    eval(eval_str, {"__builtins__": {}}, allowed_names)
+
+        if core_type == 'NONE':
+            preview_core = None
+        else:
+            preview_core = context.active_object
+
+        finalise_tile(base, preview_core, cursor_orig_loc, cursor_orig_rot)
+
+        scene.render.engine = original_renderer
+
+        return {'FINISHED'}
+
+
 def initialise_wall_creator(context, scene_props):
     """Initialise the wall creator and set common properties.
 
@@ -247,6 +345,42 @@ def initialise_wall_creator(context, scene_props):
     create_common_tile_props(scene_props, tile_props, tile_collection)
 
     tile_props.tile_type = 'STRAIGHT_WALL'
+    tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
+    tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
+
+    tile_props.x_native_subdivisions = scene_props.x_native_subdivisions
+    tile_props.y_native_subdivisions = scene_props.y_native_subdivisions
+    tile_props.z_native_subdivisions = scene_props.z_native_subdivisions
+
+    return original_renderer, cursor_orig_loc, cursor_orig_rot
+
+
+def initialise_floor_creator(context, scene_props):
+    """Initialise the floor creator and set common properties.
+
+    Args:
+        context (bpy.context): context
+        scene_props (bpy.types.PropertyGroup.mt_scene_props): maketile scene properties
+
+    Returns:
+        enum: enum in {'BLENDER_EEVEE', 'CYCLES', 'WORKBENCH'}
+        list[3]: cursor original location
+        list[3]: cursor original rotation
+
+    """
+    original_renderer, tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator(context)
+    # We store tile properties in the mt_tile_props property group of
+    # the collection so we can access them from any object in this
+    # collection.
+    create_collection('Floors', tiles_collection)
+    tile_collection = bpy.data.collections.new(tile_name)
+    bpy.data.collections['Floors'].children.link(tile_collection)
+    activate_collection(tile_collection.name)
+
+    tile_props = tile_collection.mt_tile_props
+    create_common_tile_props(scene_props, tile_props, tile_collection)
+
+    tile_props.tile_type = 'STRAIGHT_FLOOR'
     tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
     tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
 
@@ -759,6 +893,7 @@ def create_openlock_wall_cutters(core, tile_props):
     cutters.extend([right_cutter_bottom, right_cutter_top])
 
     return cutters
+
 '''
 class MT_OT_Make_Plain_Straight_Wall_Tile(MT_Tile_Generator, Operator):
     """Operator. Generates a straight wall tile."""

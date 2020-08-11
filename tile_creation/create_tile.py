@@ -96,6 +96,30 @@ def spawn_empty_base(tile_props):
     return base
 
 
+def spawn_prefab(context, subclasses, blueprint, mt_type):
+    """Spawn a maketile prefab such as a base or tile core(s).
+
+    Args:
+        context (bpy.context): Blender context
+        subclasses (list): list of all subclasses of MT_Tile_Generator
+        blueprint (str): mt_blueprint enum item
+        type (str): mt_type enum item
+
+    Returns:
+        bpy.types.Object: Prefab
+    """
+    # ensure we can only run bpy.ops in our eval statements
+    allowed_names = {k: v for k, v in bpy.__dict__.items() if k == 'ops'}
+    for subclass in subclasses:
+        if hasattr(subclass, 'mt_type') and hasattr(subclass, 'mt_blueprint'):
+            if subclass.mt_type == mt_type and subclass.mt_blueprint == blueprint:
+                eval_str = 'ops.' + subclass.bl_idname + '()'
+                eval(eval_str, {"__builtins__": {}}, allowed_names)
+
+    prefab = context.active_object
+    return prefab
+
+
 class MT_Tile:
     def __init__(self, tile_props):
         self.tile_props = tile_props

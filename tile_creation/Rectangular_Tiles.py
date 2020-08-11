@@ -22,7 +22,8 @@ from .. lib.utils.selection import (
 from .create_tile import (
     create_displacement_core,
     finalise_tile,
-    spawn_empty_base)
+    spawn_empty_base,
+    spawn_prefab)
 
 
 class MT_PT_Rect_Floor_Panel(Panel):
@@ -81,7 +82,7 @@ class MT_OT_Make_Openlock_Rect_Base(MT_Tile_Generator, Operator):
     bl_label = "Rectangular Base"
     bl_options = {'INTERNAL'}
     mt_blueprint = "OPENLOCK"
-    mt_type = "RECT_FLOOR_BASE"
+    mt_type = "RECT_BASE"
 
     def execute(self, context):
         """Execute the operator."""
@@ -98,7 +99,7 @@ class MT_OT_Make_Plain_Rect_Base(MT_Tile_Generator, Operator):
     bl_label = "Rectangular Base"
     bl_options = {'INTERNAL'}
     mt_blueprint = "PLAIN"
-    mt_type = "RECT_FLOOR_BASE"
+    mt_type = "RECT_BASE"
 
     def execute(self, context):
         """Execute the operator."""
@@ -115,7 +116,7 @@ class MT_OT_Make_Empty_Rect_Base(MT_Tile_Generator, Operator):
     bl_label = "Rectangular Base"
     bl_options = {'INTERNAL'}
     mt_blueprint = "NONE"
-    mt_type = "RECT_FLOOR_BASE"
+    mt_type = "RECT_BASE"
 
     def execute(self, context):
         """Execute the operator."""
@@ -185,33 +186,19 @@ class MT_OT_Make_Rect_Floor_Tile(MT_Tile_Generator, Operator):
         """Execute the operator."""
         scene = context.scene
         scene_props = scene.mt_scene_props
-        base_type = scene_props.base_blueprint
-        core_type = scene_props.main_part_blueprint
+        base_blueprint = scene_props.base_blueprint
+        core_blueprint = scene_props.main_part_blueprint
+        base_type = 'RECT_BASE'
+        core_type = 'RECT_FLOOR_CORE'
         subclasses = get_all_subclasses(MT_Tile_Generator)
 
         original_renderer, cursor_orig_loc, cursor_orig_rot = initialise_floor_creator(context, scene_props)
-
-        # ensure we can only run bpy.ops in our eval statements
-        allowed_names = {k: v for k, v in bpy.__dict__.items() if k == 'ops'}
-
-        for subclass in subclasses:
-            if hasattr(subclass, 'mt_type') and hasattr(subclass, 'mt_blueprint'):
-                if subclass.mt_type == 'RECT_FLOOR_BASE' and subclass.mt_blueprint == base_type:
-                    eval_str = 'ops.' + subclass.bl_idname + '()'
-                    eval(eval_str, {"__builtins__": {}}, allowed_names)
-
-        base = context.active_object
-
-        for subclass in subclasses:
-            if hasattr(subclass, 'mt_type') and hasattr(subclass, 'mt_blueprint'):
-                if subclass.mt_type == 'RECT_FLOOR_CORE' and subclass.mt_blueprint == core_type:
-                    eval_str = 'ops.' + subclass.bl_idname + '()'
-                    eval(eval_str, {"__builtins__": {}}, allowed_names)
+        base = spawn_prefab(context, subclasses, base_blueprint, base_type)
 
         if core_type == 'NONE':
             preview_core = None
         else:
-            preview_core = context.active_object
+            preview_core = spawn_prefab(context, subclasses, core_blueprint, core_type)
 
         finalise_tile(base, preview_core, cursor_orig_loc, cursor_orig_rot)
 

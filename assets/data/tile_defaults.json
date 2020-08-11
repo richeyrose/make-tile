@@ -30,8 +30,8 @@
                     "base_z": 0.2755
                 },
                 "PLAIN": {
-                    "base_x": 3,
-                    "base_y": 3,
+                    "base_x": 2,
+                    "base_y": 2,
                     "base_z": 0.2755
                 },
                 "NONE": {
@@ -47,8 +47,8 @@
                     "tile_z": 0.3
                 },
                 "PLAIN": {
-                    "tile_x": 4,
-                    "tile_y": 4,
+                    "tile_x": 2,
+                    "tile_y": 2,
                     "tile_z": 0.3
                 },
                 "NONE": {
@@ -86,7 +86,7 @@
             "z_proportionate_scale": false,
             "base_defaults": {
                 "OPENLOCK": {
-                    "base_x": 3,
+                    "base_x": 2,
                     "base_y": 0.5,
                     "base_z": 0.2755
                 },
@@ -103,7 +103,7 @@
             },
             "tile_defaults": {
                 "OPENLOCK": {
-                    "tile_x": 3,
+                    "tile_x": 2,
                     "tile_y": 0.315,
                     "tile_z": 2
                 },
@@ -141,13 +141,13 @@
             "main_part_blueprint": "OPENLOCK",
             "x_native_subdivisions": 15,
             "y_native_subdivisions": 1,
-            "z_native_subdivisions": 15,
+            "z_native_subdivisions": 1,
             "x_proportionate_scale": true,
             "y_proportionate_scale": false,
             "z_proportionate_scale": false,
             "base_defaults": {
                 "OPENLOCK": {
-                    "base_x": 3,
+                    "base_x": 2,
                     "base_y": 0.5,
                     "base_z": 0.2755
                 },
@@ -164,7 +164,7 @@
             },
             "tile_defaults": {
                 "OPENLOCK": {
-                    "tile_x": 3,
+                    "tile_x": 2,
                     "tile_y": 0.5,
                     "tile_z": 0.3
                 },
@@ -177,6 +177,70 @@
                     "tile_x": 0,
                     "tile_y": 0,
                     "tile_z": 0
+                }
+            }
+        }
+    },
+    {
+        "bl_idname": "object.make_triangular_floor",
+        "bl_label": "Triangular Floor",
+        "blueprint":"CUSTOM",
+        "type": "TRIANGULAR_FLOOR",
+        "base_blueprints": {
+            "OPENLOCK": "OpenLOCK",
+            "PLAIN": "Plain",
+            "NONE": "None"
+        },
+        "main_part_blueprints": {
+            "OPENLOCK": "OpenLOCK",
+            "PLAIN": "Plain",
+            "NONE": "None"
+        },
+        "defaults":
+            {
+            "base_blueprint": "OPENLOCK",
+            "main_part_blueprint": "OPENLOCK",
+            "opposite_native_subdivisions": 15,
+            "z_native_subdivisions": 1,
+            "z_proportionate_scale": false,
+            "base_defaults": {
+                "OPENLOCK": {
+                    "leg_1_len": 2,
+                    "leg_2_len": 2,
+                    "angle": 90,
+                    "base_z": 0.2755
+                },
+                "PLAIN": {
+                    "leg_1_len": 2,
+                    "leg_2_len": 2,
+                    "angle": 90,
+                    "base_z": 0.2755
+                },
+                "NONE": {
+                    "leg_1_len": 0,
+                    "leg_2_len": 0,
+                    "angle": 0,
+                    "base_z": 0
+                }
+            },
+            "tile_defaults": {
+                "OPENLOCK": {
+                    "leg_1_len": 2,
+                    "leg_2_len": 2,
+                    "angle": 90,
+                    "base_z": 0.2755
+                },
+                "PLAIN": {
+                    "leg_1_len": 2,
+                    "leg_2_len": 2,
+                    "angle": 90,
+                    "base_z": 0.2755
+                },
+                "NONE": {
+                    "leg_1_len": 0,
+                    "leg_2_len": 0,
+                    "angle": 0,
+                    "base_z": 0
                 }
             }
         }

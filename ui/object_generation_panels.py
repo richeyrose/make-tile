@@ -74,7 +74,7 @@ class MT_PT_Tile_Generator_Panel(Panel):
 
         layout.operator('scene.delete_tiles', text="Delete Tiles")
 '''
-
+'''
 class MT_PT_Tile_Options_Panel():
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
@@ -139,7 +139,7 @@ class MT_PT_Tile_Options_Panel():
 
         if scene_props.main_part_blueprint == 'OPENLOCK':
             self.draw_openlock_main_part_panel(context)
-
+'''
 
 class MT_PT_Openlock_Socket_Panel(bpy.types.Panel):
     bl_order = 3
@@ -173,7 +173,7 @@ class MT_PT_Openlock_Socket_Panel(bpy.types.Panel):
             stripped_name = cutter.name.split(seperator, 1)[0]
             layout.prop(cutter, "value", text=stripped_name)
 
-
+'''
 class MT_PT_Connecting_Column_Tile_Options_Panel(bpy.types.Panel, MT_PT_Tile_Options_Panel):
     bl_idname = 'MT_PT_Connecting_Column_Tile_Options'
     bl_order = 2
@@ -621,7 +621,7 @@ class MT_PT_Triangular_Tiles_Options_Panel(bpy.types.Panel, MT_PT_Tile_Options_P
         layout.label(text="Native Subdivisions:")
         layout.prop(scene_props, 'opposite_native_subdivisions', text='Sides')
         layout.prop(scene_props, 'z_native_subdivisions')
-
+'''
 
 class MT_PT_Converter_Panel(Panel):
     '''Allows you to convert any mesh object into a MakeTile object'''

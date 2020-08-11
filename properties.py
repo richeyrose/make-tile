@@ -212,6 +212,51 @@ def update_main_part_defaults(self, context):
                     break
 
 
+
+def update_base_x(self, context):
+    """Update the x dimension of the base based on the size of the tile.
+
+    Args:
+        context (bpy.context): scene context
+    """
+    scene_props = context.scene.mt_scene_props
+    tile_x = scene_props.tile_x
+    base_x = scene_props.base_x
+    proportionate = scene_props.x_proportionate_scale
+
+    if proportionate:
+        scene_props.base_x = base_x + (tile_x - base_x)
+
+def update_base_y(self, context):
+    """Update the y dimension of the base based on the size of the tile.
+
+    Args:
+        context (bpy.context): scene context
+    """
+    scene_props = context.scene.mt_scene_props
+    tile_y = scene_props.tile_y
+    base_y = scene_props.base_y
+    proportionate = scene_props.y_proportionate_scale
+
+    if proportionate:
+        scene_props.base_y = base_y + (tile_y - base_y)
+
+
+def update_base_z(self, context):
+    """Update the z dimension of the base based on the size of the tile.
+
+    Args:
+        context (bpy.context): scene context
+    """
+    scene_props = context.scene.mt_scene_props
+    tile_z = scene_props.tile_z
+    base_z = scene_props.base_z
+    proportionate = scene_props.z_proportionate_scale
+
+    if proportionate:
+        scene_props.base_z = base_z + (tile_z - base_z)
+
+
 class MT_Scene_Properties(PropertyGroup):
     def change_tile_type(self, context):
         self.update_size_defaults(context)
@@ -559,12 +604,29 @@ class MT_Scene_Properties(PropertyGroup):
     # customisable ones where appropriate. These are wrapped up
     # in a vector and passed on as tile_size and base_size
 
+    # Scale base proportionate to tile
+    x_proportionate_scale: bpy.props.BoolProperty(
+        name="X",
+        default=True
+    )
+
+    y_proportionate_scale: bpy.props.BoolProperty(
+        name="Y",
+        default=True
+    )
+
+    z_proportionate_scale: bpy.props.BoolProperty(
+        name="Z",
+        default=False
+    )
+
     # Tile size
     tile_x: bpy.props.FloatProperty(
         name="X",
         default=2.0,
         step=0.5,
         precision=3,
+        update=update_base_x,
         min=0
     )
 
@@ -573,6 +635,7 @@ class MT_Scene_Properties(PropertyGroup):
         default=2,
         step=0.5,
         precision=3,
+        update=update_base_y,
         min=0
     )
 
@@ -581,6 +644,7 @@ class MT_Scene_Properties(PropertyGroup):
         default=2.0,
         step=0.1,
         precision=3,
+        update=update_base_z,
         min=0
     )
 

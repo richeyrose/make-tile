@@ -1,9 +1,9 @@
 import os
 import bpy
 from .. utils.registration import get_prefs
-# from .. lib.utils.utils import mode
-# from .. lib.utils.selection import deselect_all, select_all, select, activate
-from .. lib.utils.vertex_groups import get_verts_in_vert_group, get_vert_indexes_in_vert_group
+from .. lib.utils.vertex_groups import (
+    get_verts_in_vert_group,
+    get_vert_indexes_in_vert_group)
 
 
 def load_materials(directory_path, blend_filenames):

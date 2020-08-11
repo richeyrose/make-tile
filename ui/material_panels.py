@@ -1,7 +1,5 @@
 import bpy
 from bpy.types import Panel
-from .. property_groups.property_groups import MT_Radio_Buttons
-
 
 class MT_PT_Material_Slots_Panel(Panel):
     bl_order = 5

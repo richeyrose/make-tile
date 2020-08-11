@@ -2,9 +2,9 @@ import os
 import json
 import bpy
 from bpy.types import PropertyGroup
-from .. utils.registration import get_prefs, get_path
-from ..operators.maketile import MT_Tile_Generator
-from .. enums.enums import (
+from .utils.registration import get_prefs
+from .operators.maketile import MT_Tile_Generator
+from . enums.enums import (
     tile_main_systems,
     tile_types,
     base_systems,
@@ -16,8 +16,8 @@ from .. enums.enums import (
     material_mapping,
     openlock_column_types)
 
-from .. lib.utils.update_scene_props import load_material_libraries
-from ..lib.utils.utils import get_all_subclasses
+from . lib.utils.update_scene_props import load_material_libraries
+from .lib.utils.utils import get_all_subclasses
 
 # Radio buttons used in menus
 class MT_Radio_Buttons(PropertyGroup):
@@ -211,6 +211,25 @@ def update_main_part_defaults(self, context):
                         setattr(scene_props, k, v)
                     break
 
+
+def load_material_enums(self, context):
+    '''Constructs a material Enum from materials found in the materials asset folder'''
+    enum_items = []
+    if context is None:
+        return enum_items
+
+    if context.scene.mt_scene_props.mt_is_just_activated is True:
+        load_material_libraries(dummy=None)
+
+    prefs = get_prefs()
+
+    materials = bpy.data.materials
+    for material in materials:
+        # prevent make-tile adding the default material to the list
+        if material.name != prefs.secondary_material and material.name != 'Material':
+            enum = (material.name, material.name, "")
+            enum_items.append(enum)
+    return enum_items
 
 
 def update_base_x(self, context):
@@ -430,24 +449,6 @@ class MT_Scene_Properties(PropertyGroup):
                         bpy.ops.scene.mt_return_to_preview()
                         bpy.ops.scene.mt_make_3d()
 
-    def load_material_enums(self, context):
-        '''Constructs a material Enum from materials found in the materials asset folder'''
-        enum_items = []
-        if context is None:
-            return enum_items
-
-        if context.scene.mt_scene_props.mt_is_just_activated is True:
-            load_material_libraries(dummy=None)
-
-        prefs = get_prefs()
-
-        materials = bpy.data.materials
-        for material in materials:
-            # prevent make-tile adding the default material to the list
-            if material.name != prefs.secondary_material and material.name != 'Material':
-                enum = (material.name, material.name, "")
-                enum_items.append(enum)
-        return enum_items
 
     mt_is_just_activated: bpy.props.BoolProperty(
         description="Has the add-on just been activated. Used to populate materials list first time round",

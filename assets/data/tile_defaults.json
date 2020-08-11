@@ -20,6 +20,9 @@
             "x_native_subdivisions": 15,
             "y_native_subdivisions": 15,
             "z_native_subdivisions": 1,
+            "x_proportionate_scale": true,
+            "y_proportionate_scale": true,
+            "z_proportionate_scale": false,
             "base_defaults": {
                 "OPENLOCK": {
                     "base_x": 2,
@@ -57,7 +60,7 @@
         }
     },
     {
-        "bl_idname": "object.make_custom_straight_wall",
+        "bl_idname": "object.make_straight_wall",
         "bl_label": "Straight Wall",
         "blueprint":"CUSTOM",
         "type": "STRAIGHT_WALL",
@@ -78,9 +81,12 @@
             "x_native_subdivisions": 15,
             "y_native_subdivisions": 1,
             "z_native_subdivisions": 15,
+            "x_proportionate_scale": true,
+            "y_proportionate_scale": false,
+            "z_proportionate_scale": false,
             "base_defaults": {
                 "OPENLOCK": {
-                    "base_x": 2,
+                    "base_x": 3,
                     "base_y": 0.5,
                     "base_z": 0.2755
                 },
@@ -97,7 +103,7 @@
             },
             "tile_defaults": {
                 "OPENLOCK": {
-                    "tile_x": 2,
+                    "tile_x": 3,
                     "tile_y": 0.315,
                     "tile_z": 2
                 },

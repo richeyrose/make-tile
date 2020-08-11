@@ -16,11 +16,16 @@ from .. lib.utils.utils import mode, get_all_subclasses
 from .. utils.registration import get_prefs
 from .. lib.turtle.scripts.straight_tile import draw_rectangular_floor_core
 from .. lib.turtle.scripts.openlock_floor_base import draw_openlock_rect_floor_base
-from .. lib.utils.selection import deselect_all, select_by_loc
-from .create_tile import create_displacement_core, finalise_tile, spawn_empty_base
+from .. lib.utils.selection import (
+    deselect_all,
+    select_by_loc)
+from .create_tile import (
+    create_displacement_core,
+    finalise_tile,
+    spawn_empty_base)
 
 
-class MT_PT_Custom_Rect_Floor_Panel(Panel):
+class MT_PT_Rect_Floor_Panel(Panel):
     """Draw a tile options panel in UI."""
 
     bl_space_type = "VIEW_3D"
@@ -28,7 +33,7 @@ class MT_PT_Custom_Rect_Floor_Panel(Panel):
     bl_category = "Make Tile"
     bl_label = "Tile Options"
     bl_order = 2
-    bl_idname = "MT_PT_Custom_Rect_Floor_Panel"
+    bl_idname = "MT_PT_Rect_Floor_Panel"
     bl_description = "Options to configure the dimensions of a tile"
 
     @classmethod
@@ -154,7 +159,7 @@ class MT_OT_Make_Openlock_Rect_Floor_Core(MT_Tile_Generator, Operator):
 
 
 class MT_OT_Make_Empty_Rect_Floor_Core(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate an openlock rectangular floor core."""
+    """Internal Operator. Generate an empty rectangular floor core."""
 
     bl_idname = "object.make_empty_rect_floor_core"
     bl_label = "Rectangular Floor Core"

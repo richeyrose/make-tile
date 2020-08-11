@@ -19,6 +19,7 @@ from . enums.enums import (
 from . lib.utils.update_scene_props import load_material_libraries
 from .lib.utils.utils import get_all_subclasses
 
+
 # Radio buttons used in menus
 class MT_Radio_Buttons(PropertyGroup):
     def update_mapping_axis(self, context):
@@ -177,6 +178,9 @@ def update_scene_defaults(self, context):
                 setattr(scene_props, key, value)
             break
 
+    update_main_part_defaults(self, context)
+    update_base_defaults(self, context)
+
 
 def update_base_defaults(self, context):
     scene_props = context.scene.mt_scene_props
@@ -277,6 +281,13 @@ def update_base_z(self, context):
 
 
 class MT_Scene_Properties(PropertyGroup):
+    """Contains MakeTile scene properties.
+    Used to store properties that can be set by user for tile generation etc.
+
+    Args:
+        PropertyGroup (bpy.types.PropertyGroup): Group of ID properties
+    """
+
     def change_tile_type(self, context):
         self.update_size_defaults(context)
         self.update_subdiv_defaults(context)
@@ -449,7 +460,6 @@ class MT_Scene_Properties(PropertyGroup):
                         bpy.ops.scene.mt_return_to_preview()
                         bpy.ops.scene.mt_make_3d()
 
-
     mt_is_just_activated: bpy.props.BoolProperty(
         description="Has the add-on just been activated. Used to populate materials list first time round",
         default=False
@@ -474,7 +484,6 @@ class MT_Scene_Properties(PropertyGroup):
     tile_blueprint: bpy.props.EnumProperty(
         items=tile_blueprints,
         name="Blueprint",
-        update=update_tile_blueprint,
         default="CUSTOM"
     )
 
@@ -613,7 +622,7 @@ class MT_Scene_Properties(PropertyGroup):
 
     y_proportionate_scale: bpy.props.BoolProperty(
         name="Y",
-        default=True
+        default=False
     )
 
     z_proportionate_scale: bpy.props.BoolProperty(
@@ -948,9 +957,8 @@ class MT_Tile_Properties(PropertyGroup):
         name="Tile Resolution"
     )
 
+
 def register():
-
-
     # Property group containing radio buttons
     bpy.types.WindowManager.mt_radio_buttons = bpy.props.PointerProperty(
         type=MT_Radio_Buttons

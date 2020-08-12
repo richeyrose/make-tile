@@ -2,21 +2,41 @@ import os
 from math import radians, pi, modf
 from mathutils import Vector
 import bpy
-from .. lib.utils.collections import add_object_to_collection
+from bpy.types import Operator, Panel
+from ..operators.maketile import (
+    MT_Tile_Generator,
+    initialise_tile_creator,
+    create_common_tile_props)
+from .. lib.utils.collections import (
+    add_object_to_collection,
+    create_collection,
+    activate_collection)
 from .. utils.registration import get_prefs
 from .. lib.turtle.scripts.openlock_curved_wall_base import draw_openlock_curved_base
 from .. lib.turtle.scripts.straight_tile import draw_straight_wall_core
-
 from .. lib.utils.selection import (
     deselect_all,
     select,
     activate)
-
-from .. lib.utils.utils import (add_circle_array)
-from . create_tile import MT_Tile
+from .. lib.utils.utils import (
+    add_circle_array,
+    get_all_subclasses)
+from .create_tile import (
+    create_displacement_core,
+    finalise_tile,
+    spawn_empty_base,
+    spawn_prefab)
 from . Rectangular_Tiles import make_rect_floor_vert_groups
 from . Straight_Tiles import straight_wall_to_vert_groups
 
+class MT_OT_Make_Curved_Floor_Tile(MT_Tile_Generator, Operator):
+    """Create a Curved Floor Tile"""
+    bl_idname = "object.make_curved_floor"
+    bl_label = "Curved Floor"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        return {'FINISHED'}
 
 # MIXIN #
 class MT_Curved_Tile:

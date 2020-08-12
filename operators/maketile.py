@@ -223,14 +223,7 @@ class MT_OT_Make_Corner_Floor_Tile(MT_Tile_Generator, Operator):
         return {'FINISHED'}
 
 
-class MT_OT_Make_Curved_Floor_Tile(MT_Tile_Generator, Operator):
-    """Create a Curved Floor Tile"""
-    bl_idname = "object.make_curved_floor"
-    bl_label = "Curved Floor"
-    bl_options = {'REGISTER', 'UNDO'}
 
-    def execute(self, context):
-        return {'FINISHED'}
 
 
 class MT_OT_Make_Semi_Circ_Floor_Tile(MT_Tile_Generator, Operator):

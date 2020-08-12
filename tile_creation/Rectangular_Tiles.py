@@ -416,7 +416,7 @@ def spawn_openlock_base_clip_cutters(base, tile_props):
         tile_props (mt_tile_props): tile properties
 
     Returns:
-        list of base clip cutters
+        list[bpy.types.Object]
 
     """
     mode('OBJECT')

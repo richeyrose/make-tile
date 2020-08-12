@@ -228,19 +228,19 @@
                     "leg_1_len": 2,
                     "leg_2_len": 2,
                     "angle": 90,
-                    "base_z": 0.2755
+                    "tile_z": 0.3
                 },
                 "PLAIN": {
                     "leg_1_len": 2,
                     "leg_2_len": 2,
                     "angle": 90,
-                    "base_z": 0.2755
+                    "tile_z": 0.3
                 },
                 "NONE": {
                     "leg_1_len": 0,
                     "leg_2_len": 0,
                     "angle": 0,
-                    "base_z": 0
+                    "tile_z": 0
                 }
             }
         }

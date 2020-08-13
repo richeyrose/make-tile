@@ -244,5 +244,70 @@
                 }
             }
         }
+    },
+    {
+        "bl_idname": "object.make_curved_wall",
+        "bl_label": "Curved Wall",
+        "blueprint":"CUSTOM",
+        "type": "CURVED_WALL",
+        "base_blueprints": {
+            "OPENLOCK": "OpenLOCK",
+            "PLAIN": "Plain",
+            "NONE": "None"
+        },
+        "main_part_blueprints": {
+            "OPENLOCK": "OpenLOCK",
+            "PLAIN": "Plain",
+            "NONE": "None"
+        },
+        "defaults":
+            {
+            "base_blueprint": "OPENLOCK",
+            "main_part_blueprint": "OPENLOCK",
+            "curve_native_subdivisions": 15,
+            "y_native_subdivisions":1,
+            "z_native_subdivisions": 15,
+            "z_proportionate_scale": false,
+            "base_defaults": {
+                "OPENLOCK": {
+                    "base_radius": 2,
+                    "degrees_of_arc": 90,
+                    "base_y": 0.5,
+                    "base_z": 0.2755
+                },
+                "PLAIN": {
+                    "base_radius": 2,
+                    "degrees_of_arc": 90,
+                    "base_y": 0.5,
+                    "base_z": 0.2755
+                },
+                "NONE": {
+                    "base_radius": 0,
+                    "degrees_of_arc": 0,
+                    "base_y": 0,
+                    "base_z": 0
+                }
+            },
+            "tile_defaults": {
+                "OPENLOCK": {
+                    "base_radius": 2,
+                    "degrees_of_arc": 90,
+                    "tile_y": 0.315,
+                    "tile_z": 2
+                },
+                "PLAIN": {
+                    "base_radius": 2,
+                    "degrees_of_arc": 90,
+                    "tile_y": 0.315,
+                    "tile_z": 2
+                },
+                "NONE": {
+                    "base_radius": 0,
+                    "degrees_of_arc": 0,
+                    "tile_y": 0,
+                    "tile_z": 0
+                }
+            }
+        }
     }
 ]

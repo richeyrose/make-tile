@@ -39,7 +39,58 @@ class MT_PT_Straight_Wall_Panel(Panel):
     def poll(cls, context):
         """Check tile_type_new."""
         if hasattr(context.scene, 'mt_scene_props'):
-            return context.scene.mt_scene_props.tile_type_new in ["object.make_straight_wall", "object.make_straight_floor"]
+            return context.scene.mt_scene_props.tile_type_new == "object.make_straight_wall"
+        return False
+
+    def draw(self, context):
+        """Draw the Panel."""
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Blueprints")
+        layout.prop(scene_props, 'base_blueprint')
+        layout.prop(scene_props, 'main_part_blueprint')
+
+        layout.label(text="Tile Size")
+        row = layout.row()
+        row.prop(scene_props, 'tile_x')
+        row.prop(scene_props, 'tile_z')
+
+        layout.label(text="Core Size")
+        layout.prop(scene_props, 'tile_y', text="Width")
+
+        layout.label(text="Lock Proportions")
+        row = layout.row()
+        row.prop(scene_props, 'x_proportionate_scale')
+        row.prop(scene_props, 'y_proportionate_scale')
+        row.prop(scene_props, 'z_proportionate_scale')
+
+        layout.label(text="Base Size")
+        row = layout.row()
+        row.prop(scene_props, 'base_x')
+        row.prop(scene_props, 'base_y')
+        row.prop(scene_props, 'base_z')
+
+        layout.operator('scene.reset_tile_defaults')
+
+
+class MT_PT_Straight_Floor_Panel(Panel):
+    """Draw a tile options panel in UI."""
+
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Make Tile"
+    bl_label = "Tile Options"
+    bl_order = 2
+    bl_idname = "MT_PT_Straight_Floor_Panel"
+    bl_description = "Options to configure the dimensions of a tile"
+
+    @classmethod
+    def poll(cls, context):
+        """Check tile_type_new."""
+        if hasattr(context.scene, 'mt_scene_props'):
+            return context.scene.mt_scene_props.tile_type_new == "object.make_straight_floor"
         return False
 
     def draw(self, context):
@@ -242,10 +293,8 @@ class MT_OT_Make_Straight_Wall_Tile(MT_Tile_Generator, Operator):
         base_type = 'STRAIGHT_BASE'
         core_type = 'STRAIGHT_WALL_CORE'
 
-        subclasses = get_all_subclasses(MT_Tile_Generator)
-
         original_renderer, cursor_orig_loc, cursor_orig_rot = initialise_wall_creator(context, scene_props)
-
+        subclasses = get_all_subclasses(MT_Tile_Generator)
         base = spawn_prefab(context, subclasses, base_blueprint, base_type)
 
         if core_blueprint == 'NONE':

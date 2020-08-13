@@ -60,7 +60,7 @@ class MT_PT_Rect_Floor_Panel(Panel):
         row.prop(scene_props, 'tile_y')
         row.prop(scene_props, 'tile_z')
 
-        layout.label(text="Lock Proportions")
+        layout.label(text="Sync Proportions")
         row = layout.row()
         row.prop(scene_props, 'x_proportionate_scale')
         row.prop(scene_props, 'y_proportionate_scale')

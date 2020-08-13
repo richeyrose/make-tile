@@ -61,11 +61,13 @@ class MT_PT_Triangular_Floor_Panel(Panel):
         layout.prop(scene_props, 'leg_2_len', text='Leg 2 Length')
         layout.prop(scene_props, 'angle', text='Angle')
 
-        layout.label(text="Lock Proportions")
+        layout.label(text="Sync Proportions")
         layout.prop(scene_props, 'z_proportionate_scale')
 
         layout.label(text="Base Properties")
         layout.prop(scene_props, 'base_z', text='Base Height')
+
+        layout.operator('scene.reset_tile_defaults')
 
 
 class MT_OT_Make_Triangular_Floor_Tile(MT_Tile_Generator, Operator):

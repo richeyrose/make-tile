@@ -29,15 +29,295 @@ from .create_tile import (
 from . Rectangular_Tiles import make_rect_floor_vert_groups
 from . Straight_Tiles import straight_wall_to_vert_groups
 
+
+class MT_PT_Curved_Wall_Tile_Panel(Panel):
+    """Draw a tile options panel in the UI."""
+
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Make Tile"
+    bl_label = "Tile Options"
+    bl_order = 2
+    bl_idname = "MT_PT_Curved_Wall_Tile_Panel"
+    bl_description = "Options to configure the dimensions of a tile"
+
+    @classmethod
+    def poll(cls, context):
+        """Check tile_type_new."""
+        if hasattr(context.scene, 'mt_scene_props'):
+            return context.scene.mt_scene_props.tile_type_new in ["object.make_curved_wall"]
+        return False
+
+    def draw(self, context):
+        """Draw the Panel."""
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Blueprints")
+        layout.prop(scene_props, 'base_blueprint')
+        layout.prop(scene_props, 'main_part_blueprint')
+
+        layout.label(text="Tile Properties")
+        row = layout.row()
+        row.prop(scene_props, 'tile_z', text="Height")
+        row.prop(scene_props, 'base_radius', text="Radius")
+        row.prop(scene_props, 'degrees_of_arc')
+
+        layout.label(text="Core Properties")
+        row.prop(scene_props, 'tile_y', text="Width")
+
+        layout.label(text="Sync Proportions")
+        row = layout.row()
+        row.prop(scene_props, 'y_proportionate_scale', text="Width")
+        row.prop(scene_props, 'z_proportionate_scale', text="Height")
+
+        layout.label(text="Base Properties")
+        row = layout.row()
+        row.prop(scene_props, 'base_y', text="Width")
+        row.prop(scene_props, 'base_z', text="Height")
+
+        layout.operator('scene.reset_tile_defaults')
+
+
+class MT_OT_Make_Curved_Wall_Tile(MT_Tile_Generator, Operator):
+    """Create a Curved Wall Tile."""
+
+    bl_idname = "object.make_curved_wall"
+    bl_label = "Curved Wall"
+    bl_options = {'UNDO'}
+    mt_blueprint = "CUSTOM"
+    mt_type = "CURVED_WALL"
+
+    def execute(self, context):
+        """Execute the operator."""
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        base_blueprint = scene_props.base_blueprint
+        core_blueprint = scene_props.main_part_blueprint
+        base_type = 'CURVED_BASE'
+        core_type = 'CURVED_WALL_CORE'
+
+        original_renderer, cursor_orig_loc, cursor_orig_rot = initialise_wall_creator(context, scene_props)
+        subclasses = get_all_subclasses(MT_Tile_Generator)
+        base = spawn_prefab(context, subclasses, base_blueprint, base_type)
+
+        if core_blueprint == 'NONE':
+            preview_core = None
+        else:
+            preview_core = spawn_prefab(context, subclasses, core_blueprint, core_type)
+
+        finalise_tile(base, preview_core, cursor_orig_loc, cursor_orig_rot)
+
+        scene.render.engine = original_renderer
+        return {'FINISHED'}
+
+
 class MT_OT_Make_Curved_Floor_Tile(MT_Tile_Generator, Operator):
-    """Create a Curved Floor Tile"""
+    """Create a Curved Floor Tile."""
+
     bl_idname = "object.make_curved_floor"
     bl_label = "Curved Floor"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'UNDO'}
 
     def execute(self, context):
         return {'FINISHED'}
 
+
+class MT_OT_Make_Openlock_Curved_Base(MT_Tile_Generator, Operator):
+    """Internal Operator. Generate an OpenLOCK curved base."""
+
+    bl_idname = "object.make_openlock_curved_base"
+    bl_label = "OpenLOCK Curved Base"
+    bl_options = {'INTERNAL'}
+    mt_blueprint = "OPENLOCK"
+    mt_type = "CURVED_BASE"
+
+    def execute(self, context):
+        """Execute the operator."""
+        tile = context.collection
+        tile_props = tile.mt_tile_props
+        spawn_openlock_base(tile_props)
+        return{'FINISHED'}
+
+
+class MT_OT_Make_Plain_Curved_Base(MT_Tile_Generator, Operator):
+    """Internal Operator. Generate a plain curved base."""
+
+    bl_idname = "object.make_plain_curved_base"
+    bl_label = "Plain Curved Base"
+    bl_options = {'INTERNAL'}
+    mt_blueprint = "PLAIN"
+    mt_type = "CURVED_BASE"
+
+    def execute(self, context):
+        """Execute the operator."""
+        tile = context.collection
+        tile_props = tile.mt_tile_props
+        spawn_plain_base(tile_props)
+        return{'FINISHED'}
+
+
+class MT_OT_Make_Empty_Curved_Base(MT_Tile_Generator, Operator):
+    """Internal Operator. Generate an empty curved base."""
+
+    bl_idname = "object.make_empty_curved_base"
+    bl_label = "Empty Curved Base"
+    bl_options = {'INTERNAL'}
+    mt_blueprint = "NONE"
+    mt_type = "CURVED_BASE"
+
+    def execute(self, context):
+        """Execute the operator."""
+        tile = context.collection
+        tile_props = tile.mt_tile_props
+        spawn_empty_base(tile_props)
+        return{'FINISHED'}
+
+
+class MT_OT_Make_Plain_Curved_Wall_Core(MT_Tile_Generator, Operator):
+    """Internal Operator. Generate a plain curved wall core."""
+
+    bl_idname = "object.make_plain_curved_wall_core"
+    bl_label = "Curved Wall Core"
+    bl_options = {'INTERNAL'}
+    mt_blueprint = "PLAIN"
+    mt_type = "CURVED_WALL_CORE"
+
+    def execute(self, context):
+        """Execute the operator."""
+        tile = context.collection
+        tile_props = tile.mt_tile_props
+        base = context.active_object
+        create_plain_wall_cores(base, tile_props)
+        return{'FINISHED'}
+
+
+class MT_OT_Make_Openlock_Curved_Wall_Core(MT_Tile_Generator, Operator):
+    """Internal Operator. Generate an openlock curved wall core."""
+
+    bl_idname = "object.make_openlock_curved_wall_core"
+    bl_label = "Curved Wall Core"
+    bl_options = {'INTERNAL'}
+    mt_blueprint = "OPENLOCK"
+    mt_type = "CURVED_WALL_CORE"
+
+    def execute(self, context):
+        """Execute the operator."""
+        tile = context.collection
+        tile_props = tile.mt_tile_props
+        base = context.active_object
+        create_openlock_wall_cores(base, tile_props)
+        return{'FINISHED'}
+
+
+class MT_OT_Make_Empty_Curved_Wall_Core(MT_Tile_Generator, Operator):
+    """Internal Operator. Generate an empty curved wall core."""
+
+    bl_idname = "object.make_empty_curved_wall_core"
+    bl_label = "Curved Wall Core"
+    bl_options = {'INTERNAL'}
+    mt_blueprint = "NONE"
+    mt_type = "CURVED_WALL_CORE"
+
+    def execute(self, context):
+        """Execute the operator."""
+        return {'PASS_THROUGH'}
+
+
+def initialise_wall_creator(context, scene_props):
+    """Initialise the wall creator and set common properties.
+
+    Args:
+        context (bpy.context): context
+        scene_props (bpy.types.PropertyGroup.mt_scene_props): maketile scene properties
+
+    Returns:
+        enum: enum in {'BLENDER_EEVEE', 'CYCLES', 'WORKBENCH'}
+        list[3]: cursor original location
+        list[3]: cursor original rotation
+
+    """
+    original_renderer, tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator(context)
+    # We store tile properties in the mt_tile_props property group of
+    # the collection so we can access them from any object in this
+    # collection.
+    create_collection('Walls', tiles_collection)
+    tile_collection = bpy.data.collections.new(tile_name)
+    bpy.data.collections['Walls'].children.link(tile_collection)
+    activate_collection(tile_collection.name)
+
+    tile_props = tile_collection.mt_tile_props
+    create_common_tile_props(scene_props, tile_props, tile_collection)
+
+    tile_props.tile_type = 'CURVED_WALL'
+
+    tile_props.base_radius = scene_props.base_radius
+    tile_props.degrees_of_arc = scene_props.degrees_of_arc
+
+    tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
+    tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
+
+    tile_props.curve_native_subdivisions = scene_props.curve_native_subdivisions
+    tile_props.y_native_subdivisions = scene_props.y_native_subdivisions
+    tile_props.z_native_subdivisions = scene_props.z_native_subdivisions
+
+    return original_renderer, cursor_orig_loc, cursor_orig_rot
+
+
+def create_openlock_wall_cores(base, tile_props):
+    pass
+
+
+def create_plain_wall_cores(base, tile_props):
+    pass
+
+
+def spawn_plain_base(tile_props):
+    """Spawn a plain base into the scene.
+
+    Args:
+        tile_props (bpy.types.PropertyGroup.mt_tile_props): tile properties
+
+    Returns:
+        bpy.types.Object: tile base
+    """
+    radius = tile_props.base_radius
+    segments = tile_props.curve_native_subdivisions
+    angle = tile_props.degrees_of_arc
+    height = tile_props.base_size[2]
+    width = tile_props.base_size[1]
+
+    t = bpy.ops.turtle
+
+    t.add_turtle()
+    t.pd()
+    t.arc(r=radius, d=angle, s=segments)
+    t.arc(r=radius + width, d=angle, s=segments)
+    t.select_all()
+    t.bridge()
+    t.pd()
+    t.select_all()
+    t.up(d=height)
+    t.home()
+    bpy.ops.object.editmode_toggle()
+
+    base = bpy.context.object
+    base.name = tile_props.tile_name + '.base'
+
+    obj_props = base.mt_object_props
+    obj_props.is_mt_object = True
+    obj_props.geometry_type = 'BASE'
+    obj_props.tile_name = tile_props.tile_name
+
+    return base
+
+
+def spawn_openlock_base(tile_props):
+    pass
+
+
+"""
 # MIXIN #
 class MT_Curved_Tile:
     def create_plain_base(self, tile_props):
@@ -477,3 +757,4 @@ class MT_Curved_Wall_Tile(MT_Curved_Tile, MT_Tile):
         cutters.extend([right_cutter_bottom, right_cutter_top])
 
         return cutters
+"""

@@ -189,7 +189,7 @@ class MT_OT_Make_Plain_Straight_Wall_Core(MT_Tile_Generator, Operator):
         tile = context.collection
         tile_props = tile.mt_tile_props
         base = context.active_object
-        create_plain_wall_cores(base, tile_props)
+        spawn_plain_wall_cores(base, tile_props)
         return{'FINISHED'}
 
 
@@ -207,7 +207,7 @@ class MT_OT_Make_Openlock_Straight_Wall_Core(MT_Tile_Generator, Operator):
         tile = context.collection
         tile_props = tile.mt_tile_props
         base = context.active_object
-        create_openlock_wall_cores(base, tile_props)
+        spawn_openlock_wall_cores(base, tile_props)
         return{'FINISHED'}
 
 
@@ -703,7 +703,7 @@ def straight_wall_to_vert_groups(obj):
     bpy.context.scene.cursor.location = cursor_original_loc
 
 
-def create_plain_wall_cores(base, tile_props):
+def spawn_plain_wall_cores(base, tile_props):
     """Create preview and displacement cores.
 
     Args:
@@ -724,7 +724,7 @@ def create_plain_wall_cores(base, tile_props):
     return preview_core
 
 
-def create_openlock_wall_cores(base, tile_props):
+def spawn_openlock_wall_cores(base, tile_props):
     """Create preview and displacement cores.
 
     Args:
@@ -742,7 +742,7 @@ def create_openlock_wall_cores(base, tile_props):
         tile_props,
         textured_vertex_groups)
 
-    wall_cutters = create_openlock_wall_cutters(
+    wall_cutters = spawn_openlock_wall_cutters(
         preview_core,
         tile_props)
 
@@ -823,7 +823,8 @@ def spawn_wall_core(tile_props):
 
     return core
 
-def create_openlock_wall_cutters(core, tile_props):
+
+def spawn_openlock_wall_cutters(core, tile_props):
     """Creates the cutters for the wall and positions them correctly
     """
     preferences = get_prefs()

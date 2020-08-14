@@ -192,7 +192,8 @@ class MT_OT_Make_Rect_Floor_Tile(MT_Tile_Generator, Operator):
         core_type = 'RECT_FLOOR_CORE'
         subclasses = get_all_subclasses(MT_Tile_Generator)
 
-        original_renderer, cursor_orig_loc, cursor_orig_rot = initialise_floor_creator(context, scene_props)
+        original_renderer, cursor_orig_loc, cursor_orig_rot = initialise_floor_creator(
+            context, scene_props)
         base = spawn_prefab(context, subclasses, base_blueprint, base_type)
 
         if core_type == 'NONE':
@@ -289,8 +290,8 @@ def spawn_floor_core(tile_props):
 
     core = draw_rectangular_floor_core(
         [tile_size[0],
-            tile_size[1],
-            tile_size[2] - base_size[2]],
+         tile_size[1],
+         tile_size[2] - base_size[2]],
         native_subdivisions)
 
     core.name = tile_name + '.core'

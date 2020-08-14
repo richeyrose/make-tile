@@ -210,27 +210,3 @@ def create_common_tile_props(scene_props, tile_props, tile_collection):
     tile_props.tile_units = scene_props.tile_units
     tile_props.displacement_strength = scene_props.displacement_strength
     tile_props.tile_resolution = scene_props.tile_resolution
-
-
-class MT_OT_Make_Corner_Floor_Tile(MT_Tile_Generator, Operator):
-    """Create a Corner Floor Tile."""
-
-    bl_idname = "object.make_corner_floor"
-    bl_label = "Corner Floor"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        return {'FINISHED'}
-
-
-
-
-
-class MT_OT_Make_Semi_Circ_Floor_Tile(MT_Tile_Generator, Operator):
-    """Create a Semi Circular Floor Tile"""
-    bl_idname = "object.make_semi_circ_floor"
-    bl_label = "Semi Circular Floor"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    def execute(self, context):
-        return {'FINISHED'}

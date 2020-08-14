@@ -60,14 +60,14 @@ class MT_PT_Curved_Wall_Tile_Panel(Panel):
         layout.prop(scene_props, 'main_part_blueprint')
 
         layout.label(text="Tile Properties")
-        row = layout.row()
-        row.prop(scene_props, 'tile_z', text="Height")
-        row.prop(scene_props, 'base_radius', text="Radius")
-        row.prop(scene_props, 'degrees_of_arc')
+
+        layout.prop(scene_props, 'tile_z', text="Height")
+        layout.prop(scene_props, 'base_radius', text="Radius")
+        layout.prop(scene_props, 'degrees_of_arc')
+        layout.prop(scene_props, 'base_socket_side', text="Socket Side")
 
         layout.label(text="Core Properties")
-        row = layout.row()
-        row.prop(scene_props, 'tile_y', text="Width")
+        layout.prop(scene_props, 'tile_y', text="Width")
 
         layout.label(text="Sync Proportions")
         row = layout.row()
@@ -75,9 +75,8 @@ class MT_PT_Curved_Wall_Tile_Panel(Panel):
         row.prop(scene_props, 'z_proportionate_scale', text="Height")
 
         layout.label(text="Base Properties")
-        row = layout.row()
-        row.prop(scene_props, 'base_y', text="Width")
-        row.prop(scene_props, 'base_z', text="Height")
+        layout.prop(scene_props, 'base_y', text="Width")
+        layout.prop(scene_props, 'base_z', text="Height")
 
         layout.operator('scene.reset_tile_defaults')
 
@@ -271,7 +270,7 @@ class MT_OT_Make_Openlock_Curved_Floor_Core(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an openlock curved wall core."""
 
     bl_idname = "object.make_openlock_curved_floor_core"
-    bl_label = "Curved Wall Core"
+    bl_label = "Curved Floor Core"
     bl_options = {'INTERNAL'}
     mt_blueprint = "OPENLOCK"
     mt_type = "CURVED_FLOOR_CORE"
@@ -328,6 +327,7 @@ def initialise_wall_creator(context, scene_props):
 
     tile_props.base_radius = scene_props.base_radius
     tile_props.degrees_of_arc = scene_props.degrees_of_arc
+    tile_props.base_socket_side = scene_props.base_socket_side
 
     tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
     tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
@@ -368,6 +368,7 @@ def initialise_floor_creator(context, scene_props):
 
     tile_props.base_radius = scene_props.base_radius
     tile_props.degrees_of_arc = scene_props.degrees_of_arc
+    tile_props.base_socket_side = scene_props.base_socket_side
 
     tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
     tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)

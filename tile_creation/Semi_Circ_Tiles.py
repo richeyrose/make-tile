@@ -76,12 +76,6 @@ class MT_PT_Semi_Circ_Floor_Panel(Panel):
         layout.label(text="Base Properties")
         layout.prop(scene_props, 'base_z', text="Height")
 
-        layout.label(text="Native Subdivisions")
-        layout.prop(scene_props, 'x_native_subdivisions')
-        layout.prop(scene_props, 'y_native_subdivisions')
-        layout.prop(scene_props, 'z_native_subdivisions')
-        layout.prop(scene_props, 'curve_native_subdivisions')
-
         layout.operator('scene.reset_tile_defaults')
 
 

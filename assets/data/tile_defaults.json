@@ -442,5 +442,151 @@
                 }
             }
         }
+    },
+    {
+        "bl_idname": "object.make_l_wall_tile",
+        "bl_label": "L Wall",
+        "blueprint":"CUSTOM",
+        "type": "L_WALL",
+        "base_blueprints": {
+            "OPENLOCK": "OpenLOCK",
+            "PLAIN": "Plain",
+            "NONE": "None"
+        },
+        "main_part_blueprints": {
+            "OPENLOCK": "OpenLOCK",
+            "PLAIN": "Plain",
+            "NONE": "None"
+        },
+        "defaults":
+            {
+            "base_blueprint": "OPENLOCK",
+            "main_part_blueprint": "OPENLOCK",
+            "leg_1_native_subdivisions": 15,
+            "leg_2_native_subdivisions": 15,
+            "width_native_subdivisions": 1,
+            "z_native_subdivisions": 15,
+            "y_proportionate_scale": false,
+            "z_proportionate_scale": false,
+            "base_defaults": {
+                "OPENLOCK": {
+                    "leg_1_len": 2,
+                    "leg_2_len": 2,
+                    "angle": 90,
+                    "base_y": 0.5,
+                    "base_z": 0.2755
+                },
+                "PLAIN": {
+                    "leg_1_len": 2,
+                    "leg_2_len": 2,
+                    "angle": 90,
+                    "base_y": 0.5,
+                    "base_z": 0.2755
+                },
+                "NONE": {
+                    "leg_1_len": 2,
+                    "leg_2_len": 2,
+                    "angle": 90,
+                    "base_y": 0.5,
+                    "base_z": 0
+                }
+            },
+            "tile_defaults": {
+                "OPENLOCK": {
+                    "leg_1_len": 2,
+                    "leg_2_len": 2,
+                    "angle": 90,
+                    "tile_y": 0.315,
+                    "tile_z": 2
+                },
+                "PLAIN": {
+                    "leg_1_len": 2,
+                    "leg_2_len": 2,
+                    "angle": 90,
+                    "tile_y": 0.315,
+                    "tile_z": 2
+                },
+                "NONE": {
+                    "leg_1_len": 2,
+                    "leg_2_len": 2,
+                    "angle": 90,
+                    "tile_y": 0.315,
+                    "tile_z": 0
+                }
+            }
+        }
+    },
+    {
+        "bl_idname": "object.make_l_floor_tile",
+        "bl_label": "L Wall",
+        "blueprint":"CUSTOM",
+        "type": "L_FLOOR",
+        "base_blueprints": {
+            "OPENLOCK": "OpenLOCK",
+            "PLAIN": "Plain",
+            "NONE": "None"
+        },
+        "main_part_blueprints": {
+            "OPENLOCK": "OpenLOCK",
+            "PLAIN": "Plain",
+            "NONE": "None"
+        },
+        "defaults":
+            {
+            "base_blueprint": "OPENLOCK",
+            "main_part_blueprint": "OPENLOCK",
+            "leg_1_native_subdivisions": 15,
+            "leg_2_native_subdivisions": 15,
+            "width_native_subdivisions": 2,
+            "z_native_subdivisions": 1,
+            "y_proportionate_scale": true,
+            "z_proportionate_scale": false,
+            "base_defaults": {
+                "OPENLOCK": {
+                    "leg_1_len": 2,
+                    "leg_2_len": 2,
+                    "angle": 90,
+                    "base_y": 0.5,
+                    "base_z": 0.2755
+                },
+                "PLAIN": {
+                    "leg_1_len": 2,
+                    "leg_2_len": 2,
+                    "angle": 90,
+                    "base_y": 0.5,
+                    "base_z": 0.2755
+                },
+                "NONE": {
+                    "leg_1_len": 2,
+                    "leg_2_len": 2,
+                    "angle": 90,
+                    "base_y": 0.5,
+                    "base_z": 0
+                }
+            },
+            "tile_defaults": {
+                "OPENLOCK": {
+                    "leg_1_len": 2,
+                    "leg_2_len": 2,
+                    "angle": 90,
+                    "tile_y": 0.5,
+                    "tile_z": 0.3
+                },
+                "PLAIN": {
+                    "leg_1_len": 2,
+                    "leg_2_len": 2,
+                    "angle": 90,
+                    "tile_y": 0.5,
+                    "tile_z": 0.3
+                },
+                "NONE": {
+                    "leg_1_len": 2,
+                    "leg_2_len": 2,
+                    "angle": 90,
+                    "tile_y": 0.5,
+                    "tile_z": 0
+                }
+            }
+        }
     }
 ]

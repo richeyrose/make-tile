@@ -16,17 +16,21 @@ Features tagged **Core** will be available to Kickstarter backers who have suppo
 
 Features tagged **Plus** will be available to Kickstarter backers who have supported the plus tier.
 ## Phase 1
-- [ ] Basic user documentation - Community - In Progress
-- [ ] Optimise existing materials - Community
+- [x] Basic user documentation - Community - Complete
+- [ ] Prototype code refactor, cleanup and documentation - Community - In Progress
+- [ ] Implement swappable base sockets - Community
 - [ ] Implement pegs so tiles can be stacked - Community
-- [ ] OpenLOCK I, L, O, T, X column tiles - Core
+- [ ] Optimise tile generators to use bmesh module - Community - In Progress
 
 ## Phase 2
+- [ ] Optimise existing materials - Community - In Progress. Paused
+- [ ] OpenLOCK I, L, O, T, X column tiles - Core - In Progress. Paused
 - [ ] OpenLOCK roof and chimney pack 1 - Plus
 - [ ] Static window, door and stair models - Core
 - [ ] Basic version of asset manager - Core
 - [ ] OpenLOCK compatible T and X wall tiles - Core
 - [ ] Additional materials pack pt. 1 - Plus
+- [ ] Additional user documentation - Community
 
 ## Phase 3
 - [ ] Windows and doors generator - Plus

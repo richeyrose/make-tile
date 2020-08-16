@@ -588,5 +588,74 @@
                 }
             }
         }
+    },
+    {
+        "bl_idname": "object.make_u_wall",
+        "bl_label": "U Wall",
+        "blueprint":"CUSTOM",
+        "type": "U_WALL",
+        "base_blueprints": {
+            "OPENLOCK": "OpenLOCK",
+            "PLAIN": "Plain",
+            "NONE": "None"
+        },
+        "main_part_blueprints": {
+            "OPENLOCK": "OpenLOCK",
+            "PLAIN": "Plain",
+            "NONE": "None"
+        },
+        "defaults":
+            {
+            "base_blueprint": "OPENLOCK",
+            "base_socket_side": "INNER",
+            "main_part_blueprint": "OPENLOCK",
+            "leg_1_native_subdivisions": 15,
+            "leg_2_native_subdivisions": 15,
+            "x_native_subdivisions": 15,
+            "y_native_subdivisions": 2,
+            "z_native_subdivisions": 15,
+            "y_proportionate_scale": false,
+            "z_proportionate_scale": false,
+            "base_defaults": {
+                "OPENLOCK": {
+                    "base_x": 2,
+                    "base_y": 0.5,
+                    "base_z": 0.2755
+                },
+                "PLAIN": {
+                    "base_x": 2,
+                    "base_y": 0.5,
+                    "base_z": 0.2755
+                },
+                "NONE": {
+                    "base_x": 2,
+                    "base_y": 0.5,
+                    "base_z": 0
+                }
+            },
+            "tile_defaults": {
+                "OPENLOCK": {
+                    "leg_1_len": 2,
+                    "leg_2_len": 2,
+                    "tile_x": 2,
+                    "tile_y": 0.3,
+                    "tile_z": 2
+                },
+                "PLAIN": {
+                    "leg_1_len": 2,
+                    "leg_2_len": 2,
+                    "tile_x": 2,
+                    "tile_y": 0.3,
+                    "tile_z": 2
+                },
+                "NONE": {
+                    "leg_1_len": 2,
+                    "leg_2_len": 2,
+                    "tile_x": 2,
+                    "tile_y": 0.3,
+                    "tile_z": 0
+                }
+            }
+        }
     }
 ]

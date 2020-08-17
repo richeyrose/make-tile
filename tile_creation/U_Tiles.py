@@ -336,7 +336,14 @@ def spawn_openlock_wall_cores(base, tile_props):
 
 
 def spawn_openlock_wall_cutters(tile_props):
-    """Creates the cutters for the wall and positions them correctly
+    """Spawn OpenLOCK wall cores into scene.
+
+    Args:
+        base (bpy.types.Object): tile base
+        tile_props (bpy.types.PropertyGroup.mt_tile_props): tile properties
+
+    Returns:
+        (bpy.types.Object): preview_core
     """
     preferences = get_prefs()
     tile_name = tile_props.tile_name
@@ -439,14 +446,29 @@ def spawn_core(tile_props):
 
 
 def draw_core(leg_1_inner_len, leg_2_inner_len, x_inner_len, thickness, z_height, native_subdivisions, thickness_diff):
-    '''
+    """Draw a u shaped core
+
+    Args:
+        leg_1_inner_len (float): length
+        leg_2_inner_len (flot): length
+        x_inner_len (float): length
+        thickness (float): width
+        z_height (float): height
+        native_subdivisions (list): subdivisions
+        thickness_diff (float): difference between base and core thickness
+
+    Returns:
+        bpy.types.Object: core
+        list: vertex locations
+
+
                 ||           ||
                 ||leg_1 leg_2||
                 ||           ||
                 ||___inner___||
         origin x--------------
                     outer
-    '''
+    """
 
     mode('OBJECT')
 
@@ -639,6 +661,13 @@ def draw_core(leg_1_inner_len, leg_2_inner_len, x_inner_len, thickness, z_height
 
 
 def create_vertex_groups(obj, vert_locs, native_subdivisions):
+    """Create vertex groups
+
+    Args:
+        obj (bpy.types.Object): tile core
+        vert_locs (dict): vertex locations
+        native_subdivisions (list): subdivisions
+    """
     ctx = {
         'object': obj,
         'active_object': obj,
@@ -682,7 +711,7 @@ def create_vertex_groups(obj, vert_locs, native_subdivisions):
 
         for coord in vert_coords:
             for v in bm.verts:
-                if (vectors_are_close(v.co, coord, 0.0001)):
+                if vectors_are_close(v.co, coord, 0.0001):
                     v.select = True
                     break
 
@@ -691,7 +720,7 @@ def create_vertex_groups(obj, vert_locs, native_subdivisions):
 
         for coord in vert_coords:
             for v in bm.verts:
-                if (vectors_are_close(v.co, coord, 0.0001)):
+                if vectors_are_close(v.co, coord, 0.0001):
                     v.select = True
                     break
 
@@ -702,7 +731,7 @@ def create_vertex_groups(obj, vert_locs, native_subdivisions):
 
             for coord in vert_coords:
                 for v in bm.verts:
-                    if (vectors_are_close(v.co, coord, 0.0001)):
+                    if vectors_are_close(v.co, coord, 0.0001):
                         v.select = True
                         break
             i += 1
@@ -721,7 +750,7 @@ def create_vertex_groups(obj, vert_locs, native_subdivisions):
 
         for coord in vert_coords:
             for v in bm.verts:
-                if (vectors_are_close(v.co, coord, 0.0001)):
+                if vectors_are_close(v.co, coord, 0.0001):
                     v.select = True
                     break
         bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
@@ -735,7 +764,7 @@ def create_vertex_groups(obj, vert_locs, native_subdivisions):
 
         for coord in vert_coords:
             for v in bm.verts:
-                if (vectors_are_close(v.co, coord, 0.0001)):
+                if vectors_are_close(v.co, coord, 0.0001):
                     v.select = True
                     break
         bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
@@ -751,7 +780,7 @@ def create_vertex_groups(obj, vert_locs, native_subdivisions):
 
             for coord in vert_coords:
                 for v in bm.verts:
-                    if (vectors_are_close(v.co, coord, 0.0001)):
+                    if vectors_are_close(v.co, coord, 0.0001):
                         v.select = True
                         break
             bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
@@ -765,7 +794,7 @@ def create_vertex_groups(obj, vert_locs, native_subdivisions):
 
         for coord in vert_coords:
             for v in bm.verts:
-                if (vectors_are_close(v.co, coord, 0.0001)):
+                if vectors_are_close(v.co, coord, 0.0001):
                     v.select = True
                     break
         bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
@@ -782,12 +811,12 @@ def create_vertex_groups(obj, vert_locs, native_subdivisions):
     i = 0
     while i < len(outer_vert_locs):
         for v in bm.verts:
-            if (vectors_are_close(v.co, inner_vert_locs[i], 0.0001)):
+            if vectors_are_close(v.co, inner_vert_locs[i], 0.0001):
                 v.select = True
                 break
 
         for v in bm.verts:
-            if (vectors_are_close(v.co, outer_vert_locs[i], 0.0001)):
+            if vectors_are_close(v.co, outer_vert_locs[i], 0.0001):
                 v.select = True
                 break
         bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
@@ -807,12 +836,12 @@ def create_vertex_groups(obj, vert_locs, native_subdivisions):
     i = 0
     while i < len(inner_vert_locs):
         for v in bm.verts:
-            if (vectors_are_close(v.co, outer_vert_locs[i], 0.0001)):
+            if vectors_are_close(v.co, outer_vert_locs[i], 0.0001):
                 v.select = True
                 break
 
         for v in bm.verts:
-            if (vectors_are_close(v.co, inner_vert_locs[i], 0.0001)):
+            if vectors_are_close(v.co, inner_vert_locs[i], 0.0001):
                 v.select = True
                 break
 
@@ -835,12 +864,12 @@ def create_vertex_groups(obj, vert_locs, native_subdivisions):
     i = 0
     while i < len(outer_vert_locs):
         for v in bm.verts:
-            if (vectors_are_close(v.co, inner_vert_locs[i], 0.0001)):
+            if vectors_are_close(v.co, inner_vert_locs[i], 0.0001):
                 v.select = True
                 break
 
         for v in bm.verts:
-            if (vectors_are_close(v.co, outer_vert_locs[i], 0.0001)):
+            if vectors_are_close(v.co, outer_vert_locs[i], 0.0001):
                 v.select = True
                 break
 
@@ -870,12 +899,12 @@ def create_vertex_groups(obj, vert_locs, native_subdivisions):
     i = 0
     while i < len(outer_vert_locs):
         for v in bm.verts:
-            if (vectors_are_close(v.co, inner_vert_locs[i], 0.0001)):
+            if vectors_are_close(v.co, inner_vert_locs[i], 0.0001):
                 v.select = True
                 break
 
         for v in bm.verts:
-            if (vectors_are_close(v.co, outer_vert_locs[i], 0.0001)):
+            if vectors_are_close(v.co, outer_vert_locs[i], 0.0001):
                 v.select = True
                 break
         bpy.ops.mesh.shortest_path_select(ctx, edge_mode='SELECT')
@@ -935,12 +964,12 @@ def create_vertex_groups(obj, vert_locs, native_subdivisions):
     i = 0
     while i < len(outer_vert_locs):
         for v in bm.verts:
-            if (vectors_are_close(v.co, inner_vert_locs[i], 0.0001)):
+            if vectors_are_close(v.co, inner_vert_locs[i], 0.0001):
                 v.select = True
                 break
 
         for v in bm.verts:
-            if (vectors_are_close(v.co, outer_vert_locs[i], 0.0001)):
+            if vectors_are_close(v.co, outer_vert_locs[i], 0.0001):
                 v.select = True
                 break
 
@@ -1103,6 +1132,14 @@ def spawn_openlock_base(tile_props):
 
 
 def spawn_openlock_base_slot_cutter(tile_props):
+    """Spawn base slot cutter into scene.
+
+    Args:
+        tile_props (bpy.types.PropertyGroup.mt_tile_props): tile properties
+
+    Returns:
+        bpy.types.Object: base clip cutter
+    """
     leg_1_inner_len = tile_props.leg_1_len
     leg_2_inner_len = tile_props.leg_2_len
     x_inner_len = tile_props.tile_size[0]
@@ -1180,6 +1217,14 @@ def spawn_openlock_base_slot_cutter(tile_props):
 
 
 def spawn_openlock_base_clip_cutter(tile_props):
+    """Spawn base clip cutter into scene.
+
+    Args:
+        tile_props (bpy.types.PropertyGroup.mt_tile_props): tile properties
+
+    Returns:
+        bpy.types.Object: base clip cutter
+    """
     preferences = get_prefs()
     booleans_path = os.path.join(
         preferences.assets_path,
@@ -1216,6 +1261,26 @@ def spawn_openlock_base_clip_cutter(tile_props):
 
 
 def draw_plain_base(leg_1_inner_len, leg_2_inner_len, x_inner_len, thickness, z_height):
+    """Draw a u shaped base
+
+    Args:
+        leg_1_inner_len (float): length
+        leg_2_inner_len (flot): length
+        x_inner_len (float): length
+        thickness (float): width
+        z_height (float): height
+
+    Returns:
+        bpy.types.Object: base
+
+
+                ||           ||
+                ||leg_1 leg_2||
+                ||           ||
+                ||___inner___||
+        origin x--------------
+                    outer
+    """
     mode('OBJECT')
 
     leg_1_outer_len = leg_1_inner_len + thickness

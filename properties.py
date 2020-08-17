@@ -1,5 +1,4 @@
 import os
-import json
 import bpy
 from bpy.types import PropertyGroup
 from .utils.registration import get_prefs
@@ -16,7 +15,7 @@ from . enums.enums import (
     material_mapping,
     openlock_column_types)
 
-from . lib.utils.update_scene_props import load_material_libraries
+from .app_handlers import load_material_libraries
 from .lib.utils.utils import get_all_subclasses
 
 

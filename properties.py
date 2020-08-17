@@ -16,7 +16,7 @@ from . enums.enums import (
     material_mapping,
     openlock_column_types)
 
-from .app_handlers import load_material_libraries
+from . lib.utils.update_scene_props import load_material_libraries
 from .lib.utils.utils import get_all_subclasses
 
 

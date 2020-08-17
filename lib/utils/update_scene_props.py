@@ -2,11 +2,11 @@ import os
 import json
 import bpy
 from bpy.app.handlers import persistent
-from . utils.registration import get_prefs, get_path
-from . materials.materials import (
+from ... utils.registration import get_prefs, get_path
+from ... materials.materials import (
     get_blend_filenames,
     load_materials)
-from .lib.utils.utils import get_all_subclasses
+from .utils import get_all_subclasses
 
 
 def load_materials_on_addon_activation(dummy):
@@ -56,10 +56,42 @@ def update_mt_scene_props_handler(dummy):
             tile_name = obj_props.tile_name
             tile_props = bpy.data.collections[tile_name].mt_tile_props
 
-            for key, value in tile_props.items():
-                for k, v in scene_props.items():
-                    if k == key:
-                        v = value
+            scene_props.mt_last_selected = obj
+
+            scene_props.tile_name = tile_props.tile_name
+            scene_props.tile_blueprint = tile_props.tile_blueprint
+            scene_props.main_part_blueprint = tile_props.main_part_blueprint
+            scene_props.tile_type_new = get_tile_type_new(tile_props.tile_type)
+            scene_props.base_blueprint = tile_props.base_blueprint
+
+            scene_props.tile_x = tile_props.tile_size[0]
+            scene_props.tile_y = tile_props.tile_size[1]
+            scene_props.tile_z = tile_props.tile_size[2]
+
+            scene_props.base_x = tile_props.base_size[0]
+            scene_props.base_y = tile_props.base_size[1]
+            scene_props.base_z = tile_props.base_size[2]
+
+            scene_props.angle = tile_props.angle
+            scene_props.leg_1_len = tile_props.leg_1_len
+            scene_props.leg_2_len = tile_props.leg_2_len
+            scene_props.base_socket_side = tile_props.base_socket_side
+            scene_props.base_radius = tile_props.base_radius
+            scene_props.wall_radius = tile_props.wall_radius
+            scene_props.curve_type = tile_props.curve_type
+            scene_props.degrees_of_arc = tile_props.degrees_of_arc
+
+            scene_props.x_native_subdivisions = tile_props.x_native_subdivisions
+            scene_props.y_native_subdivisions = tile_props.y_native_subdivisions
+            scene_props.z_native_subdivisions = tile_props.z_native_subdivisions
+            scene_props.opposite_native_subdivisions = tile_props.opposite_native_subdivisions
+            scene_props.curve_native_subdivisions = tile_props.curve_native_subdivisions
+
+            scene_props.leg_1_native_subdivisions = tile_props.leg_1_native_subdivisions
+            scene_props.leg_2_native_subdivisions = tile_props.leg_2_native_subdivisions
+            scene_props.width_native_subdivisions = tile_props.width_native_subdivisions
+
+            scene_props.openlock_column_type = tile_props.openlock_column_type
 
 
 def create_properties_on_activation(dummy):
@@ -73,7 +105,6 @@ def create_properties_on_load(dummy):
     context = bpy.context
     load_tile_defaults(context)
     refresh_scene_props(context)
-
 
 def load_tile_defaults(context):
     """Load tile defaults into memory."""
@@ -90,7 +121,6 @@ def load_tile_defaults(context):
         with open(json_path) as json_file:
             tile_defaults = json.load(json_file)
         scene_props['tile_defaults'] = tile_defaults
-
 
 def refresh_scene_props(context):
     scene_props = context.scene.mt_scene_props

@@ -49,9 +49,9 @@ class MT_PT_Semi_Circ_Floor_Panel(Panel):
 
     @classmethod
     def poll(cls, context):
-        """Check tile_type_new."""
+        """Check tile_type."""
         if hasattr(context.scene, 'mt_scene_props'):
-            return context.scene.mt_scene_props.tile_type_new == "object.make_semi_circ_floor"
+            return context.scene.mt_scene_props.tile_type == "SEMI_CIRC_FLOOR"
         return False
 
     def draw(self, context):

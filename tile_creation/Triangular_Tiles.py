@@ -40,9 +40,9 @@ class MT_PT_Triangular_Floor_Panel(Panel):
 
     @classmethod
     def poll(cls, context):
-        """Check tile_type_new."""
+        """Check tile_type."""
         if hasattr(context.scene, 'mt_scene_props'):
-            return context.scene.mt_scene_props.tile_type_new in ["object.make_triangular_floor"]
+            return context.scene.mt_scene_props.tile_type in ["TRIANGULAR_FLOOR"]
         return False
 
     def draw(self, context):

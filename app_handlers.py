@@ -34,14 +34,14 @@ def load_material_libraries(dummy):
     load_materials(user_materials_path, blend_filenames)
 
 
-def get_tile_type_new(tile_type):
+def get_tile_type(tile_type):
     scene = bpy.context.scene
     scene_props = scene.mt_scene_props
     tile_defaults = scene_props['tile_defaults']
 
     for default in tile_defaults:
         if default['type'] == tile_type:
-            return default['bl_idname']
+            return default['type']
     return None
 
 
@@ -61,7 +61,7 @@ def update_mt_scene_props_handler(dummy):
             scene_props.tile_name = tile_props.tile_name
             scene_props.tile_blueprint = tile_props.tile_blueprint
             scene_props.main_part_blueprint = tile_props.main_part_blueprint
-            scene_props.tile_type_new = get_tile_type_new(tile_props.tile_type)
+            scene_props.tile_type = get_tile_type(tile_props.tile_type)
             scene_props.base_blueprint = tile_props.base_blueprint
 
             scene_props.tile_x = tile_props.tile_size[0]
@@ -125,7 +125,7 @@ def load_tile_defaults(context):
 def refresh_scene_props(context):
     scene_props = context.scene.mt_scene_props
     prefs = get_prefs()
-    scene_props.tile_type_new = prefs.default_tile_type
+    scene_props.tile_type = prefs.default_tile_type
 
 bpy.app.handlers.depsgraph_update_pre.append(create_properties_on_activation)
 bpy.app.handlers.load_post.append(create_properties_on_load)

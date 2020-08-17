@@ -46,10 +46,10 @@ class MT_PT_U_Tile_Panel(Panel):
 
     @classmethod
     def poll(cls, context):
-        """Check tile_type_new."""
+        """Check tile_type."""
         if hasattr(context.scene, 'mt_scene_props'):
-            return context.scene.mt_scene_props.tile_type_new in [
-                "object.make_u_wall", "object.make_u_floor"]
+            return context.scene.mt_scene_props.tile_type in [
+                "U_WALL"]
         return False
 
     def draw(self, context):

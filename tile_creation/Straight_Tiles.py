@@ -37,9 +37,9 @@ class MT_PT_Straight_Wall_Panel(Panel):
 
     @classmethod
     def poll(cls, context):
-        """Check tile_type_new."""
+        """Check tile_type."""
         if hasattr(context.scene, 'mt_scene_props'):
-            return context.scene.mt_scene_props.tile_type_new == "object.make_straight_wall"
+            return context.scene.mt_scene_props.tile_type == "STRAIGHT_WALL"
         return False
 
     def draw(self, context):
@@ -88,9 +88,9 @@ class MT_PT_Straight_Floor_Panel(Panel):
 
     @classmethod
     def poll(cls, context):
-        """Check tile_type_new."""
+        """Check tile_type."""
         if hasattr(context.scene, 'mt_scene_props'):
-            return context.scene.mt_scene_props.tile_type_new == "object.make_straight_floor"
+            return context.scene.mt_scene_props.tile_type == "STRAIGHT_FLOOR"
         return False
 
     def draw(self, context):

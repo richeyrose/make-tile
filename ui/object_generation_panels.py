@@ -20,13 +20,19 @@ class MT_PT_Tile_Generator_Panel(Panel):
     def draw(self, context):
         scene = context.scene
         scene_props = scene.mt_scene_props
+
         obj = context.active_object
         layout = self.layout
 
-        layout.prop(scene_props, 'tile_type_new')
+        layout.prop(scene_props, 'tile_type')
         layout.prop(scene_props, 'tile_material_1', text="Main Material")
         layout.prop(scene_props, 'UV_island_margin')
-        layout.operator(scene_props.tile_type_new, text="MakeTile")
+
+        tile_type = scene_props.tile_type
+        tile_defaults = scene_props['tile_defaults']
+        for default in tile_defaults:
+            if default['type'] == tile_type:
+                layout.operator(default['bl_idname'], text="MakeTile")
 
         if obj is not None and obj.type == 'MESH':
             if obj.mt_object_props.geometry_type == 'PREVIEW':

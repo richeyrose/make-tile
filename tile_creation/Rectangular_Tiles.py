@@ -39,9 +39,9 @@ class MT_PT_Rect_Floor_Panel(Panel):
 
     @classmethod
     def poll(cls, context):
-        """Check tile_type_new."""
+        """Check tile_type."""
         if hasattr(context.scene, 'mt_scene_props'):
-            return context.scene.mt_scene_props.tile_type_new == "object.make_rect_floor"
+            return context.scene.mt_scene_props.tile_type == "RECT_FLOOR"
         return False
 
     def draw(self, context):
@@ -233,7 +233,7 @@ def initialise_floor_creator(context, scene_props):
     tile_props = tile_collection.mt_tile_props
     create_common_tile_props(scene_props, tile_props, tile_collection)
 
-    tile_props.tile_type = 'RECTANGULAR_FLOOR'
+    tile_props.tile_type = 'RECT_FLOOR'
     tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
     tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
 

@@ -43,10 +43,10 @@ class MT_PT_Curved_Wall_Tile_Panel(Panel):
 
     @classmethod
     def poll(cls, context):
-        """Check tile_type_new."""
+        """Check tile_type."""
         if hasattr(context.scene, 'mt_scene_props'):
-            return context.scene.mt_scene_props.tile_type_new in [
-                "object.make_curved_wall", "object.make_curved_floor"]
+            return context.scene.mt_scene_props.tile_type in [
+                "CURVED_WALL", "CURVED_FLOOR"]
         return False
 
     def draw(self, context):
@@ -121,6 +121,8 @@ class MT_OT_Make_Curved_Floor_Tile(MT_Tile_Generator, Operator):
     bl_idname = "object.make_curved_floor"
     bl_label = "Curved Floor"
     bl_options = {'UNDO'}
+    mt_blueprint = "CUSTOM"
+    mt_type = "CURVED_FLOOR"
 
     def execute(self, context):
         """Execute the operator."""

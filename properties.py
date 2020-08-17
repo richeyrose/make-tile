@@ -105,9 +105,10 @@ def create_tile_type_enums(self, context):
     for subclass in subclasses:
         # if hasattr(subclass, 'mt_blueprint'):
         if 'INTERNAL' not in subclass.bl_options:
-            enum = (subclass.bl_idname, subclass.bl_label, "")
+            enum = (subclass.mt_type, subclass.bl_label, "")
             enum_items.append(enum)
     return sorted(enum_items)
+
 
 def create_main_part_blueprint_enums(self, context):
     enum_items = []
@@ -120,11 +121,11 @@ def create_main_part_blueprint_enums(self, context):
     if 'tile_defaults' not in scene_props:
         return enum_items
 
-    tile_type = scene_props.tile_type_new
+    tile_type = scene_props.tile_type
     tile_defaults = scene_props['tile_defaults']
 
     for default in tile_defaults:
-        if default['bl_idname'] == tile_type:
+        if default['type'] == tile_type:
             for key, value in default['main_part_blueprints'].items():
                 enum = (key, value, "")
                 enum_items.append(enum)
@@ -143,11 +144,11 @@ def create_base_blueprint_enums(self, context):
     if 'tile_defaults' not in scene_props:
         return enum_items
 
-    tile_type = scene_props.tile_type_new
+    tile_type = scene_props.tile_type
     tile_defaults = scene_props['tile_defaults']
 
     for default in tile_defaults:
-        if default['bl_idname'] == tile_type:
+        if default['type'] == tile_type:
             for key, value in default['base_blueprints'].items():
                 enum = (key, value, "")
                 enum_items.append(enum)
@@ -162,16 +163,17 @@ def update_tile_blueprint(self, context):
     for subclass in subclasses:
         if hasattr(subclass, 'mt_blueprint'):
             if subclass.mt_blueprint == blueprint and 'INTERNAL' not in subclass.bl_options:
-                context.scene.mt_scene_props.tile_type_new = subclass.bl_idname
+                context.scene.mt_scene_props.tile_type = subclass.bl_idname
                 break
+
 
 def update_scene_defaults(self, context):
     scene_props = context.scene.mt_scene_props
-    tile_type = scene_props.tile_type_new
+    tile_type = scene_props.tile_type
     tile_defaults = scene_props['tile_defaults']
 
     for tile in tile_defaults:
-        if tile['bl_idname'] == tile_type:
+        if tile['type'] == tile_type:
             defaults = tile['defaults']
             for key, value in defaults.items():
                 setattr(scene_props, key, value)
@@ -183,12 +185,12 @@ def update_scene_defaults(self, context):
 
 def update_base_defaults(self, context):
     scene_props = context.scene.mt_scene_props
-    tile_type = scene_props.tile_type_new
+    tile_type = scene_props.tile_type
     base_blueprint = scene_props.base_blueprint
     tile_defaults = scene_props['tile_defaults']
 
     for tile in tile_defaults:
-        if tile['bl_idname'] == tile_type:
+        if tile['type'] == tile_type:
             defaults = tile['defaults']
             base_defaults = defaults['base_defaults']
             for key, value in base_defaults.items():
@@ -200,12 +202,12 @@ def update_base_defaults(self, context):
 
 def update_main_part_defaults(self, context):
     scene_props = context.scene.mt_scene_props
-    tile_type = scene_props.tile_type_new
+    tile_type = scene_props.tile_type
     main_part_blueprint = scene_props.main_part_blueprint
     tile_defaults = scene_props['tile_defaults']
 
     for tile in tile_defaults:
-        if tile['bl_idname'] == tile_type:
+        if tile['type'] == tile_type:
             defaults = tile['defaults']
             main_part_defaults = defaults['tile_defaults']
             for key, value in main_part_defaults.items():
@@ -498,17 +500,10 @@ class MT_Scene_Properties(PropertyGroup):
         name="Base",
     )
 
-    tile_type_new: bpy.props.EnumProperty(
+    tile_type: bpy.props.EnumProperty(
         items=create_tile_type_enums,
         name="Tile Type",
         update=update_scene_defaults
-    )
-
-    tile_type: bpy.props.EnumProperty(
-        items=tile_types,
-        name="Type",
-        default="STRAIGHT_WALL",
-        update=change_tile_type
     )
 
     UV_island_margin: bpy.props.FloatProperty(
@@ -824,10 +819,9 @@ class MT_Tile_Properties(PropertyGroup):
         description="Blueprint for base of the tile.")
 
     tile_type: bpy.props.EnumProperty(
-        items=tile_types,
+        items=create_tile_type_enums,
         name="Type",
-        description="The type of tile e.g. Straight Wall, Curved Floor",
-        default="STRAIGHT_WALL",
+        description="The type of tile e.g. Straight Wall, Curved Floor"
     )
 
     # Native Subdivisions #

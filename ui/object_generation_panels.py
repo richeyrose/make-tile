@@ -45,129 +45,22 @@ class MT_PT_Tile_Generator_Panel(Panel):
         layout.operator('scene.delete_tiles', text="Delete Tiles")
 
 
-'''
-class MT_PT_Tile_Generator_Panel(Panel):
-    bl_order = 0
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = "Make Tile"
-    bl_idname = "MT_PT_Main_Panel"
-    bl_label = "Make Tile"
-    bl_description = "Options to configure the type of tile"
-
-    def draw(self, context):
-        scene = context.scene
-        scene_props = scene.mt_scene_props
-        obj = context.object
-        layout = self.layout
-
-        layout.prop(scene_props, 'tile_blueprint')
-        layout.prop(scene_props, 'tile_type')
-        layout.prop(scene_props, 'tile_material_1', text="Main Material")
-        layout.prop(scene_props, 'UV_island_margin')
-
-        #layout.operator('scene.make_tile', text="Make Tile")
-
-        if obj is not None and obj.type == 'MESH':
-
-            if obj.mt_object_props.geometry_type == 'PREVIEW':
-                layout.operator('scene.mt_make_3d', text='Make 3D')
-            if obj.mt_object_props.geometry_type == 'DISPLACEMENT':
-                layout.operator(
-                    'scene.mt_return_to_preview',
-                    text='Return to Preview')
-
-
-        layout.operator('scene.delete_tiles', text="Delete Tiles")
-'''
-'''
-class MT_PT_Tile_Options_Panel():
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_category = "Make Tile"
-    bl_label = "Tile Options"
-    bl_description = "Options to configure the dimensions of a tile"
-
-    def draw(self, context):
-        scene = context.scene
-        scene_props = scene.mt_scene_props
-        blueprint = scene_props.tile_blueprint
-        layout = self.layout
-
-        if blueprint == 'PLAIN':
-            self.draw_plain_base_panel(context)
-            self.draw_plain_main_part_panel(context)
-
-        if blueprint == 'OPENLOCK':
-            self.draw_openlock_base_panel(context)
-            self.draw_openlock_main_part_panel(context)
-
-        if blueprint == 'CUSTOM':
-            self.draw_custom_panel(context)
-
-        # self.draw_native_subdiv_panel(context)
-
-        layout.label(text='Modifier Subdivisions')
-        layout.prop(scene_props, 'subdivisions')
-
-    def draw_plain_base_panel(self, context):
-        pass
-
-    def draw_plain_main_part_panel(self, context):
-        pass
-
-    def draw_openlock_base_panel(self, context):
-        pass
-
-    def draw_openlock_main_part_panel(self, context):
-        pass
-
-    def draw_native_subdiv_panel(self, context):
-        pass
-
-    def draw_custom_panel(self, context):
-        scene = context.scene
-        scene_props = scene.mt_scene_props
-        layout = self.layout
-        layout.label(text="Part Blueprints:")
-
-        layout.prop(scene_props, 'base_blueprint')
-        layout.prop(scene_props, 'main_part_blueprint')
-
-        if scene_props.base_blueprint == 'PLAIN':
-            self.draw_plain_base_panel(context)
-
-        if scene_props.base_blueprint == 'OPENLOCK':
-            self.draw_openlock_base_panel(context)
-
-        if scene_props.main_part_blueprint == 'PLAIN':
-            self.draw_plain_main_part_panel(context)
-
-        if scene_props.main_part_blueprint == 'OPENLOCK':
-            self.draw_openlock_main_part_panel(context)
-'''
-
-class MT_PT_Openlock_Socket_Panel(bpy.types.Panel):
+class MT_PT_Booleans_Panel(bpy.types.Panel):
+    """Show a Panel that shows any booleans that can be toggled on the current object."""
     bl_order = 3
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Make Tile"
-    bl_label = "Sockets"
-    bl_description = "Openlock Sockets"
+    bl_label = "Booleans"
+    bl_description = "Booleans"
 
     @classmethod
     def poll(cls, context):
-
-        if len(context.selected_objects) > 0:
+        if context.object is not None:
             obj = context.object
-            if obj is not None and obj.type == 'MESH':
-                if obj.mt_object_props.is_mt_object and obj.mt_object_props.geometry_type in ('PREVIEW', 'DISPLACEMENT'):
-                    tile_name = obj.mt_object_props.tile_name
-                    tile = bpy.data.collections[tile_name]
-                    tile_props = tile.mt_tile_props
-                    main_part_blueprint = tile_props.main_part_blueprint
-                    if main_part_blueprint == 'OPENLOCK':
-                        return True
+            if hasattr(obj, 'mt_object_props'):
+                if len(obj.mt_object_props.cutters_collection) > 0:
+                    return True
         return False
 
     def draw(self, context):

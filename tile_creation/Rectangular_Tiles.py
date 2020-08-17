@@ -394,9 +394,23 @@ def spawn_openlock_base(tile_props):
         clip_cutter.parent = base
         clip_cutter.display_type = 'BOUNDS'
         clip_cutter.hide_viewport = True
-        clip_cutter_bool = base.modifiers.new('Clip Cutter', 'BOOLEAN')
+        clip_cutter.hide_render = True
+
+        clip_cutter.mt_object_props.is_mt_object = True
+        clip_cutter.mt_object_props.geometry_type = 'CUTTER'
+        clip_cutter.mt_object_props.tile_name = tile_props.tile_name
+
+        clip_cutter_bool = base.modifiers.new(clip_cutter.name + '.bool', 'BOOLEAN')
         clip_cutter_bool.operation = 'DIFFERENCE'
         clip_cutter_bool.object = clip_cutter
+        clip_cutter_bool.show_render = False
+
+        # add cutters to object's cutters_collection
+        # so we can activate and deactivate them when necessary
+        cutter_coll_item = base.mt_object_props.cutters_collection.add()
+        cutter_coll_item.name = clip_cutter.name
+        cutter_coll_item.value = True
+        cutter_coll_item.parent = base.name
 
     mode('OBJECT')
 
@@ -440,6 +454,7 @@ def spawn_openlock_base_clip_cutters(base, tile_props):
         add_object_to_collection(obj, tile_props.tile_name)
 
     clip_cutter = data_to.objects[0]
+    clip_cutter.name = 'Y Neg Clip.' + base.name
     cutter_start_cap = data_to.objects[1]
     cutter_end_cap = data_to.objects[2]
 
@@ -466,6 +481,7 @@ def spawn_openlock_base_clip_cutters(base, tile_props):
     array_mod.fit_length = base.dimensions[0] - 1
 
     clip_cutter2 = clip_cutter.copy()
+    clip_cutter2.name = 'X Pos Clip.' + base.name
     clip_cutter2.data = clip_cutter2.data.copy()
 
     add_object_to_collection(clip_cutter2, tile_props.tile_name)
@@ -486,6 +502,7 @@ def spawn_openlock_base_clip_cutters(base, tile_props):
     array_mod2.fit_length = base.dimensions[1] - 1
 
     clip_cutter3 = clip_cutter.copy()
+    clip_cutter3.name = 'Y Pos Clip.' + base.name
     clip_cutter3.data = clip_cutter3.data.copy()
     add_object_to_collection(clip_cutter3, tile_props.tile_name)
 
@@ -501,6 +518,7 @@ def spawn_openlock_base_clip_cutters(base, tile_props):
     array_mod3.fit_length = base.dimensions[0] - 1
 
     clip_cutter4 = clip_cutter2.copy()
+    clip_cutter4.name = 'X Neg Clip.' + base.name
     clip_cutter4.data = clip_cutter4.data.copy()
     add_object_to_collection(clip_cutter4, tile_props.tile_name)
 

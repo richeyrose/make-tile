@@ -5,7 +5,6 @@ from .utils.registration import get_prefs
 from .operators.maketile import MT_Tile_Generator
 from . enums.enums import (
     tile_main_systems,
-    tile_types,
     base_systems,
     tile_blueprints,
     curve_types,
@@ -53,7 +52,7 @@ class MT_Radio_Buttons(PropertyGroup):
     )
 
 
-# A cutter item used by mt_cutters_collection and mt_trimmers_collection
+# A cutter item used by cutters_collection
 class MT_Cutter_Item(PropertyGroup):
     def update_use_cutter(self, context):
         if self.parent is not "":
@@ -72,23 +71,6 @@ class MT_Cutter_Item(PropertyGroup):
         name="",
         default=True,
         update=update_use_cutter)
-    parent: bpy.props.StringProperty(
-        name="")
-
-
-class MT_Trimmer_Item(PropertyGroup):
-    def update_use_trimmer(self, context):
-        obj = context.object
-        if self.name + '.bool' in obj.modifiers:
-            bool_mod = obj.modifiers[self.name + '.bool']
-            bool_mod.show_viewport = self.value
-
-    name: bpy.props.StringProperty(
-        name="Trimmer Name")
-    value: bpy.props.BoolProperty(
-        name="",
-        default=False,
-        update=update_use_trimmer)
     parent: bpy.props.StringProperty(
         name="")
 
@@ -883,6 +865,7 @@ def register():
     bpy.types.Collection.mt_tile_props = bpy.props.PointerProperty(
         type=MT_Tile_Properties
     )
+
 
 def unregister():
     del bpy.types.WindowManager.mt_radio_buttons

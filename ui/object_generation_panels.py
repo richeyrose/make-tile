@@ -47,7 +47,7 @@ class MT_PT_Tile_Generator_Panel(Panel):
 
 class MT_PT_Booleans_Panel(bpy.types.Panel):
     """Show a Panel that shows any booleans that can be toggled on the current object."""
-    bl_order = 3
+    bl_order = 2
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Make Tile"

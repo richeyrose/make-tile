@@ -11,7 +11,9 @@ from . create_tile import (
     create_displacement_core,
     finalise_tile,
     spawn_empty_base,
-    spawn_prefab)
+    spawn_prefab,
+    set_bool_obj_props,
+    set_bool_props)
 
 from .. lib.turtle.scripts.curved_floor import (
     draw_neg_curved_slab,
@@ -325,6 +327,11 @@ def spawn_openlock_base(tile_props):
             'active_object': base
         }
         bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+        base.name = tile_props.tile_name + '.base'
+        props = base.mt_object_props
+        props.is_mt_object = True
+        props.tile_name = tile_props.tile_name
+        props.geometry_type = 'BASE'
 
     else:
         draw_neg_curved_slab(length, segments, angle, height, native_subdivisions)
@@ -335,33 +342,23 @@ def spawn_openlock_base(tile_props):
             'active_object': base
         }
         bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+        base.name = tile_props.tile_name + '.base'
+        props = base.mt_object_props
+        props.is_mt_object = True
+        props.tile_name = tile_props.tile_name
+        props.geometry_type = 'BASE'
 
         if length >= 3:
             slot_cutter = create_openlock_neg_curve_base_cutters(tile_props)
-            slot_cutter.parent = base
-            slot_cutter.display_type = 'BOUNDS'
-            slot_cutter.hide_viewport = True
-            cutter_bool = base.modifiers.new('Slot Cutter', 'BOOLEAN')
-            cutter_bool.operation = 'DIFFERENCE'
-            cutter_bool.object = slot_cutter
+            set_bool_obj_props(slot_cutter, base, tile_props)
+            set_bool_props(slot_cutter, base, 'DIFFERENCE')
 
     cutters = create_openlock_base_clip_cutters(tile_props)
 
     for clip_cutter in cutters:
-        matrixcopy = clip_cutter.matrix_world.copy()
-        clip_cutter.parent = base
-        clip_cutter.matrix_world = matrixcopy
-        clip_cutter.display_type = 'BOUNDS'
-        clip_cutter.hide_viewport = True
-        clip_cutter_bool = base.modifiers.new('Clip Cutter', 'BOOLEAN')
-        clip_cutter_bool.operation = 'DIFFERENCE'
-        clip_cutter_bool.object = clip_cutter
+        set_bool_obj_props(clip_cutter, base, tile_props)
+        set_bool_props(clip_cutter, base, 'DIFFERENCE')
 
-    base.name = tile_props.tile_name + '.base'
-    props = base.mt_object_props
-    props.is_mt_object = True
-    props.tile_name = tile_props.tile_name
-    props.geometry_type = 'BASE'
     bpy.context.view_layer.objects.active = base
 
     return base
@@ -503,12 +500,8 @@ def create_openlock_neg_curve_base_cutters(tile_props):
         slot_height
     )
 
-    cutter.name = tile_props.tile_name + '.base.cutter'
+    cutter.name = 'Slot Cutter.' + tile_props.tile_name + '.base.cutter'
 
-    props = cutter.mt_object_props
-    props.is_mt_object = True
-    props.tile_name = tile_props.tile_name
-    props.geometry_type = 'CUTTER'
     return cutter
 
 
@@ -549,7 +542,7 @@ def create_openlock_base_clip_cutters(tile_props):
             add_object_to_collection(obj, tile_props.tile_name)
 
         clip_cutter_1 = data_to.objects[0]
-        clip_cutter_1.name = "cutter_1"
+        clip_cutter_1.name = "Clip Cutter 1"
         cutter_start_cap = data_to.objects[1]
         cutter_end_cap = data_to.objects[2]
 
@@ -590,7 +583,7 @@ def create_openlock_base_clip_cutters(tile_props):
         cutters.append(clip_cutter_1)
         # cutter 2
         clip_cutter_2 = clip_cutter_1.copy()
-        clip_cutter_2.name = "cutter_2"
+        clip_cutter_2.name = "Clip Cutter 2"
         add_object_to_collection(clip_cutter_2, tile_props.tile_name)
 
         array_mod = clip_cutter_2.modifiers['Array']
@@ -619,7 +612,7 @@ def create_openlock_base_clip_cutters(tile_props):
         with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
             data_to.objects = ['openlock.wall.base.cutter.clip_single']
         clip_cutter_3 = data_to.objects[0]
-        clip_cutter_3.name = "cutter_3"
+        clip_cutter_3.name = "Clip Cutter 3"
         add_object_to_collection(clip_cutter_3, tile_props.tile_name)
 
         deselect_all()

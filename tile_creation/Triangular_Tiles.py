@@ -24,7 +24,9 @@ from .create_tile import (
     create_displacement_core,
     finalise_tile,
     spawn_empty_base,
-    spawn_prefab)
+    spawn_prefab,
+    set_bool_obj_props,
+    set_bool_props)
 
 
 class MT_PT_Triangular_Floor_Panel(Panel):
@@ -305,14 +307,8 @@ def spawn_openlock_base(tile_props):
     clip_cutters = spawn_openlock_base_clip_cutters(dimensions, tile_props)
 
     for clip_cutter in clip_cutters:
-        matrixcopy = clip_cutter.matrix_world.copy()
-        clip_cutter.parent = base
-        clip_cutter.matrix_world = matrixcopy
-        clip_cutter.display_type = 'BOUNDS'
-        clip_cutter.hide_viewport = True
-        clip_cutter_bool = base.modifiers.new('Clip Cutter', 'BOOLEAN')
-        clip_cutter_bool.operation = 'DIFFERENCE'
-        clip_cutter_bool.object = clip_cutter
+        set_bool_obj_props(clip_cutter, base, tile_props)
+        set_bool_props(clip_cutter, base, 'DIFFERENCE')
 
     obj_props = base.mt_object_props
     obj_props.is_mt_object = True
@@ -354,7 +350,7 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
             add_object_to_collection(obj, tile_props.tile_name)
 
         clip_cutter_1 = data_to.objects[0]
-        clip_cutter_1.name = "cutter_1"
+        clip_cutter_1.name = "Leg 2 Clip."
         cutter_start_cap = data_to.objects[1]
         cutter_end_cap = data_to.objects[2]
 
@@ -407,7 +403,7 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
 
             # cutter 2
             clip_cutter_2 = clip_cutter_1.copy()
-            clip_cutter_2.name = "cutter_2"
+            clip_cutter_2.name = "Leg 1 Clip."
             add_object_to_collection(clip_cutter_2, tile_props.tile_name)
             cutters.append(clip_cutter_1)
         else:
@@ -440,7 +436,7 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
             cutters.append(clip_cutter_2)
             if dimensions['a'] >= 2:
                 clip_cutter_3 = clip_cutter_2.copy()
-                clip_cutter_3.name = "cutter_3"
+                clip_cutter_3.name = "Opposite Clip."
                 add_object_to_collection(clip_cutter_3, tile_props.tile_name)
             else:
                 bpy.ops.object.make_single_user(type='ALL', object=True, obdata=True)

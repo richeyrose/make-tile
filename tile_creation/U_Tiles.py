@@ -17,7 +17,9 @@ from .create_tile import (
     create_displacement_core,
     finalise_tile,
     spawn_empty_base,
-    spawn_prefab)
+    spawn_prefab,
+    set_bool_obj_props,
+    set_bool_props)
 from ..operators.maketile import (
     MT_Tile_Generator,
     initialise_tile_creator,
@@ -293,25 +295,10 @@ def spawn_openlock_wall_cores(base, tile_props):
 
     for cutter in cutters:
         cutter.rotation_euler[2] = radians(-90)
-        cutter.parent = base
-        cutter.display_type = 'WIRE'
-        cutter.hide_viewport = True
-        obj_props = cutter.mt_object_props
-        obj_props.is_mt_object = True
-        obj_props.tile_name = tile_props.tile_name
-        obj_props.geometry_type = 'CUTTER'
+        set_bool_obj_props(cutter, base, tile_props)
 
         for core in cores:
-            cutter_bool = core.modifiers.new(cutter.name + '.bool', 'BOOLEAN')
-            cutter_bool.operation = 'DIFFERENCE'
-            cutter_bool.object = cutter
-
-            # add cutters to object's mt_cutters_collection
-            # so we can activate and deactivate them when necessary
-            item = core.mt_object_props.cutters_collection.add()
-            item.name = cutter.name
-            item.value = True
-            item.parent = core.name
+            set_bool_props(cutter, core, 'DIFFERENCE')
 
     for cutter in leg_1_cutters:
         cutter.location = (cutter.location[0] + 0.25, cutter.location[1] + leg_1_outer_len, cutter.location[2])
@@ -1076,32 +1063,25 @@ def spawn_openlock_base(tile_props):
 
     # create base slot cutter
     slot_cutter = spawn_openlock_base_slot_cutter(tile_props)
-    slot_boolean = base.modifiers.new(slot_cutter.name, 'BOOLEAN')
-    slot_boolean.operation = 'DIFFERENCE'
-    slot_boolean.object = slot_cutter
-    slot_boolean.show_render = False
-
-    slot_cutter.parent = base
-    slot_cutter.display_type = 'BOUNDS'
-    slot_cutter.hide_viewport = True
+    set_bool_obj_props(slot_cutter, base, tile_props)
+    set_bool_props(slot_cutter, base, 'DIFFERENCE')
 
     # clip cutters
     clip_cutter_leg_1 = spawn_openlock_base_clip_cutter(tile_props)
+    clip_cutter_leg_1.name = 'Leg 1 Clip.' + tile_props.name + '.clip_cutter'
     clip_cutter_leg_2 = clip_cutter_leg_1.copy()
+    clip_cutter_leg_2.name = 'Leg 2 Clip.' + tile_props.name + '.clip_cutter'
     clip_cutter_leg_2.data = clip_cutter_leg_2.data.copy()
     clip_cutter_x_leg = clip_cutter_leg_1.copy()
+    clip_cutter_x_leg.name = 'End Wall Clip.' + tile_props.name + '.clip_cutter'
     clip_cutter_x_leg.data = clip_cutter_x_leg.data.copy()
 
     cutters = [clip_cutter_leg_1, clip_cutter_leg_2, clip_cutter_x_leg]
 
     for cutter in cutters:
         add_object_to_collection(cutter, tile_props.tile_name)
-        cutter_boolean = base.modifiers.new(cutter.name, 'BOOLEAN')
-        cutter_boolean.operation = 'DIFFERENCE'
-        cutter_boolean.object = cutter
-        cutter_boolean.show_render = False
-        cutter.parent = base
-        cutter.display_type = 'WIRE'
+        set_bool_obj_props(cutter, base, tile_props)
+        set_bool_props(cutter, base, 'DIFFERENCE')
 
     if base_socket_side == 'INNER':
         clip_cutter_leg_1.rotation_euler = (clip_cutter_leg_1.rotation_euler[0], clip_cutter_leg_1.rotation_euler[1], radians(90))
@@ -1170,6 +1150,7 @@ def spawn_openlock_base_slot_cutter(tile_props):
 
     # The slot cutter is a 0.1 wide rectangle with an array modifier
     slot_cutter = data_to.objects[0]
+    slot_cutter.name = 'Base Slot.' + tile_props.tile_name + '.slot_cutter'
 
     # the start and end caps are both made of objects with their own modifier
     cutter_start_cap = data_to.objects[1]

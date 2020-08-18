@@ -25,7 +25,9 @@ from .create_tile import (
     create_displacement_core,
     finalise_tile,
     spawn_empty_base,
-    spawn_prefab)
+    spawn_prefab,
+    set_bool_obj_props,
+    set_bool_props)
 from . Rectangular_Tiles import make_rect_floor_vert_groups
 from . Straight_Tiles import straight_wall_to_vert_groups
 
@@ -37,7 +39,7 @@ class MT_PT_Curved_Wall_Tile_Panel(Panel):
     bl_region_type = "UI"
     bl_category = "Make Tile"
     bl_label = "Tile Options"
-    bl_order = 2
+    bl_order = 1
     bl_idname = "MT_PT_Curved_Wall_Tile_Panel"
     bl_description = "Options to configure the dimensions of a tile"
 
@@ -436,26 +438,10 @@ def spawn_openlock_wall_cores(base, tile_props):
         tile_props)
 
     for cutter in cutters:
-        obj_props = cutter.mt_object_props
-        cutter.parent = base
-        cutter.display_type = 'WIRE'
-        cutter.hide_viewport = True
-        obj_props.is_mt_object = True
-        obj_props.tile_name = tile_props.tile_name
-        obj_props.geometrt_type = 'CUTTER'
-
+        set_bool_obj_props(cutter, base, tile_props)
         for core in cores:
-            cutter_bool = core.modifiers.new(cutter.name + '.bool', 'BOOLEAN')
-            cutter_bool.operation = 'DIFFERENCE'
-            cutter_bool.object = cutter
-            cutter_bool.show_render = False
+            set_bool_props(cutter, core, 'DIFFERENCE')
 
-            # add cutters to object's mt_cutters_collection
-            # so we can activate and deactivate them when necessary
-            item = core.mt_object_props.cutters_collection.add()
-            item.name = cutter.name
-            item.value = True
-            item.parent = core.name
     displacement_core.hide_viewport = True
 
     return preview_core
@@ -700,28 +686,9 @@ def spawn_openlock_base_clip_cutter(base, tile_props):
     empty.parent = base
 
     empty.hide_viewport = True
-
-    clip_cutter.parent = base
     clip_cutter.name = 'Clip.' + base.name
-    clip_cutter.display_type = 'WIRE'
-    clip_cutter.hide_viewport = True
-    clip_cutter.hide_render = True
-
-    clip_cutter.mt_object_props.is_mt_object = True
-    clip_cutter.mt_object_props.geometry_type = 'CUTTER'
-    clip_cutter.mt_object_props.tile_name = tile_props.tile_name
-
-    clip_cutter_bool = base.modifiers.new(clip_cutter.name + '.bool', 'BOOLEAN')
-    clip_cutter_bool.operation = 'DIFFERENCE'
-    clip_cutter_bool.object = clip_cutter
-    clip_cutter_bool.show_render = False
-
-    # add cutters to object's cutters_collection
-    # so we can activate and deactivate them when necessary
-    cutter_coll_item = base.mt_object_props.cutters_collection.add()
-    cutter_coll_item.name = clip_cutter.name
-    cutter_coll_item.value = True
-    cutter_coll_item.parent = base.name
+    set_bool_obj_props(clip_cutter, base, tile_props)
+    set_bool_props(clip_cutter, base, 'DIFFERENCE')
 
     return clip_cutter
 

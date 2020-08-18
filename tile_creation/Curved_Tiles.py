@@ -618,13 +618,15 @@ def spawn_openlock_base(tile_props):
         angle,
         tile_props.base_size[2],
         clip_side)
-    spawn_openlock_base_clip_cutter(base, tile_props)
 
     base.name = tile_props.tile_name + '.base'
     obj_props = base.mt_object_props
     obj_props.is_mt_object = True
     obj_props.geometry_type = 'BASE'
     obj_props.tile_name = tile_props.tile_name
+
+    spawn_openlock_base_clip_cutter(base, tile_props)
+
     bpy.context.view_layer.objects.active = base
 
     return base
@@ -656,7 +658,6 @@ def spawn_openlock_base_clip_cutter(base, tile_props):
         data_to.objects = ['openlock.wall.base.cutter.clip_single']
 
     clip_cutter = data_to.objects[0]
-
     add_object_to_collection(clip_cutter, tile_props.tile_name)
 
     deselect_all()
@@ -701,16 +702,26 @@ def spawn_openlock_base_clip_cutter(base, tile_props):
     empty.hide_viewport = True
 
     clip_cutter.parent = base
+    clip_cutter.name = 'Clip.' + base.name
     clip_cutter.display_type = 'WIRE'
     clip_cutter.hide_viewport = True
-    clip_cutter_bool = base.modifiers.new('Base Cutter', 'BOOLEAN')
+    clip_cutter.hide_render = True
+
+    clip_cutter.mt_object_props.is_mt_object = True
+    clip_cutter.mt_object_props.geometry_type = 'CUTTER'
+    clip_cutter.mt_object_props.tile_name = tile_props.tile_name
+
+    clip_cutter_bool = base.modifiers.new(clip_cutter.name + '.bool', 'BOOLEAN')
     clip_cutter_bool.operation = 'DIFFERENCE'
     clip_cutter_bool.object = clip_cutter
+    clip_cutter_bool.show_render = False
 
-    obj_props = clip_cutter.mt_object_props
-    obj_props.is_mt_object = True
-    obj_props.tile_name = tile_props.tile_name
-    obj_props.geometry_type = 'CUTTER'
+    # add cutters to object's cutters_collection
+    # so we can activate and deactivate them when necessary
+    cutter_coll_item = base.mt_object_props.cutters_collection.add()
+    cutter_coll_item.name = clip_cutter.name
+    cutter_coll_item.value = True
+    cutter_coll_item.parent = base.name
 
     return clip_cutter
 

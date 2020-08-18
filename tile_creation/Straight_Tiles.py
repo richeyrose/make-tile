@@ -21,7 +21,9 @@ from .create_tile import (
     finalise_tile,
     spawn_empty_base,
     create_displacement_core,
-    spawn_prefab)
+    spawn_prefab,
+    set_bool_obj_props,
+    set_bool_props)
 from .Rectangular_Tiles import create_plain_rect_floor_cores as create_plain_floor_cores
 
 class MT_PT_Straight_Wall_Panel(Panel):
@@ -464,28 +466,14 @@ def spawn_openlock_base(tile_props):
 
     # create the slot cutter in the bottom of the base used for stacking tiles
     slot_cutter = create_openlock_base_slot_cutter(base, tile_props, offset=0.236)
-    slot_cutter.hide_viewport = True
+    set_bool_obj_props(slot_cutter, base, tile_props)
+    set_bool_props(slot_cutter, base, 'DIFFERENCE')
 
     # create the clip cutters used for attaching walls to bases
     if base.dimensions[0] >= 1:
         clip_cutter = spawn_openlock_base_clip_cutter(base, tile_props)
-        clip_cutter.name = 'Clip Cutter.' + base.name
-        clip_boolean = base.modifiers.new(clip_cutter.name + '.bool', 'BOOLEAN')
-        clip_boolean.operation = 'DIFFERENCE'
-        clip_boolean.object = clip_cutter
-        clip_boolean.show_render = False
-
-        clip_cutter.parent = base
-        clip_cutter.display_type = 'BOUNDS'
-        clip_cutter.hide_viewport = True
-        clip_cutter.hide_render = True
-
-        # add cutters to object's cutters_collection
-        # so we can activate and deactivate them when necessary
-        cutter_coll_item = base.mt_object_props.cutters_collection.add()
-        cutter_coll_item.name = clip_cutter.name
-        cutter_coll_item.value = True
-        cutter_coll_item.parent = base.name
+        set_bool_obj_props(clip_cutter, base, tile_props)
+        set_bool_props(clip_cutter, base, 'DIFFERENCE')
 
     bpy.context.view_layer.objects.active = base
 
@@ -531,26 +519,6 @@ def create_openlock_base_slot_cutter(base, tile_props, offset=0.236):
 
     base.select_set(False)
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-
-    slot_boolean = base.modifiers.new(cutter.name + '.bool', 'BOOLEAN')
-    slot_boolean.operation = 'DIFFERENCE'
-    slot_boolean.object = cutter
-    slot_boolean.show_render = False
-
-    cutter.parent = base
-    cutter.display_type = 'BOUNDS'
-    cutter.hide_viewport = True
-    cutter.hide_render = True
-
-    cutter.mt_object_props.is_mt_object = True
-    cutter.mt_object_props.geometry_type = 'CUTTER'
-    cutter.mt_object_props.tile_name = tile_props.tile_name
-
-    # add cutter to base's cutters_collection
-    cutter_coll_item = base.mt_object_props.cutters_collection.add()
-    cutter_coll_item.name = cutter.name
-    cutter_coll_item.value = True
-    cutter_coll_item.parent = base.name
 
     return cutter
 
@@ -603,10 +571,7 @@ def spawn_openlock_base_clip_cutter(base, tile_props):
     array_mod.fit_type = 'FIT_LENGTH'
     array_mod.fit_length = tile_props.base_size[0] - 1
 
-    obj_props = clip_cutter.mt_object_props
-    obj_props.is_mt_object = True
-    obj_props.tile_name = tile_props.tile_name
-    obj_props.geometry_type = 'CUTTER'
+    clip_cutter.name = 'Clip Cutter.' + base.name
 
     return clip_cutter
 
@@ -771,27 +736,10 @@ def spawn_openlock_wall_cores(base, tile_props):
     tile_name = tile_props.tile_name
 
     for wall_cutter in wall_cutters:
-        wall_cutter.parent = base
-        wall_cutter.display_type = 'BOUNDS'
-        wall_cutter.hide_viewport = True
-        wall_cutter.hide_render = True
-        obj_props = wall_cutter.mt_object_props
-        obj_props.is_mt_object = True
-        obj_props.tile_name = tile_name
-        obj_props.geometry_type = 'CUTTER'
+        set_bool_obj_props(wall_cutter, base, tile_props)
 
         for core in cores:
-            wall_cutter_bool = core.modifiers.new(wall_cutter.name + '.bool', 'BOOLEAN')
-            wall_cutter_bool.operation = 'DIFFERENCE'
-            wall_cutter_bool.object = wall_cutter
-            wall_cutter_bool.show_render = False
-
-            # add cutters to object's cutters_collection
-            # so we can activate and deactivate them when necessary
-            cutter_coll_item = core.mt_object_props.cutters_collection.add()
-            cutter_coll_item.name = wall_cutter.name
-            cutter_coll_item.value = True
-            cutter_coll_item.parent = core.name
+            set_bool_props(wall_cutter, core, 'DIFFERENCE')
 
     displacement_core.hide_viewport = True
 

@@ -25,7 +25,9 @@ from . create_tile import (
     create_displacement_core,
     finalise_tile,
     spawn_empty_base,
-    spawn_prefab)
+    spawn_prefab,
+    set_bool_props,
+    set_bool_obj_props)
 from ..operators.maketile import (
     MT_Tile_Generator,
     initialise_tile_creator,
@@ -553,25 +555,9 @@ def spawn_openlock_wall_cores(base, tile_props):
     cores = [preview_core, displacement_core]
 
     for cutter in cutters:
-        cutter.parent = base
-        cutter.display_type = 'WIRE'
-        cutter.hide_viewport = True
-        obj_props = cutter.mt_object_props
-        obj_props.is_mt_object = True
-        obj_props.tile_name = tile_props.tile_name
-        obj_props.geometry_type = 'CUTTER'
-
+        set_bool_obj_props(cutter, base, tile_props)
         for core in cores:
-            cutter_bool = core.modifiers.new(cutter.name + '.bool', 'BOOLEAN')
-            cutter_bool.operation = 'DIFFERENCE'
-            cutter_bool.object = cutter
-
-            # add cutters to object's mt_cutters_collection
-            # so we can activate and deactivate them when necessary
-            item = core.mt_object_props.cutters_collection.add()
-            item.name = cutter.name
-            item.value = True
-            item.parent = core.name
+            set_bool_props(cutter, core, 'DIFFERENCE')
 
     core.name = tile_props.tile_name + '.core'
     obj_props = core.mt_object_props
@@ -615,7 +601,7 @@ def spawn_openlock_wall_cutters(core, tile_props):
     cutters = []
     # left side cutters
     left_cutter_bottom = data_to.objects[0].copy()
-    left_cutter_bottom.name = 'X Neg Bottom.' + tile_name
+    left_cutter_bottom.name = 'Leg 1 Bottom.' + tile_name
 
     add_object_to_collection(left_cutter_bottom, tile_name)
     # get location of bottom front left corner of tile
@@ -636,7 +622,7 @@ def spawn_openlock_wall_cutters(core, tile_props):
 
     # make a copy of left cutter bottom
     left_cutter_top = left_cutter_bottom.copy()
-    left_cutter_top.name = 'X Neg Top.' + tile_name
+    left_cutter_top.name = 'Leg 1 Top.' + tile_name
 
     add_object_to_collection(left_cutter_top, tile_name)
 
@@ -651,12 +637,12 @@ def spawn_openlock_wall_cutters(core, tile_props):
     # right side cutters
 
     right_cutter_bottom = data_to.objects[0].copy()
-    right_cutter_bottom.name = 'X Pos Bottom.' + tile_name
+    right_cutter_bottom.name = 'Leg 2 Bottom.' + tile_name
 
     add_object_to_collection(right_cutter_bottom, tile_name)
     # get location of bottom front right corner of tile
     front_right = [
-        core_location[0] + (tile_size[0]),
+        core_location[0] + (tile_props.leg_1_len),
         core_location[1],
         core_location[2]]
     # move cutter to bottom front right corner then up by 0.63 inches
@@ -675,7 +661,7 @@ def spawn_openlock_wall_cutters(core, tile_props):
     array_mod.fit_length = tile_size[2] - 1
 
     right_cutter_top = right_cutter_bottom.copy()
-    right_cutter_top.name = 'X Pos Top.' + tile_name
+    right_cutter_top.name = 'Leg 2 Top.' + tile_name
 
     add_object_to_collection(right_cutter_top, tile_name)
     right_cutter_top.location[2] = right_cutter_top.location[2] + 0.75
@@ -824,18 +810,14 @@ def spawn_openlock_base(tile_props):
         angle)
 
     slot_cutter = create_openlock_base_slot_cutter(tile_props)
-
-    slot_boolean = base.modifiers.new(slot_cutter.name, 'BOOLEAN')
-    slot_boolean.operation = 'DIFFERENCE'
-    slot_boolean.object = slot_cutter
-    slot_cutter.parent = base
-    slot_cutter.display_type = 'BOUNDS'
-    slot_cutter.hide_viewport = True
+    set_bool_obj_props(slot_cutter, base, tile_props)
+    set_bool_props(slot_cutter, base, 'DIFFERENCE')
 
     # clip cutters - leg 1
     leg_len = base_triangles['a_adj']
     corner_loc = base.location
     clip_cutter_1 = create_openlock_base_clip_cutter(leg_len, corner_loc, 0.25, tile_props)
+    clip_cutter_1.name = 'Clip Leg 1.' + base.name
     select(clip_cutter_1.name)
     bpy.ops.transform.rotate(
         value=radians(-tile_props.angle + 90),
@@ -851,6 +833,7 @@ def spawn_openlock_base(tile_props):
         corner_loc,
         -0.25,
         tile_props)
+    clip_cutter_2.name = 'Clip Leg 2.' + base.name
     select(clip_cutter_2.name)
 
     bpy.ops.transform.rotate(
@@ -863,12 +846,8 @@ def spawn_openlock_base(tile_props):
 
     cutters = [clip_cutter_1, clip_cutter_2]
     for cutter in cutters:
-        cutter_boolean = base.modifiers.new(cutter.name, 'BOOLEAN')
-        cutter_boolean.operation = 'DIFFERENCE'
-        cutter_boolean.object = cutter
-        cutter.parent = base
-        cutter.display_type = 'WIRE'
-        cutter.hide_viewport = True
+        set_bool_obj_props(cutter, base, tile_props)
+        set_bool_props(cutter, base, 'DIFFERENCE')
 
     deselect_all()
 
@@ -988,7 +967,7 @@ def create_openlock_base_slot_cutter(tile_props):
         slot_width,
         slot_height)
 
-    cutter.name = tile_props.tile_name + '.base.cutter'
+    cutter.name = 'Slot.' + tile_props.tile_name + '.base.cutter'
 
     return cutter
 

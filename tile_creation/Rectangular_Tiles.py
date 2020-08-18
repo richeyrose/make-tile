@@ -23,7 +23,9 @@ from .create_tile import (
     create_displacement_core,
     finalise_tile,
     spawn_empty_base,
-    spawn_prefab)
+    spawn_prefab,
+    set_bool_obj_props,
+    set_bool_props)
 
 
 class MT_PT_Rect_Floor_Panel(Panel):
@@ -391,26 +393,8 @@ def spawn_openlock_base(tile_props):
     clip_cutters = spawn_openlock_base_clip_cutters(base, tile_props)
 
     for clip_cutter in clip_cutters:
-        clip_cutter.parent = base
-        clip_cutter.display_type = 'BOUNDS'
-        clip_cutter.hide_viewport = True
-        clip_cutter.hide_render = True
-
-        clip_cutter.mt_object_props.is_mt_object = True
-        clip_cutter.mt_object_props.geometry_type = 'CUTTER'
-        clip_cutter.mt_object_props.tile_name = tile_props.tile_name
-
-        clip_cutter_bool = base.modifiers.new(clip_cutter.name + '.bool', 'BOOLEAN')
-        clip_cutter_bool.operation = 'DIFFERENCE'
-        clip_cutter_bool.object = clip_cutter
-        clip_cutter_bool.show_render = False
-
-        # add cutters to object's cutters_collection
-        # so we can activate and deactivate them when necessary
-        cutter_coll_item = base.mt_object_props.cutters_collection.add()
-        cutter_coll_item.name = clip_cutter.name
-        cutter_coll_item.value = True
-        cutter_coll_item.parent = base.name
+        set_bool_obj_props(clip_cutter, base, tile_props)
+        set_bool_props(clip_cutter, base, 'DIFFERENCE')
 
     mode('OBJECT')
 

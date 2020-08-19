@@ -26,6 +26,7 @@ from .create_tile import (
     set_bool_props)
 from .Rectangular_Tiles import create_plain_rect_floor_cores as create_plain_floor_cores
 
+
 class MT_PT_Straight_Wall_Panel(Panel):
     """Draw a tile options panel in UI."""
 
@@ -733,7 +734,15 @@ def spawn_openlock_wall_cores(base, tile_props):
         tile_props)
 
     cores = [preview_core, displacement_core]
-    tile_name = tile_props.tile_name
+
+    if tile_props.tile_size[0] > 1:
+        top_peg = spawn_openlock_top_pegs(
+            preview_core,
+            tile_props)
+
+        set_bool_obj_props(top_peg, base, tile_props)
+        for core in cores:
+            set_bool_props(top_peg, core, 'UNION')
 
     for wall_cutter in wall_cutters:
         set_bool_obj_props(wall_cutter, base, tile_props)
@@ -792,6 +801,57 @@ def spawn_wall_core(tile_props):
     obj_props.tile_name = tile_props.tile_name
 
     return core
+
+
+def spawn_openlock_top_pegs(core, tile_props):
+    prefs = get_prefs()
+    tile_name = tile_props.tile_name
+    tile_size = tile_props.tile_size
+    base_size = tile_props.base_size
+
+    booleans_path = os.path.join(
+        prefs.assets_path,
+        "meshes",
+        "booleans",
+        "openlock.blend")
+
+    # load peg bool
+    with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
+        data_to.objects = ['openlock.top_peg']
+
+    peg = data_to.objects[0]
+    peg.name = 'Top Peg.' + tile_name
+
+    add_object_to_collection(peg, tile_name)
+
+    array_mod = peg.modifiers.new('Array', 'ARRAY')
+    array_mod.use_relative_offset = False
+    array_mod.use_constant_offset = True
+    array_mod.constant_offset_displace[0] = 0.5
+    array_mod.fit_type = 'FIXED_COUNT'
+    array_mod.count = 2
+
+    core_location = core.location.copy()
+
+    if tile_size[0] < 4:
+        peg.location = (
+            core.location[0] + (tile_size[0] / 2) - 0.25,
+            core_location[1] + (base_size[1] / 2) + 0.08,
+            core_location[2] + tile_size[2])
+    else:
+        peg.location = (
+            core_location[0] + 0.76,
+            core_location[1] + (base_size[1] / 2) + 0.08,
+            core_location[2] + tile_size[2])
+        array_mod = peg.modifiers.new('Array', 'ARRAY')
+        array_mod.use_relative_offset = False
+        array_mod.use_constant_offset = True
+        array_mod.constant_offset_displace[0] = 2.017
+        array_mod.fit_type = 'FIXED_COUNT'
+        array_mod.count = 2
+
+
+    return peg
 
 
 def spawn_openlock_wall_cutters(core, tile_props):

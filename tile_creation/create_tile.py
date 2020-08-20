@@ -120,13 +120,42 @@ def spawn_prefab(context, subclasses, blueprint, mt_type):
     return prefab
 
 
+def load_openlock_top_peg(tile_props):
+    """Load an openlock style top peg for stacking wall tiles.
+
+    Args:
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
+
+    Returns:
+        bpy.types.Object: peg
+    """
+    prefs = get_prefs()
+    tile_name = tile_props.tile_name
+
+    booleans_path = os.path.join(
+        prefs.assets_path,
+        "meshes",
+        "booleans",
+        "openlock.blend")
+
+    # load peg bool
+    with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
+        data_to.objects = ['openlock.top_peg']
+
+    peg = data_to.objects[0]
+    peg.name = 'Top Peg.' + tile_name
+    add_object_to_collection(peg, tile_name)
+
+    return peg
+
+
 def set_bool_obj_props(bool_obj, parent_obj, tile_props):
     """Set properties for boolean object used for e.g. clip cutters
 
     Args:
         bool_obj (bpy.types.Object): Boolean Object
         parent_obj (bpy.types.Object): Object to parent boolean object to
-        tile_props (bpy.types.PropertyGroup): tile properties
+        MakeTile.properties.MT_Tile_Properties: tile properties
     """
     bool_obj.parent = parent_obj
     bool_obj.display_type = 'BOUNDS'

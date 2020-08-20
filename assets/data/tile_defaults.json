@@ -25,35 +25,35 @@
             "z_proportionate_scale": false,
             "base_defaults": {
                 "OPENLOCK": {
-                    "base_x": 2,
-                    "base_y": 2,
+                    "base_x": 2.015,
+                    "base_y": 2.015,
                     "base_z": 0.2755
                 },
                 "PLAIN": {
-                    "base_x": 2,
-                    "base_y": 2,
+                    "base_x": 2.015,
+                    "base_y": 2.015,
                     "base_z": 0.2755
                 },
                 "NONE": {
-                    "base_x": 2,
-                    "base_y": 2,
+                    "base_x": 2.015,
+                    "base_y": 2.015,
                     "base_z": 0
                 }
             },
             "tile_defaults": {
                 "OPENLOCK": {
-                    "tile_x": 2,
-                    "tile_y": 2,
+                    "tile_x": 2.015,
+                    "tile_y": 2.015,
                     "tile_z": 0.3
                 },
                 "PLAIN": {
-                    "tile_x": 2,
-                    "tile_y": 2,
+                    "tile_x": 2.015,
+                    "tile_y": 2.015,
                     "tile_z": 0.3
                 },
                 "NONE": {
-                    "tile_x": 2,
-                    "tile_y": 2,
+                    "tile_x": 2.015,
+                    "tile_y": 2.015,
                     "tile_z": 0
                 }
             }
@@ -86,34 +86,34 @@
             "z_proportionate_scale": false,
             "base_defaults": {
                 "OPENLOCK": {
-                    "base_x": 2,
+                    "base_x": 2.015,
                     "base_y": 0.5,
                     "base_z": 0.2755
                 },
                 "PLAIN": {
-                    "base_x": 2,
+                    "base_x": 2.015,
                     "base_y": 0.5,
                     "base_z": 0.2755
                 },
                 "NONE": {
-                    "base_x": 2,
+                    "base_x": 2.015,
                     "base_y": 0.5,
                     "base_z": 0
                 }
             },
             "tile_defaults": {
                 "OPENLOCK": {
-                    "tile_x": 2,
+                    "tile_x": 2.015,
                     "tile_y": 0.315,
                     "tile_z": 2
                 },
                 "PLAIN": {
-                    "tile_x": 2,
+                    "tile_x": 2.015,
                     "tile_y": 0.315,
                     "tile_z": 2
                 },
                 "NONE": {
-                    "tile_x": 2,
+                    "tile_x": 2.015,
                     "tile_y": 0.315,
                     "tile_z": 0
                 }
@@ -152,29 +152,29 @@
                     "base_z": 0.2755
                 },
                 "PLAIN": {
-                    "base_x": 2,
+                    "base_x": 2.015,
                     "base_y": 0.5,
                     "base_z": 0.2755
                 },
                 "NONE": {
-                    "base_x": 2,
+                    "base_x": 2.015,
                     "base_y": 0.5,
                     "base_z": 0
                 }
             },
             "tile_defaults": {
                 "OPENLOCK": {
-                    "tile_x": 2,
+                    "tile_x": 2.015,
                     "tile_y": 0.5,
                     "tile_z": 0.3
                 },
                 "PLAIN": {
-                    "tile_x": 2,
+                    "tile_x": 2.015,
                     "tile_y": 0.5,
                     "tile_z": 0.3
                 },
                 "NONE": {
-                    "tile_x": 2,
+                    "tile_x": 2.015,
                     "tile_y": 0.5,
                     "tile_z": 0
                 }
@@ -205,40 +205,40 @@
             "z_proportionate_scale": false,
             "base_defaults": {
                 "OPENLOCK": {
-                    "leg_1_len": 2,
-                    "leg_2_len": 2,
+                    "leg_1_len": 2.015,
+                    "leg_2_len": 2.015,
                     "angle": 90,
                     "base_z": 0.2755
                 },
                 "PLAIN": {
-                    "leg_1_len": 2,
-                    "leg_2_len": 2,
+                    "leg_1_len": 2.015,
+                    "leg_2_len": 2.015,
                     "angle": 90,
                     "base_z": 0.2755
                 },
                 "NONE": {
-                    "leg_1_len": 2,
-                    "leg_2_len": 2,
+                    "leg_1_len": 2.015,
+                    "leg_2_len": 2.015,
                     "angle": 90,
                     "base_z": 0
                 }
             },
             "tile_defaults": {
                 "OPENLOCK": {
-                    "leg_1_len": 2,
-                    "leg_2_len": 2,
+                    "leg_1_len": 2.015,
+                    "leg_2_len": 2.015,
                     "angle": 90,
                     "tile_z": 0.3
                 },
                 "PLAIN": {
-                    "leg_1_len": 2,
-                    "leg_2_len": 2,
+                    "leg_1_len": 2.015,
+                    "leg_2_len": 2.015,
                     "angle": 90,
                     "tile_z": 0.3
                 },
                 "NONE": {
-                    "leg_1_len": 2,
-                    "leg_2_len": 2,
+                    "leg_1_len": 2.015,
+                    "leg_2_len": 2.015,
                     "angle": 90,
                     "tile_z": 0
                 }
@@ -271,19 +271,19 @@
             "z_proportionate_scale": false,
             "base_defaults": {
                 "OPENLOCK": {
-                    "base_radius": 2,
+                    "base_radius": 2.015,
                     "degrees_of_arc": 90,
                     "base_y": 0.5,
                     "base_z": 0.2755
                 },
                 "PLAIN": {
-                    "base_radius": 2,
+                    "base_radius": 2.015,
                     "degrees_of_arc": 90,
                     "base_y": 0.5,
                     "base_z": 0.2755
                 },
                 "NONE": {
-                    "base_radius": 2,
+                    "base_radius": 2.015,
                     "degrees_of_arc": 90,
                     "base_y": 0.5,
                     "base_z": 0
@@ -291,19 +291,19 @@
             },
             "tile_defaults": {
                 "OPENLOCK": {
-                    "base_radius": 2,
+                    "base_radius": 2.015,
                     "degrees_of_arc": 90,
                     "tile_y": 0.315,
                     "tile_z": 2
                 },
                 "PLAIN": {
-                    "base_radius": 2,
+                    "base_radius": 2.015,
                     "degrees_of_arc": 90,
                     "tile_y": 0.315,
                     "tile_z": 2
                 },
                 "NONE": {
-                    "base_radius": 2,
+                    "base_radius": 2.015,
                     "degrees_of_arc": 90,
                     "tile_y": 0.5,
                     "tile_z": 0
@@ -337,19 +337,19 @@
             "z_proportionate_scale": false,
             "base_defaults": {
                 "OPENLOCK": {
-                    "base_radius": 2,
+                    "base_radius": 2.015,
                     "degrees_of_arc": 90,
                     "base_y": 0.5,
                     "base_z": 0.2755
                 },
                 "PLAIN": {
-                    "base_radius": 2,
+                    "base_radius": 2.015,
                     "degrees_of_arc": 90,
                     "base_y": 0.5,
                     "base_z": 0.2755
                 },
                 "NONE": {
-                    "base_radius": 2,
+                    "base_radius": 2.015,
                     "degrees_of_arc": 90,
                     "base_y": 0.5,
                     "base_z": 0
@@ -357,19 +357,19 @@
             },
             "tile_defaults": {
                 "OPENLOCK": {
-                    "base_radius": 2,
+                    "base_radius": 2.015,
                     "degrees_of_arc": 90,
                     "tile_y": 0.5,
                     "tile_z": 0.3
                 },
                 "PLAIN": {
-                    "base_radius": 2,
+                    "base_radius": 2.015,
                     "degrees_of_arc": 90,
                     "tile_y": 0.5,
                     "tile_z": 0.3
                 },
                 "NONE": {
-                    "base_radius": 2,
+                    "base_radius": 2.015,
                     "degrees_of_arc": 90,
                     "tile_y": 0.5,
                     "tile_z": 0
@@ -403,19 +403,19 @@
             "z_proportionate_scale": false,
             "base_defaults": {
                 "OPENLOCK": {
-                    "base_radius": 2,
+                    "base_radius": 2.015,
                     "angle": 90,
                     "base_y": 0.5,
                     "base_z": 0.2755
                 },
                 "PLAIN": {
-                    "base_radius": 2,
+                    "base_radius": 2.015,
                     "angle": 90,
                     "base_y": 0.5,
                     "base_z": 0.2755
                 },
                 "NONE": {
-                    "base_radius": 2,
+                    "base_radius": 2.015,
                     "angle": 90,
                     "base_y": 0.5,
                     "base_z": 0
@@ -423,19 +423,19 @@
             },
             "tile_defaults": {
                 "OPENLOCK": {
-                    "base_radius": 2,
+                    "base_radius": 2.015,
                     "angle": 90,
                     "tile_y": 0.5,
                     "tile_z": 0.3
                 },
                 "PLAIN": {
-                    "base_radius": 2,
+                    "base_radius": 2.015,
                     "angle": 90,
                     "tile_y": 0.5,
                     "tile_z": 0.3
                 },
                 "NONE": {
-                    "base_radius": 2,
+                    "base_radius": 2.015,
                     "angle": 90,
                     "tile_y": 0.5,
                     "tile_z": 0
@@ -470,22 +470,22 @@
             "z_proportionate_scale": false,
             "base_defaults": {
                 "OPENLOCK": {
-                    "leg_1_len": 2,
-                    "leg_2_len": 2,
+                    "leg_1_len": 2.015,
+                    "leg_2_len": 2.015,
                     "angle": 90,
                     "base_y": 0.5,
                     "base_z": 0.2755
                 },
                 "PLAIN": {
-                    "leg_1_len": 2,
-                    "leg_2_len": 2,
+                    "leg_1_len": 2.015,
+                    "leg_2_len": 2.015,
                     "angle": 90,
                     "base_y": 0.5,
                     "base_z": 0.2755
                 },
                 "NONE": {
-                    "leg_1_len": 2,
-                    "leg_2_len": 2,
+                    "leg_1_len": 2.015,
+                    "leg_2_len": 2.015,
                     "angle": 90,
                     "base_y": 0.5,
                     "base_z": 0
@@ -493,22 +493,22 @@
             },
             "tile_defaults": {
                 "OPENLOCK": {
-                    "leg_1_len": 2,
-                    "leg_2_len": 2,
+                    "leg_1_len": 2.015,
+                    "leg_2_len": 2.015,
                     "angle": 90,
                     "tile_y": 0.315,
                     "tile_z": 2
                 },
                 "PLAIN": {
-                    "leg_1_len": 2,
-                    "leg_2_len": 2,
+                    "leg_1_len": 2.015,
+                    "leg_2_len": 2.015,
                     "angle": 90,
                     "tile_y": 0.315,
                     "tile_z": 2
                 },
                 "NONE": {
-                    "leg_1_len": 2,
-                    "leg_2_len": 2,
+                    "leg_1_len": 2.015,
+                    "leg_2_len": 2.015,
                     "angle": 90,
                     "tile_y": 0.315,
                     "tile_z": 0
@@ -543,22 +543,22 @@
             "z_proportionate_scale": false,
             "base_defaults": {
                 "OPENLOCK": {
-                    "leg_1_len": 2,
-                    "leg_2_len": 2,
+                    "leg_1_len": 2.015,
+                    "leg_2_len": 2.015,
                     "angle": 90,
                     "base_y": 0.5,
                     "base_z": 0.2755
                 },
                 "PLAIN": {
-                    "leg_1_len": 2,
-                    "leg_2_len": 2,
+                    "leg_1_len": 2.015,
+                    "leg_2_len": 2.015,
                     "angle": 90,
                     "base_y": 0.5,
                     "base_z": 0.2755
                 },
                 "NONE": {
-                    "leg_1_len": 2,
-                    "leg_2_len": 2,
+                    "leg_1_len": 2.015,
+                    "leg_2_len": 2.015,
                     "angle": 90,
                     "base_y": 0.5,
                     "base_z": 0
@@ -566,22 +566,22 @@
             },
             "tile_defaults": {
                 "OPENLOCK": {
-                    "leg_1_len": 2,
-                    "leg_2_len": 2,
+                    "leg_1_len": 2.015,
+                    "leg_2_len": 2.015,
                     "angle": 90,
                     "tile_y": 0.5,
                     "tile_z": 0.3
                 },
                 "PLAIN": {
-                    "leg_1_len": 2,
-                    "leg_2_len": 2,
+                    "leg_1_len": 2.015,
+                    "leg_2_len": 2.015,
                     "angle": 90,
                     "tile_y": 0.5,
                     "tile_z": 0.3
                 },
                 "NONE": {
-                    "leg_1_len": 2,
-                    "leg_2_len": 2,
+                    "leg_1_len": 2.015,
+                    "leg_2_len": 2.015,
                     "angle": 90,
                     "tile_y": 0.5,
                     "tile_z": 0
@@ -618,40 +618,40 @@
             "z_proportionate_scale": false,
             "base_defaults": {
                 "OPENLOCK": {
-                    "base_x": 2,
+                    "base_x": 2.015,
                     "base_y": 0.5,
                     "base_z": 0.2755
                 },
                 "PLAIN": {
-                    "base_x": 2,
+                    "base_x": 2.015,
                     "base_y": 0.5,
                     "base_z": 0.2755
                 },
                 "NONE": {
-                    "base_x": 2,
+                    "base_x": 2.015,
                     "base_y": 0.5,
                     "base_z": 0
                 }
             },
             "tile_defaults": {
                 "OPENLOCK": {
-                    "leg_1_len": 2,
-                    "leg_2_len": 2,
-                    "tile_x": 2,
+                    "leg_1_len": 2.015,
+                    "leg_2_len": 2.015,
+                    "tile_x": 2.015,
                     "tile_y": 0.3,
                     "tile_z": 2
                 },
                 "PLAIN": {
-                    "leg_1_len": 2,
-                    "leg_2_len": 2,
-                    "tile_x": 2,
+                    "leg_1_len": 2.015,
+                    "leg_2_len": 2.015,
+                    "tile_x": 2.015,
                     "tile_y": 0.3,
                     "tile_z": 2
                 },
                 "NONE": {
-                    "leg_1_len": 2,
-                    "leg_2_len": 2,
-                    "tile_x": 2,
+                    "leg_1_len": 2.015,
+                    "leg_2_len": 2.015,
+                    "tile_x": 2.015,
                     "tile_y": 0.3,
                     "tile_z": 0
                 }

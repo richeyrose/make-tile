@@ -215,7 +215,7 @@ def initialise_floor_creator(context, scene_props):
 
     Args:
         context (bpy.context): context
-        scene_props (bpy.types.PropertyGroup.mt_scene_props): maketile scene properties
+        scene_props (MakeTile.properties.MT_Scene_Properties): maketile scene properties
 
     Returns:
         enum: enum in {'BLENDER_EEVEE', 'CYCLES', 'WORKBENCH'}
@@ -251,7 +251,7 @@ def create_plain_rect_floor_cores(base, tile_props):
 
     Args:
         base (bpy.types.Object): tile base
-        tile_props (bpy.types.PropertyGroup.mt_tile_props): tile properties
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
 
     Returns:
         bpy.types.Object: preview core
@@ -274,7 +274,7 @@ def spawn_floor_core(tile_props):
     """Spawn the core (top part) of a floor tile.
 
     Args:
-        tile_props (bpy.types.PropertyGroup.mt_tile_props): tile properties
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
 
     Returns:
         bpy.types.Object: tile core
@@ -324,7 +324,7 @@ def spawn_plain_base(tile_props):
     """Spawn a plain base into the scene.
 
     Args:
-        tile_props (bpy.types.PropertyGroup.mt_tile_props): tile properties
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
 
     Returns:
         bpy.types.Object: tile base
@@ -357,7 +357,7 @@ def spawn_openlock_base(tile_props):
     """Spawn an openlock base into the scene.
 
     Args:
-        tile_props (bpy.types.PropertyGroup.mt_tile_props): tile properties
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
 
     Returns:
         bpy.types.Object: tile base

@@ -237,7 +237,7 @@ def spawn_openlock_wall_cores(base, tile_props):
 
     Args:
         base (bpy.types.Object): tile base
-        tile_props (bpy.types.PropertyGroup.mt_tile_props): tile properties
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
 
     Returns:
         bpy.types.Object: preview core
@@ -327,7 +327,7 @@ def spawn_openlock_wall_cutters(tile_props):
 
     Args:
         base (bpy.types.Object): tile base
-        tile_props (bpy.types.PropertyGroup.mt_tile_props): tile properties
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
 
     Returns:
         (bpy.types.Object): preview_core
@@ -363,7 +363,7 @@ def spawn_plain_wall_cores(base, tile_props):
 
     Args:
         base (bpy.types.Object): tile base
-        tile_props (bpy.types.PropertyGroup.mt_tile_props): tile properties
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
 
     Returns:
         bpy.types.Object: preview core
@@ -383,7 +383,7 @@ def spawn_core(tile_props):
     """Spawn core into scene.
 
     Args:
-        tile_props (bpy.types.PropertyGroup.mt_tile_props): tile properties
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
 
     Returns:
         bpy.types.Object: core
@@ -976,7 +976,7 @@ def initialise_wall_creator(context, scene_props):
 
     Args:
         context (bpy.context): context
-        scene_props (bpy.types.PropertyGroup.mt_scene_props): maketile scene properties
+        scene_props (MakeTile.properties.MT_Scene_Properties): maketile scene properties
 
     Returns:
         enum: enum in {'BLENDER_EEVEE', 'CYCLES', 'WORKBENCH'}
@@ -1016,7 +1016,7 @@ def spawn_plain_base(tile_props):
     """Spawn a plain base into the scene.
 
     Args:
-        tile_props (bpy.types.PropertyGroup.mt_tile_props): tile properties
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
 
     Returns:
         bpy.types.Object: tile base
@@ -1043,7 +1043,7 @@ def spawn_openlock_base(tile_props):
     """Spawn OpenLOCK base into scene.
 
     Args:
-        tile_props (bpy.types.PropertyGroup.mt_tile_props): tile properties
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
 
     Returns:
         bpy.types.Object: base
@@ -1115,7 +1115,7 @@ def spawn_openlock_base_slot_cutter(tile_props):
     """Spawn base slot cutter into scene.
 
     Args:
-        tile_props (bpy.types.PropertyGroup.mt_tile_props): tile properties
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
 
     Returns:
         bpy.types.Object: base clip cutter
@@ -1201,7 +1201,7 @@ def spawn_openlock_base_clip_cutter(tile_props):
     """Spawn base clip cutter into scene.
 
     Args:
-        tile_props (bpy.types.PropertyGroup.mt_tile_props): tile properties
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
 
     Returns:
         bpy.types.Object: base clip cutter

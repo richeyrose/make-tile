@@ -471,8 +471,8 @@ class MT_Scene_Properties(PropertyGroup):
         name="Displacement Strength",
         description="Overall Displacement Strength",
         default=0.1,
-        step=1,
-        precision=3,
+        step=50,
+        precision=1,
         update=update_disp_strength
     )
 
@@ -522,8 +522,8 @@ class MT_Scene_Properties(PropertyGroup):
     tile_x: bpy.props.FloatProperty(
         name="X",
         default=2.0,
-        step=0.5,
-        precision=3,
+        step=50,
+        precision=1,
         update=update_base_x,
         min=0
     )
@@ -531,8 +531,8 @@ class MT_Scene_Properties(PropertyGroup):
     tile_y: bpy.props.FloatProperty(
         name="Y",
         default=2,
-        step=0.5,
-        precision=3,
+        step=50,
+        precision=1,
         update=update_base_y,
         min=0
     )
@@ -540,8 +540,8 @@ class MT_Scene_Properties(PropertyGroup):
     tile_z: bpy.props.FloatProperty(
         name="Z",
         default=2.0,
-        step=0.1,
-        precision=3,
+        step=50,
+        precision=1,
         update=update_base_z,
         min=0
     )
@@ -550,24 +550,24 @@ class MT_Scene_Properties(PropertyGroup):
     base_x: bpy.props.FloatProperty(
         name="X",
         default=2.0,
-        step=0.5,
-        precision=3,
+        step=50,
+        precision=1,
         min=0
     )
 
     base_y: bpy.props.FloatProperty(
         name="Y",
         default=0.5,
-        step=0.5,
-        precision=3,
+        step=50,
+        precision=1,
         min=0
     )
 
     base_z: bpy.props.FloatProperty(
         name="Z",
         default=0.3,
-        step=0.1,
-        precision=3,
+        step=50,
+        precision=1,
         min=0
     )
 
@@ -583,16 +583,16 @@ class MT_Scene_Properties(PropertyGroup):
         name="Leg 1 Length",
         description="Length of leg",
         default=2,
-        step=0.5,
-        precision=2
+        step=50,
+        precision=1
     )
 
     leg_2_len: bpy.props.FloatProperty(
         name="Leg 2 Length",
         description="Length of leg",
         default=2,
-        step=0.5,
-        precision=2
+        step=50,
+        precision=1
     )
 
     # Openlock curved wall specific
@@ -606,16 +606,16 @@ class MT_Scene_Properties(PropertyGroup):
     base_radius: bpy.props.FloatProperty(
         name="Base inner radius",
         default=2.0,
-        step=0.5,
-        precision=3,
+        step=50,
+        precision=1,
         min=0,
     )
 
     wall_radius: bpy.props.FloatProperty(
         name="Wall inner radius",
         default=2.0,
-        step=0.5,
-        precision=3,
+        step=50,
+        precision=1,
         min=0
     )
 
@@ -740,13 +740,13 @@ class MT_Tile_Properties(PropertyGroup):
     opposite_native_subdivisions: bpy.props.IntProperty(
         name="Opposite Side",
         description="The number of times to subdivide the edge opposite the root angle on triangular tile creation",
-        default=1
+        default=15
     )
 
     curve_native_subdivisions: bpy.props.IntProperty(
         name="Curved Side",
         description="The number of times to subdivide the curved side of a tile",
-        default=1
+        default=15
     )
 
     leg_1_native_subdivisions: bpy.props.IntProperty(

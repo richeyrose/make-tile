@@ -65,12 +65,20 @@ def add_preview_mesh_subsurf(obj):
 
     obj_subsurf = obj.modifiers.new('Subsurf', 'SUBSURF')
     obj_subsurf.subdivision_type = 'SIMPLE'
-    obj_subsurf.levels = 1
+    obj_subsurf.levels = 0
     obj.cycles.use_adaptive_subdivision = True
     bpy.context.scene.cycles.preview_dicing_rate = 1
 
+    '''
     if 'Camera' in bpy.data.objects:
         bpy.context.scene.cycles.dicing_camera = bpy.data.objects['Camera']
+    '''
+
+    ctx = {
+        'object': obj,
+        'active_object': obj,
+        'selected_objects': [obj]
+    }
 
 
 def update_displacement_material_2(obj, primary_material_name):

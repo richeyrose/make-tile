@@ -827,29 +827,28 @@ def spawn_openlock_top_pegs(core, tile_props):
     array_mod = peg.modifiers.new('Array', 'ARRAY')
     array_mod.use_relative_offset = False
     array_mod.use_constant_offset = True
-    array_mod.constant_offset_displace[0] = 0.5
+    array_mod.constant_offset_displace[0] = 0.505
     array_mod.fit_type = 'FIXED_COUNT'
     array_mod.count = 2
 
     core_location = core.location.copy()
 
-    if tile_size[0] < 4:
+    if tile_size[0] < 4 and tile_size[0] >= 1:
         peg.location = (
-            core.location[0] + (tile_size[0] / 2) - 0.25,
+            core_location[0] + (base_size[0] / 2) - 0.252,
             core_location[1] + (base_size[1] / 2) + 0.08,
             core_location[2] + tile_size[2])
     else:
         peg.location = (
-            core_location[0] + 0.76,
+            core_location[0] + 0.756,
             core_location[1] + (base_size[1] / 2) + 0.08,
             core_location[2] + tile_size[2])
         array_mod = peg.modifiers.new('Array', 'ARRAY')
         array_mod.use_relative_offset = False
         array_mod.use_constant_offset = True
         array_mod.constant_offset_displace[0] = 2.017
-        array_mod.fit_type = 'FIXED_COUNT'
-        array_mod.count = 2
-
+        array_mod.fit_type = 'FIT_LENGTH'
+        array_mod.fit_length = tile_size[0] - 1.3
 
     return peg
 

@@ -10,11 +10,11 @@ from .. materials.materials import (
     assign_displacement_materials,
     assign_preview_materials,
     add_preview_mesh_subsurf)
-from .create_tile import MT_Tile
+#from .create_tile import MT_Tile
 from ..lib.bmturtle.bmturtle import *
 
 
-class MT_Connecting_Column_Tile(MT_Tile):
+class MT_Connecting_Column_Tile():
     def __init__(self, tile_props):
         self.tile_props = tile_props
         scene = bpy.context.scene

@@ -731,11 +731,11 @@ def spawn_openlock_wall_cores(base, tile_props):
         tile_props,
         textured_vertex_groups)
 
+    cores = [preview_core, displacement_core]
+
     wall_cutters = spawn_openlock_wall_cutters(
         preview_core,
         tile_props)
-
-    cores = [preview_core, displacement_core]
 
     if tile_props.tile_size[0] > 1:
         top_peg = spawn_openlock_top_pegs(
@@ -815,18 +815,10 @@ def spawn_openlock_top_pegs(core, tile_props):
     Returns:
         bpy.types.Object: top peg(s)
     """
-    tile_name = tile_props.tile_name
     tile_size = tile_props.tile_size
     base_size = tile_props.base_size
 
     peg = load_openlock_top_peg(tile_props)
-
-    array_mod = peg.modifiers.new('Array', 'ARRAY')
-    array_mod.use_relative_offset = False
-    array_mod.use_constant_offset = True
-    array_mod.constant_offset_displace[0] = 0.505
-    array_mod.fit_type = 'FIXED_COUNT'
-    array_mod.count = 2
 
     core_location = core.location.copy()
 

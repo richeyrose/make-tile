@@ -738,13 +738,13 @@ def spawn_openlock_wall_cores(base, tile_props):
         tile_props)
 
     if tile_props.tile_size[0] > 1:
-        top_peg = spawn_openlock_top_pegs(
+        top_pegs = spawn_openlock_top_pegs(
             preview_core,
             tile_props)
 
-        set_bool_obj_props(top_peg, base, tile_props)
+        set_bool_obj_props(top_pegs, base, tile_props)
         for core in cores:
-            set_bool_props(top_peg, core, 'UNION')
+            set_bool_props(top_pegs, core, 'UNION')
 
     for wall_cutter in wall_cutters:
         set_bool_obj_props(wall_cutter, base, tile_props)
@@ -819,6 +819,13 @@ def spawn_openlock_top_pegs(core, tile_props):
     base_size = tile_props.base_size
 
     peg = load_openlock_top_peg(tile_props)
+
+    array_mod = peg.modifiers.new('Array', 'ARRAY')
+    array_mod.use_relative_offset = False
+    array_mod.use_constant_offset = True
+    array_mod.constant_offset_displace[0] = 0.505
+    array_mod.fit_type = 'FIXED_COUNT'
+    array_mod.count = 2
 
     core_location = core.location.copy()
 

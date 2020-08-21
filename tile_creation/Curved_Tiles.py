@@ -466,6 +466,14 @@ def spawn_openlock_top_pegs(base, tile_props):
     tile_size = tile_props.tile_size
     base_radius = tile_props.base_radius
     peg = load_openlock_top_peg(tile_props)
+
+    array_mod = peg.modifiers.new('Array', 'ARRAY')
+    array_mod.use_relative_offset = False
+    array_mod.use_constant_offset = True
+    array_mod.constant_offset_displace[0] = 0.505
+    array_mod.fit_type = 'FIXED_COUNT'
+    array_mod.count = 2
+
     base_location = base.location.copy()
 
     if base_radius >= 1:
@@ -489,7 +497,7 @@ def spawn_openlock_top_pegs(base, tile_props):
 
 
 def spawn_openlock_wall_cutters(core, base_location, tile_props):
-    """Spawn OpenLOCK wall cutters into scene.
+    """Spawn OpenLOCK wall cutters into scene and position them.
 
     Args:
         core (bpy.types.Object): tile core

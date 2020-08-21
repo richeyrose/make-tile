@@ -155,13 +155,6 @@ def load_openlock_top_peg(tile_props):
     peg.name = 'Top Peg.' + tile_name
     add_object_to_collection(peg, tile_name)
 
-    array_mod = peg.modifiers.new('Array', 'ARRAY')
-    array_mod.use_relative_offset = False
-    array_mod.use_constant_offset = True
-    array_mod.constant_offset_displace[0] = 0.505
-    array_mod.fit_type = 'FIXED_COUNT'
-    array_mod.count = 2
-
     return peg
 
 

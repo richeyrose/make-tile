@@ -27,7 +27,8 @@ from . create_tile import (
     spawn_empty_base,
     spawn_prefab,
     set_bool_props,
-    set_bool_obj_props)
+    set_bool_obj_props,
+    load_openlock_top_peg)
 from ..operators.maketile import (
     MT_Tile_Generator,
     initialise_tile_creator,
@@ -526,49 +527,129 @@ def spawn_openlock_wall_cores(base, tile_props):
         textured_vertex_groups)
 
     cutters = spawn_openlock_wall_cutters(preview_core, tile_props)
-    left_cutters = [cutters[0], cutters[1]]
-    right_cutters = [cutters[2], cutters[3]]
-
-    deselect_all()
-    cursor = bpy.context.scene.cursor
-
-    for cutter in right_cutters:
-        cutter.location = (
-            cutter.location[0] + tile_props.leg_1_len - 2,
-            cutter.location[1],
-            cutter.location[2])
-        select(cutter.name)
-    bpy.ops.transform.rotate(
-        value=radians(-tile_props.angle + 90),
-        orient_axis='Z',
-        center_override=cursor.location)
-
-    deselect_all()
-
-    for cutter in left_cutters:
-        cutter.location = (
-            cutter.location[0] + (tile_props.base_size[1] / 2),
-            cutter.location[1] + tile_props.leg_2_len - (tile_props.base_size[1] / 2),
-            cutter.location[2])
-        cutter.rotation_euler = (0, 0, radians(-90))
 
     cores = [preview_core, displacement_core]
+
+    if tile_props.leg_1_len >= 1 or tile_props.leg_2_len >= 1:
+        top_pegs = spawn_openlock_top_pegs(
+            preview_core,
+            tile_props)
+
+        for pegs in top_pegs:
+            set_bool_obj_props(pegs, base, tile_props)
+            for core in cores:
+                set_bool_props(pegs, core, 'UNION')
+
 
     for cutter in cutters:
         set_bool_obj_props(cutter, base, tile_props)
         for core in cores:
             set_bool_props(cutter, core, 'DIFFERENCE')
 
-    core.name = tile_props.tile_name + '.core'
-    obj_props = core.mt_object_props
-    obj_props.is_mt_object = True
-    obj_props.tile_name = tile_props.tile_name
-
     displacement_core.hide_viewport = True
     bpy.context.scene.cursor.location = (0, 0, 0)
 
     return preview_core
 
+
+def spawn_openlock_top_pegs(core, tile_props):
+    """Spawn top peg(s) for stacking wall tiles and position it.
+
+    Args:
+        core (bpy.types.Object): tile core
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
+
+    Returns:
+        bpy.types.Object: top peg(s)
+    """
+
+    tile_size = tile_props.tile_size
+    base_size = tile_props.base_size
+    leg_1_len = tile_props.leg_1_len
+    leg_2_len = tile_props.leg_2_len
+    cursor = bpy.context.scene.cursor
+    peg = load_openlock_top_peg(tile_props)
+
+    core_location = core.location.copy()
+    pegs = []
+
+    # leg 1
+    if leg_1_len >= 1:
+        peg.location = (
+            core_location[0] + 0.756,
+            core_location[1] + (base_size[1] / 2) + 0.08,
+            core_location[2] + tile_size[2])
+
+        if leg_1_len >= 2:
+            array_mod = peg.modifiers.new('Array', 'ARRAY')
+            array_mod.use_relative_offset = False
+            array_mod.use_constant_offset = True
+            array_mod.constant_offset_displace[0] = 0.505
+            array_mod.fit_type = 'FIXED_COUNT'
+            array_mod.count = 2
+
+        if leg_1_len >= 4:
+            array_mod = peg.modifiers.new('Array', 'ARRAY')
+            array_mod.use_relative_offset = False
+            array_mod.use_constant_offset = True
+            array_mod.constant_offset_displace[0] = 2.017
+            array_mod.fit_type = 'FIT_LENGTH'
+            array_mod.fit_length = leg_1_len - 1.3
+
+        ctx = {
+            'object': peg,
+            'active_object': peg,
+            'selected_objects': [peg]
+        }
+        bpy.ops.transform.rotate(
+            ctx,
+            value=radians(-tile_props.angle + 90),
+            orient_axis='Z',
+            center_override=cursor.location)
+        pegs.append(peg)
+
+    # leg 2
+    if leg_2_len >= 1:
+        peg_2 = load_openlock_top_peg(tile_props)
+        peg_2.rotation_euler[2] = radians(-90)
+        ctx = {
+            'object': peg_2,
+            'active_object': peg_2,
+            'selected_objects': [peg_2],
+            'selectable_objects': [peg_2],
+            'selected_editable_objects': [peg_2]
+        }
+
+        bpy.ops.object.transform_apply(
+            ctx,
+            location=False,
+            rotation=True,
+            scale=False,
+            properties=True)
+
+        peg_2.location = (
+            core_location[0] + (base_size[1] / 2) + 0.08,
+            core_location[1] + 0.756,
+            core_location[2] + tile_size[2])
+
+        if leg_2_len >= 2:
+            array_mod = peg_2.modifiers.new('Array', 'ARRAY')
+            array_mod.use_relative_offset = False
+            array_mod.use_constant_offset = True
+            array_mod.constant_offset_displace[1] = 0.505
+            array_mod.fit_type = 'FIXED_COUNT'
+            array_mod.count = 2
+
+        if leg_2_len >= 4:
+            array_mod = peg_2.modifiers.new('Array', 'ARRAY')
+            array_mod.use_relative_offset = False
+            array_mod.use_constant_offset = True
+            array_mod.constant_offset_displace[1] = 2.017
+            array_mod.fit_type = 'FIT_LENGTH'
+            array_mod.fit_length = leg_2_len - 1.3
+
+        pegs.append(peg_2)
+    return pegs
 
 def spawn_openlock_wall_cutters(core, tile_props):
     """Create the cutters for the wall and position them correctly.
@@ -601,7 +682,7 @@ def spawn_openlock_wall_cutters(core, tile_props):
     cutters = []
     # left side cutters
     left_cutter_bottom = data_to.objects[0].copy()
-    left_cutter_bottom.name = 'Leg 1 Bottom.' + tile_name
+    left_cutter_bottom.name = 'Leg 2 Bottom.' + tile_name
 
     add_object_to_collection(left_cutter_bottom, tile_name)
     # get location of bottom front left corner of tile
@@ -622,7 +703,7 @@ def spawn_openlock_wall_cutters(core, tile_props):
 
     # make a copy of left cutter bottom
     left_cutter_top = left_cutter_bottom.copy()
-    left_cutter_top.name = 'Leg 1 Top.' + tile_name
+    left_cutter_top.name = 'Leg 2 Top.' + tile_name
 
     add_object_to_collection(left_cutter_top, tile_name)
 
@@ -637,7 +718,7 @@ def spawn_openlock_wall_cutters(core, tile_props):
     # right side cutters
 
     right_cutter_bottom = data_to.objects[0].copy()
-    right_cutter_bottom.name = 'Leg 2 Bottom.' + tile_name
+    right_cutter_bottom.name = 'Leg 1 Bottom.' + tile_name
 
     add_object_to_collection(right_cutter_bottom, tile_name)
     # get location of bottom front right corner of tile
@@ -661,7 +742,7 @@ def spawn_openlock_wall_cutters(core, tile_props):
     array_mod.fit_length = tile_size[2] - 1
 
     right_cutter_top = right_cutter_bottom.copy()
-    right_cutter_top.name = 'Leg 2 Top.' + tile_name
+    right_cutter_top.name = 'Leg 1 Top.' + tile_name
 
     add_object_to_collection(right_cutter_top, tile_name)
     right_cutter_top.location[2] = right_cutter_top.location[2] + 0.75
@@ -670,6 +751,28 @@ def spawn_openlock_wall_cutters(core, tile_props):
     array_mod.fit_length = tile_size[2] - 1.8
 
     cutters.extend([right_cutter_bottom, right_cutter_top])
+
+    left_cutters = [cutters[0], cutters[1]]
+    right_cutters = [cutters[2], cutters[3]]
+
+    deselect_all()
+    cursor = bpy.context.scene.cursor
+
+    for cutter in right_cutters:
+        select(cutter.name)
+    bpy.ops.transform.rotate(
+        value=radians(-tile_props.angle + 90),
+        orient_axis='Z',
+        center_override=cursor.location)
+
+    deselect_all()
+
+    for cutter in left_cutters:
+        cutter.location = (
+            cutter.location[0] + (tile_props.base_size[1] / 2),
+            cutter.location[1] + tile_props.leg_2_len - (tile_props.base_size[1] / 2),
+            cutter.location[2])
+        cutter.rotation_euler = (0, 0, radians(-90))
 
     return cutters
 
@@ -751,6 +854,12 @@ def spawn_wall_core(tile_props):
 
     bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+
+    core.name = tile_props.tile_name + '.core'
+    obj_props = core.mt_object_props
+    obj_props.is_mt_object = True
+    obj_props.tile_name = tile_props.tile_name
+
     return core
 
 

@@ -16,10 +16,10 @@ Features tagged **Core** will be available to Kickstarter backers who have suppo
 
 Features tagged **Plus** will be available to Kickstarter backers who have supported the plus tier.
 ## Phase 1
-- [x] Basic user documentation - Community - Complete
+- [x] Basic user documentation - Community - Complete - Released
 - [ ] Prototype code refactor, cleanup and documentation - Community - In Progress
-- [ ] Implement swappable base sockets - Community
-- [ ] Implement pegs so tiles can be stacked - Community
+- [x] Implement swappable base sockets - Community - Complete
+- [ ] Implement pegs so tiles can be stacked - Community - In Progress
 - [ ] Optimise tile generators to use bmesh module - Community - In Progress
 
 ## Phase 2

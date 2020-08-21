@@ -27,7 +27,8 @@ from .create_tile import (
     spawn_empty_base,
     spawn_prefab,
     set_bool_obj_props,
-    set_bool_props)
+    set_bool_props,
+    load_openlock_top_peg)
 from . Rectangular_Tiles import make_rect_floor_vert_groups
 from . Straight_Tiles import straight_wall_to_vert_groups
 
@@ -437,6 +438,10 @@ def spawn_openlock_wall_cores(base, tile_props):
         base.location,
         tile_props)
 
+    top_peg = spawn_openlock_top_pegs(
+        base,
+        tile_props)
+
     for cutter in cutters:
         set_bool_obj_props(cutter, base, tile_props)
         for core in cores:
@@ -445,6 +450,42 @@ def spawn_openlock_wall_cores(base, tile_props):
     displacement_core.hide_viewport = True
 
     return preview_core
+
+
+def spawn_openlock_top_pegs(base, tile_props):
+    """Spawn top peg(s) for stacking wall tiles and position it.
+
+    Args:
+        core (bpy.types.Object): tile core
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
+
+    Returns:
+        bpy.types.Object: top peg(s)
+    """
+    base_size = tile_props.base_size
+    tile_size = tile_props.tile_size
+    base_radius = tile_props.base_radius
+    peg = load_openlock_top_peg(tile_props)
+    base_location = base.location.copy()
+
+    if base_radius >= 1:
+        peg.location = (
+            base_location[0] - 0.25,
+            base_location[1] + base_radius + (base_size[1] / 2) + 0.075,
+            base_location[2] + tile_size[2])
+
+    ctx = {
+        'object': peg,
+        'active_object': peg,
+        'selected_objects': [peg]
+    }
+
+    bpy.ops.transform.rotate(
+        ctx,
+        value=radians(-tile_props.degrees_of_arc / 2),
+        orient_axis='Z',
+        orient_type='GLOBAL',
+        center_override=base_location)
 
 
 def spawn_openlock_wall_cutters(core, base_location, tile_props):

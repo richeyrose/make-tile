@@ -104,17 +104,17 @@
             "tile_defaults": {
                 "OPENLOCK": {
                     "tile_x": 2.015,
-                    "tile_y": 0.315,
+                    "tile_y": 0.317,
                     "tile_z": 2
                 },
                 "PLAIN": {
                     "tile_x": 2.015,
-                    "tile_y": 0.315,
+                    "tile_y": 0.317,
                     "tile_z": 2
                 },
                 "NONE": {
                     "tile_x": 2.015,
-                    "tile_y": 0.315,
+                    "tile_y": 0.317,
                     "tile_z": 0
                 }
             }
@@ -293,13 +293,13 @@
                 "OPENLOCK": {
                     "base_radius": 2.015,
                     "degrees_of_arc": 90,
-                    "tile_y": 0.315,
+                    "tile_y": 0.317,
                     "tile_z": 2
                 },
                 "PLAIN": {
                     "base_radius": 2.015,
                     "degrees_of_arc": 90,
-                    "tile_y": 0.315,
+                    "tile_y": 0.317,
                     "tile_z": 2
                 },
                 "NONE": {
@@ -496,21 +496,21 @@
                     "leg_1_len": 2.015,
                     "leg_2_len": 2.015,
                     "angle": 90,
-                    "tile_y": 0.315,
+                    "tile_y": 0.317,
                     "tile_z": 2
                 },
                 "PLAIN": {
                     "leg_1_len": 2.015,
                     "leg_2_len": 2.015,
                     "angle": 90,
-                    "tile_y": 0.315,
+                    "tile_y": 0.317,
                     "tile_z": 2
                 },
                 "NONE": {
                     "leg_1_len": 2.015,
                     "leg_2_len": 2.015,
                     "angle": 90,
-                    "tile_y": 0.315,
+                    "tile_y": 0.317,
                     "tile_z": 0
                 }
             }
@@ -638,21 +638,21 @@
                     "leg_1_len": 2.015,
                     "leg_2_len": 2.015,
                     "tile_x": 2.015,
-                    "tile_y": 0.3,
+                    "tile_y": 0.317,
                     "tile_z": 2
                 },
                 "PLAIN": {
                     "leg_1_len": 2.015,
                     "leg_2_len": 2.015,
                     "tile_x": 2.015,
-                    "tile_y": 0.3,
+                    "tile_y": 0.317,
                     "tile_z": 2
                 },
                 "NONE": {
                     "leg_1_len": 2.015,
                     "leg_2_len": 2.015,
                     "tile_x": 2.015,
-                    "tile_y": 0.3,
+                    "tile_y": 0.317,
                     "tile_z": 0
                 }
             }

@@ -540,7 +540,6 @@ def spawn_openlock_wall_cores(base, tile_props):
             for core in cores:
                 set_bool_props(pegs, core, 'UNION')
 
-
     for cutter in cutters:
         set_bool_obj_props(cutter, base, tile_props)
         for core in cores:

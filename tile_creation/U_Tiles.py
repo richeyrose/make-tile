@@ -19,7 +19,8 @@ from .create_tile import (
     spawn_empty_base,
     spawn_prefab,
     set_bool_obj_props,
-    set_bool_props)
+    set_bool_props,
+    load_openlock_top_peg)
 from ..operators.maketile import (
     MT_Tile_Generator,
     initialise_tile_creator,
@@ -253,77 +254,29 @@ def spawn_openlock_wall_cores(base, tile_props):
 
     cores = [preview_core, displacement_core]
 
-    tile_size = tile_props.tile_size
-    leg_1_inner_len = tile_props.leg_1_len
-    leg_2_inner_len = tile_props.leg_2_len
-    x_inner_len = tile_props.base_size[0]
-    thickness = tile_props.base_size[1]
-
-    leg_1_outer_len = leg_1_inner_len + thickness
-    leg_2_outer_len = leg_2_inner_len + thickness
-    x_outer_len = x_inner_len + (thickness * 2)
-
-    leg_1_bottom_cutter = spawn_openlock_wall_cutters(tile_props)
-    leg_1_bottom_cutter.location = base.location
-    leg_1_bottom_cutter.name = 'Leg 1 Bottom.cutter.' + tile_props.tile_name
-
-    leg_1_top_cutter = leg_1_bottom_cutter.copy()
-    leg_1_top_cutter.data = leg_1_top_cutter.data.copy()
-    leg_1_top_cutter.name = 'Leg 1 Top.cutter.' + tile_props.tile_name
-
-    leg_2_bottom_cutter = leg_1_bottom_cutter.copy()
-    leg_2_bottom_cutter.data = leg_2_bottom_cutter.data.copy()
-    leg_2_bottom_cutter.name = 'Leg 2 Bottom.cutter.' + tile_props.tile_name
-
-    leg_2_top_cutter = leg_1_bottom_cutter.copy()
-    leg_2_top_cutter.data = leg_2_top_cutter.data.copy()
-    leg_2_top_cutter.name = 'Leg 2 Top.cutter.' + tile_props.tile_name
-
-    cutters = [
-        leg_1_bottom_cutter,
-        leg_1_top_cutter,
-        leg_2_bottom_cutter,
-        leg_2_top_cutter]
+    cutters = spawn_openlock_wall_cutters(base, tile_props)
 
     for cutter in cutters:
-        add_object_to_collection(cutter, tile_props.tile_name)
-
-    leg_1_cutters = [leg_1_bottom_cutter, leg_1_top_cutter]
-    leg_2_cutters = [leg_2_bottom_cutter, leg_2_top_cutter]
-    bottom_cutters = [leg_1_bottom_cutter, leg_2_bottom_cutter]
-    top_cutters = [leg_1_top_cutter, leg_2_top_cutter]
-
-    for cutter in cutters:
-        cutter.rotation_euler[2] = radians(-90)
         set_bool_obj_props(cutter, base, tile_props)
 
         for core in cores:
             set_bool_props(cutter, core, 'DIFFERENCE')
 
-    for cutter in leg_1_cutters:
-        cutter.location = (cutter.location[0] + 0.25, cutter.location[1] + leg_1_outer_len, cutter.location[2])
+    if tile_props.tile_size[0] >= 1:
+        pegs = spawn_openlock_top_pegs(core, tile_props)
 
-    for cutter in leg_2_cutters:
-        cutter.location = (cutter.location[0] + x_outer_len - 0.25, cutter.location[1] + leg_2_outer_len, cutter.location[2])
+        for peg in pegs:
+            set_bool_obj_props(peg, base, tile_props)
 
-    for cutter in bottom_cutters:
-        cutter.location[2] = cutter.location[2] + 0.63
-        array_mod = cutter.modifiers['Array']
-        array_mod.constant_offset_displace[2] = 2
-        array_mod.fit_length = tile_size[2] - 1
-
-    for cutter in top_cutters:
-        cutter.location[2] = cutter.location[2] + 1.38
-        array_mod = cutter.modifiers['Array']
-        array_mod.constant_offset_displace[2] = 2
-        array_mod.fit_length = tile_size[2] - 1.8
+            for core in cores:
+                set_bool_props(peg, core, 'UNION')
 
     displacement_core.hide_viewport = True
     return preview_core
 
 
-def spawn_openlock_wall_cutters(tile_props):
-    """Spawn OpenLOCK wall cores into scene.
+def spawn_openlock_wall_cutters(base, tile_props):
+    """Spawn OpenLOCK wall cores into scene and position them.
 
     Args:
         base (bpy.types.Object): tile base
@@ -355,7 +308,229 @@ def spawn_openlock_wall_cutters(tile_props):
     array_mod.use_constant_offset = True
     array_mod.fit_type = 'FIT_LENGTH'
 
-    return cutter
+    tile_size = tile_props.tile_size
+    leg_1_inner_len = tile_props.leg_1_len
+    leg_2_inner_len = tile_props.leg_2_len
+    x_inner_len = tile_props.base_size[0]
+    thickness = tile_props.base_size[1]
+
+    leg_1_outer_len = leg_1_inner_len + thickness
+    leg_2_outer_len = leg_2_inner_len + thickness
+    x_outer_len = x_inner_len + (thickness * 2)
+
+    leg_1_bottom_cutter = cutter
+    leg_1_bottom_cutter.location = base.location
+    leg_1_bottom_cutter.name = 'Leg 1 Bottom.cutter.' + tile_props.tile_name
+
+    leg_1_top_cutter = leg_1_bottom_cutter.copy()
+    leg_1_top_cutter.data = leg_1_top_cutter.data.copy()
+    leg_1_top_cutter.name = 'Leg 1 Top.cutter.' + tile_props.tile_name
+
+    leg_2_bottom_cutter = leg_1_bottom_cutter.copy()
+    leg_2_bottom_cutter.data = leg_2_bottom_cutter.data.copy()
+    leg_2_bottom_cutter.name = 'Leg 2 Bottom.cutter.' + tile_props.tile_name
+
+    leg_2_top_cutter = leg_1_bottom_cutter.copy()
+    leg_2_top_cutter.data = leg_2_top_cutter.data.copy()
+    leg_2_top_cutter.name = 'Leg 2 Top.cutter.' + tile_props.tile_name
+
+    cutters = [
+        leg_1_bottom_cutter,
+        leg_1_top_cutter,
+        leg_2_bottom_cutter,
+        leg_2_top_cutter]
+
+    for cutter in cutters:
+        add_object_to_collection(cutter, tile_props.tile_name)
+        cutter.rotation_euler[2] = radians(-90)
+
+    leg_1_cutters = [leg_1_bottom_cutter, leg_1_top_cutter]
+    leg_2_cutters = [leg_2_bottom_cutter, leg_2_top_cutter]
+    bottom_cutters = [leg_1_bottom_cutter, leg_2_bottom_cutter]
+    top_cutters = [leg_1_top_cutter, leg_2_top_cutter]
+
+    for cutter in leg_1_cutters:
+        cutter.location = (cutter.location[0] + 0.25, cutter.location[1] + leg_1_outer_len, cutter.location[2])
+
+    for cutter in leg_2_cutters:
+        cutter.location = (cutter.location[0] + x_outer_len - 0.25, cutter.location[1] + leg_2_outer_len, cutter.location[2])
+
+    for cutter in bottom_cutters:
+        cutter.location[2] = cutter.location[2] + 0.63
+        array_mod = cutter.modifiers['Array']
+        array_mod.constant_offset_displace[2] = 2
+        array_mod.fit_length = tile_size[2] - 1
+
+    for cutter in top_cutters:
+        cutter.location[2] = cutter.location[2] + 1.38
+        array_mod = cutter.modifiers['Array']
+        array_mod.constant_offset_displace[2] = 2
+        array_mod.fit_length = tile_size[2] - 1.8
+
+    return cutters
+
+
+def spawn_openlock_top_pegs(core, tile_props):
+    """Spawn top peg(s) for stacking wall tiles and position it.
+
+    Args:
+        core (bpy.types.Object): tile core
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
+
+    Returns:
+        bpy.types.Object: top peg(s)
+    """
+
+    tile_size = tile_props.tile_size
+    base_size = tile_props.base_size
+    leg_1_inner_len = tile_props.leg_1_len
+    leg_2_inner_len = tile_props.leg_2_len
+    x_inner_len = tile_props.base_size[0]
+    thickness = tile_props.base_size[1]
+
+    leg_1_outer_len = leg_1_inner_len + thickness
+    leg_2_outer_len = leg_2_inner_len + thickness
+    x_outer_len = x_inner_len + (thickness * 2)
+
+    cursor = bpy.context.scene.cursor
+
+    peg = load_openlock_top_peg(tile_props)
+    peg.name = 'Base Wall Top Peg.' + tile_props.tile_name
+
+    array_mod = peg.modifiers.new('Array', 'ARRAY')
+    array_mod.use_relative_offset = False
+    array_mod.use_constant_offset = True
+    array_mod.constant_offset_displace[0] = 0.505
+    array_mod.fit_type = 'FIXED_COUNT'
+    array_mod.count = 2
+
+    core_location = core.location.copy()
+
+    pegs = []
+
+    # Back wall
+    if x_outer_len < 4 and x_outer_len >= 1:
+        peg.location = (
+            core_location[0] + (x_outer_len / 2) - 0.252,
+            core_location[1] + (base_size[1] / 2) + 0.08,
+            core_location[2] + tile_size[2])
+    else:
+        peg.location = (
+            core_location[0] + 0.756 + thickness,
+            core_location[1] + (base_size[1] / 2) + 0.08,
+            core_location[2] + tile_size[2])
+        array_mod = peg.modifiers.new('Array', 'ARRAY')
+        array_mod.use_relative_offset = False
+        array_mod.use_constant_offset = True
+        array_mod.constant_offset_displace[0] = 2.017
+        array_mod.fit_type = 'FIT_LENGTH'
+        array_mod.fit_length = tile_size[0] - 1.3
+
+    pegs.append(peg)
+
+    # leg 1
+    if leg_1_outer_len >= 1:
+        peg_2 = load_openlock_top_peg(tile_props)
+        peg_2.name = 'Leg 1 Top Peg.' + tile_props.tile_name
+
+        peg_2.rotation_euler[2] = radians(-90)
+        ctx = {
+            'object': peg_2,
+            'active_object': peg_2,
+            'selected_objects': [peg_2],
+            'selectable_objects': [peg_2],
+            'selected_editable_objects': [peg_2]
+        }
+
+        bpy.ops.object.transform_apply(
+            ctx,
+            location=False,
+            rotation=True,
+            scale=False,
+            properties=True)
+
+        if leg_1_outer_len < 4 and leg_1_outer_len >=1:
+            peg_2.location = (
+                core_location[0] + (thickness / 2) + 0.08,
+                core_location[1] + (leg_1_outer_len / 2) - 0.252,
+                core_location[2] + tile_size[2])
+        else:
+            peg_2.location = (
+                core_location[0] + (thickness / 2) + 0.08,
+                core_location[0] + 0.756 + thickness,
+                core_location[2] + tile_size[2])
+
+        if leg_1_outer_len >= 2:
+            array_mod = peg_2.modifiers.new('Array', 'ARRAY')
+            array_mod.use_relative_offset = False
+            array_mod.use_constant_offset = True
+            array_mod.constant_offset_displace[1] = 0.505
+            array_mod.fit_type = 'FIXED_COUNT'
+            array_mod.count = 2
+
+        if leg_1_outer_len >= 4:
+            array_mod = peg_2.modifiers.new('Array', 'ARRAY')
+            array_mod.use_relative_offset = False
+            array_mod.use_constant_offset = True
+            array_mod.constant_offset_displace[1] = 2.017
+            array_mod.fit_type = 'FIT_LENGTH'
+            array_mod.fit_length = leg_1_outer_len - 1.3
+
+        pegs.append(peg_2)
+
+    # leg 2
+    if leg_2_outer_len >= 1:
+        peg_3 = load_openlock_top_peg(tile_props)
+        peg_3.name = 'Leg 2 Top Peg.' + tile_props.tile_name
+
+        peg_3.rotation_euler[2] = radians(90)
+        ctx = {
+            'object': peg_3,
+            'active_object': peg_3,
+            'selected_objects': [peg_3],
+            'selectable_objects': [peg_3],
+            'selected_editable_objects': [peg_3]
+        }
+
+        bpy.ops.object.transform_apply(
+            ctx,
+            location=False,
+            rotation=True,
+            scale=False,
+            properties=True)
+
+        if leg_2_outer_len < 4 and leg_2_outer_len >=1:
+            peg_3.location = (
+                core_location[0] + x_outer_len - (thickness / 2) - 0.08,
+                core_location[1] + (leg_2_outer_len / 2) - 0.252,
+                core_location[2] + tile_size[2])
+        else:
+            peg_3.location = (
+                core_location[0] + x_outer_len - (thickness / 2) - 0.08,
+                core_location[0] + 0.756 + thickness,
+                core_location[2] + tile_size[2])
+
+        if leg_2_outer_len >= 2:
+            array_mod = peg_3.modifiers.new('Array', 'ARRAY')
+            array_mod.use_relative_offset = False
+            array_mod.use_constant_offset = True
+            array_mod.constant_offset_displace[1] = 0.505
+            array_mod.fit_type = 'FIXED_COUNT'
+            array_mod.count = 2
+
+        if leg_2_outer_len >= 4:
+            array_mod = peg_3.modifiers.new('Array', 'ARRAY')
+            array_mod.use_relative_offset = False
+            array_mod.use_constant_offset = True
+            array_mod.constant_offset_displace[1] = 2.017
+            array_mod.fit_type = 'FIT_LENGTH'
+            array_mod.fit_length = leg_2_outer_len - 1.3
+
+        pegs.append(peg_3)
+
+    return pegs
+
+    # End wall
 
 
 def spawn_plain_wall_cores(base, tile_props):

@@ -9,6 +9,9 @@ from .. lib.utils.collections import (
     add_object_to_collection,
     create_collection,
     activate_collection)
+from ..lib.bmturtle.bmturtle import (
+    draw_cuboid as draw_cuboid_new,
+    draw_straight_wall_core as draw_straight_wall_core_new)
 from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. lib.turtle.scripts.straight_tile import draw_straight_wall_core
 from .. lib.utils.utils import mode, get_all_subclasses
@@ -433,7 +436,8 @@ def spawn_plain_base(tile_props):
     tile_name = tile_props.tile_name
 
     # make base
-    base = draw_cuboid(base_size)
+    # base = draw_cuboid(base_size)
+    base = draw_cuboid_new(base_size)
     base.name = tile_name + '.base'
     add_object_to_collection(base, tile_name)
 
@@ -504,7 +508,7 @@ def create_openlock_base_slot_cutter(base, tile_props, offset=0.236):
             0.197,
             0.25]
 
-    cutter = draw_cuboid(bool_size)
+    cutter = draw_cuboid_new(bool_size)
     cutter.name = 'Base Slot.' + tile_props.tile_name + ".slot_cutter"
 
     diff = base_size[0] - bool_size[0]
@@ -766,13 +770,12 @@ def spawn_wall_core(tile_props):
     tile_size = tile_props.tile_size
     base_size = tile_props.base_size
     tile_name = tile_props.tile_name
-    native_subdivisions = (
+    native_subdivisions = [
         tile_props.x_native_subdivisions,
         tile_props.y_native_subdivisions,
-        tile_props.z_native_subdivisions
-    )
+        tile_props.z_native_subdivisions]
 
-    core = draw_straight_wall_core(
+    core = draw_straight_wall_core_new(
         [tile_size[0],
             tile_size[1],
             tile_size[2] - base_size[2]],
@@ -790,13 +793,14 @@ def spawn_wall_core(tile_props):
     ctx = {
         'object': core,
         'active_object': core,
+        'selected_editable_objects': [core],
         'selected_objects': [core]
     }
 
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
     bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
 
-    straight_wall_to_vert_groups(core)
+    #straight_wall_to_vert_groups(core)
 
     obj_props = core.mt_object_props
     obj_props.is_mt_object = True

@@ -457,6 +457,128 @@ def draw_straight_wall_core(dims, subdivs, margin=0.001):
     return obj
 
 
+def draw_rectangular_floor_core(dims, subdivs, margin=0.001):
+    vert_groups = ['Left', 'Right', 'Front', 'Back', 'Top', 'Bottom']
+    bm, obj = create_turtle('Rectangular Floor', vert_groups)
+
+    # create vertex group layer
+    bm.verts.layers.deform.verify()
+    deform_groups = bm.verts.layers.deform.active
+    bm.select_mode = {'VERT'}
+
+    # Start drawing core
+    pd(bm)
+    add_vert(bm)
+    bm.select_mode = {'VERT'}
+
+    # Draw front bottom edges
+    ri(bm, margin)
+
+    subdiv_x_dist = (dims[0] - (margin * 2)) / subdivs[0]
+
+    i = 0
+    while i < subdivs[0]:
+        ri(bm, subdiv_x_dist)
+        i += 1
+
+    ri(bm, margin)
+
+    # Select edge and extrude to create bottom
+    bm.select_mode = {'EDGE'}
+    bm_select_all(bm)
+    fd(bm, margin)
+
+    subdiv_y_dist = (dims[1] - (margin * 2)) / subdivs[1]
+
+    i = 0
+    while i < subdivs[1]:
+        fd(bm, subdiv_y_dist)
+        i += 1
+
+    fd(bm, margin)
+
+    # select bottom and extrude up
+    bm.select_mode = {'FACE'}
+    bm_select_all(bm)
+    up(bm, margin, False)
+
+    subdiv_z_dist = (dims[2] - (margin * 2)) / subdivs[2]
+
+    i = 0
+    while i < subdivs[2]:
+        up(bm, subdiv_z_dist)
+        i += 1
+
+    up(bm, margin)
+
+    # home turtle
+    pu(bm)
+    home(obj)
+
+    # select left
+    left_verts = select_verts_in_bounds(
+        lbound=(0, 0, 0),
+        ubound=(0, dims[1], dims[2]),
+        buffer=margin / 2,
+        bm=bm)
+
+    assign_verts_to_group(left_verts, obj, deform_groups, 'Left')
+
+    # select Right
+    right_verts = select_verts_in_bounds(
+        lbound=(dims[1], 0, 0),
+        ubound=(dims[1], dims[1], dims[2]),
+        buffer=margin / 2,
+        bm=bm)
+
+    assign_verts_to_group(right_verts, obj, deform_groups, 'Right')
+
+    #Select Front
+    front_verts = select_verts_in_bounds(
+        lbound=(0, 0, 0),
+        ubound=(dims[0], 0, dims[2]),
+        buffer=margin / 2,
+        bm=bm
+    )
+
+    assign_verts_to_group(front_verts, obj, deform_groups, 'Front')
+
+    # Select back
+    back_verts = select_verts_in_bounds(
+        lbound=(0, dims[1], 0),
+        ubound=(dims[0], dims[1], dims[2]),
+        buffer=margin / 2,
+        bm=bm
+    )
+
+    assign_verts_to_group(back_verts, obj, deform_groups, 'Back')
+
+    # Select top
+    top_verts = select_verts_in_bounds(
+        lbound=(0 + margin, 0 + margin, dims[2]),
+        ubound=(dims[0] - margin, dims[1] - margin, dims[2]),
+        buffer=margin / 2,
+        bm=bm
+    )
+
+    assign_verts_to_group(top_verts, obj, deform_groups, 'Top')
+
+    # Select bottom
+    bottom_verts = select_verts_in_bounds(
+        lbound=(0 + margin, 0 + margin, 0),
+        ubound=(dims[0] - margin, dims[1] - margin, 0),
+        buffer=margin / 2,
+        bm=bm
+    )
+
+    assign_verts_to_group(bottom_verts, obj, deform_groups, 'Bottom')
+
+    # finalise turtle and release bmesh
+    finalise_turtle(bm, obj)
+
+    return obj
+
+
 def select_verts_in_bounds(lbound, ubound, buffer, bm):
     """Select vertices within cubical boundary.
 

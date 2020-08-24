@@ -14,11 +14,14 @@ from .. lib.utils.collections import (
     activate_collection)
 from .. lib.utils.utils import mode, get_all_subclasses
 from .. utils.registration import get_prefs
-from .. lib.turtle.scripts.straight_tile import draw_rectangular_floor_core
+from ..lib.bmturtle.bmturtle import draw_rectangular_floor_core
+# from .. lib.turtle.scripts.straight_tile import draw_rectangular_floor_core
 from .. lib.turtle.scripts.openlock_floor_base import draw_openlock_rect_floor_base
+'''
 from .. lib.utils.selection import (
     deselect_all,
     select_by_loc)
+'''
 from .create_tile import (
     create_displacement_core,
     finalise_tile,
@@ -299,18 +302,19 @@ def spawn_floor_core(tile_props):
     core.name = tile_name + '.core'
     add_object_to_collection(core, tile_name)
 
-    core.location[2] = cursor_start_loc[2] + base_size[2]
+    core.location[2] = core.location[2] + base_size[2]
 
     ctx = {
         'object': core,
         'active_object': core,
+        'selected_editable_objects': [core],
         'selected_objects': [core]
     }
 
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
     bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
 
-    make_rect_floor_vert_groups(core)
+    #make_rect_floor_vert_groups(core)
 
     obj_props = core.mt_object_props
     obj_props.is_mt_object = True

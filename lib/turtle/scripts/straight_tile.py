@@ -113,7 +113,7 @@ def draw_straight_wall_core(size, native_subdivisions):
     t.ri(d=0.001)
     t.select_all()
     t.fd(d=0.001)
-    
+
     subdiv_y_dist = (size[1] - 0.002) / native_subdivisions[1]
 
     i = 0

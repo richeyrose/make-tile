@@ -12,8 +12,8 @@ from .. lib.utils.collections import (
 from ..lib.bmturtle.bmturtle import (
     draw_cuboid as draw_cuboid_new,
     draw_straight_wall_core as draw_straight_wall_core_new)
-from .. lib.turtle.scripts.primitives import draw_cuboid
-from .. lib.turtle.scripts.straight_tile import draw_straight_wall_core
+# from .. lib.turtle.scripts.primitives import draw_cuboid
+# from .. lib.turtle.scripts.straight_tile import draw_straight_wall_core
 from .. lib.utils.utils import mode, get_all_subclasses
 from .. lib.utils.selection import deselect_all, select_by_loc
 from ..operators.maketile import (
@@ -799,8 +799,6 @@ def spawn_wall_core(tile_props):
 
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
     bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
-
-    #straight_wall_to_vert_groups(core)
 
     obj_props = core.mt_object_props
     obj_props.is_mt_object = True

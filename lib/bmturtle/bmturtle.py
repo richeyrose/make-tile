@@ -336,6 +336,17 @@ def draw_cuboid(dimensions):
 
 
 def draw_straight_wall_core(dims, subdivs, margin=0.001):
+    """Draws a Straight Wall Core and assigns Verts to appropriate groups
+
+    Args:
+        dims (tuple[3]): Dimensions
+        subdivs (tuple[3]): How many times to subdivide each face
+        margin (float, optional): Margin to leave around textured areas to correct for displacement distortion.
+        Defaults to 0.001.
+
+    Returns:
+        bpy.types.Object: Wall Core
+    """
     vert_groups = ['Left', 'Right', 'Front', 'Back', 'Top', 'Bottom']
 
     bm, obj = create_turtle('Straight Wall', vert_groups)
@@ -347,9 +358,13 @@ def draw_straight_wall_core(dims, subdivs, margin=0.001):
 
     bottom_verts = []
     top_verts = []
+
+    # Start drawing wall
     pd(bm)
     add_vert(bm)
     bm.select_mode = {'VERT'}
+
+    # Draw front bottom edges
     ri(bm, margin)
 
     subdiv_x_dist = (dims[0] - (margin * 2)) / subdivs[0]
@@ -360,6 +375,8 @@ def draw_straight_wall_core(dims, subdivs, margin=0.001):
         i += 1
 
     ri(bm, margin)
+
+    # Select edge and extrude to create bottom
     bm.select_mode = {'EDGE'}
     bm_select_all(bm)
     fd(bm, margin)
@@ -373,9 +390,11 @@ def draw_straight_wall_core(dims, subdivs, margin=0.001):
 
     fd(bm, margin)
 
+    # Save verts to add to bottom vert group
     for v in bm.verts:
         bottom_verts.append(v)
 
+    # select bottom and extrude up
     bm.select_mode = {'FACE'}
     bm_select_all(bm)
     up(bm, margin, False)
@@ -388,88 +407,89 @@ def draw_straight_wall_core(dims, subdivs, margin=0.001):
         i += 1
 
     up(bm, margin)
+
+    # Save top verts to add to top vertex group
     top_verts = [v for v in bm.verts if v.select]
 
-    for v in top_verts:
-        if v.is_valid:
-            groups = v[deform_groups]
-            groups[4] = 1
+    # assign top and bottom verts to vertex groups
+    assign_verts_to_group(top_verts, obj, deform_groups, 'Top')
+    assign_verts_to_group(bottom_verts, obj, deform_groups, 'Bottom')
 
-    for v in bottom_verts:
-        if v.is_valid:
-            groups = v[deform_groups]
-            groups[5] = 1
-
+    # home turtle
     pu(bm)
     home(obj)
 
-    # select left and assign to vert group
+    # select left side and assign to vert group
     lbound = (0, 0, 0)
     ubound = (0, dims[1], dims[2])
     buffer = 0.001
 
-    vert_coords = [v.co.to_tuple() for v in bm.verts]
-    to_select = [in_bbox(lbound, ubound, v, buffer) for v in vert_coords]
+    left_verts = select_verts_in_bounds(lbound, ubound, buffer, bm)
+    assign_verts_to_group(left_verts, obj, deform_groups, 'Left')
 
-    for vert, select in zip(bm.verts, to_select):
-        vert.select = select
-    left_verts = [v for v in bm.verts if v.select]
-
-    for v in left_verts:
-        if v.is_valid:
-            groups = v[deform_groups]
-            groups[0] = 1
-
-    # select right and assign to vert group
+    # select right side and assign to vert group
     lbound = (dims[0], 0, 0)
     ubound = dims
     buffer = 0.001
 
-    vert_coords = [v.co.to_tuple() for v in bm.verts]
-    to_select = [in_bbox(lbound, ubound, v, buffer) for v in vert_coords]
+    right_verts = select_verts_in_bounds(lbound, ubound, buffer, bm)
+    assign_verts_to_group(right_verts, obj, deform_groups, 'Right')
 
-    for vert, select in zip(bm.verts, to_select):
-        vert.select = select
-    right_verts = [v for v in bm.verts if v.select]
-
-    for v in right_verts:
-        if v.is_valid:
-            groups = v[deform_groups]
-            groups[1] = 1
-
-    # select front and assign to vert group
+    # select front side and assign to vert group
     lbound = (margin, 0, margin)
     ubound = (dims[0] - margin, 0, dims[2] - margin)
     buffer = 0.0001
 
-    vert_coords = [v.co.to_tuple() for v in bm.verts]
-    to_select = [in_bbox(lbound, ubound, v, buffer) for v in vert_coords]
+    front_verts = select_verts_in_bounds(lbound, ubound, buffer, bm)
+    assign_verts_to_group(front_verts, obj, deform_groups, 'Front')
 
-    for vert, select in zip(bm.verts, to_select):
-        vert.select = select
-    front_verts = [v for v in bm.verts if v.select]
-
-    for v in front_verts:
-        if v.is_valid:
-            groups = v[deform_groups]
-            groups[2] = 1
-
-    # select back and assign to vert group
+    # select back side and assign to vert group
     lbound = (margin, dims[1], margin)
     ubound = (dims[0] - margin, dims[1], dims[2] - margin)
     buffer = 0.0001
 
+    back_verts = select_verts_in_bounds(lbound, ubound, buffer, bm)
+    assign_verts_to_group(back_verts, obj, deform_groups, 'Back')
+
+    # finalise turtle and release bmesh
+    finalise_turtle(bm, obj)
+
+    return obj
+
+
+def select_verts_in_bounds(lbound, ubound, buffer, bm):
+    """Select vertices within cubical boundary.
+
+    Args:
+        lbound (tuple[3]): Lower left corner of bounds
+        ubound (tuble[3]): Upper left corner of bounds
+        buffer (float): Buffer around bbox
+        bm (bmesh): bmesh
+
+    Returns:
+        list[bmesh.verts]: List of verts
+    """
     vert_coords = [v.co.to_tuple() for v in bm.verts]
     to_select = [in_bbox(lbound, ubound, v, buffer) for v in vert_coords]
 
     for vert, select in zip(bm.verts, to_select):
         vert.select = select
-    back_verts = [v for v in bm.verts if v.select]
 
-    for v in back_verts:
+    return [v for v in bm.verts if v.select]
+
+
+def assign_verts_to_group(verts, obj, deform_groups, group_name):
+    """Assigns verts to vertex group
+
+    Args:
+        verts (list[bmesh.verts]): List of verts
+        obj (bpy.types.Object): object
+        deform_groups (bmesh.types.BMLayerCollection): deform layer. Corresponds to vertex groups
+        group_name (string): Vertex group name
+    """
+    group_index = obj.vertex_groups[group_name].index
+
+    for v in verts:
         if v.is_valid:
             groups = v[deform_groups]
-            groups[3] = 1
-
-    finalise_turtle(bm, obj)
-    return obj
+            groups[group_index] = 1

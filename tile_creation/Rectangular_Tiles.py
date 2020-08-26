@@ -17,11 +17,11 @@ from .. utils.registration import get_prefs
 from ..lib.bmturtle.bmturtle import draw_rectangular_floor_core
 # from .. lib.turtle.scripts.straight_tile import draw_rectangular_floor_core
 from .. lib.turtle.scripts.openlock_floor_base import draw_openlock_rect_floor_base
-'''
+
 from .. lib.utils.selection import (
     deselect_all,
     select_by_loc)
-'''
+
 from .create_tile import (
     create_displacement_core,
     finalise_tile,
@@ -314,7 +314,7 @@ def spawn_floor_core(tile_props):
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
     bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
 
-    #make_rect_floor_vert_groups(core)
+    # make_rect_floor_vert_groups(core)
 
     obj_props = core.mt_object_props
     obj_props.is_mt_object = True
@@ -369,30 +369,12 @@ def spawn_openlock_base(tile_props):
     tile_name = tile_props.tile_name
     base_size = tile_props.base_size
 
-    base = draw_openlock_rect_floor_base(base_size)
-    base.name = tile_props.tile_name + '.base'
-    mode('OBJECT')
+    # base = draw_openlock_rect_floor_base(base_size)
+    base = spawn_plain_base(tile_props)
 
-    add_object_to_collection(base, tile_props.tile_name)
-
-    ctx = {
-        'object': base,
-        'active_object': base,
-        'selected_objects': [base]
-    }
-
-    obj_props = base.mt_object_props
-    obj_props.is_mt_object = True
-    obj_props.geometry_type = 'BASE'
-    obj_props.tile_name = tile_name
-
-    base.location = (
-        base.location[0] + base_size[0] / 2,
-        base.location[1] + base_size[1] / 2,
-        base.location[2]
-    )
-
-    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+    slot_cutter = spawn_openlock_base_slot_cutter(base, tile_props)
+    set_bool_obj_props(slot_cutter, base, tile_props)
+    set_bool_props(slot_cutter, base, 'DIFFERENCE')
 
     clip_cutters = spawn_openlock_base_clip_cutters(base, tile_props)
 
@@ -409,6 +391,61 @@ def spawn_openlock_base(tile_props):
     bpy.context.view_layer.objects.active = base
 
     return base
+
+
+def spawn_openlock_base_slot_cutter(base, tile_props):
+    mode('OBJECT')
+
+    base_location = base.location.copy()
+    preferences = get_prefs()
+    booleans_path = os.path.join(
+        preferences.assets_path,
+        "meshes",
+        "booleans",
+        "rect_floor_slot_cutter.blend")
+
+    with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
+        data_to.objects = [
+            'corner_xneg_yneg',
+            'corner_xneg_ypos',
+            'corner_xpos_yneg',
+            'corner_xpos_ypos',
+            'slot_cutter_a',
+            'slot_cutter_b',
+            'slot_cutter_c',
+            'base_slot_cutter_final']
+
+    for obj in data_to.objects:
+        add_object_to_collection(obj, tile_props.tile_name)
+
+    for obj in data_to.objects:
+        obj.hide_viewport = True
+
+    cutter_a = data_to.objects[4]
+    cutter_b = data_to.objects[5]
+    cutter_c = data_to.objects[6]
+    cutter_d = data_to.objects[7]
+
+    cutter_d.name = 'Base Slot Cutter.' + tile_props.tile_name
+
+    a_array = cutter_a.modifiers['Array']
+    a_array.fit_length = base.dimensions[1] - 1.014
+
+    b_array = cutter_b.modifiers['Array']
+    b_array.fit_length = base.dimensions[0] - 1.014
+
+    c_array = cutter_c.modifiers['Array']
+    c_array.fit_length = base.dimensions[0] - 1.014
+
+    d_array = cutter_d.modifiers['Array']
+    d_array.fit_length = base.dimensions[1] - 1.014
+
+    cutter_d.location = (
+        base_location[0] + 0.24,
+        base_location[1] + 0.24,
+        base_location[2] + 0.24)
+
+    return cutter_d
 
 
 def spawn_openlock_base_clip_cutters(base, tile_props):

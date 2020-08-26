@@ -391,7 +391,7 @@ class MT_Scene_Properties(PropertyGroup):
     base_blueprint: bpy.props.EnumProperty(
         items=create_base_blueprint_enums,
         update=update_base_defaults,
-        name="Base",
+        name="Base"
     )
 
     tile_type: bpy.props.EnumProperty(
@@ -701,16 +701,15 @@ class MT_Tile_Properties(PropertyGroup):
         description="Blueprint for entire tile - e.g. openLOCK or Plain")
 
     main_part_blueprint: bpy.props.EnumProperty(
-        items=tile_main_systems,
-        name="Main System",
-        description="Blueprint for main part of tile. \
-        #  E.g. for a wall this would be the system used for the \
-        #vertical bit")
+        items=create_main_part_blueprint_enums,
+        update=update_main_part_defaults,
+        name="Main"
+    )
 
     base_blueprint: bpy.props.EnumProperty(
-        items=base_systems,
-        name="Base System",
-        description="Blueprint for base of the tile.")
+        items=create_base_blueprint_enums,
+        name="Base",
+        update=update_base_defaults)
 
     tile_type: bpy.props.EnumProperty(
         items=create_tile_type_enums,

@@ -7,7 +7,8 @@ from ..operators.maketile import (
     MT_Tile_Generator,
     initialise_tile_creator,
     create_common_tile_props)
-from .. lib.turtle.scripts.primitives import draw_cuboid
+
+from ..lib.bmturtle.bmturtle import draw_cuboid
 from .. lib.utils.collections import (
     add_object_to_collection,
     create_collection,
@@ -15,8 +16,6 @@ from .. lib.utils.collections import (
 from .. lib.utils.utils import mode, get_all_subclasses
 from .. utils.registration import get_prefs
 from ..lib.bmturtle.bmturtle import draw_rectangular_floor_core
-# from .. lib.turtle.scripts.straight_tile import draw_rectangular_floor_core
-from .. lib.turtle.scripts.openlock_floor_base import draw_openlock_rect_floor_base
 
 from .. lib.utils.selection import (
     deselect_all,

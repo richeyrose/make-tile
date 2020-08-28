@@ -608,7 +608,7 @@ def spawn_plain_base(tile_props):
     """
     radius = tile_props.base_radius
     segments = tile_props.curve_native_subdivisions
-    degrees = tile_props.degrees_of_arc
+    deg = tile_props.degrees_of_arc
     height = tile_props.base_size[2]
     width = tile_props.base_size[1]
 
@@ -616,7 +616,7 @@ def spawn_plain_base(tile_props):
         tile_props.tile_name + '.base',
         radius,
         segments,
-        degrees,
+        deg,
         height,
         width)
 
@@ -630,6 +630,16 @@ def spawn_plain_base(tile_props):
 
 
 def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
+    """Spawns an openlock base slot cutter into the scene and positions it correctly
+
+    Args:
+        base (bpy.types.Object): base
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
+        offset (float, optional): Offset from base end along x. Defaults to 0.236.
+
+    Returns:
+        bpy.types.Object: slot cutter
+    """
     clip_side = tile_props.base_socket_side
     base_radius = tile_props.base_radius
     segments = tile_props.curve_native_subdivisions
@@ -689,8 +699,6 @@ def spawn_openlock_base(tile_props):
     height = tile_props.base_size[2]
     width = tile_props.base_size[1]
 
-    clip_side = tile_props.base_socket_side
-
     base = draw_curved_cuboid(
         tile_props.tile_name + '.base',
         radius,
@@ -703,14 +711,6 @@ def spawn_openlock_base(tile_props):
     set_bool_obj_props(slot_cutter, base, tile_props)
     set_bool_props(slot_cutter, base, 'DIFFERENCE')
 
-    '''
-    base = draw_openlock_curved_base(
-        radius,
-        segments,
-        angle,
-        tile_props.base_size[2],
-        clip_side)
-    '''
     base.name = tile_props.tile_name + '.base'
     obj_props = base.mt_object_props
     obj_props.is_mt_object = True

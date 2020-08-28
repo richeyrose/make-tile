@@ -1,5 +1,5 @@
 import os
-from math import radians, pi, modf
+from math import radians, pi, modf, degrees
 from mathutils import Vector
 import bpy
 from bpy.types import Operator, Panel
@@ -12,8 +12,10 @@ from .. lib.utils.collections import (
     create_collection,
     activate_collection)
 from .. utils.registration import get_prefs
-from .. lib.turtle.scripts.openlock_curved_wall_base import draw_openlock_curved_base
-from .. lib.turtle.scripts.straight_tile import draw_straight_wall_core
+from ..lib.bmturtle.bmturtle import (
+    draw_straight_wall_core,
+    draw_rectangular_floor_core,
+    draw_curved_cuboid)
 from .. lib.utils.selection import (
     deselect_all,
     select,
@@ -29,7 +31,7 @@ from .create_tile import (
     set_bool_obj_props,
     set_bool_props,
     load_openlock_top_peg)
-from . Rectangular_Tiles import make_rect_floor_vert_groups
+
 from . Straight_Tiles import straight_wall_to_vert_groups
 
 
@@ -398,8 +400,7 @@ def spawn_plain_wall_cores(base, tile_props):
     offset = (tile_props.base_size[1] - tile_props.tile_size[1]) / 2
     tile_props.core_radius = tile_props.base_radius + offset
     textured_vertex_groups = ['Front', 'Back']
-    preview_core = spawn_core(tile_props)
-    straight_wall_to_vert_groups(preview_core)
+    preview_core = spawn_wall_core(tile_props)
     preview_core, displacement_core = create_displacement_core(
         base,
         preview_core,
@@ -423,7 +424,7 @@ def spawn_openlock_wall_cores(base, tile_props):
     tile_props.core_radius = tile_props.base_radius + offset
 
     textured_vertex_groups = ['Front', 'Back']
-    preview_core = spawn_core(tile_props)
+    preview_core = spawn_wall_core(tile_props)
     straight_wall_to_vert_groups(preview_core)
     preview_core, displacement_core = create_displacement_core(
         base,
@@ -441,6 +442,10 @@ def spawn_openlock_wall_cores(base, tile_props):
     top_peg = spawn_openlock_top_pegs(
         base,
         tile_props)
+
+    set_bool_obj_props(top_peg, base, tile_props)
+    for core in cores:
+        set_bool_props(top_peg, core, 'UNION')
 
     for cutter in cutters:
         set_bool_obj_props(cutter, base, tile_props)
@@ -494,6 +499,8 @@ def spawn_openlock_top_pegs(base, tile_props):
         orient_axis='Z',
         orient_type='GLOBAL',
         center_override=base_location)
+
+    return peg
 
 
 def spawn_openlock_wall_cutters(core, base_location, tile_props):
@@ -601,26 +608,17 @@ def spawn_plain_base(tile_props):
     """
     radius = tile_props.base_radius
     segments = tile_props.curve_native_subdivisions
-    angle = tile_props.degrees_of_arc
+    degrees = tile_props.degrees_of_arc
     height = tile_props.base_size[2]
     width = tile_props.base_size[1]
 
-    t = bpy.ops.turtle
-
-    t.add_turtle()
-    t.pd()
-    t.arc(r=radius, d=angle, s=segments)
-    t.arc(r=radius + width, d=angle, s=segments)
-    t.select_all()
-    t.bridge()
-    t.pd()
-    t.select_all()
-    t.up(d=height)
-    t.home()
-    bpy.ops.object.editmode_toggle()
-
-    base = bpy.context.object
-    base.name = tile_props.tile_name + '.base'
+    base = draw_curved_cuboid(
+        tile_props.tile_name + '.base',
+        radius,
+        segments,
+        degrees,
+        height,
+        width)
 
     obj_props = base.mt_object_props
     obj_props.is_mt_object = True
@@ -629,6 +627,51 @@ def spawn_plain_base(tile_props):
     bpy.context.view_layer.objects.active = base
 
     return base
+
+
+def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
+    clip_side = tile_props.base_socket_side
+    base_radius = tile_props.base_radius
+    segments = tile_props.curve_native_subdivisions
+    base_degrees = tile_props.degrees_of_arc
+
+    cutter_w = 0.181
+    cutter_h = 0.24
+
+    if clip_side == 'INNER':
+        cutter_radius_offset = 0.25  # amount to offset cutter from base inner radius
+    else:
+        cutter_radius_offset = 0.08
+
+    bool_overlap = 0.001  # overlap amount to prevent errors
+
+    cutter_radius = base_radius + cutter_radius_offset
+    cutter_inner_arc_len = (2 * pi * cutter_radius) / (360 / base_degrees) - (offset * 2)
+    central_angle = degrees(cutter_inner_arc_len / cutter_radius)
+
+    slot_cutter = draw_curved_cuboid(
+        'Slot.' + tile_props.tile_name,
+        cutter_radius,
+        segments,
+        central_angle,
+        cutter_h + bool_overlap,
+        cutter_w
+    )
+
+    slot_cutter.location[2] = slot_cutter.location[2] - bool_overlap
+    slot_cutter.rotation_euler[2] = slot_cutter.rotation_euler[2] - radians((base_degrees - central_angle) / 2)
+
+    ctx = {
+        'object': slot_cutter,
+        'active_object': slot_cutter,
+        'selected_editable_objects': [slot_cutter],
+        'selected_objects': [slot_cutter]
+    }
+
+    base.select_set(False)
+    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+
+    return slot_cutter
 
 
 def spawn_openlock_base(tile_props):
@@ -642,18 +685,32 @@ def spawn_openlock_base(tile_props):
     """
     radius = tile_props.base_radius
     segments = tile_props.curve_native_subdivisions
-    angle = tile_props.degrees_of_arc
-    tile_props.base_size[2] = 0.2755
-    tile_props.base_size[1] = 0.5
+    deg = tile_props.degrees_of_arc
+    height = tile_props.base_size[2]
+    width = tile_props.base_size[1]
+
     clip_side = tile_props.base_socket_side
 
+    base = draw_curved_cuboid(
+        tile_props.tile_name + '.base',
+        radius,
+        segments,
+        deg,
+        height,
+        width)
+
+    slot_cutter = spawn_openlock_base_slot_cutter(base, tile_props)
+    set_bool_obj_props(slot_cutter, base, tile_props)
+    set_bool_props(slot_cutter, base, 'DIFFERENCE')
+
+    '''
     base = draw_openlock_curved_base(
         radius,
         segments,
         angle,
         tile_props.base_size[2],
         clip_side)
-
+    '''
     base.name = tile_props.tile_name + '.base'
     obj_props = base.mt_object_props
     obj_props.is_mt_object = True
@@ -754,8 +811,8 @@ def spawn_plain_floor_cores(base, tile_props):
     """
     textured_vertex_groups = ['Top']
     tile_props.core_radius = tile_props.base_radius
-    preview_core = spawn_core(tile_props)
-    make_rect_floor_vert_groups(preview_core)
+    preview_core = spawn_floor_core(tile_props)
+
     preview_core, displacement_core = create_displacement_core(
         base,
         preview_core,
@@ -765,7 +822,74 @@ def spawn_plain_floor_cores(base, tile_props):
     return preview_core
 
 
-def spawn_core(tile_props):
+def spawn_floor_core(tile_props):
+    """Spawn core into scene.
+
+    Args:
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
+
+    Returns:
+        bpy.types.Object: core
+    """
+    angle = tile_props.degrees_of_arc
+    radius = tile_props.core_radius
+    width = tile_props.tile_size[1]
+    height = tile_props.tile_size[2] - tile_props.base_size[2]
+    inner_circumference = 2 * pi * radius
+    floor_length = inner_circumference / (360 / angle)
+    tile_name = tile_props.tile_name
+    native_subdivisions = (
+        tile_props.curve_native_subdivisions,
+        tile_props.y_native_subdivisions,
+        tile_props.z_native_subdivisions
+    )
+
+    # Rather than creating our cores as curved objects we create them as straight cuboids
+    # and then add a deform modifier. This allows us to not use the modifier when baking the
+    # displacement texture by disabling it in render and thus being able to use
+    # standard projections
+
+    core = draw_rectangular_floor_core(
+        (floor_length,
+         width,
+         height),
+        native_subdivisions)
+
+    core.name = tile_name + '.core'
+    add_object_to_collection(core, tile_props.tile_name)
+
+    ctx = {
+        'object': core,
+        'active_object': core,
+        'selected_editable_objects': [core],
+        'selected_objects': [core]
+    }
+
+    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+    bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
+
+    tile_props.tile_size[0] = floor_length
+
+    core.location = (
+        core.location[0],
+        core.location[1] + radius,
+        core.location[2] + tile_props.base_size[2])
+
+    mod = core.modifiers.new('Simple_Deform', type='SIMPLE_DEFORM')
+    mod.deform_method = 'BEND'
+    mod.deform_axis = 'Z'
+    mod.angle = radians(-angle)
+    mod.show_render = False
+    core.name = tile_props.tile_name + '.core'
+
+    obj_props = core.mt_object_props
+    obj_props.is_mt_object = True
+    obj_props.tile_name = tile_props.tile_name
+
+    return core
+
+
+def spawn_wall_core(tile_props):
     """Spawn core into scene.
 
     Args:
@@ -804,6 +928,7 @@ def spawn_core(tile_props):
     ctx = {
         'object': core,
         'active_object': core,
+        'selected_editable_objects': [core],
         'selected_objects': [core]
     }
 

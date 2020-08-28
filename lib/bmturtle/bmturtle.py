@@ -1,4 +1,4 @@
-from math import radians
+from math import radians, pi
 import bpy
 import bmesh
 from mathutils import Vector
@@ -261,6 +261,41 @@ def rt(degrees):
     lt(-degrees)
 
 
+def arc(bm, radius, degrees, segments):
+    """Draw and arc centered on the turtle.
+
+    Args:
+        radius (float): radius
+        degrees (float): degrees of arc to draw
+        segments (int): number of segments to draw
+    """
+    circ = 2 * pi * radius
+    seg_length = circ / ((360 / degrees) * segments)
+    rotation = degrees / segments
+
+    turtle = bpy.context.scene.cursor
+    start_loc = turtle.location.copy()
+    start_rot = turtle.rotation_euler.copy()
+
+    pu(bm)
+    fd(bm, radius)
+    add_vert(bm)
+    pd(bm)
+    rt(90)
+    rt(rotation / 2)
+
+    i = 0
+    while i < segments:
+        fd(bm, seg_length)
+        rt(rotation)
+
+        i += 1
+
+    pu(bm)
+    turtle.location = start_loc
+    turtle.rotation_euler = start_rot
+
+
 def home(obj):
     """Home turtle.
     Returns the turtle to its parent object's origin
@@ -452,6 +487,23 @@ def draw_straight_wall_core(dims, subdivs, margin=0.001):
     assign_verts_to_group(back_verts, obj, deform_groups, 'Back')
 
     # finalise turtle and release bmesh
+    finalise_turtle(bm, obj)
+
+    return obj
+
+
+def draw_curved_cuboid(name, radius, segments, degrees, height, width):
+    bm, obj = create_turtle(name)
+    bm.select_mode = {'VERT'}
+    arc(bm, radius, degrees, segments)
+    bm_deselect_all(bm)
+    arc(bm, radius + width, degrees, segments)
+    bmesh.ops.bridge_loops(bm, edges=bm.edges)
+    bm.select_mode = {'FACE'}
+    bm_select_all(bm)
+    pd(bm)
+    up(bm, height, False)
+    home(obj)
     finalise_turtle(bm, obj)
 
     return obj

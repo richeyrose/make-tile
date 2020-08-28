@@ -470,7 +470,7 @@ def spawn_openlock_base(tile_props):
     base = spawn_plain_base(tile_props)
 
     # create the slot cutter in the bottom of the base used for stacking tiles
-    slot_cutter = create_openlock_base_slot_cutter(base, tile_props, offset=0.236)
+    slot_cutter = spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236)
     set_bool_obj_props(slot_cutter, base, tile_props)
     set_bool_props(slot_cutter, base, 'DIFFERENCE')
 
@@ -485,7 +485,7 @@ def spawn_openlock_base(tile_props):
     return base
 
 
-def create_openlock_base_slot_cutter(base, tile_props, offset=0.236):
+def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
     """Makes a cutter for the openlock base slot
     based on the width of the base
     """
@@ -494,7 +494,6 @@ def create_openlock_base_slot_cutter(base, tile_props, offset=0.236):
     base_size = tile_props.base_size
 
     # work out bool size X from base size, y and z are constants.
-    # Correct for negative base dimensions when making curved walls
     if base_size[0] > 0:
         bool_size = [
             base_size[0] - (0.236 * 2),

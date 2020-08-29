@@ -9,7 +9,7 @@ from .. lib.utils.collections import (
     add_object_to_collection,
     create_collection,
     activate_collection)
-from ..lib.bmturtle.bmturtle import (
+from ..lib.bmturtle.scripts import (
     draw_cuboid as draw_cuboid_new,
     draw_straight_wall_core as draw_straight_wall_core_new)
 from .. lib.utils.utils import mode, get_all_subclasses
@@ -774,8 +774,8 @@ def spawn_wall_core(tile_props):
 
     core = draw_straight_wall_core_new(
         [tile_size[0],
-            tile_size[1],
-            tile_size[2] - base_size[2]],
+         tile_size[1],
+         tile_size[2] - base_size[2]],
         native_subdivisions)
 
     core.name = tile_name + '.core'

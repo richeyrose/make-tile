@@ -12,7 +12,7 @@ from .. lib.utils.collections import (
     create_collection,
     activate_collection)
 from .. utils.registration import get_prefs
-from ..lib.bmturtle.bmturtle import (
+from ..lib.bmturtle.scripts import (
     draw_straight_wall_core,
     draw_rectangular_floor_core,
     draw_curved_cuboid)

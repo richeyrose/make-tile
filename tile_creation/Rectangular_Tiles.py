@@ -8,14 +8,13 @@ from ..operators.maketile import (
     initialise_tile_creator,
     create_common_tile_props)
 
-from ..lib.bmturtle.bmturtle import draw_cuboid
+from ..lib.bmturtle.scripts import draw_cuboid, draw_rectangular_floor_core
 from .. lib.utils.collections import (
     add_object_to_collection,
     create_collection,
     activate_collection)
 from .. lib.utils.utils import mode, get_all_subclasses
 from .. utils.registration import get_prefs
-from ..lib.bmturtle.bmturtle import draw_rectangular_floor_core
 
 from .. lib.utils.selection import (
     deselect_all,
@@ -393,6 +392,15 @@ def spawn_openlock_base(tile_props):
 
 
 def spawn_openlock_base_slot_cutter(base, tile_props):
+    """Spawn an openlock base slot cutter into scene and positions it correctly.
+
+    Args:
+        base (bpy.types.Object): base
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
+
+    Returns:
+        bpy.type.Object: slot cutter
+    """
     mode('OBJECT')
 
     base_location = base.location.copy()

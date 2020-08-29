@@ -11,7 +11,7 @@ from .. materials.materials import (
     assign_preview_materials,
     add_preview_mesh_subsurf)
 #from .create_tile import MT_Tile
-from ..lib.bmturtle.bmturtle import *
+#from ..lib.bmturtle.bmturtle import *
 
 
 class MT_Connecting_Column_Tile():
@@ -325,7 +325,7 @@ class MT_Connecting_Column_Tile():
 
         pu(bm)
         home(obj)
-        pd(bm)
+        pd()
 
         # draw faces
         bm.select_mode = {'FACE'}

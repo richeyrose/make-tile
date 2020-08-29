@@ -385,7 +385,7 @@ class MT_Scene_Properties(PropertyGroup):
     main_part_blueprint: bpy.props.EnumProperty(
         items=create_main_part_blueprint_enums,
         update=update_main_part_defaults,
-        name="Main"
+        name="Core"
     )
 
     base_blueprint: bpy.props.EnumProperty(
@@ -702,14 +702,13 @@ class MT_Tile_Properties(PropertyGroup):
 
     main_part_blueprint: bpy.props.EnumProperty(
         items=create_main_part_blueprint_enums,
-        update=update_main_part_defaults,
-        name="Main"
+        name="Core"
     )
 
     base_blueprint: bpy.props.EnumProperty(
         items=create_base_blueprint_enums,
-        name="Base",
-        update=update_base_defaults)
+        name="Base"
+    )
 
     tile_type: bpy.props.EnumProperty(
         items=create_tile_type_enums,

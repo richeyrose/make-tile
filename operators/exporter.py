@@ -1,7 +1,6 @@
 import os
 from random import random
 import bpy
-from .. lib.utils.selection import select, deselect_all
 from .. utils.registration import get_prefs
 from .. enums.enums import units
 from .voxeliser import voxelise
@@ -122,16 +121,17 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                 # create copy of visible objects that are not displacement or preview objects and apply modifiers
                 depsgraph = context.evaluated_depsgraph_get()
                 for obj in collection.all_objects:
-                    if obj.mt_object_props.geometry_type not in ('PREVIEW', 'DISPLACEMENT') and obj.visible_get() is True:
-                        object_eval = obj.evaluated_get(depsgraph)
-                        mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
-                        dup_obj = bpy.data.objects.new("dupe", mesh_from_eval)
-                        dup_obj.location = obj.location
-                        dup_obj.rotation_euler = obj.rotation_euler
-                        dup_obj.scale = obj.scale
-                        dup_obj.parent = obj.parent
-                        # collection.objects.link(dup_obj)
-                        obj_copies.append(dup_obj)
+                    if obj.type == 'MESH':
+                        if obj.mt_object_props.geometry_type not in ('PREVIEW', 'DISPLACEMENT') and obj.visible_get() is True:
+                            object_eval = obj.evaluated_get(depsgraph)
+                            mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
+                            dup_obj = bpy.data.objects.new("dupe", mesh_from_eval)
+                            dup_obj.location = obj.location
+                            dup_obj.rotation_euler = obj.rotation_euler
+                            dup_obj.scale = obj.scale
+                            dup_obj.parent = obj.parent
+                            # collection.objects.link(dup_obj)
+                            obj_copies.append(dup_obj)
 
                 for obj in obj_copies:
                     collection.objects.link(obj)
@@ -319,8 +319,8 @@ class MT_OT_Export_Tile(bpy.types.Operator):
 
                 # construct a random name for our object
                 file_path = os.path.join(
-                context.scene.mt_export_path,
-                collection.name + '.' + str(random()) + '.stl')
+                    context.scene.mt_export_path,
+                    collection.name + '.' + str(random()) + '.stl')
 
                 # export our object
                 bpy.ops.export_mesh.stl(

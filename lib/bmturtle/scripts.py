@@ -1,4 +1,6 @@
+from math import cos, acos, sqrt, degrees, radians
 import bmesh
+import bpy
 from .commands import (
     create_turtle,
     finalise_turtle,
@@ -9,7 +11,8 @@ from .commands import (
     pu,
     pd,
     home,
-    arc)
+    arc,
+    rt)
 from .helpers import (
     bm_select_all,
     bm_deselect_all,
@@ -41,6 +44,223 @@ def draw_cuboid(dimensions):
     home(obj)
     finalise_turtle(bm, obj)
 
+    return obj
+
+
+def draw_tri_prism(dimensions):
+    """Draws a triangular prism
+
+    Args:
+        dimensions (dict{b, c, A, height}): dimensions
+
+    Returns:
+        bpy.types.Object: triangular prism
+    """
+
+    #      B
+    #      /\
+    #   c /  \ a
+    #    /    \
+    #   /______\
+    #  A    b    C
+
+    b = dimensions['b']
+    c = dimensions['c']
+    A = dimensions['A']
+    height = dimensions['height']
+
+    a = sqrt((b**2 + c**2) - ((2 * b * c) * cos(radians(A))))
+    B = degrees(acos((c**2 + a**2 - (b**2)) / (2 * c * a)))
+    C = 180 - A - B
+
+    turtle = bpy.context.scene.cursor
+
+    bm, obj = create_turtle(name='tri_prism')
+    add_vert(bm)
+    bm.select_mode = {'VERT'}
+    fd(bm, c)
+    rt(180 - B)
+    fd(bm, a)
+    bmesh.ops.contextual_create(
+        bm,
+        geom=bm.verts,
+        mat_nr=0,
+        use_smooth=False)
+    bm.select_mode = {'FACE'}
+    bm_select_all(bm)
+    up(bm, height, False)
+    home(obj)
+    finalise_turtle(bm, obj)
+
+    return obj
+
+
+def draw_tri_floor_core(dimensions, subdivs, margin=0.001):
+    """Draw a triangular floor core and create vertex groups
+
+    Args:
+        dimensions (dict{a, c, A, height}): dimensions
+        subdivs (list): subdivs(edge, height)
+        margin (float, optional): margin. Defaults to 0.001.
+
+    Returns:
+        bpy.types.Object: core
+    """
+    #      B
+    #      /\
+    #   c /  \ a
+    #    /    \
+    #   /______\
+    #  A    b    C
+    subdivs[0] = 15
+    b = dimensions['b']
+    c = dimensions['c']
+    A = dimensions['A']
+    height = dimensions['height']
+
+    a = sqrt((b**2 + c**2) - ((2 * b * c) * cos(radians(A))))
+    B = degrees(acos((c**2 + a**2 - (b**2)) / (2 * c * a)))
+    C = 180 - A - B
+
+    turtle = bpy.context.scene.cursor
+
+    vert_groups = ['Side a', 'Side b', 'Side c', 'Top', 'Bottom']
+
+    bm, obj = create_turtle(name='tri_prism', vert_groups=vert_groups)
+
+    # create vertex group layer
+    bm.verts.layers.deform.verify()
+    deform_groups = bm.verts.layers.deform.active
+
+    # draw bottom
+    add_vert(bm)
+    bm.select_mode = {'VERT'}
+    loc_A = turtle.location.copy()
+    fd(bm, c)
+    loc_B = turtle.location.copy()
+    rt(180 - B)
+    fd(bm, a)
+    loc_C = turtle.location.copy()
+
+    bmesh.ops.contextual_create(
+        bm,
+        geom=bm.verts,
+        mat_nr=0,
+        use_smooth=False)
+
+    bmesh.ops.subdivide_edges(
+        bm,
+        edges=bm.edges,
+        cuts=subdivs[0],
+        use_grid_fill=True)
+
+    bottom_verts = [v for v in bm.verts]
+
+    bm.select_mode = {'FACE'}
+    faces = [f for f in bm.faces]
+    for f in faces:
+        f.select_set(True)
+
+    for i in range(subdivs[1]):
+        up(bm, height / subdivs[1], False)
+
+    faces = [f for f in bm.faces if f.select]
+    bm.select_mode = {'VERT'}
+    ret = bmesh.ops.inset_region(bm, faces=faces, thickness=margin)
+    bm_deselect_all(bm)
+
+    assign_verts_to_group(bottom_verts, obj, deform_groups, 'Bottom')
+    bm_deselect_all(bm)
+
+    buffer = margin / 2
+
+    # select side c and assign to vert group
+    lbound = loc_A
+    ubound = (
+        loc_B[0],
+        loc_B[1],
+        loc_B[2] + height)
+
+    side_c_verts = select_verts_in_bounds(lbound, ubound, buffer, bm)
+    assign_verts_to_group(side_c_verts, obj, deform_groups, 'Side c')
+    bm_deselect_all(bm)
+
+    # select side a and assign to vert group
+    side_a_verts = []
+    pu(bm)
+    turtle.location = loc_A
+    turtle.rotation_euler = (0, 0, 0)
+
+    fd(bm, c)
+    rt(180 - B)
+
+    i = 0
+    while i <= subdivs[0]:
+        lbound = turtle.location
+        ubound = (
+            turtle.location[0],
+            turtle.location[1],
+            turtle.location[2] + height)
+        selected_verts = select_verts_in_bounds(lbound, ubound, buffer, bm)
+        side_a_verts.extend(selected_verts)
+        fd(bm, a / (subdivs[0] + 1))
+        i += 1
+    lbound = turtle.location
+    ubound = (
+        turtle.location[0],
+        turtle.location[1],
+        turtle.location[2] + height)
+    selected_verts = select_verts_in_bounds(lbound, ubound, buffer, bm)
+    side_a_verts.extend(selected_verts)
+
+    assign_verts_to_group(side_a_verts, obj, deform_groups, 'Side a')
+    bm_deselect_all(bm)
+
+    # select side b and assign verts
+    side_b_verts = []
+    rt(180 - C)
+
+    i = 0
+    while i <= subdivs[0]:
+        lbound = turtle.location
+        ubound = (
+            turtle.location[0],
+            turtle.location[1],
+            turtle.location[2] + height)
+        selected_verts = select_verts_in_bounds(lbound, ubound, buffer, bm)
+        side_b_verts.extend(selected_verts)
+        fd(bm, b / (subdivs[0] + 1))
+        i += 1
+    lbound = turtle.location
+    ubound = (
+        turtle.location[0],
+        turtle.location[1],
+        turtle.location[2] + height)
+    selected_verts = select_verts_in_bounds(lbound, ubound, buffer, bm)
+    side_b_verts.extend(selected_verts)
+
+    assign_verts_to_group(side_b_verts, obj, deform_groups, 'Side b')
+
+    bm_deselect_all(bm)
+
+    # select top and assign verts
+    top_verts = []
+    lbound = (
+        loc_A[0],
+        loc_A[1],
+        loc_A[2] + height)
+    ubound = (
+        loc_C[0] + b,
+        loc_B[1],
+        loc_A[2] + height)
+
+    side_verts = side_a_verts + side_b_verts + side_c_verts
+    selected_verts = select_verts_in_bounds(lbound, ubound, buffer, bm)
+    top_verts = [v for v in selected_verts if v not in side_verts]
+
+    assign_verts_to_group(top_verts, obj, deform_groups, 'Top')
+    home(obj)
+    finalise_turtle(bm, obj)
     return obj
 
 
@@ -132,7 +352,7 @@ def draw_straight_wall_core(dims, subdivs, margin=0.001):
     # select left side and assign to vert group
     lbound = (0, 0, 0)
     ubound = (0, dims[1], dims[2])
-    buffer = 0.001
+    buffer = margin / 2
 
     left_verts = select_verts_in_bounds(lbound, ubound, buffer, bm)
     assign_verts_to_group(left_verts, obj, deform_groups, 'Left')
@@ -140,7 +360,7 @@ def draw_straight_wall_core(dims, subdivs, margin=0.001):
     # select right side and assign to vert group
     lbound = (dims[0], 0, 0)
     ubound = dims
-    buffer = 0.001
+    buffer = margin / 2
 
     right_verts = select_verts_in_bounds(lbound, ubound, buffer, bm)
     assign_verts_to_group(right_verts, obj, deform_groups, 'Right')
@@ -148,7 +368,7 @@ def draw_straight_wall_core(dims, subdivs, margin=0.001):
     # select front side and assign to vert group
     lbound = (margin, 0, margin)
     ubound = (dims[0] - margin, 0, dims[2] - margin)
-    buffer = 0.0001
+    buffer = margin / 2
 
     front_verts = select_verts_in_bounds(lbound, ubound, buffer, bm)
     assign_verts_to_group(front_verts, obj, deform_groups, 'Front')
@@ -156,7 +376,7 @@ def draw_straight_wall_core(dims, subdivs, margin=0.001):
     # select back side and assign to vert group
     lbound = (margin, dims[1], margin)
     ubound = (dims[0] - margin, dims[1], dims[2] - margin)
-    buffer = 0.0001
+    buffer = margin / 2
 
     back_verts = select_verts_in_bounds(lbound, ubound, buffer, bm)
     assign_verts_to_group(back_verts, obj, deform_groups, 'Back')

@@ -7,9 +7,10 @@ from ..operators.maketile import (
     initialise_tile_creator,
     create_common_tile_props)
 from .. utils.registration import get_prefs
+from ..lib.bmturtle.scripts import draw_tri_prism, draw_tri_floor_core
 from .. lib.turtle.scripts.triangular_tile import (
     draw_plain_triangular_base,
-    draw_tri_floor_core,
+    #draw_tri_floor_core,
     draw_openlock_tri_floor_base)
 from .. lib.utils.collections import (
     add_object_to_collection,
@@ -255,7 +256,13 @@ def spawn_plain_base(tile_props):
         bpy.types.Object: tile base
     """
     tile_name = tile_props.tile_name
-    base, dimensions = draw_plain_triangular_base(tile_props)
+    base = draw_tri_prism(dimensions={
+        'b': tile_props.leg_1_len,
+        'c': tile_props.leg_2_len,
+        'A': tile_props.angle,
+        'height': tile_props.base_size[2]
+    })
+
     base.name = tile_name + '.base'
     add_object_to_collection(base, tile_name)
 
@@ -486,149 +493,6 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
         return None
 
 
-def tri_floor_to_vert_groups(obj, dim, height, base_height, native_subdivisions):
-    """Generate vertex groups for a triangular core.
-
-    Args:
-        obj (bpy.types.Object): Floor core
-        dim (dict): triangle specific dimensions
-        height (float): Core Height
-        base_height (float): Base Height
-        native_subdivisions (float): subdivisions per side
-    """
-    # make vertex groups
-    obj.vertex_groups.new(name='Top')
-    obj.vertex_groups.new(name='Bottom')
-    obj.vertex_groups.new(name='Side a')
-    obj.vertex_groups.new(name='Side b')
-    obj.vertex_groups.new(name='Side c')
-
-    mode('EDIT')
-
-    deselect_all()
-    select_by_loc(
-        lbound=(
-            dim['loc_A'][0],
-            dim['loc_A'][1],
-            dim['loc_A'][2] + height),
-        ubound=(
-            dim['loc_B'][0] + dim['a'],
-            dim['loc_B'][1],
-            dim['loc_B'][2] + height),
-        buffer=0.0001,
-        select_mode='FACE'
-    )
-
-    bpy.ops.object.vertex_group_set_active(group='Top')
-    bpy.ops.object.vertex_group_assign()
-    deselect_all()
-
-    select_by_loc(
-        lbound=(
-            dim['loc_A'][0],
-            dim['loc_A'][1],
-            dim['loc_A'][2]),
-        ubound=(
-            dim['loc_B'][0] + dim['a'],
-            dim['loc_B'][1],
-            dim['loc_B'][2]),
-    )
-    bpy.ops.object.vertex_group_set_active(group='Bottom')
-    bpy.ops.object.vertex_group_assign()
-    deselect_all()
-
-    subdivided_height = height / native_subdivisions[1]
-    bpy.ops.object.vertex_group_set_active(group='Side a')
-    i = 0
-    while i <= native_subdivisions[1]:
-        select_by_loc(
-            lbound=(
-                dim['loc_C'][0],
-                dim['loc_C'][1],
-                dim['loc_C'][2] + (subdivided_height * i)),
-            ubound=(
-                dim['loc_C'][0],
-                dim['loc_C'][1],
-                dim['loc_C'][2] + (subdivided_height * i)),
-            buffer=0.0001,
-            additive=True
-        )
-
-        select_by_loc(
-            lbound=(
-                dim['loc_B'][0],
-                dim['loc_B'][1],
-                dim['loc_B'][2] + (subdivided_height * i)),
-            ubound=(
-                dim['loc_B'][0],
-                dim['loc_B'][1],
-                dim['loc_B'][2] + (subdivided_height * i)),
-            buffer=0.0001,
-            additive=True
-        )
-        bpy.ops.mesh.shortest_path_select(edge_mode='SELECT')
-        bpy.ops.object.vertex_group_assign()
-        deselect_all()
-        i += 1
-
-    bpy.ops.object.vertex_group_set_active(group='Side b')
-
-    i = 0
-    while i <= native_subdivisions[1]:
-        select_by_loc(
-            lbound=(
-                dim['loc_A'][0],
-                dim['loc_A'][1],
-                dim['loc_A'][2] + (subdivided_height * i)),
-            ubound=(
-                dim['loc_A'][0],
-                dim['loc_A'][1],
-                dim['loc_A'][2] + (subdivided_height * i)),
-            additive=True,
-            buffer=0.0001
-        )
-
-        select_by_loc(
-            lbound=(
-                dim['loc_C'][0],
-                dim['loc_C'][1],
-                dim['loc_C'][2] + (subdivided_height * i)),
-            ubound=(
-                dim['loc_C'][0],
-                dim['loc_C'][1],
-                dim['loc_C'][2] + (subdivided_height * i)),
-            buffer=0.0001,
-            additive=True
-        )
-        bpy.ops.mesh.shortest_path_select(edge_mode='SELECT')
-        bpy.ops.object.vertex_group_assign()
-        deselect_all()
-        i += 1
-
-    select_by_loc(
-        lbound=dim['loc_A'],
-        ubound=(
-            dim['loc_B'][0],
-            dim['loc_B'][1],
-            dim['loc_B'][2] + base_height),
-        buffer=0.0001
-    )
-    bpy.ops.object.vertex_group_set_active(group='Side c')
-    bpy.ops.object.vertex_group_assign()
-
-    deselect_all()
-    mode('OBJECT')
-
-    side_verts = []
-    sides = ['Side a', 'Side b', 'Side c']
-
-    for side in sides:
-        verts = get_vert_indexes_in_vert_group(side, bpy.context.object)
-        side_verts.extend(verts)
-
-    remove_verts_from_group('Top', bpy.context.object, side_verts)
-
-
 def create_plain_triangular_floor_cores(base, tile_props):
     """Create preview and displacement cores.
 
@@ -660,26 +524,22 @@ def spawn_floor_core(tile_props):
         bpy.types.Object: tile core
     """
     tile_name = tile_props.tile_name
-    native_subdivisions = (
+    native_subdivisions = [
         tile_props.opposite_native_subdivisions,
-        tile_props.z_native_subdivisions)
+        tile_props.z_native_subdivisions]
 
-    core, dimensions = draw_tri_floor_core(
-        tile_props.leg_1_len,
-        tile_props.leg_2_len,
-        tile_props.angle,
-        tile_props.tile_size[2] - tile_props.base_size[2],
-        native_subdivisions)
 
+    core = draw_tri_floor_core(
+        dimensions={
+            'b': tile_props.leg_1_len,
+            'c': tile_props.leg_2_len,
+            'A': tile_props.angle,
+            'height': tile_props.tile_size[2] - tile_props.base_size[2]
+        },
+        subdivs=native_subdivisions
+    )
     core.name = tile_name + '.core'
     add_object_to_collection(core, tile_name)
-
-    tri_floor_to_vert_groups(
-        core,
-        dimensions,
-        tile_props.tile_size[2] - tile_props.base_size[2],
-        tile_props.base_size[2],
-        native_subdivisions)
 
     mode('OBJECT')
 
@@ -688,7 +548,8 @@ def spawn_floor_core(tile_props):
     ctx = {
         'object': core,
         'active_object': core,
-        'selected_objects': [core]
+        'selected_objects': [core],
+        'selected_editable_objects': [core]
     }
 
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')

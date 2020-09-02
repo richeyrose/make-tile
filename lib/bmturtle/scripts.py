@@ -8,6 +8,7 @@ from .commands import (
     fd,
     ri,
     up,
+    dn,
     pu,
     pd,
     home,
@@ -47,14 +48,16 @@ def draw_cuboid(dimensions):
     return obj
 
 
-def draw_tri_prism(dimensions):
+def draw_tri_prism(dimensions, ret_dimensions=False):
     """Draws a triangular prism
 
     Args:
         dimensions (dict{b, c, A, height}): dimensions
+        ret_dimensions (bool): return calculated dimensions
 
     Returns:
         bpy.types.Object: triangular prism
+        dict: dimensions{a, b, c, A, B, C, loc_A, loc_B, loc_C}
     """
 
     #      B
@@ -78,9 +81,12 @@ def draw_tri_prism(dimensions):
     bm, obj = create_turtle(name='tri_prism')
     add_vert(bm)
     bm.select_mode = {'VERT'}
+    loc_A = turtle.location.copy()
     fd(bm, c)
+    loc_B = turtle.location.copy()
     rt(180 - B)
     fd(bm, a)
+    loc_C = turtle.location.copy()
     bmesh.ops.contextual_create(
         bm,
         geom=bm.verts,
@@ -91,6 +97,20 @@ def draw_tri_prism(dimensions):
     up(bm, height, False)
     home(obj)
     finalise_turtle(bm, obj)
+
+    dimensions = {
+        'a': a,
+        'b': b,
+        'c': c,
+        'A': A,
+        'B': B,
+        'C': C,
+        'loc_A': loc_A,
+        'loc_B': loc_B,
+        'loc_C': loc_C}
+
+    if ret_dimensions:
+        return obj, dimensions
 
     return obj
 
@@ -166,7 +186,7 @@ def draw_tri_floor_core(dimensions, subdivs, margin=0.001):
 
     faces = [f for f in bm.faces if f.select]
     bm.select_mode = {'VERT'}
-    ret = bmesh.ops.inset_region(bm, faces=faces, thickness=margin)
+    bmesh.ops.inset_region(bm, faces=faces, thickness=margin)
     bm_deselect_all(bm)
 
     assign_verts_to_group(bottom_verts, obj, deform_groups, 'Bottom')
@@ -259,6 +279,90 @@ def draw_tri_floor_core(dimensions, subdivs, margin=0.001):
     top_verts = [v for v in selected_verts if v not in side_verts]
 
     assign_verts_to_group(top_verts, obj, deform_groups, 'Top')
+    home(obj)
+    finalise_turtle(bm, obj)
+
+    return obj
+
+
+def draw_tri_slot_cutter(dimensions):
+    """Return a triangle floor cutter.
+
+    Args:
+        dimensions (dict{b, c, A}): Base dimensions
+
+    Returns:
+        bpy.types.Object: slot cutter
+    """
+    #      B
+    #      /\
+    #   c /  \ a
+    #    /    \
+    #   /______\
+    #  A    b    C
+
+    # dimensions
+    offset = 0.24     # distance from edge for slot
+    cutter_w = 0.185
+    cutter_h = 0.24
+    support_w = 0.12  # width of corner supports
+    support_h = 0.056
+
+    b = dimensions['b']
+    c = dimensions['c']
+    A = dimensions['A']
+
+    a = sqrt((b**2 + c**2) - ((2 * b * c) * cos(radians(A))))
+    B = degrees(acos((c**2 + a**2 - (b**2)) / (2 * c * a)))
+    C = 180 - A - B
+
+    turtle = bpy.context.scene.cursor
+    bm, obj = create_turtle(name='Slot.')
+
+    dn(bm, 0.001)
+
+    add_vert(bm)
+    bm.select_mode = {'VERT'}
+
+    # draw outer loop
+    fd(bm, c)
+    rt(180 - B)
+    fd(bm, a)
+    bm.faces.ensure_lookup_table()
+    bmesh.ops.contextual_create(
+        bm,
+        geom=bm.verts,
+        mat_nr=0,
+        use_smooth=False)
+
+    #bm.select_mode = {'FACE'}
+    #bm_select_all(bm)
+    # inset to get slot
+
+    ret = bmesh.ops.inset_individual(bm, faces=bm.faces, thickness=offset, use_even_offset=True)
+
+    # delete other faces
+    to_delete = []
+    for f in bm.faces:
+        if f in ret['faces']:
+            to_delete.append(f)
+
+    bmesh.ops.delete(bm, geom=to_delete, context='FACES')
+
+    ret2 = bmesh.ops.inset_individual(bm, faces=bm.faces, thickness=cutter_w, use_even_offset=True)
+
+    # delete other faces
+    to_delete = []
+    for f in bm.faces:
+        if f not in ret2['faces']:
+            to_delete.append(f)
+
+    bmesh.ops.delete(bm, geom=to_delete, context='FACES')
+
+    bm.select_mode = {'FACE'}
+    bm_select_all(bm)
+    up(bm, cutter_h, False)
+
     home(obj)
     finalise_turtle(bm, obj)
     return obj

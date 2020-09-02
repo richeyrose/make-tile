@@ -7,20 +7,13 @@ from ..operators.maketile import (
     initialise_tile_creator,
     create_common_tile_props)
 from .. utils.registration import get_prefs
-from ..lib.bmturtle.scripts import draw_tri_prism, draw_tri_floor_core
-from .. lib.turtle.scripts.triangular_tile import (
-    draw_plain_triangular_base,
-    #draw_tri_floor_core,
-    draw_openlock_tri_floor_base)
+from ..lib.bmturtle.scripts import draw_tri_prism, draw_tri_floor_core, draw_tri_slot_cutter
 from .. lib.utils.collections import (
     add_object_to_collection,
     create_collection,
     activate_collection)
 from .. lib.utils.utils import mode, get_all_subclasses
-from .. lib.utils.selection import select, deselect_all, select_by_loc
-from .. lib.utils.vertex_groups import (
-    get_vert_indexes_in_vert_group,
-    remove_verts_from_group)
+from .. lib.utils.selection import select, deselect_all
 from .create_tile import (
     create_displacement_core,
     finalise_tile,
@@ -292,13 +285,14 @@ def spawn_openlock_base(tile_props):
     Returns:
         bpy.types.Object: tile base
     """
+    dimensions = {
+        'b': tile_props.leg_1_len,
+        'c': tile_props.leg_2_len,
+        'A': tile_props.angle,
+        'height': tile_props.base_size[2]}
     tile_name = tile_props.tile_name
 
-    base, dimensions = draw_openlock_tri_floor_base(
-        tile_props.leg_1_len,
-        tile_props.leg_2_len,
-        tile_props.base_size[2],
-        tile_props.angle)
+    base, dimensions = draw_tri_prism(dimensions, True)
 
     base.name = tile_name + '.base'
     add_object_to_collection(base, tile_name)
@@ -306,10 +300,15 @@ def spawn_openlock_base(tile_props):
     ctx = {
         'object': base,
         'active_object': base,
-        'selected_objects': [base]
+        'selected_objects': [base],
+        'selected_editable_objects': [base]
     }
 
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+
+    slot_cutter = draw_tri_slot_cutter(dimensions)
+    set_bool_obj_props(slot_cutter, base, tile_props)
+    set_bool_props(slot_cutter, base, 'DIFFERENCE')
 
     clip_cutters = spawn_openlock_base_clip_cutters(dimensions, tile_props)
 
@@ -527,7 +526,6 @@ def spawn_floor_core(tile_props):
     native_subdivisions = [
         tile_props.opposite_native_subdivisions,
         tile_props.z_native_subdivisions]
-
 
     core = draw_tri_floor_core(
         dimensions={

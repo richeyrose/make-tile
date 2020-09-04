@@ -306,15 +306,15 @@ def spawn_openlock_base(tile_props):
 
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
 
-    slot_cutter = draw_tri_slot_cutter(dimensions)
-    set_bool_obj_props(slot_cutter, base, tile_props)
-    set_bool_props(slot_cutter, base, 'DIFFERENCE')
-
     clip_cutters = spawn_openlock_base_clip_cutters(dimensions, tile_props)
 
     for clip_cutter in clip_cutters:
         set_bool_obj_props(clip_cutter, base, tile_props)
         set_bool_props(clip_cutter, base, 'DIFFERENCE')
+
+    slot_cutter = draw_tri_slot_cutter(dimensions)
+    set_bool_obj_props(slot_cutter, base, tile_props)
+    set_bool_props(slot_cutter, base, 'DIFFERENCE')
 
     obj_props = base.mt_object_props
     obj_props.is_mt_object = True
@@ -335,9 +335,29 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
         list[bpy.types.Object]: base clip cutters
 
     """
-    if dimensions['a'] or dimensions['b'] or dimensions['c'] >= 2:
+    #      B
+    #      /\
+    #   c /  \ a
+    #    /    \
+    #   /______\
+    #  A    b    C
+
+    # b = Leg 1
+    # c = Leg 2
+
+    a = dimensions['a']
+    b = dimensions['b']
+    c = dimensions['c']
+    A = dimensions['A']
+    B = dimensions['B']
+    C = dimensions['C']
+    loc_A = dimensions['loc_A']
+    loc_B = dimensions['loc_B']
+    loc_C = dimensions['loc_C']
+
+    if a or b or c >= 2:
         mode('OBJECT')
-        deselect_all()
+        #deselect_all()
         preferences = get_prefs()
         booleans_path = os.path.join(
             preferences.assets_path,
@@ -355,15 +375,16 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
         for obj in data_to.objects:
             add_object_to_collection(obj, tile_props.tile_name)
 
-        clip_cutter_1 = data_to.objects[0]
-        clip_cutter_1.name = "Leg 2 Clip."
+        b_cutter = data_to.objects[0]
+
+        b_cutter.name = "Leg 1 Clip."
         cutter_start_cap = data_to.objects[1]
         cutter_end_cap = data_to.objects[2]
 
         cutter_start_cap.hide_viewport = True
         cutter_end_cap.hide_viewport = True
 
-        array_mod = clip_cutter_1.modifiers.new('Array', 'ARRAY')
+        array_mod = b_cutter.modifiers.new('Array', 'ARRAY')
         array_mod.start_cap = cutter_start_cap
         array_mod.end_cap = cutter_end_cap
         array_mod.use_merge_vertices = True
@@ -374,119 +395,123 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
         # the angles of the triangle in order to prevent overlaps between cutters
         # and issues with booleans
 
-        # cutter 1
-        if dimensions['c'] >= 2:
-            if dimensions['A'] >= 90:
-                clip_cutter_1.location = (
-                    dimensions['loc_A'][0] + 0.5,
-                    dimensions['loc_A'][1] + 0.25,
-                    dimensions['loc_A'][2])
-                if dimensions['C'] >= 90:
-                    array_mod.fit_length = dimensions['c'] - 1
+        # b cutter
+        if b >= 2:
+            if A >= 90:
+                b_cutter.location = (
+                    loc_A[0] + 0.5,
+                    loc_A[1] + 0.25,
+                    loc_A[2])
+                if C >= 90:
+                    array_mod.fit_length = b - 1
                 else:
-                    array_mod.fit_length = dimensions['c'] - 1.5
+                    array_mod.fit_length = b - 1.5
 
-            elif dimensions['A'] < 90:
-                clip_cutter_1.location = (
-                    dimensions['loc_A'][0] + 1,
-                    dimensions['loc_A'][1] + 0.25,
-                    dimensions['loc_A'][2])
-                if dimensions['C'] >= 90:
-                    array_mod.fit_length = dimensions['c'] - 1.5
+            elif A < 90:
+                b_cutter.location = (
+                    loc_A[0] + 1,
+                    loc_A[1] + 0.25,
+                    loc_A[2])
+                if C >= 90:
+                    array_mod.fit_length = b - 1.5
                 else:
-                    array_mod.fit_length = dimensions['c'] - 2
+                    array_mod.fit_length = b - 2
 
-            deselect_all()
-            select(clip_cutter_1.name)
+            ctx = {
+                'object': b_cutter,
+                'active_object': b_cutter,
+                'selected_objects': [b_cutter],
+                'selected_editable_objects': [b_cutter]}
 
             bpy.ops.transform.rotate(
-                value=(radians(-dimensions['A'] + 90)),
+                ctx,
+                value=(radians(-A + 90)),
                 orient_axis='Z',
                 orient_type='GLOBAL',
-                center_override=dimensions['loc_A'])
+                center_override=loc_A)
 
-            deselect_all()
-
-            # cutter 2
-            clip_cutter_2 = clip_cutter_1.copy()
-            clip_cutter_2.name = "Leg 1 Clip."
-            add_object_to_collection(clip_cutter_2, tile_props.tile_name)
-            cutters.append(clip_cutter_1)
+            c_cutter = b_cutter.copy()
+            c_cutter.name = "Leg 2 Clip"
+            add_object_to_collection(c_cutter, tile_props.tile_name)
+            cutters.append(b_cutter)
         else:
-            clip_cutter_2 = clip_cutter_1
+            c_cutter = b_cutter
 
-        if dimensions['b'] >= 2:
-            array_mod = clip_cutter_2.modifiers['Array']
+        if c >= 2:
+            array_mod = c_cutter.modifiers['Array']
+            c_cutter.rotation_euler = (0, 0, radians(-90))
 
-            if dimensions['B'] >= 90:
-                clip_cutter_2.location = (
-                    dimensions['loc_B'][0] + 0.25,
-                    dimensions['loc_B'][1] - 0.5,
-                    dimensions['loc_B'][2])
-                if dimensions['A'] >= 90:
-                    array_mod.fit_length = dimensions['b'] - 1
+            if B >= 90:
+                c_cutter.location = (
+                    loc_B[0] + 0.25,
+                    loc_B[1] - 0.5,
+                    loc_B[2])
+                if A >= 90:
+                    array_mod.fit_length = c - 1
                 else:
-                    array_mod.fit_length = dimensions['b'] - 1.5
+                    array_mod.fit_length = c - 1.5
 
-            elif dimensions['B'] < 90:
-                clip_cutter_2.location = (
-                    dimensions['loc_B'][0] + 0.25,
-                    dimensions['loc_B'][1] - 1,
-                    dimensions['loc_B'][2])
-                if dimensions['A'] >= 90:
-                    array_mod.fit_length = dimensions['b'] - 1.5
+            elif B < 90:
+                c_cutter.location = (
+                    loc_B[0] + 0.25,
+                    loc_B[1] - 1,
+                    loc_B[2])
+                if A >= 90:
+                    array_mod.fit_length = c - 1.5
                 else:
-                    array_mod.fit_length = dimensions['b'] - 2
+                    array_mod.fit_length = c - 2
+            cutters.append(c_cutter)
 
-            clip_cutter_2.rotation_euler = (0, 0, radians(-90))
-            cutters.append(clip_cutter_2)
-            if dimensions['a'] >= 2:
-                clip_cutter_3 = clip_cutter_2.copy()
-                clip_cutter_3.name = "Opposite Clip."
-                add_object_to_collection(clip_cutter_3, tile_props.tile_name)
+            if a >= 2:
+                a_cutter = c_cutter.copy()
+                a_cutter.name = "Opposite Clip."
+                add_object_to_collection(a_cutter, tile_props.tile_name)
             else:
                 bpy.ops.object.make_single_user(type='ALL', object=True, obdata=True)
                 return cutters
         else:
-            clip_cutter_3 = clip_cutter_2
+            a_cutter = c_cutter
 
         # clip cutter 3
-        if dimensions['a'] >= 2:
-            clip_cutter_3.rotation_euler = (0, 0, 0)
-            array_mod = clip_cutter_3.modifiers['Array']
+        if a >= 2:
+            a_cutter.rotation_euler = (0, 0, 0)
+            array_mod = a_cutter.modifiers['Array']
 
-            if dimensions['C'] >= 90:
-                clip_cutter_3.location = (
-                    dimensions['loc_C'][0] + 0.5,
-                    dimensions['loc_C'][1] + 0.25,
-                    dimensions['loc_C'][2])
-                if dimensions['B'] >= 90:
-                    array_mod.fit_length = dimensions['a'] - 1
+            if C >= 90:
+                a_cutter.location = (
+                    loc_C[0] + 0.5,
+                    loc_C[1] + 0.25,
+                    loc_C[2])
+                if B >= 90:
+                    array_mod.fit_length = a - 1
                 else:
-                    array_mod.fit_length = dimensions['a'] - 1.5
+                    array_mod.fit_length = a - 1.5
 
-            elif dimensions['C'] < 90:
-                clip_cutter_3.location = (
-                    dimensions['loc_C'][0] + 1,
-                    dimensions['loc_C'][1] + 0.25,
-                    dimensions['loc_C'][2])
-                if dimensions['B'] >= 90:
-                    array_mod.fit_length = dimensions['a'] - 1.5
+            elif C < 90:
+                a_cutter.location = (
+                    loc_C[0] + 1,
+                    loc_C[1] + 0.25,
+                    loc_C[2])
+                if B >= 90:
+                    array_mod.fit_length = a - 1.5
                 else:
-                    array_mod.fit_length = dimensions['a'] - 2
-            deselect_all()
-            select(clip_cutter_3.name)
+                    array_mod.fit_length = a - 2
+            ctx = {
+                'object': a_cutter,
+                'active_object': a_cutter,
+                'selected_objects': [a_cutter],
+                'selected_editable_objects': [a_cutter]}
 
             bpy.ops.transform.rotate(
-                value=(radians(90 + dimensions['C'])),
+                ctx,
+                value=(radians(90 + B)),
                 orient_axis='Z',
                 orient_type='GLOBAL',
-                center_override=dimensions['loc_C'])
+                center_override=loc_C)
 
-            deselect_all()
-            cutters.append(clip_cutter_3)
+            cutters.append(a_cutter)
+
             bpy.ops.object.make_single_user(type='ALL', object=True, obdata=True)
-
         return cutters
     else:
         return None

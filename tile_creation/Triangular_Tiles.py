@@ -13,7 +13,7 @@ from .. lib.utils.collections import (
     create_collection,
     activate_collection)
 from .. lib.utils.utils import mode, get_all_subclasses
-from .. lib.utils.selection import select, deselect_all
+from .. lib.utils.selection import select
 from .create_tile import (
     create_displacement_core,
     finalise_tile,
@@ -356,8 +356,6 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
     loc_C = dimensions['loc_C']
 
     if a or b or c >= 2:
-        mode('OBJECT')
-        #deselect_all()
         preferences = get_prefs()
         booleans_path = os.path.join(
             preferences.assets_path,
@@ -445,7 +443,7 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
                 c_cutter.location = (
                     loc_B[0] + 0.25,
                     loc_B[1] - 0.5,
-                    loc_B[2])
+                    loc_B[2] + 0.0001)
                 if A >= 90:
                     array_mod.fit_length = c - 1
                 else:
@@ -455,7 +453,7 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
                 c_cutter.location = (
                     loc_B[0] + 0.25,
                     loc_B[1] - 1,
-                    loc_B[2])
+                    loc_B[2] + 0.0001)
                 if A >= 90:
                     array_mod.fit_length = c - 1.5
                 else:
@@ -481,7 +479,7 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
                 a_cutter.location = (
                     loc_C[0] + 0.5,
                     loc_C[1] + 0.25,
-                    loc_C[2])
+                    loc_C[2] + 0.0002)
                 if B >= 90:
                     array_mod.fit_length = a - 1
                 else:
@@ -491,7 +489,7 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
                 a_cutter.location = (
                     loc_C[0] + 1,
                     loc_C[1] + 0.25,
-                    loc_C[2])
+                    loc_C[2] + 0.0002)
                 if B >= 90:
                     array_mod.fit_length = a - 1.5
                 else:

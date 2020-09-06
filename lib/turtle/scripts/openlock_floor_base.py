@@ -70,7 +70,7 @@ def draw_quarter_floor(dimensions, start_loc):
     t.select_path()
 
     # create bevel for corner supports
-    bpy.ops.mesh.bevel(offset_type='WIDTH', offset=0.11811, offset_pct=0, vertex_only=True)
+    bpy.ops.mesh.bevel(offset_type='WIDTH', offset=0.11811, offset_pct=0, affect='VERTICES')
 
     # move turtle
     t.pu()
@@ -88,7 +88,7 @@ def draw_quarter_floor(dimensions, start_loc):
     t.select_path()
 
     # create bevel for corner supports
-    bpy.ops.mesh.bevel(offset_type='WIDTH', offset=0.11811, offset_pct=0, vertex_only=True)
+    bpy.ops.mesh.bevel(offset_type='WIDTH', offset=0.11811, offset_pct=0, affect='VERTICES')
 
     # bridge bevels
     leg = support_w / sqrt(2)

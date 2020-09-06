@@ -75,7 +75,7 @@ def draw_base(b, c, height, start_loc, A):
         vert.select = True
 
     bpy.ops.object.mode_set(mode='EDIT')
-    bpy.ops.mesh.bevel(offset_type='WIDTH', offset=support_w, offset_pct=0, vertex_only=True)
+    bpy.ops.mesh.bevel(offset_type='WIDTH', offset=support_w, offset_pct=0, affect='VERTICES')
 
     # save bevel verts
     outer_bev_1 = [9, 11]
@@ -91,7 +91,7 @@ def draw_base(b, c, height, start_loc, A):
         vert = bpy.context.object.data.vertices[i]
         vert.select = True
     bpy.ops.object.mode_set(mode='EDIT')
-    bpy.ops.mesh.bevel(offset_type='WIDTH', offset=support_w, offset_pct=0, vertex_only=True)
+    bpy.ops.mesh.bevel(offset_type='WIDTH', offset=support_w, offset_pct=0, affect='VERTICES')
 
     # save bevel verts
     inner_bev_1 = [16, 17]

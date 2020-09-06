@@ -227,7 +227,7 @@ class MT_Semi_Circ_Tile:
             select(clip_cutter_1.name)
 
             bpy.ops.transform.rotate(
-                value=(radians(-angle + 90)),
+                value=(radians(angle - 90)),
                 orient_axis='Z',
                 orient_type='GLOBAL',
                 center_override=cursor_orig_loc)
@@ -273,7 +273,7 @@ class MT_Semi_Circ_Tile:
             clip_cutter_3.rotation_euler = (0, 0, radians(180))
             clip_cutter_3.location[1] = cursor_orig_loc[1] + radius - 0.25
             bpy.ops.transform.rotate(
-                value=(radians(-angle / 2)),
+                value=(radians(angle / 2)),
                 orient_axis='Z',
                 orient_type='GLOBAL',
                 center_override=cursor_orig_loc)

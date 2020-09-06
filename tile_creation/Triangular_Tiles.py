@@ -201,7 +201,7 @@ class MT_Triangular_Floor_Tile(MT_Tile):
                 select(clip_cutter_1.name)
 
                 bpy.ops.transform.rotate(
-                    value=(radians(-dimensions['A'] + 90)),
+                    value=(radians(dimensions['A'] - 90)),
                     orient_axis='Z',
                     orient_type='GLOBAL',
                     center_override=dimensions['loc_A'])
@@ -279,7 +279,7 @@ class MT_Triangular_Floor_Tile(MT_Tile):
                 select(clip_cutter_3.name)
 
                 bpy.ops.transform.rotate(
-                    value=(radians(90 + dimensions['C'])),
+                    value=(radians(-90 - dimensions['C'])),
                     orient_axis='Z',
                     orient_type='GLOBAL',
                     center_override=dimensions['loc_C'])

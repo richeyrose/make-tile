@@ -75,7 +75,7 @@ class MT_L_Tile:
         clip_cutter_1 = self.create_openlock_base_clip_cutter(leg_len, corner_loc, 0.25, tile_props)
         select(clip_cutter_1.name)
         bpy.ops.transform.rotate(
-            value=radians(-tile_props.angle + 90),
+            value=radians(tile_props.angle - 90),
             orient_axis='Z',
             orient_type='GLOBAL',
             center_override=corner_loc)
@@ -86,7 +86,7 @@ class MT_L_Tile:
         clip_cutter_2 = self.create_openlock_base_clip_cutter(
             leg_len,
             corner_loc,
-            -0.25,
+            +0.25,
             tile_props)
         select(clip_cutter_2.name)
 
@@ -370,8 +370,9 @@ class MT_L_Wall(MT_L_Tile, MT_Tile):
                 cutter.location[1],
                 cutter.location[2])
             select(cutter.name)
+
         bpy.ops.transform.rotate(
-            value=radians(-tile_props.angle + 90),
+            value=radians(tile_props.angle - 90),
             orient_axis='Z',
             center_override=cursor.location)
 

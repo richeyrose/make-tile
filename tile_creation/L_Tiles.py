@@ -86,7 +86,7 @@ class MT_L_Tile:
         clip_cutter_2 = self.create_openlock_base_clip_cutter(
             leg_len,
             corner_loc,
-            +0.25,
+            0.25,
             tile_props)
         select(clip_cutter_2.name)
 
@@ -96,7 +96,7 @@ class MT_L_Tile:
             orient_type='GLOBAL',
             center_override=corner_loc)
         bpy.ops.transform.mirror(orient_type='LOCAL', constraint_axis=(False, True, False))
-        #clip_cutter_2.location[0] = clip_cutter_2.location[0] + 0.5
+        clip_cutter_2.location[1] = clip_cutter_2.location[1] + 1
 
         cutters = [clip_cutter_1, clip_cutter_2]
         for cutter in cutters:

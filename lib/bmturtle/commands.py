@@ -64,9 +64,9 @@ def pu(bm):
     bpy.context.view_layer.objects.active['penstate'] = False
 
 
-def pd():
+def pd(bm):
     """Pen Down.
-    Deselect all verts and set bmesh owning object's penstate property to 'Trur'
+    Deselect all verts and set bmesh owning object's penstate property to 'True'
 
     Args:
         bm (bmesh): bmesh

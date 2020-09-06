@@ -16,6 +16,9 @@ from .. utils.registration import get_prefs
 from .. lib.utils.selection import (
     deselect_all,
     select)
+from ..lib.bmturtle.scripts import (
+    draw_corner_3D as draw_corner_3D_bm,
+    draw_corner_floor_core)
 from .. lib.turtle.scripts.L_tile import (
     draw_corner_3D,
     draw_corner_wall_core,
@@ -479,6 +482,8 @@ def spawn_floor_core(tile_props):
 
     # store the vertex locations for turning
     # into vert groups as we draw outline
+    core = draw_corner_floor_core(core_triangles_2, angle, core_thickness, floor_height-base_height, native_subdivisions)
+    '''
     core, vert_locs = draw_corner_wall_core(
         core_triangles_2,
         angle,
@@ -486,14 +491,14 @@ def spawn_floor_core(tile_props):
         floor_height - base_height,
         native_subdivisions
     )
-
+    '''
     core.name = tile_props.tile_name + '.core'
     obj_props = core.mt_object_props
     obj_props.is_mt_object = True
     obj_props.tile_name = tile_props.tile_name
 
     # create vert groups
-    corner_floor_to_vert_groups(core, vert_locs, native_subdivisions)
+    #corner_floor_to_vert_groups(core, vert_locs, native_subdivisions)
 
     ctx = {
         'object': core,
@@ -883,7 +888,12 @@ def spawn_plain_base(tile_props):
         thickness,
         angle)
 
-    base = draw_corner_3D(triangles, angle, thickness, height)
+    dimensions = {
+        'thickness': thickness,
+        'height': height,
+        'angle': angle,
+        'leg_2_len': leg_2_len}
+    base = draw_corner_3D_bm(triangles, dimensions)
 
     base.name = tile_props.tile_name + '.base'
     obj_props = base.mt_object_props
@@ -926,8 +936,16 @@ def spawn_openlock_base(tile_props):
     corner_loc = base.location
     clip_cutter_1 = create_openlock_base_clip_cutter(leg_len, corner_loc, 0.25, tile_props)
     clip_cutter_1.name = 'Clip Leg 1.' + base.name
-    select(clip_cutter_1.name)
+
+    ctx = {
+        'object': clip_cutter_1,
+        'active_object': clip_cutter_1,
+        'selected_editable_objects': [clip_cutter_1],
+        'selected_objects': [clip_cutter_1]
+    }
+
     bpy.ops.transform.rotate(
+        ctx,
         value=radians(-tile_props.angle + 90),
         orient_axis='Z',
         orient_type='GLOBAL',
@@ -942,22 +960,30 @@ def spawn_openlock_base(tile_props):
         -0.25,
         tile_props)
     clip_cutter_2.name = 'Clip Leg 2.' + base.name
-    select(clip_cutter_2.name)
+
+    ctx = {
+        'object': clip_cutter_2,
+        'active_object': clip_cutter_2,
+        'selected_editable_objects': [clip_cutter_2],
+        'selected_objects': [clip_cutter_2]
+    }
 
     bpy.ops.transform.rotate(
+        ctx,
         value=radians(90),
         orient_axis='Z',
         orient_type='GLOBAL',
         center_override=corner_loc)
-    bpy.ops.transform.mirror(orient_type='LOCAL', constraint_axis=(False, True, False))
-    # clip_cutter_2.location[0] = clip_cutter_2.location[0] + 0.5
+    bpy.ops.transform.mirror(
+        ctx,
+        orient_type='LOCAL',
+        constraint_axis=(False, True, False))
+    #clip_cutter_2.location[0] = clip_cutter_2.location[0] + 0.5
 
     cutters = [clip_cutter_1, clip_cutter_2]
     for cutter in cutters:
         set_bool_obj_props(cutter, base, tile_props)
         set_bool_props(cutter, base, 'DIFFERENCE')
-
-    deselect_all()
 
     bpy.context.scene.cursor.location = (0, 0, 0)
     bpy.context.view_layer.objects.active = base

@@ -361,6 +361,22 @@ def calculate_corner_wall_triangles(
         leg_2_len,
         thickness,
         angle):
+
+    #  leg 2
+    #   |
+    #   |
+    #   |_ _ _ leg 1
+
+    #   |      *
+    #   |   *  | <- tri_a
+    #   |*_ _ _|
+
+    #           _ _ _ _
+    #          |      *
+    # tri_c -> |   *
+    #          |*_ _ _
+
+
     # X leg
     # right triangle
     tri_a_angle = angle / 2

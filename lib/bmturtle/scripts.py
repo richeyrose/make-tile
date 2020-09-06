@@ -13,12 +13,14 @@ from .commands import (
     pd,
     home,
     arc,
-    rt)
+    rt,
+    lt)
 from .helpers import (
     bm_select_all,
     bm_deselect_all,
     assign_verts_to_group,
-    select_verts_in_bounds)
+    select_verts_in_bounds,
+    dijkstra)
 
 
 def draw_cuboid(dimensions):
@@ -335,8 +337,6 @@ def draw_tri_slot_cutter(dimensions):
         mat_nr=0,
         use_smooth=False)
 
-    #bm.select_mode = {'FACE'}
-    #bm_select_all(bm)
     # inset to get slot
 
     ret = bmesh.ops.inset_individual(bm, faces=bm.faces, thickness=offset, use_even_offset=True)
@@ -393,7 +393,7 @@ def draw_straight_wall_core(dims, subdivs, margin=0.001):
     top_verts = []
 
     # Start drawing wall
-    pd()
+    pd(bm)
     add_vert(bm)
     bm.select_mode = {'VERT'}
 
@@ -491,14 +491,311 @@ def draw_straight_wall_core(dims, subdivs, margin=0.001):
     return obj
 
 
-def draw_curved_cuboid(name, radius, segments, degrees, height, width):
+def draw_corner_floor_core(
+        triangles,
+        angle,
+        thickness,
+        height,
+        native_subdivisions,
+        margin=0.001):
+    turtle = bpy.context.scene.cursor
+    turtle_start_loc = turtle.location.copy()
+    vert_groups = [
+        'Leg 1 End',
+        'Leg 2 End',
+        'Leg 1 Inner',
+        'Leg 2 Inner',
+        'Leg 1 Outer',
+        'Leg 2 Outer',
+        'Leg 1 Top',
+        'Leg 2 Top',
+        'Leg 1 Bottom',
+        'Leg 2 Bottom']
+
+    bm, obj = create_turtle('L_2D', vert_groups)
+    # create vertex group layer
+    bm.verts.layers.deform.verify()
+    deform_groups = bm.verts.layers.deform.active
+
+    bm.select_mode = {'VERT'}
+    verts = bm.verts
+    leg_1_end_vert_locs = []
+    leg_1_inner_vert_locs = []
+
+    add_vert(bm)
+    # draw leg 1
+    # outer edge
+    rt(angle)
+    subdiv_dist = (triangles['a_adj'] - margin) / native_subdivisions[0]
+
+    i = 0
+    while i < native_subdivisions[0]:
+        fd(bm, subdiv_dist)
+        i += 1
+    fd(bm, margin)
+    leg_1_outer_vert_locs = [v.co for v in verts]
+
+    bm.verts.ensure_lookup_table()
+    leg_1_end_vert_locs.append(verts[-1].co.copy())
+
+    # end
+    # we're going to bridge between inner and outer side
+    # so we don't draw end edge
+    pu(bm)
+    lt(90)
+    fd(bm, thickness)
+    pd(bm)
+    add_vert(bm)
+    bm.verts.ensure_lookup_table()
+    leg_1_end_vert_locs.append(verts[-1].co.copy())
+    lt(90)
+
+    # inner
+    subdiv_dist = (triangles['b_adj'] - margin) / native_subdivisions[0]
+    bm.verts.ensure_lookup_table()
+    start_index = verts[-1].index
+    fd(bm, margin)
+    i = 0
+    while i < native_subdivisions[0]:
+        fd(bm, subdiv_dist)
+        i += 1
+
+    i = start_index
+    bm.verts.ensure_lookup_table()
+    while i <= verts[-1].index:
+        leg_1_inner_vert_locs.append(verts[i].co.copy())
+        i += 1
+
+    # home
+    pu(bm)
+    home(obj)
+    turtle.location = turtle_start_loc
+    pd(bm)
+
+    # draw leg 2 #
+    leg_2_outer_vert_locs = []
+    leg_2_end_vert_locs = []
+    leg_2_inner_vert_locs = []
+    subdiv_dist = (triangles['c_adj'] - margin) / native_subdivisions[1]
+
+    # outer
+    add_vert(bm)
+    bm.verts.ensure_lookup_table()
+    leg_2_outer_vert_locs.append(verts[-1].co.copy())
+    start_index = verts[-1].index
+
+    i = 0
+    while i < native_subdivisions[1]:
+        fd(bm, subdiv_dist)
+        i += 1
+    fd(bm, margin)
+
+    bm.verts.ensure_lookup_table()
+    i = start_index + 1
+    while i <= verts[-1].index:
+        leg_2_outer_vert_locs.append(verts[i].co.copy())
+        i += 1
+
+    # end
+    pu(bm)
+    rt(90)
+
+    bm.verts.ensure_lookup_table()
+    leg_2_end_vert_locs.append(verts[-1].co.copy())
+    fd(bm, thickness)
+    pd(bm)
+    add_vert(bm)
+    bm.verts.ensure_lookup_table()
+    leg_2_end_vert_locs.append(verts[-1].co.copy())
+    rt(90)
+
+    # inner
+    subdiv_dist = (triangles['d_adj'] - margin) / native_subdivisions[1]
+    bm.verts.ensure_lookup_table()
+    start_index = verts[-1].index
+    fd(bm, margin)
+    i = 0
+    while i < native_subdivisions[1]:
+        fd(bm, subdiv_dist)
+        i += 1
+
+    i = start_index
+    bm.verts.ensure_lookup_table()
+    while i <= verts[-1].index:
+        leg_2_inner_vert_locs.append(verts[i].co.copy())
+        i += 1
+
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=margin / 2)
+    ret = bmesh.ops.bridge_loops(bm, edges=bm.edges)
+    bmesh.ops.subdivide_edges(bm, edges=ret['edges'], smooth=1, smooth_falloff='LINEAR', cuts=native_subdivisions[2])
+
+    bmesh.ops.inset_region(bm, faces=bm.faces, use_even_offset=True, thickness=margin, use_boundary=True)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=margin / 2)
+
+    # Z
+    subdiv_dist = (height - (margin * 2)) / native_subdivisions[3]
+    bm_select_all(bm)
+    bm.select_mode={'FACE'}
+
+    up(bm, margin, False)
+
+    i = 0
+    while i < native_subdivisions[3]:
+        up(bm, subdiv_dist)
+        i += 1
+    up(bm, margin)
+
+    # assign vertex groups
+    # sides
+    sides = {
+        'Leg 1 Inner': leg_1_inner_vert_locs,
+        'Leg 2 Inner': leg_2_inner_vert_locs,
+        'Leg 1 Outer': leg_1_outer_vert_locs,
+        'Leg 2 Outer': leg_2_outer_vert_locs}
+
+    for key, value in sides.items():
+        vert_group = []
+        for loc in value:
+            verts = select_verts_in_bounds(
+                lbound=loc,
+                ubound=(loc[0], loc[1], loc[2] + height),
+                buffer=margin / 2,
+                bm=bm)
+            vert_group.extend(verts)
+        assign_verts_to_group(vert_group, obj, deform_groups, key)
+
+    # ends
+    ends = {
+        'Leg 1 End': leg_1_end_vert_locs,
+        'Leg 2 End': leg_2_end_vert_locs}
+
+    bm_deselect_all(bm)
+    subdiv_dist = height / native_subdivisions[3]
+    v1 = select_verts_in_bounds(leg_1_end_vert_locs[0], leg_1_end_vert_locs[0], margin, bm)
+    v2 = select_verts_in_bounds(leg_1_end_vert_locs[1], leg_1_end_vert_locs[1], margin, bm)
+
+    nodes = dijkstra(bm, v1[0], v2[0])
+    node = nodes[v2[0]]
+
+    for e in node.shortest_path:
+        e.select_set(True)
+    bm.select_flush(True)
+    '''
+    leg_1_outer_verts = []
+    for loc in leg_1_outer_vert_locs:
+        verts = select_verts_in_bounds(
+            lbound=loc,
+            ubound=(loc[0], loc[1], loc[2] + height),
+            buffer=margin / 2,
+            bm=bm)
+        leg_1_outer_verts.extend(verts)
+    assign_verts_to_group(leg_1_outer_verts, obj, deform_groups, 'Leg 1 Outer')
+
+    leg_2_outer_verts = []
+    for loc in leg_2_outer_vert_locs:
+        verts = select_verts_in_bounds(
+            lbound=loc,
+            ubound=(loc[0], loc[1], loc[2] + height),
+            buffer=margin / 2,
+            bm=bm)
+        leg_2_outer_verts.extend(verts)
+    assign_verts_to_group(leg_2_outer_verts, obj, deform_groups, 'Leg 2 Outer')
+
+    leg_1_inner_verts = []
+    for loc in leg_1_inner_vert_locs:
+        verts = select_verts_in_bounds(
+            lbound=loc,
+            ubound=(loc[0], loc[1], loc[2] + height),
+            buffer=margin / 2,
+            bm=bm)
+        leg_1_inner_verts.extend(verts)
+    assign_verts_to_group(leg_1_inner_verts, obj, deform_groups, 'Leg 1 Inner')
+    '''
+    home(obj)
+    finalise_turtle(bm, obj)
+
+    return obj
+
+
+def draw_corner_3D(triangles, dimensions):
+    #  leg 2
+    #    _
+    #   | |
+    #   | |
+    #   | |_ _ _
+    #   |_ _ _ _| leg 1
+
+    angle = dimensions['angle']
+    height = dimensions['height']
+    thickness = dimensions['thickness']
+
+    turtle = bpy.context.scene.cursor
+    orig_loc = turtle.location.copy()
+    orig_rot = turtle.location.copy()
+
+    bm, obj = create_turtle('L_2D')
+    bm.select_mode = {'VERT'}
+
+    # draw leg_1
+    add_vert(bm)
+    rt(angle)
+    fd(bm, triangles['a_adj'])
+    lt(90)
+    fd(bm, thickness)
+    lt(90)
+    fd(bm, triangles['b_adj'])
+
+    bmesh.ops.contextual_create(
+        bm,
+        geom=bm.verts,
+        mat_nr=0,
+        use_smooth=False
+    )
+    bm_deselect_all(bm)
+    home(obj)
+    turtle.rotation_euler = orig_rot
+
+    # draw leg 2
+    add_vert(bm)
+    fd(bm, triangles['c_adj'])
+    rt(90)
+    fd(bm, thickness)
+    rt(90)
+    fd(bm, triangles['d_adj'])
+    bm.verts.ensure_lookup_table()
+    verts = [v for v in bm.verts if v.index >= 3]
+
+    bmesh.ops.contextual_create(
+        bm,
+        geom=verts,
+        mat_nr=0,
+        use_smooth=False
+    )
+
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0001)
+    bm.select_mode = {'FACE'}
+    bm_select_all(bm)
+    up(bm, height, False)
+
+    home(obj)
+    finalise_turtle(bm, obj)
+
+    return obj
+
+
+def draw_corner_2D(triangles, dimensions, thickness, return_locs=False):
+    pass
+
+
+
+def draw_curved_cuboid(name, radius, segments, deg, height, width):
     """Draws a curved cuboid centered on the turtle
 
     Args:
         name (string): name
         radius (float): radius of inner edge
         segments (int): number of segments
-        degrees (float): degrees of arc to cover
+        deg (float): degrees of arc to cover
         height (float): height
         width (float): width (distance from inner to outer edge)
 
@@ -507,13 +804,13 @@ def draw_curved_cuboid(name, radius, segments, degrees, height, width):
     """
     bm, obj = create_turtle(name)
     bm.select_mode = {'VERT'}
-    arc(bm, radius, degrees, segments)
+    arc(bm, radius, deg, segments)
     bm_deselect_all(bm)
-    arc(bm, radius + width, degrees, segments)
+    arc(bm, radius + width, deg, segments)
     bmesh.ops.bridge_loops(bm, edges=bm.edges)
     bm.select_mode = {'FACE'}
     bm_select_all(bm)
-    pd()
+    pd(bm)
     up(bm, height, False)
     home(obj)
     finalise_turtle(bm, obj)
@@ -543,7 +840,7 @@ def draw_rectangular_floor_core(dims, subdivs, margin=0.001):
     bm.select_mode = {'VERT'}
 
     # Start drawing core
-    pd()
+    pd(bm)
     add_vert(bm)
     bm.select_mode = {'VERT'}
 

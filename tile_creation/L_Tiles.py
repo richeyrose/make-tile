@@ -19,7 +19,7 @@ from .. lib.utils.selection import (
 from ..lib.bmturtle.scripts import (
     draw_corner_3D as draw_corner_3D_bm,
     draw_corner_floor_core)
-from .. lib.turtle.scripts.L_tile import (
+from .. lib.turtle.scripts.L_Tile import (
     draw_corner_3D,
     draw_corner_wall_core,
     calculate_corner_wall_triangles,
@@ -482,7 +482,12 @@ def spawn_floor_core(tile_props):
 
     # store the vertex locations for turning
     # into vert groups as we draw outline
-    core = draw_corner_floor_core(core_triangles_2, angle, core_thickness, floor_height-base_height, native_subdivisions)
+    core = draw_corner_floor_core(
+        core_triangles_2,
+        angle,
+        core_thickness,
+        floor_height - base_height,
+        native_subdivisions)
     '''
     core, vert_locs = draw_corner_wall_core(
         core_triangles_2,
@@ -607,7 +612,7 @@ def spawn_openlock_top_pegs(core, tile_props):
         }
         bpy.ops.transform.rotate(
             ctx,
-            value=radians(-tile_props.angle + 90),
+            value=radians(tile_props.angle - 90),
             orient_axis='Z',
             center_override=cursor.location)
         pegs.append(peg)
@@ -765,7 +770,8 @@ def spawn_openlock_wall_cutters(core, tile_props):
     for cutter in right_cutters:
         select(cutter.name)
     bpy.ops.transform.rotate(
-        value=radians(-tile_props.angle + 90),
+        value=radians(tile_props.angle - 90),
+        orient_type='GLOBAL',
         orient_axis='Z',
         center_override=cursor.location)
 
@@ -946,7 +952,7 @@ def spawn_openlock_base(tile_props):
 
     bpy.ops.transform.rotate(
         ctx,
-        value=radians(-tile_props.angle + 90),
+        value=radians(tile_props.angle - 90),
         orient_axis='Z',
         orient_type='GLOBAL',
         center_override=corner_loc)
@@ -957,7 +963,7 @@ def spawn_openlock_base(tile_props):
     clip_cutter_2 = create_openlock_base_clip_cutter(
         leg_len,
         corner_loc,
-        -0.25,
+        0.25,
         tile_props)
     clip_cutter_2.name = 'Clip Leg 2.' + base.name
 
@@ -970,15 +976,17 @@ def spawn_openlock_base(tile_props):
 
     bpy.ops.transform.rotate(
         ctx,
-        value=radians(90),
+        value=radians(-90),
         orient_axis='Z',
         orient_type='GLOBAL',
         center_override=corner_loc)
+
     bpy.ops.transform.mirror(
         ctx,
         orient_type='LOCAL',
         constraint_axis=(False, True, False))
-    #clip_cutter_2.location[0] = clip_cutter_2.location[0] + 0.5
+
+    clip_cutter_2.location[0] = clip_cutter_2.location[0] + 0.5
 
     cutters = [clip_cutter_1, clip_cutter_2]
     for cutter in cutters:

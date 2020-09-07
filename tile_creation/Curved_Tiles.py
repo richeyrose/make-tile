@@ -482,20 +482,27 @@ def spawn_openlock_top_pegs(base, tile_props):
     base_location = base.location.copy()
 
     if base_radius >= 1:
-        peg.location = (
-            base_location[0] - 0.25,
-            base_location[1] + base_radius + (base_size[1] / 2) + 0.075,
-            base_location[2] + tile_size[2])
+        if tile_props.base_socket_side == 'INNER':
+            peg.location = (
+                base_location[0] - 0.25,
+                base_location[1] + base_radius + (base_size[1] / 2) + 0.075,
+                base_location[2] + tile_size[2])
+        else:
+            peg.location = (
+                base_location[0] - 0.25,
+                base_location[1] + base_radius + (base_size[1] / 2) - 0.075,
+                base_location[2] + tile_size[2])
 
     ctx = {
         'object': peg,
         'active_object': peg,
-        'selected_objects': [peg]
+        'selected_objects': [peg],
+        'selected_editable_objects':[peg]
     }
 
     bpy.ops.transform.rotate(
         ctx,
-        value=radians(-tile_props.degrees_of_arc / 2),
+        value=radians(tile_props.degrees_of_arc / 2),
         orient_axis='Z',
         orient_type='GLOBAL',
         center_override=base_location)
@@ -578,7 +585,7 @@ def spawn_openlock_wall_cutters(core, base_location, tile_props):
     activate(right_cutter_bottom.name)
 
     bpy.ops.transform.rotate(
-        value=radians(-tile_props.degrees_of_arc),
+        value=radians(tile_props.degrees_of_arc),
         orient_axis='Z',
         orient_type='GLOBAL',
         center_override=circle_center)
@@ -765,10 +772,10 @@ def spawn_openlock_base_clip_cutter(base, tile_props):
     circle_center = cursor_orig_loc
 
     if num_cutters[1] == 1:
-        initial_rot = (-tile_props.degrees_of_arc / 2)
+        initial_rot = (tile_props.degrees_of_arc / 2)
 
     else:
-        initial_rot = -22.5
+        initial_rot = 22.5
 
     bpy.ops.transform.rotate(
         value=radians(initial_rot),

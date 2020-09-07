@@ -19,7 +19,7 @@ from .. lib.turtle.scripts.curved_floor import (
     draw_neg_curved_slab,
     draw_pos_curved_slab,
     draw_openlock_pos_curved_base)
-from .. lib.turtle.scripts.L_tile import (
+from .. lib.turtle.scripts.L_Tile import (
     calculate_corner_wall_triangles,
     move_cursor_to_wall_start,
     draw_corner_3D)
@@ -575,7 +575,7 @@ def create_openlock_base_clip_cutters(tile_props):
         select(clip_cutter_1.name)
 
         bpy.ops.transform.rotate(
-            value=(radians(-angle + 90)),
+            value=(radians(angle - 90)),
             orient_axis='Z',
             orient_type='GLOBAL',
             center_override=cursor_orig_loc)
@@ -621,7 +621,7 @@ def create_openlock_base_clip_cutters(tile_props):
         clip_cutter_3.rotation_euler = (0, 0, radians(180))
         clip_cutter_3.location[1] = cursor_orig_loc[1] + radius - 0.25
         bpy.ops.transform.rotate(
-            value=(radians(-angle / 2)),
+            value=(radians(angle / 2)),
             orient_axis='Z',
             orient_type='GLOBAL',
             center_override=cursor_orig_loc)

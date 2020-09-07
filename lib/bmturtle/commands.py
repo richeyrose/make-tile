@@ -151,6 +151,7 @@ def lf(bm, distance, del_original=True):
     """
     extrude_translate(bm, (-distance, 0.0, 0.0), del_original)
 
+
 def lt(degrees):
     """Left turn.
     Rotates the turtle left around its Z axis
@@ -195,7 +196,7 @@ def arc(bm, radius, degrees, segments):
 
     fd(bm, radius)
     add_vert(bm)
-    pd()
+    pd(bm)
     rt(90)
     rt(rotation / 2)
 

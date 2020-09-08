@@ -493,9 +493,12 @@ def draw_straight_wall_core(dims, subdivs, margin=0.001):
 
 
 def draw_corner_core(
-        triangles,
+        triangles_1,
+        triangles_2,
         angle,
         thickness,
+        thickness_diff,
+        base_height,
         height,
         native_subdivisions,
         margin=0.001):
@@ -524,9 +527,22 @@ def draw_corner_core(
     leg_1_inner_vert_locs = []
     leg_1_outer_vert_locs = []
 
+    # move turtle to core start loc
+    orig_rot = turtle.rotation_euler.copy()
+    pu(bm)
+    up(bm, base_height)
+    rt(angle)
+    fd(bm, triangles_1['a_adj'])
+    lt(90)
+    fd(bm, thickness_diff / 2)
+    lt(90)
+    fd(bm, triangles_1['b_adj'])
+    turtle.rotation_euler = orig_rot
+    turtle_start_loc = turtle.location.copy()
+    pd(bm)
     # draw leg 1
     # outer edge
-    subdiv_dist = (triangles['a_adj'] - margin) / native_subdivisions[0]
+    subdiv_dist = (triangles_2['a_adj'] - margin) / native_subdivisions[0]
 
     add_vert(bm)
     rt(angle)
@@ -563,7 +579,7 @@ def draw_corner_core(
     lt(90)
 
     # inner
-    subdiv_dist = (triangles['b_adj'] - margin) / native_subdivisions[0]
+    subdiv_dist = (triangles_2['b_adj'] - margin) / native_subdivisions[0]
     bm.verts.ensure_lookup_table()
     start_index = verts[-1].index
     fd(bm, margin)
@@ -588,7 +604,7 @@ def draw_corner_core(
     leg_2_outer_vert_locs = []
     leg_2_end_vert_locs = []
     leg_2_inner_vert_locs = []
-    subdiv_dist = (triangles['c_adj'] - margin) / native_subdivisions[1]
+    subdiv_dist = (triangles_2['c_adj'] - margin) / native_subdivisions[1]
 
     # outer
     add_vert(bm)
@@ -622,7 +638,7 @@ def draw_corner_core(
     rt(90)
 
     # inner
-    subdiv_dist = (triangles['d_adj'] - margin) / native_subdivisions[1]
+    subdiv_dist = (triangles_2['d_adj'] - margin) / native_subdivisions[1]
     bm.verts.ensure_lookup_table()
     start_index = verts[-1].index
     fd(bm, margin)
@@ -674,17 +690,23 @@ def draw_corner_core(
 
 
 def draw_corner_floor_core(
-        triangles,
+        triangles_1,
+        triangles_2,
         angle,
         thickness,
+        thickness_diff,
+        base_height,
         height,
         native_subdivisions,
         margin=0.001):
 
     bm, core, deform_groups, vert_locs = draw_corner_core(
-        triangles,
+        triangles_1,
+        triangles_2,
         angle,
         thickness,
+        thickness_diff,
+        base_height,
         height,
         native_subdivisions,
         margin)
@@ -727,17 +749,23 @@ def draw_corner_floor_core(
 
 
 def draw_corner_wall_core(
-        triangles,
+        triangles_1,
+        triangles_2,
         angle,
         thickness,
+        thickness_diff,
+        base_height,
         height,
         native_subdivisions,
         margin=0.001):
 
     bm, core, deform_groups, vert_locs = draw_corner_core(
-        triangles,
+        triangles_1,
+        triangles_2,
         angle,
         thickness,
+        thickness_diff,
+        base_height,
         height,
         native_subdivisions,
         margin)

@@ -511,6 +511,7 @@ def spawn_openlock_wall_cores(base, tile_props):
     Returns:
         (bpy.types.Object): preview_core
     """
+
     preview_core = spawn_wall_core(tile_props)
     textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner']
     preview_core, displacement_core = create_displacement_core(

@@ -153,6 +153,13 @@ def extrude_translate(bm, local_trans, del_original=True):
 
 # https://blender.stackexchange.com/questions/186067/what-is-the-bmesh-equivalent-to-bpy-ops-mesh-shortest-path-select
 class Node:
+    """Return a node object that contains list of edges \
+     that make up shortest path between two verts.
+
+    Returns:
+        dict{vert: BMVert, length: float, shortest_path: list[BMEdge]}: Dict giving shortest path \
+        between two verts
+    """
     @property
     def edges(self):
         return (e for e in self.vert.link_edges if not e.tag)
@@ -163,7 +170,17 @@ class Node:
         self.shortest_path = []
 
 
-def dijkstra(bm, v_start, v_target=None):
+def bm_shortest_path(bm, v_start, v_target=None):
+    """Return shortest path between two verts.
+
+    Args:
+        bm (bmesh): bmesh
+        v_start (bmesh.vert): start vert
+        v_target (bmesh.vert, optional): end vert. Defaults to None.
+
+    Returns:
+        dict{BMVert: Node}: Nodes
+    """
     for e in bm.edges:
         e.tag = False
 

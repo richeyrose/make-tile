@@ -18,10 +18,10 @@ from .. lib.utils.selection import (
     select)
 from ..lib.bmturtle.scripts import (
     draw_corner_3D as draw_corner_3D_bm,
-    draw_corner_floor_core)
+    draw_corner_floor_core,
+    draw_corner_wall_core)
 from .. lib.turtle.scripts.L_Tile import (
     draw_corner_3D,
-    draw_corner_wall_core,
     calculate_corner_wall_triangles,
     move_cursor_to_wall_start)
 from . create_tile import (
@@ -480,38 +480,24 @@ def spawn_floor_core(tile_props):
         core_thickness,
         angle)
 
-    # store the vertex locations for turning
-    # into vert groups as we draw outline
     core = draw_corner_floor_core(
         core_triangles_2,
         angle,
         core_thickness,
         floor_height - base_height,
         native_subdivisions)
-    '''
-    core, vert_locs = draw_corner_wall_core(
-        core_triangles_2,
-        angle,
-        core_thickness,
-        floor_height - base_height,
-        native_subdivisions
-    )
-    '''
+
     core.name = tile_props.tile_name + '.core'
     obj_props = core.mt_object_props
     obj_props.is_mt_object = True
     obj_props.tile_name = tile_props.tile_name
 
-    # create vert groups
-    #corner_floor_to_vert_groups(core, vert_locs, native_subdivisions)
-
     ctx = {
         'object': core,
         'active_object': core,
-        'selected_objects': [core]
-    }
+        'selected_objects': [core],
+        'selected_editable_objects': [core]}
 
-    mode('OBJECT')
     bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
     bpy.context.scene.cursor.location = (0, 0, 0)
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
@@ -835,9 +821,7 @@ def spawn_wall_core(tile_props):
         wall_thickness,
         angle)
 
-    # store the vertex locations for turning
-    # into vert groups as we draw outline
-    core, vert_locs = draw_corner_wall_core(
+    core = draw_corner_wall_core(
         core_triangles_2,
         angle,
         wall_thickness,
@@ -850,16 +834,13 @@ def spawn_wall_core(tile_props):
     obj_props.is_mt_object = True
     obj_props.tile_name = tile_props.tile_name
 
-    # create vert groups
-    corner_wall_to_vert_groups(core, vert_locs, native_subdivisions)
-
     ctx = {
         'object': core,
         'active_object': core,
-        'selected_objects': [core]
+        'selected_objects': [core],
+        'selected_editable_objects': [core]
     }
 
-    mode('OBJECT')
     bpy.context.scene.cursor.location = (0, 0, 0)
 
     bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)

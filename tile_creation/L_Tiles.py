@@ -448,11 +448,11 @@ def spawn_floor_core(tile_props):
     leg_1_len = tile_props.leg_1_len
     leg_2_len = tile_props.leg_2_len
     angle = tile_props.angle
-    native_subdivisions = (
-        tile_props.leg_1_native_subdivisions,
-        tile_props.leg_2_native_subdivisions,
-        tile_props.width_native_subdivisions,
-        tile_props.z_native_subdivisions)
+    native_subdivisions = {
+        'leg 1': tile_props.leg_1_native_subdivisions,
+        'leg 2': tile_props.leg_2_native_subdivisions,
+        'width': tile_props.width_native_subdivisions,
+        'height': tile_props.z_native_subdivisions}
     thickness_diff = base_thickness - core_thickness
 
     # first work out where we're going to start drawing our wall
@@ -474,15 +474,16 @@ def spawn_floor_core(tile_props):
         core_thickness,
         angle)
 
-    core = draw_corner_floor_core(
-        core_triangles_1,
-        core_triangles_2,
-        angle,
-        core_thickness,
-        thickness_diff,
-        base_height,
-        floor_height - base_height,
-        native_subdivisions)
+    dimensions = {
+        'triangles_1': core_triangles_1,
+        'triangles_2': core_triangles_2,
+        'angle': angle,
+        'thickness': core_thickness,
+        'thickness_diff': thickness_diff,
+        'base_height': base_height,
+        'height': floor_height - base_height}
+
+    core = draw_corner_floor_core(dimensions, native_subdivisions)
 
     core.name = tile_props.tile_name + '.core'
     obj_props = core.mt_object_props
@@ -788,11 +789,11 @@ def spawn_wall_core(tile_props):
     leg_1_len = tile_props.leg_1_len
     leg_2_len = tile_props.leg_2_len
     angle = tile_props.angle
-    native_subdivisions = (
-        tile_props.leg_1_native_subdivisions,
-        tile_props.leg_2_native_subdivisions,
-        tile_props.width_native_subdivisions,
-        tile_props.z_native_subdivisions)
+    native_subdivisions = {
+        'leg 1': tile_props.leg_1_native_subdivisions,
+        'leg 2': tile_props.leg_2_native_subdivisions,
+        'width': tile_props.width_native_subdivisions,
+        'height': tile_props.z_native_subdivisions}
     thickness_diff = base_thickness - wall_thickness
 
     # first work out where we're going to start drawing our wall
@@ -814,16 +815,16 @@ def spawn_wall_core(tile_props):
         wall_thickness,
         angle)
 
-    core = draw_corner_wall_core(
-        core_triangles_1,
-        core_triangles_2,
-        angle,
-        wall_thickness,
-        thickness_diff,
-        base_height,
-        wall_height - base_height,
-        native_subdivisions
-    )
+    dimensions = {
+        'triangles_1': core_triangles_1,
+        'triangles_2': core_triangles_2,
+        'angle': angle,
+        'thickness': wall_thickness,
+        'thickness_diff': thickness_diff,
+        'base_height': base_height,
+        'height': wall_height - base_height}
+
+    core = draw_corner_wall_core(dimensions, native_subdivisions)
 
     core.name = tile_props.tile_name + '.core'
     obj_props = core.mt_object_props
@@ -837,15 +838,9 @@ def spawn_wall_core(tile_props):
         'selected_editable_objects': [core]
     }
 
-    bpy.context.scene.cursor.location = (0, 0, 0)
-
     bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
+    bpy.context.scene.cursor.location = (0, 0, 0)
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-
-    core.name = tile_props.tile_name + '.core'
-    obj_props = core.mt_object_props
-    obj_props.is_mt_object = True
-    obj_props.tile_name = tile_props.tile_name
 
     return core
 

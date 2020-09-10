@@ -308,8 +308,6 @@ def draw_tri_slot_cutter(dimensions):
     offset = 0.24     # distance from edge for slot
     cutter_w = 0.185
     cutter_h = 0.24
-    support_w = 0.12  # width of corner supports
-    support_h = 0.056
 
     b = dimensions['b']
     c = dimensions['c']
@@ -317,9 +315,7 @@ def draw_tri_slot_cutter(dimensions):
 
     a = sqrt((b**2 + c**2) - ((2 * b * c) * cos(radians(A))))
     B = degrees(acos((c**2 + a**2 - (b**2)) / (2 * c * a)))
-    C = 180 - A - B
 
-    turtle = bpy.context.scene.cursor
     bm, obj = create_turtle(name='Slot.')
 
     dn(bm, 0.001)
@@ -493,15 +489,47 @@ def draw_straight_wall_core(dims, subdivs, margin=0.001):
 
 
 def draw_corner_core(
-        triangles_1,
-        triangles_2,
-        angle,
-        thickness,
-        thickness_diff,
-        base_height,
-        height,
+        dimensions,
         native_subdivisions,
         margin=0.001):
+    """Draw a corner core.
+
+    Args:
+        dimensions (dict {
+            triangles_1: dict,
+            triangles_2: dict,
+            angle: float,
+            thickness: float,
+            thickness_diff: float,
+            base_height: float,
+            height: float}): dimensions
+        native_subdivisions (dict {
+            leg 1: int,
+            leg 2: int,
+            width: int,
+            height: int }): subdivisions
+        margin (float, optional): margin for texture. Defaults to 0.001.
+
+    Returns:
+        bmesh: bmesh
+        bpy.types.Object: core object
+        bm.verts.layers.deform: deform groups - corresponds to vertex groups
+        dict {
+            'Leg 1 Inner': list[Vector(3)],
+            'Leg 2 Inner': list[Vector(3)],
+            'Leg 1 Outer': list[Vector(3)],
+            'Leg 2 Outer': list[Vector(3)],
+            'Leg 1 End': list[Vector(3)],
+            'Leg 2 End': list[Vector(3)]} : Locations of bottom verts in each group
+    """
+    triangles_1 = dimensions['triangles_1']
+    triangles_2 = dimensions['triangles_2']
+    angle = dimensions['angle']
+    thickness = dimensions['thickness']
+    thickness_diff = dimensions['thickness_diff']
+    base_height = dimensions['base_height']
+    height = dimensions['height']
+
     turtle = bpy.context.scene.cursor
     turtle_start_loc = turtle.location.copy()
     vert_groups = [
@@ -542,7 +570,7 @@ def draw_corner_core(
     pd(bm)
     # draw leg 1
     # outer edge
-    subdiv_dist = (triangles_2['a_adj'] - margin) / native_subdivisions[0]
+    subdiv_dist = (triangles_2['a_adj'] - margin) / native_subdivisions['leg 1']
 
     add_vert(bm)
     rt(angle)
@@ -552,7 +580,7 @@ def draw_corner_core(
     i = 0
     bm.verts.ensure_lookup_table()
     start_index = verts[-1].index
-    while i < native_subdivisions[0]:
+    while i < native_subdivisions['leg 1']:
         fd(bm, subdiv_dist)
         i += 1
     fd(bm, margin)
@@ -579,12 +607,12 @@ def draw_corner_core(
     lt(90)
 
     # inner
-    subdiv_dist = (triangles_2['b_adj'] - margin) / native_subdivisions[0]
+    subdiv_dist = (triangles_2['b_adj'] - margin) / native_subdivisions['leg 1']
     bm.verts.ensure_lookup_table()
     start_index = verts[-1].index
     fd(bm, margin)
     i = 0
-    while i < native_subdivisions[0]:
+    while i < native_subdivisions['leg 1']:
         fd(bm, subdiv_dist)
         i += 1
 
@@ -604,7 +632,7 @@ def draw_corner_core(
     leg_2_outer_vert_locs = []
     leg_2_end_vert_locs = []
     leg_2_inner_vert_locs = []
-    subdiv_dist = (triangles_2['c_adj'] - margin) / native_subdivisions[1]
+    subdiv_dist = (triangles_2['c_adj'] - margin) / native_subdivisions['leg 2']
 
     # outer
     add_vert(bm)
@@ -613,7 +641,7 @@ def draw_corner_core(
     start_index = verts[-1].index
 
     i = 0
-    while i < native_subdivisions[1]:
+    while i < native_subdivisions['leg 2']:
         fd(bm, subdiv_dist)
         i += 1
     fd(bm, margin)
@@ -638,12 +666,12 @@ def draw_corner_core(
     rt(90)
 
     # inner
-    subdiv_dist = (triangles_2['d_adj'] - margin) / native_subdivisions[1]
+    subdiv_dist = (triangles_2['d_adj'] - margin) / native_subdivisions['leg 2']
     bm.verts.ensure_lookup_table()
     start_index = verts[-1].index
     fd(bm, margin)
     i = 0
-    while i < native_subdivisions[1]:
+    while i < native_subdivisions['leg 2']:
         fd(bm, subdiv_dist)
         i += 1
 
@@ -657,21 +685,21 @@ def draw_corner_core(
 
     # bridge edge loops
     ret = bmesh.ops.bridge_loops(bm, edges=bm.edges)
-    bmesh.ops.subdivide_edges(bm, edges=ret['edges'], smooth=1, smooth_falloff='LINEAR', cuts=native_subdivisions[2])
+    bmesh.ops.subdivide_edges(bm, edges=ret['edges'], smooth=1, smooth_falloff='LINEAR', cuts=native_subdivisions['width'])
 
     # inset
     bmesh.ops.inset_region(bm, faces=bm.faces, use_even_offset=True, thickness=margin, use_boundary=True)
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=margin / 2)
 
     # Z
-    subdiv_dist = (height - (margin * 2)) / native_subdivisions[3]
+    subdiv_dist = (height - (margin * 2)) / native_subdivisions['height']
     bm_select_all(bm)
-    bm.select_mode={'FACE'}
+    bm.select_mode = {'FACE'}
 
     up(bm, margin, False)
 
     i = 0
-    while i < native_subdivisions[3]:
+    while i < native_subdivisions['height']:
         up(bm, subdiv_dist)
         i += 1
     up(bm, margin)
@@ -690,33 +718,40 @@ def draw_corner_core(
 
 
 def draw_corner_floor_core(
-        triangles_1,
-        triangles_2,
-        angle,
-        thickness,
-        thickness_diff,
-        base_height,
-        height,
+        dimensions,
         native_subdivisions,
         margin=0.001):
+    """Draw a corner floor and assign verts to vertex groups.
+
+    Args:
+        dimensions (dict {
+            triangles_1: dict,
+            triangles_2: dict,
+            angle: float,
+            thickness: float,
+            thickness_diff: float,
+            base_height: float,
+            height: float}): dimensions
+        native_subdivisions (dict {
+            leg 1: int,
+            leg 2: int,
+            width: int,
+            height: int }): subdivisions
+        margin (float, optional): margin for texture. Defaults to 0.001.
+
+    Returns:
+        bpy.types.Object: floor core
+    """
 
     bm, core, deform_groups, vert_locs = draw_corner_core(
-        triangles_1,
-        triangles_2,
-        angle,
-        thickness,
-        thickness_diff,
-        base_height,
-        height,
+        dimensions,
         native_subdivisions,
         margin)
 
-    vert_groups = create_corner_vert_groups(
+    vert_groups = create_corner_vert_groups_vert_lists(
         bm,
-        core,
-        height,
+        dimensions['height'],
         margin,
-        deform_groups,
         vert_locs)
 
     blank_groups = [
@@ -749,33 +784,39 @@ def draw_corner_floor_core(
 
 
 def draw_corner_wall_core(
-        triangles_1,
-        triangles_2,
-        angle,
-        thickness,
-        thickness_diff,
-        base_height,
-        height,
+        dimensions,
         native_subdivisions,
         margin=0.001):
+    """Draw a corner wall core and assign verts to vertex groups.
 
+    Args:
+        dimensions (dict {
+            triangles_1: dict,
+            triangles_2: dict,
+            angle: float,
+            thickness: float,
+            thickness_diff: float,
+            base_height: float,
+            height: float}): dimensions
+        native_subdivisions (dict {
+            leg 1: int,
+            leg 2: int,
+            width: int,
+            height: int }): subdivisions
+        margin (float, optional): margin for texture. Defaults to 0.001.
+
+    Returns:
+        bpy.types.Object: wall core
+    """
     bm, core, deform_groups, vert_locs = draw_corner_core(
-        triangles_1,
-        triangles_2,
-        angle,
-        thickness,
-        thickness_diff,
-        base_height,
-        height,
+        dimensions,
         native_subdivisions,
         margin)
 
-    vert_groups = create_corner_vert_groups(
+    vert_groups = create_corner_vert_groups_vert_lists(
         bm,
-        core,
-        height,
+        dimensions['height'],
         margin,
-        deform_groups,
         vert_locs)
 
     blank_groups = [
@@ -785,13 +826,19 @@ def draw_corner_wall_core(
         'Leg 2 End',
         'Leg 1 Bottom',
         'Leg 2 Bottom']
+
+    textured_groups = [
+        'Leg 1 Inner',
+        'Leg 2 Inner',
+        'Leg 1 Outer',
+        'Leg 2 Outer']
+
     blank_group_verts = set()
 
     for key, value in vert_groups.items():
         if key in blank_groups:
             blank_group_verts = blank_group_verts.union(value)
 
-    textured_groups = ['Leg 1 Inner', 'Leg 2 Inner', 'Leg 1 Outer', 'Leg 2 Outer']
     for group in textured_groups:
         verts = [v for v in vert_groups[group] if v not in blank_group_verts]
         assign_verts_to_group(verts, core, deform_groups, group)
@@ -804,7 +851,32 @@ def draw_corner_wall_core(
     return core
 
 
-def create_corner_vert_groups(bm, obj, height, margin, deform_groups, vert_locs):
+def create_corner_vert_groups_vert_lists(bm, height, margin, vert_locs):
+    """Return a dict containing lists of BMVerts to be added to vert groups
+
+    Args:
+        bm (bmesh): bmesh
+        obj (bpy.types.Object): Object
+        height (float): height
+        margin (float): margin size of untextured bit
+        deform_groups (bm.verts.layers.deform): deform groups - correspond to vertex groups
+        dict {
+            'Leg 1 Inner': list[Vector(3)],
+            'Leg 2 Inner': list[Vector(3)],
+            'Leg 1 Outer': list[Vector(3)],
+            'Leg 2 Outer': list[Vector(3)],
+            'Leg 1 End': list[Vector(3)],
+            'Leg 2 End': list[Vector(3)]} : Locations of bottom verts in each group
+
+    Returns:
+        dict {
+            'Leg 1 Inner': list[Vector(3)],
+            'Leg 2 Inner': list[Vector(3)],
+            'Leg 1 Outer': list[Vector(3)],
+            'Leg 2 Outer': list[Vector(3)],
+            'Leg 1 End': list[Vector(3)],
+            'Leg 2 End': list[Vector(3)]} : Locations of all verts in each group
+    """
     # sides
     sides = {
         'Leg 1 Inner': vert_locs['Leg 1 Inner'],
@@ -812,8 +884,8 @@ def create_corner_vert_groups(bm, obj, height, margin, deform_groups, vert_locs)
         'Leg 1 Outer': vert_locs['Leg 1 Outer'],
         'Leg 2 Outer': vert_locs['Leg 2 Outer']}
     vert_groups = {}
+
     # create kdtree
-    # we can probably get rid of the KDTree step here
     size = len(bm.verts)
     kd = kdtree.KDTree(size)
 
@@ -833,8 +905,7 @@ def create_corner_vert_groups(bm, obj, height, margin, deform_groups, vert_locs)
                 bm=bm)
             vert_group.extend(verts)
         vert_groups[key] = vert_group
-        # side_verts.extend(vert_group)
-        # assign_verts_to_group(vert_group, obj, deform_groups, key)
+
         bm_deselect_all(bm)
 
     # ends
@@ -865,12 +936,8 @@ def create_corner_vert_groups(bm, obj, height, margin, deform_groups, vert_locs)
             selected = select_verts_in_bounds(v.co, (v.co[0], v.co[1], v.co[2] + height), margin / 2, bm)
             selected_verts.extend(selected)
 
-        # side_verts.extend(selected_verts)
-        # end_verts.extend(selected_verts)
-        # assign_verts_to_group(selected_verts, obj, deform_groups, key)
         vert_groups[key] = selected_verts
         bm_deselect_all(bm)
-
 
     # bottom
     # leg 1
@@ -899,7 +966,6 @@ def create_corner_vert_groups(bm, obj, height, margin, deform_groups, vert_locs)
         i += 1
 
     vert_groups['Leg 1 Bottom'] = selected_verts
-    #assign_verts_to_group(selected_verts, obj, deform_groups, 'Leg 1 Bottom')
     bm_deselect_all(bm)
 
     # leg 2
@@ -1012,6 +1078,22 @@ def create_corner_vert_groups(bm, obj, height, margin, deform_groups, vert_locs)
 
 
 def draw_corner_3D(triangles, dimensions):
+    """Draw a corner (L) shape.
+
+    Args:
+        triangles (dict {
+            'a_adj': float, (leg 1 outer leg length)
+            'b_adj': float, (leg 1 inner leg length)
+            'c_adj': float, (leg 2 outer leg length)
+            'd_adj': float  (leg 2 inner leg length) }) : length of triangle edges
+        dimensions (dict{
+            angle: float,
+            height: float,
+            width: float}): dimensions
+
+    Returns:
+        bpy.types.Object: object
+    """
     #  leg 2
     #    _
     #   | |
@@ -1024,7 +1106,6 @@ def draw_corner_3D(triangles, dimensions):
     thickness = dimensions['thickness']
 
     turtle = bpy.context.scene.cursor
-    orig_loc = turtle.location.copy()
     orig_rot = turtle.location.copy()
 
     bm, obj = create_turtle('L_2D')
@@ -1240,3 +1321,856 @@ def draw_rectangular_floor_core(dims, subdivs, margin=0.001):
     finalise_turtle(bm, obj)
 
     return obj
+
+
+def draw_plain_u_base(dimensions):
+    leg_1_inner = dimensions['leg 1 inner']
+    leg_2_inner = dimensions['leg 2 inner']
+    x_inner = dimensions['x inner']
+    thickness = dimensions['thickness']
+    height = dimensions['height']
+
+    leg_1_outer = leg_1_inner + thickness
+    leg_2_outer = leg_2_inner + thickness
+    x_outer = x_inner + (thickness * 2)
+
+    bm, obj = create_turtle('U Base')
+    bm.select_mode = {'VERT'}
+
+    pd(bm)
+    add_vert(bm)
+
+    fd(bm, leg_1_outer)
+    rt(90)
+    fd(bm, thickness)
+    rt(90)
+    fd(bm, leg_1_inner)
+    lt(90)
+    fd(bm, x_inner)
+    lt(90)
+    fd(bm, leg_2_inner)
+    rt(90)
+    fd(bm, thickness)
+    rt(90)
+    fd(bm, leg_2_outer)
+    rt(90)
+    fd(bm, x_outer)
+    bm_select_all(bm)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.001)
+    bmesh.ops.triangle_fill(bm, use_beauty=True, use_dissolve=True, edges=bm.edges, normal=(0, 0, -1))
+    bm.select_mode = {'FACE'}
+    bm_select_all(bm)
+    up(bm, height, False)
+    home(obj)
+    finalise_turtle(bm, obj)
+    return obj
+
+
+def draw_u_core(dimensions, subdivs, margin):
+    thickness = dimensions['thickness']
+    thickness_diff = dimensions['thickness_diff']
+
+    leg_1_inner = dimensions['leg_1_inner'] + (thickness_diff / 2)
+    leg_2_inner = dimensions['leg_2_inner'] + (thickness_diff / 2)
+    leg_1_outer = leg_1_inner + thickness
+    leg_2_outer = leg_2_inner + thickness
+
+    x_inner = dimensions['x_inner'] + thickness_diff
+    x_outer = x_inner + (thickness * 2)
+
+    height = dimensions['height']
+    base_height = dimensions['base_height']
+
+    vert_groups = [
+        'Leg 1 End',
+        'Leg 2 End',
+        'Leg 1 Inner',
+        'Leg 2 Inner',
+        'End Wall Inner',
+        'End Wall Outer',
+        'Leg 1 Outer',
+        'Leg 2 Outer',
+        'Leg 1 Top',
+        'Leg 2 Top',
+        'End Wall Top',
+        'Leg 1 Bottom',
+        'Leg 2 Bottom',
+        'End Wall Bottom']
+
+    bm, obj = create_turtle('U core', vert_groups)
+    verts = bm.verts
+    verts.layers.deform.verify()
+    deform_groups = verts.layers.deform.active
+
+    turtle = bpy.context.scene.cursor
+    turtle_start_loc = turtle.location.copy()
+    turtle_start_rot = turtle.rotation_euler.copy()
+
+    leg_1_outer_vert_locs = []
+    leg_1_inner_vert_locs = []
+    leg_1_end_vert_locs = []
+
+    x_outer_vert_locs = []
+    x_inner_vert_locs = []
+
+    leg_2_outer_vert_locs = []
+    leg_2_inner_vert_locs = []
+    leg_2_end_vert_locs = []
+
+    # move cursor to start
+    pu(bm)
+    up(bm, base_height)
+    fd(bm, thickness_diff / 2)
+    ri(bm, thickness_diff / 2)
+    pd(bm)
+
+    # draw leg 1 outer
+    subdiv_dist = (leg_1_outer - margin) / subdivs['leg_1']
+
+    bm.select_mode = {'VERT'}
+    add_vert(bm)
+    verts.ensure_lookup_table()
+    leg_1_outer_vert_locs.append(verts[-1].co.copy())
+
+    bm.verts.ensure_lookup_table()
+    start_index = verts[-1].index
+    i = 0
+    while i < subdivs['leg_1']:
+        fd(bm, subdiv_dist)
+        i += 1
+    fd(bm, margin)
+
+    bm.verts.ensure_lookup_table()
+    i = start_index
+    while i <= verts[-1].index:
+        leg_1_outer_vert_locs.append(verts[i].co.copy())
+        i += 1
+
+    # draw leg 1 end
+    # we will bride inner and outer sides so we dont draw end edges
+    bm.verts.ensure_lookup_table()
+    leg_1_end_vert_locs.append(verts[-1].co.copy())
+    pu(bm)
+    rt(90)
+    fd(bm, thickness)
+    pd(bm)
+    add_vert(bm)
+    bm.verts.ensure_lookup_table()
+    leg_1_end_vert_locs.append(verts[-1].co.copy())
+    rt(90)
+
+    # leg 1 inner
+    subdiv_dist = (leg_1_inner - margin) / subdivs['leg_1']
+    start_index = verts[-1].index
+    fd(bm, margin)
+
+    i = 0
+    while i < subdivs['leg_1']:
+        fd(bm, subdiv_dist)
+        i += 1
+
+    i = start_index
+    bm.verts.ensure_lookup_table()
+    while i <= verts[-1].index:
+        leg_1_inner_vert_locs.append(verts[i].co.copy())
+        i += 1
+
+    # x inner
+    subdiv_dist = (x_inner) / subdivs['x']
+    start_index = verts[-1].index
+
+    lt(90)
+
+    i = 0
+    while i < subdivs['x']:
+        fd(bm, subdiv_dist)
+        i += 1
+
+    i = start_index
+    bm.verts.ensure_lookup_table()
+    while i <= verts[-1].index:
+        x_inner_vert_locs.append(verts[i].co.copy())
+        i += 1
+
+    # leg 2 inner
+    subdiv_dist = (leg_2_inner - margin) / subdivs['leg_2']
+    start_index = verts[-1].index
+
+    lt(90)
+
+    i = 0
+    while i < subdivs['leg_2']:
+        fd(bm, subdiv_dist)
+        i += 1
+
+    i = start_index
+    bm.verts.ensure_lookup_table()
+    while i <= verts[-1].index:
+        leg_2_inner_vert_locs.append(verts[i].co.copy())
+        i += 1
+
+    fd(bm, margin)
+    bm.verts.ensure_lookup_table()
+    leg_2_inner_vert_locs.append(verts[-1].co.copy())
+
+    #leg 2 end
+    leg_2_end_vert_locs.append(verts[-1].co.copy())
+    pu(bm)
+    rt(90)
+    fd(bm, thickness)
+    pd(bm)
+    add_vert(bm)
+    bm.verts.ensure_lookup_table()
+    leg_2_end_vert_locs.append(verts[-1].co.copy())
+
+    # leg 2 outer
+    subdiv_dist = (leg_2_outer - margin) / subdivs['leg_2']
+    rt(90)
+
+    start_index = verts[-1].index
+    fd(bm, margin)
+    i = 0
+    while i < subdivs['leg_2']:
+        fd(bm, subdiv_dist)
+        i += 1
+
+    i = start_index
+    bm.verts.ensure_lookup_table()
+    while i <= verts[-1].index:
+        leg_2_outer_vert_locs.append(verts[i].co.copy())
+        i += 1
+
+    # x outer
+    subdiv_dist = x_outer / subdivs['x']
+    rt(90)
+
+    start_index = verts[-1].index
+
+    i = 0
+    while i < subdivs['x']:
+        fd(bm, subdiv_dist)
+        i += 1
+
+    i = start_index
+    verts.ensure_lookup_table()
+    while i <= verts[-1].index:
+        x_outer_vert_locs.append(verts[i].co.copy())
+        i += 1
+
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=margin / 2)
+
+    ret = bmesh.ops.bridge_loops(bm, edges=bm.edges)
+    bmesh.ops.subdivide_edges(bm, edges=ret['edges'], smooth=1, smooth_falloff='LINEAR', cuts=subdivs['width'])
+
+    bmesh.ops.inset_region(bm, faces=bm.faces, use_even_offset=True, thickness=margin, use_boundary=True)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=margin / 2)
+
+    # Z
+    subdiv_dist = (height - (margin * 2)) / subdivs['height']
+    bm_select_all(bm)
+    bm.select_mode = {'FACE'}
+
+    up(bm, margin, False)
+
+    i = 0
+    while i < subdivs['height']:
+        up(bm, subdiv_dist)
+        i += 1
+    up(bm, margin)
+
+    home(obj)
+
+    vert_locs = {
+        'Leg 1 Inner': leg_1_inner_vert_locs,
+        'Leg 2 Inner': leg_2_inner_vert_locs,
+        'Leg 1 Outer': leg_1_outer_vert_locs,
+        'Leg 2 Outer': leg_2_outer_vert_locs,
+        'Leg 1 End': leg_1_end_vert_locs,
+        'Leg 2 End': leg_2_end_vert_locs,
+        'End Wall Inner': x_inner_vert_locs,
+        'End Wall Outer': x_outer_vert_locs}
+
+    return bm, obj, deform_groups, vert_locs
+
+
+def draw_u_wall_core(dimensions, subdivs, margin=0.001):
+    bm, core, deform_groups, vert_locs = draw_u_core(dimensions, subdivs, margin)
+    vert_groups = create_u_core_vert_groups_vert_lists(bm, dimensions['height'], margin, vert_locs, subdivs)
+
+    blank_groups = [
+        'Leg 1 Top',
+        'Leg 2 Top',
+        'End Wall Top',
+        'Leg 1 End',
+        'Leg 2 End',
+        'Leg 1 Bottom',
+        'Leg 2 Bottom',
+        'End Wall Bottom']
+
+    textured_groups = [
+        'Leg 1 Inner',
+        'Leg 2 Inner',
+        'Leg 1 Outer',
+        'Leg 2 Outer',
+        'End Wall Inner',
+        'End Wall Outer']
+
+    blank_group_verts = set()
+
+    for key, value in vert_groups.items():
+        if key in blank_groups:
+            blank_group_verts = blank_group_verts.union(value)
+
+    for group in textured_groups:
+        verts = [v for v in vert_groups[group] if v not in blank_group_verts]
+        assign_verts_to_group(verts, core, deform_groups, group)
+
+    for group in blank_groups:
+        assign_verts_to_group(vert_groups[group], core, deform_groups, group)
+
+    finalise_turtle(bm, core)
+    return core
+
+
+def create_u_core_vert_groups_vert_lists_kd(bm, height, margin, vert_locs, subdivs):
+    sides = {
+        'Leg 1 Inner': vert_locs['Leg 1 Inner'],
+        'Leg 2 Inner': vert_locs['Leg 2 Inner'],
+        'Leg 1 Outer': vert_locs['Leg 1 Outer'],
+        'Leg 2 Outer': vert_locs['Leg 2 Outer'],
+        'End Wall Inner': vert_locs['End Wall Inner'],
+        'End Wall Outer': vert_locs['End Wall Outer']}
+
+    z_subdivs = subdivs['height']
+
+    vert_groups = {}
+
+    # create kdtree
+    size = len(bm.verts)
+    kd = kdtree.KDTree(size)
+
+    for i, v in enumerate(bm.verts):
+        kd.insert(v.co, i)
+
+    kd.balance()
+
+    # sides
+    subdiv_dist = (height - (margin * 2)) / z_subdivs
+
+    bm.verts.ensure_lookup_table()
+    for key, value in sides.items():
+        vert_group = set()
+
+        for loc in value:
+            v_co, v_index, dist = kd.find(loc)
+            vert_group.add(bm.verts[v_index])
+
+        for loc in value:
+            i = 0
+            while i <= z_subdivs:
+                v_co, v_index, dist = kd.find((loc[0], loc[1], loc[2] + margin + (subdiv_dist * i)))
+                vert_group.add(bm.verts[v_index])
+                i += 1
+
+        for loc in value:
+            v_co, v_index, dist = kd.find((loc[0], loc[1], loc[2] + height))
+            vert_group.add(bm.verts[v_index])
+
+        vert_groups[key] = vert_group
+        bm_deselect_all(bm)
+
+    # ends
+    ends = {
+        'Leg 1 End': vert_locs['Leg 1 End'],
+        'Leg 2 End': vert_locs['Leg 2 End']}
+
+    for key, value in ends.items():
+        v1_co, v1_index, dist = kd.find(value[0])
+        v2_co, v2_index, dist = kd.find(value[1])
+
+        bm.verts.ensure_lookup_table()
+        v1 = bm.verts[v1_index]
+        v2 = bm.verts[v2_index]
+
+        # select shortest path
+        nodes = bm_shortest_path(bm, v1, v2)
+        node = nodes[v2]
+
+        for e in node.shortest_path:
+            e.select_set(True)
+        bm.select_flush(True)
+
+        verts = [v for v in bm.verts if v.select]
+        vert_group = set(verts)
+
+        for v in verts:
+            v_co, v_index, dist = kd.find((v.co[0], v.co[1], v.co[2] + margin))
+            vert_group.add(bm.verts[v_index])
+            i = 0
+            while i <= z_subdivs:
+                v_co, v_index, dist = kd.find((v.co[0], v.co[1], v.co[2] + margin + (subdiv_dist * i)))
+                vert_group.add(bm.verts[v_index])
+                i += 1
+            v_co, v_index, dist = kd.find((v.co[0], v.co[1], v.co[2] + height))
+            vert_group.add(bm.verts[v_index])
+
+        vert_groups[key] = vert_group
+        bm_deselect_all(bm)
+
+    # bottom
+    # leg 1
+    inner_locs = vert_locs['Leg 1 Inner'][::-1]
+    outer_locs = vert_locs['Leg 1 Outer']
+
+    selected_verts = []
+    i = 0
+    while i < len(outer_locs) and i < len(inner_locs):
+        v1_co, v1_index, dist = kd.find(inner_locs[i])
+        v2_co, v2_index, dist = kd.find(outer_locs[i])
+
+        bm.verts.ensure_lookup_table()
+        v1 = bm.verts[v1_index]
+        v2 = bm.verts[v2_index]
+
+        nodes = bm_shortest_path(bm, v1, v2)
+        node = nodes[v2]
+
+        for e in node.shortest_path:
+            e.select_set(True)
+        bm.select_flush(True)
+
+        verts = [v for v in bm.verts if v.select]
+        selected_verts.extend(verts)
+        i += 1
+
+    vert_groups['Leg 1 Bottom'] = selected_verts
+    bm_deselect_all(bm)
+
+    # leg 2
+    inner_locs = vert_locs['Leg 2 Inner'][::-1]
+    outer_locs = vert_locs['Leg 2 Outer']
+
+    selected_verts = []
+    i = 0
+    while i < len(inner_locs) and i < len(outer_locs):
+        v1_co, v1_index, dist = kd.find(inner_locs[i])
+        v2_co, v2_index, dist = kd.find(outer_locs[i])
+
+        bm.verts.ensure_lookup_table()
+        v1 = bm.verts[v1_index]
+        v2 = bm.verts[v2_index]
+
+        nodes = bm_shortest_path(bm, v1, v2)
+        node = nodes[v2]
+
+        for e in node.shortest_path:
+            e.select_set(True)
+        bm.select_flush(True)
+
+        verts = [v for v in bm.verts if v.select]
+        selected_verts.extend(verts)
+        i += 1
+    vert_groups['Leg 2 Bottom'] = selected_verts
+
+    # end wall
+    inner_locs = vert_locs['End Wall Inner'][::-1]
+    outer_locs = vert_locs['End Wall Outer']
+
+    selected_verts = []
+    i = 0
+    while i < len(inner_locs) and i < len(outer_locs):
+        v1_co, v1_index, dist = kd.find(inner_locs[i])
+        v2_co, v2_index, dist = kd.find(outer_locs[i])
+
+        bm.verts.ensure_lookup_table()
+        v1 = bm.verts[v1_index]
+        v2 = bm.verts[v2_index]
+
+        nodes = bm_shortest_path(bm, v1, v2)
+        node = nodes[v2]
+
+        for e in node.shortest_path:
+            e.select_set(True)
+        bm.select_flush(True)
+
+        verts = [v for v in bm.verts if v.select]
+        selected_verts.extend(verts)
+        i += 1
+    vert_groups['End Wall Bottom'] = selected_verts
+
+    # top
+    # leg 1
+    inner_locs = vert_locs['Leg 1 Inner'][::-1]
+    outer_locs = vert_locs['Leg 1 Outer']
+
+    selected_verts = []
+    i = 0
+    while i < len(inner_locs) and i < len(outer_locs):
+        v1_co, v1_index, dist = kd.find(
+            (inner_locs[i][0],
+             inner_locs[i][1],
+             inner_locs[i][2] + height))
+
+        v1_co, v1_index, dist = kd.find(
+            (outer_locs[i][0],
+             outer_locs[i][1],
+             outer_locs[i][2] + height))
+
+        bm.verts.ensure_lookup_table()
+        v1 = bm.verts[v1_index]
+        v2 = bm.verts[v2_index]
+
+        nodes = bm_shortest_path(bm, v1, v2)
+        node = nodes[v2]
+
+        for e in node.shortest_path:
+            e.select_set(True)
+        bm.select_flush(True)
+
+        verts = [v for v in bm.verts if v.select]
+        selected_verts.extend(verts)
+        i += 1
+    vert_groups['Leg 1 Top'] = selected_verts
+    bm_deselect_all(bm)
+
+    # leg 2
+    inner_locs = vert_locs['Leg 2 Inner'][::-1]
+    outer_locs = vert_locs['Leg 2 Outer']
+
+    selected_verts = []
+    i = 0
+    while i < len(inner_locs) and i < len(outer_locs):
+        v1_co, v1_index, dist = kd.find(
+            (inner_locs[i][0],
+             inner_locs[i][1],
+             inner_locs[i][2] + height))
+
+        v1_co, v1_index, dist = kd.find(
+            (outer_locs[i][0],
+             outer_locs[i][1],
+             outer_locs[i][2] + height))
+
+        nodes = bm_shortest_path(bm, v1, v2)
+        node = nodes[v2]
+
+        for e in node.shortest_path:
+            e.select_set(True)
+        bm.select_flush(True)
+
+        verts = [v for v in bm.verts if v.select]
+        selected_verts.extend(verts)
+        i += 1
+    vert_groups['Leg 2 Top'] = selected_verts
+    bm_deselect_all(bm)
+
+    # end
+    inner_locs = vert_locs['End Wall Inner'][::-1]
+    outer_locs = vert_locs['End Wall Outer']
+
+    selected_verts = []
+    i = 0
+    while i < len(inner_locs) and i < len(outer_locs):
+        v1_co, v1_index, dist = kd.find(
+            (inner_locs[i][0],
+             inner_locs[i][1],
+             inner_locs[i][2] + height))
+
+        v1_co, v1_index, dist = kd.find(
+            (outer_locs[i][0],
+             outer_locs[i][1],
+             outer_locs[i][2] + height))
+
+        nodes = bm_shortest_path(bm, v1, v2)
+        node = nodes[v2]
+
+        for e in node.shortest_path:
+            e.select_set(True)
+        bm.select_flush(True)
+
+        verts = [v for v in bm.verts if v.select]
+        selected_verts.extend(verts)
+        i += 1
+    vert_groups['End Wall Top'] = selected_verts
+    bm_deselect_all(bm)
+
+    return vert_groups
+
+
+def create_u_core_vert_groups_vert_lists(bm, height, margin, vert_locs, subdivs):
+    sides = {
+        'Leg 1 Inner': vert_locs['Leg 1 Inner'],
+        'Leg 2 Inner': vert_locs['Leg 2 Inner'],
+        'Leg 1 Outer': vert_locs['Leg 1 Outer'],
+        'Leg 2 Outer': vert_locs['Leg 2 Outer'],
+        'End Wall Inner': vert_locs['End Wall Inner'],
+        'End Wall Outer': vert_locs['End Wall Outer']}
+
+    z_subdivs = subdivs['height']
+
+    vert_groups = {}
+
+    # create kdtree
+    size = len(bm.verts)
+    kd = kdtree.KDTree(size)
+
+    for i, v in enumerate(bm.verts):
+        kd.insert(v.co, i)
+
+    kd.balance()
+
+    subdiv_dist = (height - (margin * 2)) / z_subdivs
+
+    # sides
+    bm.verts.ensure_lookup_table()
+    for key, value in sides.items():
+        vert_group = set()
+
+        for loc in value:
+            v_co, v_index, dist = kd.find(loc)
+            vert_group.add(bm.verts[v_index])
+
+        for loc in value:
+            i = 0
+            while i <= z_subdivs:
+                v_co, v_index, dist = kd.find((loc[0], loc[1], loc[2] + margin + (subdiv_dist * i)))
+                vert_group.add(bm.verts[v_index])
+                i += 1
+
+        for loc in value:
+            v_co, v_index, dist = kd.find((loc[0], loc[1], loc[2] + height))
+            vert_group.add(bm.verts[v_index])
+
+        vert_groups[key] = vert_group
+        bm_deselect_all(bm)
+
+    # ends
+    ends = {
+        'Leg 1 End': vert_locs['Leg 1 End'],
+        'Leg 2 End': vert_locs['Leg 2 End']}
+
+    for key, value in ends.items():
+        v1_co, v1_index, dist = kd.find(value[0])
+        v2_co, v2_index, dist = kd.find(value[1])
+
+        bm.verts.ensure_lookup_table()
+        v1 = bm.verts[v1_index]
+        v2 = bm.verts[v2_index]
+
+        # select shortest path
+        nodes = bm_shortest_path(bm, v1, v2)
+        node = nodes[v2]
+
+        for e in node.shortest_path:
+            e.select_set(True)
+        bm.select_flush(True)
+
+        verts = [v for v in bm.verts if v.select]
+        selected_verts = []
+
+        for v in verts:
+            selected = select_verts_in_bounds(v.co, (v.co[0], v.co[1], v.co[2] + height), margin / 2, bm)
+            selected_verts.extend(selected)
+
+        vert_groups[key] = selected_verts
+        bm_deselect_all(bm)
+
+    # bottom
+    # leg 1
+    inner_locs = vert_locs['Leg 1 Inner'][::-1]
+    outer_locs = vert_locs['Leg 1 Outer']
+
+    selected_verts = []
+    i = 0
+    while i < len(outer_locs) and i < len(inner_locs):
+        v1_co, v1_index, dist = kd.find(inner_locs[i])
+        v2_co, v2_index, dist = kd.find(outer_locs[i])
+
+        bm.verts.ensure_lookup_table()
+        v1 = bm.verts[v1_index]
+        v2 = bm.verts[v2_index]
+
+        nodes = bm_shortest_path(bm, v1, v2)
+        node = nodes[v2]
+
+        for e in node.shortest_path:
+            e.select_set(True)
+        bm.select_flush(True)
+
+        verts = [v for v in bm.verts if v.select]
+        selected_verts.extend(verts)
+        i += 1
+
+    vert_groups['Leg 1 Bottom'] = selected_verts
+    bm_deselect_all(bm)
+
+    # leg 2
+    inner_locs = vert_locs['Leg 2 Inner'][::-1]
+    outer_locs = vert_locs['Leg 2 Outer']
+
+    selected_verts = []
+    i = 0
+    while i < len(inner_locs) and i < len(outer_locs):
+        v1_co, v1_index, dist = kd.find(inner_locs[i])
+        v2_co, v2_index, dist = kd.find(outer_locs[i])
+
+        bm.verts.ensure_lookup_table()
+        v1 = bm.verts[v1_index]
+        v2 = bm.verts[v2_index]
+
+        nodes = bm_shortest_path(bm, v1, v2)
+        node = nodes[v2]
+
+        for e in node.shortest_path:
+            e.select_set(True)
+        bm.select_flush(True)
+
+        verts = [v for v in bm.verts if v.select]
+        selected_verts.extend(verts)
+        i += 1
+    vert_groups['Leg 2 Bottom'] = selected_verts
+
+    # end wall
+    inner_locs = vert_locs['End Wall Inner'][::-1]
+    outer_locs = vert_locs['End Wall Outer']
+
+    selected_verts = []
+    i = 0
+    while i < len(inner_locs) and i < len(outer_locs):
+        v1_co, v1_index, dist = kd.find(inner_locs[i])
+        v2_co, v2_index, dist = kd.find(outer_locs[i])
+
+        bm.verts.ensure_lookup_table()
+        v1 = bm.verts[v1_index]
+        v2 = bm.verts[v2_index]
+
+        nodes = bm_shortest_path(bm, v1, v2)
+        node = nodes[v2]
+
+        for e in node.shortest_path:
+            e.select_set(True)
+        bm.select_flush(True)
+
+        verts = [v for v in bm.verts if v.select]
+        selected_verts.extend(verts)
+        i += 1
+    vert_groups['End Wall Bottom'] = selected_verts
+
+    # top
+    # leg 1
+    inner_locs = vert_locs['Leg 1 Inner'][::-1]
+    outer_locs = vert_locs['Leg 1 Outer']
+
+    leg_1_top_verts = []
+    i = 0
+    while i < len(inner_locs) and i < len(outer_locs):
+        v1 = select_verts_in_bounds(
+            (inner_locs[i][0],
+             inner_locs[i][1],
+             inner_locs[i][2] + height),
+            (inner_locs[i][0],
+             inner_locs[i][1],
+             inner_locs[i][2] + height),
+            margin / 2,
+            bm)
+        v2 = select_verts_in_bounds(
+            (outer_locs[i][0],
+             outer_locs[i][1],
+             outer_locs[i][2] + height),
+            (outer_locs[i][0],
+             outer_locs[i][1],
+             outer_locs[i][2] + height),
+            margin / 2,
+            bm)
+
+        nodes = bm_shortest_path(bm, v1[0], v2[0])
+        node = nodes[v2[0]]
+
+        for e in node.shortest_path:
+            e.select_set(True)
+        bm.select_flush(True)
+
+        verts = [v for v in bm.verts if v.select]
+        leg_1_top_verts.extend(verts)
+        i += 1
+    vert_groups['Leg 1 Top'] = leg_1_top_verts
+    bm_deselect_all(bm)
+
+    # leg 2
+    inner_locs = vert_locs['Leg 2 Inner'][::-1]
+    outer_locs = vert_locs['Leg 2 Outer']
+
+    leg_2_top_verts = []
+    i = 0
+    while i < len(inner_locs) and i < len(outer_locs):
+        v1 = select_verts_in_bounds(
+            (inner_locs[i][0],
+             inner_locs[i][1],
+             inner_locs[i][2] + height),
+            (inner_locs[i][0],
+             inner_locs[i][1],
+             inner_locs[i][2] + height),
+            margin / 2,
+            bm)
+        v2 = select_verts_in_bounds(
+            (outer_locs[i][0],
+             outer_locs[i][1],
+             outer_locs[i][2] + height),
+            (outer_locs[i][0],
+             outer_locs[i][1],
+             outer_locs[i][2] + height),
+            margin / 2,
+            bm)
+
+        nodes = bm_shortest_path(bm, v1[0], v2[0])
+        node = nodes[v2[0]]
+
+        for e in node.shortest_path:
+            e.select_set(True)
+        bm.select_flush(True)
+
+        verts = [v for v in bm.verts if v.select]
+        leg_2_top_verts.extend(verts)
+        i += 1
+    vert_groups['Leg 2 Top'] = leg_2_top_verts
+    bm_deselect_all(bm)
+
+    # top
+    inner_locs = vert_locs['End Wall Inner'][::-1]
+    outer_locs = vert_locs['End Wall Outer']
+
+    end_wall_top_verts = []
+    i = 0
+    while i < len(inner_locs) and i < len(outer_locs):
+        v1 = select_verts_in_bounds(
+            (inner_locs[i][0],
+             inner_locs[i][1],
+             inner_locs[i][2] + height),
+            (inner_locs[i][0],
+             inner_locs[i][1],
+             inner_locs[i][2] + height),
+            margin / 2,
+            bm)
+        v2 = select_verts_in_bounds(
+            (outer_locs[i][0],
+             outer_locs[i][1],
+             outer_locs[i][2] + height),
+            (outer_locs[i][0],
+             outer_locs[i][1],
+             outer_locs[i][2] + height),
+            margin / 2,
+            bm)
+
+        nodes = bm_shortest_path(bm, v1[0], v2[0])
+        node = nodes[v2[0]]
+
+        for e in node.shortest_path:
+            e.select_set(True)
+        bm.select_flush(True)
+
+        verts = [v for v in bm.verts if v.select]
+        end_wall_top_verts.extend(verts)
+        i += 1
+    vert_groups['End Wall Top'] = end_wall_top_verts
+    bm_deselect_all(bm)
+
+    return vert_groups

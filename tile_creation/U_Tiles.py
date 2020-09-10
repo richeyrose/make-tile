@@ -5,6 +5,7 @@ import bmesh
 from bpy.types import Panel, Operator
 from mathutils import Vector
 from .. lib.utils.utils import mode, vectors_are_close, get_all_subclasses
+from ..lib.bmturtle.scripts import draw_plain_u_base, draw_u_wall_core
 from .. utils.registration import get_prefs
 from .. lib.utils.collections import (
     add_object_to_collection,
@@ -563,41 +564,37 @@ def spawn_core(tile_props):
     Returns:
         bpy.types.Object: core
     """
-    leg_1_len = tile_props.leg_1_len
-    leg_2_len = tile_props.leg_2_len
-    base_thickness = tile_props.base_size[1]
-    core_thickness = tile_props.tile_size[1]
-    base_height = tile_props.base_size[2]
-    wall_height = tile_props.tile_size[2]
-    x_inner_len = tile_props.tile_size[0]
-    thickness_diff = base_thickness - core_thickness
-    native_subdivisions = (
-        tile_props.leg_1_native_subdivisions,
-        tile_props.leg_2_native_subdivisions,
-        tile_props.x_native_subdivisions,
-        tile_props.y_native_subdivisions,
-        tile_props.z_native_subdivisions)
 
-    core, vert_locs = draw_core(
-        leg_1_len,
-        leg_2_len,
-        x_inner_len,
-        core_thickness,
-        wall_height - base_height,
-        native_subdivisions,
-        thickness_diff)
+    subdivs = {
+        'leg_1': tile_props.leg_1_native_subdivisions,
+        'leg_2': tile_props.leg_2_native_subdivisions,
+        'x': tile_props.x_native_subdivisions,
+        'width': tile_props.y_native_subdivisions,
+        'height': tile_props.z_native_subdivisions}
+
+    dimensions = {
+        'leg_1_inner': tile_props.leg_1_len,
+        'leg_2_inner': tile_props.leg_2_len,
+        'base_height': tile_props.base_size[2],
+        'height': tile_props.tile_size[2] - tile_props.base_size[2],
+        'x_inner': tile_props.tile_size[0],
+        'thickness': tile_props.tile_size[1],
+        'thickness_diff': tile_props.base_size[1] - tile_props.tile_size[1]}
+
+    core = draw_u_wall_core(dimensions, subdivs)
 
     core.name = tile_props.tile_name + '.core'
     obj_props = core.mt_object_props
     obj_props.is_mt_object = True
     obj_props.tile_name = tile_props.tile_name
 
-    create_vertex_groups(core, vert_locs, native_subdivisions)
+    #create_vertex_groups(core, vert_locs, native_subdivisions)
 
     ctx = {
         'object': core,
         'active_object': core,
-        'selected_objects': [core]
+        'selected_objects': [core],
+        'selected_editable_objects': [core]
     }
 
     mode('OBJECT')
@@ -606,7 +603,7 @@ def spawn_core(tile_props):
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
     return core
 
-
+'''
 def draw_core(leg_1_inner_len, leg_2_inner_len, x_inner_len, thickness, z_height, native_subdivisions, thickness_diff):
     """Draw a u shaped core
 
@@ -820,8 +817,8 @@ def draw_core(leg_1_inner_len, leg_2_inner_len, x_inner_len, thickness, z_height
     }
 
     return obj, vert_locs
-
-
+'''
+'''
 def create_vertex_groups(obj, vert_locs, native_subdivisions):
     """Create vertex groups
 
@@ -1144,7 +1141,7 @@ def create_vertex_groups(obj, vert_locs, native_subdivisions):
     bmesh.update_edit_mesh(bpy.context.object.data)
 
     mode('OBJECT')
-
+'''
 
 def initialise_wall_creator(context, scene_props):
     """Initialise the wall creator and set common properties.
@@ -1196,13 +1193,14 @@ def spawn_plain_base(tile_props):
     Returns:
         bpy.types.Object: tile base
     """
-    leg_1_inner_len = tile_props.leg_1_len
-    leg_2_inner_len = tile_props.leg_2_len
-    thickness = tile_props.base_size[1]
-    z_height = tile_props.base_size[2]
-    x_inner_len = tile_props.tile_size[0]
+    dimensions = {
+        'leg 1 inner': tile_props.leg_1_len,
+        'leg 2 inner': tile_props.leg_2_len,
+        'thickness': tile_props.base_size[1],
+        'height': tile_props.base_size[2],
+        'x inner': tile_props.tile_size[0]}
 
-    base = draw_plain_base(leg_1_inner_len, leg_2_inner_len, x_inner_len, thickness, z_height)
+    base = draw_plain_u_base(dimensions)
 
     base.name = tile_props.tile_name + '.base'
     obj_props = base.mt_object_props
@@ -1415,7 +1413,7 @@ def spawn_openlock_base_clip_cutter(tile_props):
 
     return clip_cutter
 
-
+'''
 def draw_plain_base(leg_1_inner_len, leg_2_inner_len, x_inner_len, thickness, z_height):
     """Draw a u shaped base
 
@@ -1434,7 +1432,7 @@ def draw_plain_base(leg_1_inner_len, leg_2_inner_len, x_inner_len, thickness, z_
                 ||leg_1 leg_2||
                 ||           ||
                 ||___inner___||
-        origin x--------------
+        origin  x--------------
                     outer
     """
     mode('OBJECT')
@@ -1469,3 +1467,4 @@ def draw_plain_base(leg_1_inner_len, leg_2_inner_len, x_inner_len, thickness, z_
     bpy.ops.mesh.normals_make_consistent()
     mode('OBJECT')
     return bpy.context.object
+'''

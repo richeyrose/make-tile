@@ -63,7 +63,7 @@ def in_bbox(lbound, ubound, vert, buffer=0.001):
     Keyword arguments:
     lbound -- VECTOR lower left of cuboid
     ubound -- VECTOR upper right of cuboid
-    vert -- bmesh.vert vertex
+    vert -- bmesh.vert.co vertex coordinates
     buffer -- FLOAT buffer distance to add to cuboid. Useful when checking if single vert is at location
     """
     return lbound[0] - buffer <= vert[0] <= ubound[0] + buffer and \

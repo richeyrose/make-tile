@@ -462,7 +462,7 @@ def spawn_openlock_top_pegs(core, tile_props):
             scale=False,
             properties=True)
 
-        if leg_1_outer_len < 4 and leg_1_outer_len >=1:
+        if leg_1_outer_len < 4 and leg_1_outer_len >= 1:
             peg_2.location = (
                 core_location[0] + (thickness / 2) + 0.08,
                 core_location[1] + (leg_1_outer_len / 2) - 0.252,
@@ -512,7 +512,7 @@ def spawn_openlock_top_pegs(core, tile_props):
             scale=False,
             properties=True)
 
-        if leg_2_outer_len < 4 and leg_2_outer_len >=1:
+        if leg_2_outer_len < 4 and leg_2_outer_len >= 1:
             peg_3.location = (
                 core_location[0] + x_outer_len - (thickness / 2) - 0.08,
                 core_location[1] + (leg_2_outer_len / 2) - 0.252,

@@ -22,7 +22,7 @@ from .helpers import (
     assign_verts_to_group,
     select_verts_in_bounds,
     bm_shortest_path)
-
+from ..utils.selection import activate
 
 def draw_cuboid(dimensions):
     """Draw a cuboid.

@@ -301,6 +301,7 @@ def draw_pos_curved_slab(length, segments, angle, height, native_subdivisions):
 
     return slab
 
+
 def draw_neg_curved_slab(length, segments, angle, height, native_subdivisions, return_vert_locs=False):
     t = bpy.ops.turtle
     dim = calc_tri(angle, length, length)

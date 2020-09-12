@@ -1,5 +1,10 @@
 import os
-from math import radians
+from math import (
+    radians,
+    sqrt,
+    cos,
+    degrees,
+    acos)
 import bpy
 import bmesh
 from bpy.types import Operator, Panel
@@ -55,6 +60,7 @@ from ..lib.bmturtle.commands import (
     pu,
     pd,
     rt,
+    lt,
     up,
     arc,
     finalise_turtle)
@@ -418,17 +424,7 @@ def spawn_core(tile_props):
         bpy.types.Object: core
     """
     base_size = tile_props.base_size
-    radius = tile_props.base_radius
-    segments = tile_props.curve_native_subdivisions
-    angle = tile_props.angle
-    height = tile_props.tile_size[2] - base_size[2]
     curve_type = tile_props.curve_type
-    native_subdivisions = (
-        tile_props.x_native_subdivisions,
-        tile_props.y_native_subdivisions,
-        tile_props.z_native_subdivisions,
-        tile_props.curve_native_subdivisions
-    )
 
     dimensions = {
         'radius': tile_props.base_radius,
@@ -445,33 +441,6 @@ def spawn_core(tile_props):
     else:
         core = draw_neg_curved_semi_circ_core(dimensions, subdivs)
 
-    '''
-    if curve_type == 'POS':
-        core = draw_pos_curved_slab(
-            radius,
-            segments,
-            angle,
-            height,
-            native_subdivisions)
-        positively_curved_floor_to_vert_groups(
-            core,
-            height,
-            radius)
-    else:
-        core, vert_locs = draw_neg_curved_slab(
-            radius,
-            segments,
-            angle,
-            height,
-            native_subdivisions,
-            return_vert_locs=True)
-        neg_curved_floor_to_vert_groups(
-            core,
-            height,
-            radius,
-            vert_locs
-        )
-    '''
     core.location[2] = core.location[2] + base_size[2]
     core.name = tile_props.tile_name + '.core'
 
@@ -930,8 +899,6 @@ def draw_pos_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
 
     bm, obj = create_turtle('core', vert_groups)
     verts = bm.verts
-    verts.layers.deform.verify()
-    deform_groups = verts.layers.deform.active
 
     bm.select_mode = {'VERT'}
     add_vert(bm)
@@ -983,7 +950,6 @@ def draw_pos_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
     bmesh.ops.remove_doubles(bm, verts=verts, dist=0.001)
     bm_select_all(bm)
     bm.select_flush(True)
-
     # bmesh.ops.grid_fill doesn't work as well as bpy.ops.grid_fill so we use that
     mesh = obj.data
     bm.to_mesh(mesh)
@@ -1063,4 +1029,151 @@ def draw_neg_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
     #   |      \
     #   |________ \
     #  A    b    C
-    pass
+    radius = dimensions['radius']
+    angle = dimensions['angle']
+    height = dimensions['height']
+
+    vert_groups = [
+        'Side a',
+        'Side b',
+        'Side c',
+        'Top',
+        'Bottom']
+
+    vert_locs = {
+        'Side a': [],
+        'Side b': [],
+        'Side c': [],
+        'Top': [],
+        'Bottom': []}
+
+    # calculate a triangle that is the mirror of the one formed by legs b an c
+    triangle = calc_tri(angle, radius, radius)
+
+    bm, obj = create_turtle('core', vert_groups)
+    verts = bm.verts
+
+    bm.select_mode = {'VERT'}
+    add_vert(bm)
+
+    verts.ensure_lookup_table()
+    vert_locs['Side c'].append(verts[-1].co)
+
+    i = 0
+    while i < subdivs['sides']:
+        fd(bm, radius / subdivs['sides'])
+        verts.ensure_lookup_table()
+        vert_locs['Side c'].append(verts[-1].co)
+        i += 1
+
+    # save this vert to side a as well because or error when drawing arc
+    vert_locs['Side a'].append(verts[-1].co.copy())
+
+    pu(bm)
+    home(obj)
+    pd(bm)
+
+    rt(90)
+    add_vert(bm)
+    verts.ensure_lookup_table()
+    vert_locs['Side b'].append(verts[-1].co)
+
+    i = 0
+    while i < subdivs['sides']:
+        fd(bm, radius / subdivs['sides'])
+        verts.ensure_lookup_table()
+        vert_locs['Side b'].append(verts[-1].co)
+        i += 1
+
+    # save this vert to side a as well because or error when drawing arc
+    vert_locs['Side a'].append(verts[-1].co.copy())
+
+    pu(bm)
+    lt(180 - triangle['C'] * 2)
+    fd(bm, radius)
+    lt(180)
+
+    verts.ensure_lookup_table()
+    start_index = bm.verts[-1].index + 1
+    arc(bm, radius, angle, subdivs['arc'])
+
+    verts.ensure_lookup_table()
+    i = start_index
+    while i <= verts[-1].index:
+        vert_locs['Side a'].append(verts[i].co.copy())
+        i += 1
+
+    pu(bm)
+    home(obj)
+
+    bmesh.ops.remove_doubles(bm, verts=verts, dist=0.001)
+    bm_select_all(bm)
+    bmesh.ops.triangle_fill(bm, use_beauty=True, use_dissolve=False, edges=bm.edges)
+    bottom_verts = [v for v in bm.verts]
+
+    bm.select_mode = {'FACE'}
+    bm_select_all(bm)
+    pd(bm)
+    up(bm, height, False)
+
+    selected_faces = [f for f in bm.faces if f.select]
+
+    bmesh.ops.inset_region(
+        bm,
+        faces=selected_faces,
+        thickness=margin,
+        use_boundary=True,
+        use_even_offset=True)
+
+    verts.layers.deform.verify()
+    deform_groups = verts.layers.deform.active
+
+    side_b_verts = select_verts_in_bounds(
+        lbound=obj.location,
+        ubound=(obj.location[0] + radius, obj.location[1], obj.location[2] + height),
+        buffer=margin / 2,
+        bm=bm)
+
+    side_c_verts = select_verts_in_bounds(
+        lbound=obj.location,
+        ubound=(obj.location[0], obj.location[1] + radius, obj.location[2] + height),
+        buffer=margin / 2,
+        bm=bm)
+
+    side_a_verts = []
+    for loc in vert_locs['Side a']:
+        side_a_verts.extend(select_verts_in_bounds(
+            lbound=loc,
+            ubound=(loc[0], loc[1], loc[2] + height),
+            buffer=margin / 2,
+            bm=bm))
+
+    # verts not to include in top
+    vert_list = bottom_verts + side_a_verts + side_b_verts + side_c_verts
+
+    # assign verts to groups
+    assign_verts_to_group(bottom_verts, obj, deform_groups, 'Bottom')
+    assign_verts_to_group(side_a_verts, obj, deform_groups, 'Side a')
+    assign_verts_to_group(side_c_verts, obj, deform_groups, 'Side c')
+    assign_verts_to_group(side_b_verts, obj, deform_groups, 'Side b')
+    assign_verts_to_group(
+        [v for v in bm.verts if v not in vert_list],
+        obj,
+        deform_groups,
+        'Top')
+
+    finalise_turtle(bm, obj)
+    return obj
+
+
+def calc_tri(A, b, c):
+    a = sqrt((b**2 + c**2) - ((2 * b * c) * cos(radians(A))))
+    B = degrees(acos((c**2 + a**2 - (b**2)) / (2 * c * a)))
+    C = 180 - A - B
+
+    dimensions = {
+        'a': a,
+        'B': B,
+        'C': C}
+
+    return dimensions

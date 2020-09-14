@@ -5,6 +5,7 @@ from math import (
     cos,
     degrees,
     acos)
+from mathutils.geometry import intersect_line_line
 import bpy
 import bmesh
 from bpy.types import Operator, Panel
@@ -50,7 +51,8 @@ from .. lib.utils.collections import (
 from ..lib.bmturtle.helpers import (
     bm_select_all,
     select_verts_in_bounds,
-    assign_verts_to_group)
+    assign_verts_to_group,
+    add_vertex_to_intersection)
 from ..lib.bmturtle.commands import (
     create_turtle,
     home,
@@ -292,23 +294,38 @@ def spawn_plain_base(tile_props):
     Returns:
         bpy.types.Object: tile base
     """
+    dimensions = {
+        'height': tile_props.base_size[2],
+        'angle': tile_props.angle,
+        'radius': tile_props.base_radius}
+
+    subdivs = {
+        'arc': tile_props.curve_native_subdivisions}
+
+    '''
     radius = tile_props.base_radius
     segments = tile_props.curve_native_subdivisions
     angle = tile_props.angle
     height = tile_props.base_size[2]
+    '''
     curve_type = tile_props.curve_type
+    '''
     native_subdivisions = (
         tile_props.x_native_subdivisions,
         tile_props.y_native_subdivisions,
         tile_props.z_native_subdivisions,
         tile_props.curve_native_subdivisions
     )
+    '''
 
     if curve_type == 'POS':
-        base = draw_pos_curved_slab(radius, segments, angle, height, native_subdivisions)
+        base = draw_pos_curved_semi_circ_base(dimensions, subdivs)
+    else:
+        base = draw_neg_curved_semi_circ_base(dimensions, subdivs)
+    '''
     else:
         base = draw_neg_curved_slab(radius, segments, angle, height, native_subdivisions)
-
+    '''
     ctx = {
         'selected_objects': [base],
         'active_object': base
@@ -335,18 +352,48 @@ def spawn_openlock_base(tile_props):
     Returns:
         bpy.types.Object: base
     """
-    length = tile_props.base_radius
-    segments = tile_props.curve_native_subdivisions
-    angle = tile_props.angle
-    height = tile_props.base_size[2]
     curve_type = tile_props.curve_type
-    native_subdivisions = (
-        tile_props.x_native_subdivisions,
-        tile_props.y_native_subdivisions,
-        tile_props.z_native_subdivisions,
-        tile_props.curve_native_subdivisions
-    )
 
+    dimensions = {
+        'height': tile_props.base_size[2],
+        'angle': tile_props.angle,
+        'radius': tile_props.base_radius,
+        'outer_w': 0.236,
+        'slot_w': 0.181,
+        'slot_h': 0.24}
+
+    subdivs = {
+        'arc': tile_props.curve_native_subdivisions}
+
+    base = spawn_plain_base(tile_props)
+
+    base.mt_object_props.geometry_type = 'BASE'
+    ctx = {
+        'selected_objects': [base],
+        'object': base,
+        'active_object': base,
+        'selected_editable_objects': [base]}
+
+    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+    base.name = tile_props.tile_name + '.base'
+    props = base.mt_object_props
+    props.is_mt_object = True
+    props.tile_name = tile_props.tile_name
+    props.geometry_type = 'BASE'
+
+    slot_cutter = None
+    if curve_type == 'POS':
+        slot_cutter = draw_pos_curved_slot_cutter(dimensions, subdivs)
+    else:
+        if dimensions['radius'] >= 2:
+            slot_cutter = create_openlock_neg_curve_base_cutters(tile_props)
+
+    if slot_cutter:
+        slot_cutter.name = 'Slot.cutter.' + base.name
+        set_bool_obj_props(slot_cutter, base, tile_props)
+        set_bool_props(slot_cutter, base, 'DIFFERENCE')
+
+    '''
     if curve_type == 'POS':
         base = draw_openlock_pos_curved_base(length, segments, angle, height)
         base.mt_object_props.geometry_type = 'BASE'
@@ -380,7 +427,7 @@ def spawn_openlock_base(tile_props):
             slot_cutter = create_openlock_neg_curve_base_cutters(tile_props)
             set_bool_obj_props(slot_cutter, base, tile_props)
             set_bool_props(slot_cutter, base, 'DIFFERENCE')
-
+    '''
     cutters = create_openlock_base_clip_cutters(tile_props)
 
     for clip_cutter in cutters:
@@ -474,7 +521,7 @@ def create_openlock_neg_curve_base_cutters(tile_props):
     face_dist = 0.233
     slot_width = 0.197
     slot_height = 0.25
-    end_dist = 0.236  # distance of slot from base end
+    end_dist = 0.24  # distance of slot from base end
 
     cutter_triangles_1 = calculate_corner_wall_triangles(
         length,
@@ -871,6 +918,84 @@ def positively_curved_floor_to_vert_groups(obj, height, side_length):
     mode('OBJECT')
 
 
+def draw_pos_curved_semi_circ_base(dimensions, subdivs):
+    radius = dimensions['radius']
+    angle = dimensions['angle']
+    height = dimensions['height']
+
+    bm, obj = create_turtle('base')
+    verts = bm.verts
+
+    bm.select_mode = {'VERT'}
+    add_vert(bm)
+    fd(bm, radius)
+    pu(bm)
+    home(obj)
+    pd(bm)
+    arc(bm, radius, angle, subdivs['arc'])
+
+    pd(bm)
+    add_vert(bm)
+    rt(angle)
+    fd(bm, radius)
+    pu(bm)
+    home(obj)
+
+    bmesh.ops.remove_doubles(bm, verts=verts, dist=0.001)
+    bmesh.ops.triangle_fill(bm, use_beauty=True, use_dissolve=False, edges=bm.edges)
+    pd(bm)
+    bm.select_mode = {'FACE'}
+    bm_select_all(bm)
+    up(bm, height, False)
+    pu(bm)
+    home(obj)
+
+    finalise_turtle(bm, obj)
+    return obj
+
+
+def draw_neg_curved_semi_circ_base(dimensions, subdivs):
+    radius = dimensions['radius']
+    angle = dimensions['angle']
+    height = dimensions['height']
+
+    # calculate a triangle that is the mirror of the one formed by legs b an c
+    triangle = calc_tri(angle, radius, radius)
+
+    bm, obj = create_turtle('base')
+    verts = bm.verts
+    bm.select_mode = {'VERT'}
+    pd(bm)
+    add_vert(bm)
+
+    fd(bm, radius)
+    pu(bm)
+    home(obj)
+    pd(bm)
+    rt(angle)
+    add_vert(bm)
+    fd(bm, radius)
+    pu(bm)
+    lt(180 - triangle['C'] * 2)
+    fd(bm, radius)
+    lt(180)
+
+    arc(bm, radius, angle, subdivs['arc'])
+    pu(bm)
+    home(obj)
+    bmesh.ops.remove_doubles(bm, verts=verts, dist=0.01)
+    bm_select_all(bm)
+    bmesh.ops.triangle_fill(bm, use_beauty=True, use_dissolve=False, edges=bm.edges)
+    bm.select_mode = {'FACE'}
+    pd(bm)
+    up(bm, height, False)
+    pu(bm)
+    home(obj)
+    finalise_turtle(bm, obj)
+
+    return obj
+
+
 def draw_pos_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
 
     #   B
@@ -904,13 +1029,13 @@ def draw_pos_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
     add_vert(bm)
 
     verts.ensure_lookup_table()
-    vert_locs['Side c'].append(verts[-1].co)
+    vert_locs['Side c'].append(verts[-1].co.copy())
 
     i = 0
     while i < subdivs['sides']:
         fd(bm, radius / subdivs['sides'])
         verts.ensure_lookup_table()
-        vert_locs['Side c'].append(verts[-1].co)
+        vert_locs['Side c'].append(verts[-1].co.copy())
         i += 1
 
     pu(bm)
@@ -929,16 +1054,16 @@ def draw_pos_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
 
     pd(bm)
     add_vert(bm)
-    rt(90)
+    rt(angle)
 
     verts.ensure_lookup_table()
-    vert_locs['Side b'].append(verts[-1].co)
+    vert_locs['Side b'].append(verts[-1].co.copy())
 
     i = 0
     while i < subdivs['sides']:
         fd(bm, radius / subdivs['sides'])
         verts.ensure_lookup_table()
-        vert_locs['Side b'].append(verts[-1].co)
+        vert_locs['Side b'].append(verts[-1].co.copy())
         i += 1
 
     # save this vert to side a as well because or error when drawing arc
@@ -983,11 +1108,13 @@ def draw_pos_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
     verts.layers.deform.verify()
     deform_groups = verts.layers.deform.active
 
-    side_b_verts = select_verts_in_bounds(
-        lbound=obj.location,
-        ubound=(obj.location[0] + radius, obj.location[1], obj.location[2] + height),
-        buffer=margin / 2,
-        bm=bm)
+    side_b_verts = []
+    for loc in vert_locs['Side b']:
+        side_b_verts.extend(select_verts_in_bounds(
+            lbound=loc,
+            ubound=(loc[0], loc[1], loc[2] + height),
+            buffer=margin / 2,
+            bm=bm))
 
     side_c_verts = select_verts_in_bounds(
         lbound=obj.location,
@@ -1057,32 +1184,32 @@ def draw_neg_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
     add_vert(bm)
 
     verts.ensure_lookup_table()
-    vert_locs['Side c'].append(verts[-1].co)
+    vert_locs['Side c'].append(verts[-1].co.copy())
 
     i = 0
     while i < subdivs['sides']:
         fd(bm, radius / subdivs['sides'])
         verts.ensure_lookup_table()
-        vert_locs['Side c'].append(verts[-1].co)
+        vert_locs['Side c'].append(verts[-1].co.copy())
         i += 1
 
-    # save this vert to side a as well because or error when drawing arc
+    # save this vert to side a as well because of margin of error when drawing arc
     vert_locs['Side a'].append(verts[-1].co.copy())
 
     pu(bm)
     home(obj)
     pd(bm)
 
-    rt(90)
+    rt(angle)
     add_vert(bm)
     verts.ensure_lookup_table()
-    vert_locs['Side b'].append(verts[-1].co)
+    vert_locs['Side b'].append(verts[-1].co.copy())
 
     i = 0
     while i < subdivs['sides']:
         fd(bm, radius / subdivs['sides'])
         verts.ensure_lookup_table()
-        vert_locs['Side b'].append(verts[-1].co)
+        vert_locs['Side b'].append(verts[-1].co.copy())
         i += 1
 
     # save this vert to side a as well because or error when drawing arc
@@ -1106,7 +1233,7 @@ def draw_neg_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
     pu(bm)
     home(obj)
 
-    bmesh.ops.remove_doubles(bm, verts=verts, dist=0.001)
+    bmesh.ops.remove_doubles(bm, verts=verts, dist=0.01)
     bm_select_all(bm)
     bmesh.ops.triangle_fill(bm, use_beauty=True, use_dissolve=False, edges=bm.edges)
     bottom_verts = [v for v in bm.verts]
@@ -1128,11 +1255,13 @@ def draw_neg_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
     verts.layers.deform.verify()
     deform_groups = verts.layers.deform.active
 
-    side_b_verts = select_verts_in_bounds(
-        lbound=obj.location,
-        ubound=(obj.location[0] + radius, obj.location[1], obj.location[2] + height),
-        buffer=margin / 2,
-        bm=bm)
+    side_b_verts = []
+    for loc in vert_locs['Side b']:
+        side_b_verts.extend(select_verts_in_bounds(
+            lbound=loc,
+            ubound=(loc[0], loc[1], loc[2] + height),
+            buffer=margin / 2,
+            bm=bm))
 
     side_c_verts = select_verts_in_bounds(
         lbound=obj.location,
@@ -1164,6 +1293,138 @@ def draw_neg_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
 
     finalise_turtle(bm, obj)
     return obj
+
+
+def draw_pos_curved_slot_cutter(dimensions, subdivs):
+    radius = dimensions['radius']
+    angle = dimensions['angle']
+    outer_w = dimensions['outer_w']
+    slot_w = dimensions['slot_w']
+    slot_h = dimensions['slot_h']
+
+    bm, obj = create_turtle('base')
+    verts = bm.verts
+
+    bm.select_mode = {'VERT'}
+    turtle = bpy.context.scene.cursor
+    origin = turtle.location.copy()
+
+    pu(bm)
+
+    # get locs of ends of edges inside and parallel to base outer edges
+    rt(angle)
+    fd(bm, radius / 2)
+    lt(90)
+    fd(bm, outer_w)
+    lt(90)
+    v1 = turtle.location.copy()
+    fd(bm, 0.01)
+    v2 = turtle.location.copy()
+
+    home(obj)
+    fd(bm, radius / 2)
+    rt(90)
+    fd(bm, outer_w)
+    rt(90)
+    v3 = turtle.location.copy()
+    fd(bm, 0.01)
+    v4 = turtle.location.copy()
+
+    # get intersection
+    intersection = intersect_line_line(v1, v2, v3, v4)
+    intersection = (intersection[0] + intersection[1]) / 2
+    turtle.location = intersection
+    turtle.rotation_euler = (0, 0, 0)
+    dist = distance_between_two_points(origin, intersection)
+
+    new_radius = radius - dist - outer_w
+
+    # draw outer arc
+    arc(bm, new_radius, angle, subdivs['arc'] + 1)
+
+    # draw sides
+    add_vert(bm)
+    pd(bm)
+    fd(bm, new_radius)
+    pu(bm)
+    turtle.location = intersection
+    pd(bm)
+    verts.ensure_lookup_table()
+    verts[-2].select = True
+    rt(angle)
+    fd(bm, new_radius)
+    pu(bm)
+    bmesh.ops.remove_doubles(bm, verts=verts, dist=0.001)
+
+    # repeat for inner edge of slot cutter
+    turtle.location = intersection
+    turtle.rotation_euler = (0, 0, 0)
+
+    # get locs of ends of edges inside and parallel to base outer edges
+    rt(angle)
+    fd(bm, radius / 2)
+    lt(90)
+    fd(bm, slot_w)
+    lt(90)
+    v1 = turtle.location.copy()
+    fd(bm, 0.01)
+    v2 = turtle.location.copy()
+
+    turtle.location = intersection
+    turtle.rotation_euler = (0, 0, 0)
+    fd(bm, radius / 2)
+    rt(90)
+    fd(bm, slot_w)
+    rt(90)
+    v3 = turtle.location.copy()
+    fd(bm, 0.01)
+    v4 = turtle.location.copy()
+
+    # get intersection
+    intersection_2 = intersect_line_line(v1, v2, v3, v4)
+    intersection_2 = (intersection_2[0] + intersection_2[1]) / 2
+    turtle.location = intersection_2
+    turtle.rotation_euler = (0, 0, 0)
+    dist = distance_between_two_points(intersection, intersection_2)
+
+    new_radius = new_radius - dist - slot_w
+
+    # draw outer arc
+    arc(bm, new_radius, angle, subdivs['arc'] + 1)
+    add_vert(bm)
+    pd(bm)
+    fd(bm, new_radius)
+    pu(bm)
+    turtle.location = intersection_2
+    pd(bm)
+    verts.ensure_lookup_table()
+    verts[-2].select = True
+    rt(angle)
+    fd(bm, new_radius)
+    pu(bm)
+    bmesh.ops.remove_doubles(bm, verts=verts, dist=0.001)
+    bmesh.ops.bridge_loops(bm, edges=bm.edges)
+    bm.select_mode={'FACE'}
+    bm_select_all(bm)
+    pd(bm)
+    up(bm, slot_h + 0.001, False)
+    pu(bm)
+    home(obj)
+    obj.location = (obj.location[0], obj.location[1], obj.location[2] - 0.001)
+    finalise_turtle(bm, obj)
+
+    return obj
+
+
+def distance_between_two_points(v1, v2):
+    '''returns the distance between 2 points'''
+    locx = v2[0] - v1[0]
+    locy = v2[1] - v1[1]
+    locz = v2[2] - v1[2]
+
+    distance = sqrt((locx)**2 + (locy)**2 + (locz)**2)
+
+    return distance
 
 
 def calc_tri(A, b, c):

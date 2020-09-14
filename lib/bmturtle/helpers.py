@@ -1,7 +1,7 @@
 from math import inf
 import bmesh
 import bpy
-from mathutils import Vector
+from mathutils import Vector, geometry
 from ..utils.selection import in_bbox
 
 
@@ -210,3 +210,18 @@ def bm_shortest_path(bm, v_start, v_target=None):
         visiting.sort(key=lambda n: n.length)
 
     return d
+
+
+def add_vertex_to_intersection(bm, edges):
+    bm_deselect_all(bm)
+    if len(edges) == 2:
+        [[v1, v2], [v3, v4]] = [[v.co for v in e.verts] for e in edges]
+
+        iv = geometry.intersect_line_line(v1, v2, v3, v4)
+        if iv:
+            iv = (iv[0] + iv[1]) / 2
+            bm.verts.new(iv)
+
+            bm.verts.ensure_lookup_table()
+
+            bm.verts[-1].select = True

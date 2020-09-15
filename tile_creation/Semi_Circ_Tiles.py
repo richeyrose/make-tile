@@ -22,24 +22,13 @@ from . create_tile import (
     set_bool_obj_props,
     set_bool_props)
 
-from .. lib.turtle.scripts.curved_floor import (
-    draw_neg_curved_slab,
-    draw_pos_curved_slab,
-    draw_openlock_pos_curved_base)
 from .. lib.turtle.scripts.L_Tile import (
-    calculate_corner_wall_triangles,
-    move_cursor_to_wall_start,
-    draw_corner_3D)
-from .. lib.utils.vertex_groups import (
-    get_vert_indexes_in_vert_group,
-    remove_verts_from_group
-)
+    calculate_corner_wall_triangles)
+
 from .. utils.registration import get_prefs
 from .. lib.utils.selection import (
     select,
     deselect_all,
-    select_by_loc,
-    select_inverse_by_loc,
     activate)
 from .. lib.utils.utils import (
     mode,
@@ -51,8 +40,7 @@ from .. lib.utils.collections import (
 from ..lib.bmturtle.helpers import (
     bm_select_all,
     select_verts_in_bounds,
-    assign_verts_to_group,
-    add_vertex_to_intersection)
+    assign_verts_to_group)
 from ..lib.bmturtle.commands import (
     create_turtle,
     home,
@@ -64,8 +52,8 @@ from ..lib.bmturtle.commands import (
     rt,
     lt,
     up,
-    arc,
-    finalise_turtle)
+    dn,
+    arc)
 
 
 class MT_PT_Semi_Circ_Floor_Panel(Panel):
@@ -302,30 +290,13 @@ def spawn_plain_base(tile_props):
     subdivs = {
         'arc': tile_props.curve_native_subdivisions}
 
-    '''
-    radius = tile_props.base_radius
-    segments = tile_props.curve_native_subdivisions
-    angle = tile_props.angle
-    height = tile_props.base_size[2]
-    '''
     curve_type = tile_props.curve_type
-    '''
-    native_subdivisions = (
-        tile_props.x_native_subdivisions,
-        tile_props.y_native_subdivisions,
-        tile_props.z_native_subdivisions,
-        tile_props.curve_native_subdivisions
-    )
-    '''
 
     if curve_type == 'POS':
         base = draw_pos_curved_semi_circ_base(dimensions, subdivs)
     else:
         base = draw_neg_curved_semi_circ_base(dimensions, subdivs)
-    '''
-    else:
-        base = draw_neg_curved_slab(radius, segments, angle, height, native_subdivisions)
-    '''
+
     ctx = {
         'selected_objects': [base],
         'active_object': base
@@ -386,48 +357,13 @@ def spawn_openlock_base(tile_props):
         slot_cutter = draw_pos_curved_slot_cutter(dimensions, subdivs)
     else:
         if dimensions['radius'] >= 2:
-            slot_cutter = create_openlock_neg_curve_base_cutters(tile_props)
+            slot_cutter = draw_neg_curved_slot_cutter(dimensions)
 
     if slot_cutter:
         slot_cutter.name = 'Slot.cutter.' + base.name
         set_bool_obj_props(slot_cutter, base, tile_props)
         set_bool_props(slot_cutter, base, 'DIFFERENCE')
 
-    '''
-    if curve_type == 'POS':
-        base = draw_openlock_pos_curved_base(length, segments, angle, height)
-        base.mt_object_props.geometry_type = 'BASE'
-        ctx = {
-            'selected_objects': [base],
-            'active_object': base
-        }
-        bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-        base.name = tile_props.tile_name + '.base'
-        props = base.mt_object_props
-        props.is_mt_object = True
-        props.tile_name = tile_props.tile_name
-        props.geometry_type = 'BASE'
-
-    else:
-        draw_neg_curved_slab(length, segments, angle, height, native_subdivisions)
-        base = bpy.context.object
-        base.mt_object_props.geometry_type = 'BASE'
-        ctx = {
-            'selected_objects': [base],
-            'active_object': base
-        }
-        bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-        base.name = tile_props.tile_name + '.base'
-        props = base.mt_object_props
-        props.is_mt_object = True
-        props.tile_name = tile_props.tile_name
-        props.geometry_type = 'BASE'
-
-        if length >= 3:
-            slot_cutter = create_openlock_neg_curve_base_cutters(tile_props)
-            set_bool_obj_props(slot_cutter, base, tile_props)
-            set_bool_props(slot_cutter, base, 'DIFFERENCE')
-    '''
     cutters = create_openlock_base_clip_cutters(tile_props)
 
     for clip_cutter in cutters:
@@ -506,7 +442,7 @@ def spawn_core(tile_props):
     obj_props.tile_name = tile_props.tile_name
     return core
 
-
+'''
 def create_openlock_neg_curve_base_cutters(tile_props):
     """Generate base cutters for negatively curved tiles.
 
@@ -533,8 +469,7 @@ def create_openlock_neg_curve_base_cutters(tile_props):
     move_cursor_to_wall_start(
         cutter_triangles_1,
         angle,
-        face_dist,
-        -0.01)
+        face_dist)
 
     cutter_x_leg = cutter_triangles_1['b_adj'] - end_dist
     cutter_y_leg = cutter_triangles_1['d_adj'] - end_dist
@@ -557,7 +492,7 @@ def create_openlock_neg_curve_base_cutters(tile_props):
     cutter.name = 'Slot Cutter.' + tile_props.tile_name + '.base.cutter'
 
     return cutter
-
+'''
 
 def create_openlock_base_clip_cutters(tile_props):
     """Generate base clip cutters for semi circular tiles.
@@ -690,7 +625,7 @@ def create_openlock_base_clip_cutters(tile_props):
 
     return cutters
 
-
+'''
 def neg_curved_floor_to_vert_groups(obj, height, side_length, vert_locs):
     """Create vertex groups for negatively curved semi circular floors.
 
@@ -819,8 +754,8 @@ def neg_curved_floor_to_vert_groups(obj, height, side_length, vert_locs):
         side_vert_indices.extend(verts)
 
     remove_verts_from_group('Top', bpy.context.object, side_vert_indices)
-
-
+'''
+'''
 def positively_curved_floor_to_vert_groups(obj, height, side_length):
     """Create vertex groups for positively curved semi circular floors.
 
@@ -916,7 +851,7 @@ def positively_curved_floor_to_vert_groups(obj, height, side_length):
     bpy.ops.object.vertex_group_assign()
 
     mode('OBJECT')
-
+'''
 
 def draw_pos_curved_semi_circ_base(dimensions, subdivs):
     radius = dimensions['radius']
@@ -1404,7 +1339,7 @@ def draw_pos_curved_slot_cutter(dimensions, subdivs):
     pu(bm)
     bmesh.ops.remove_doubles(bm, verts=verts, dist=0.001)
     bmesh.ops.bridge_loops(bm, edges=bm.edges)
-    bm.select_mode={'FACE'}
+    bm.select_mode = {'FACE'}
     bm_select_all(bm)
     pd(bm)
     up(bm, slot_h + 0.001, False)
@@ -1413,6 +1348,76 @@ def draw_pos_curved_slot_cutter(dimensions, subdivs):
     obj.location = (obj.location[0], obj.location[1], obj.location[2] - 0.001)
     finalise_turtle(bm, obj)
 
+    return obj
+
+
+def draw_neg_curved_slot_cutter(dimensions):
+    radius = dimensions['radius']
+    angle = dimensions['angle']
+    outer_w = dimensions['outer_w']
+    slot_w = dimensions['slot_w']
+    slot_h = dimensions['slot_h'] + 0.001
+
+    triangles_1 = calculate_corner_wall_triangles(
+        radius,
+        radius,
+        outer_w,
+        angle)
+
+    x_leg = triangles_1['b_adj'] - outer_w
+    y_leg = triangles_1['d_adj'] - outer_w
+
+    triangles_2 = calculate_corner_wall_triangles(
+        x_leg,
+        y_leg,
+        slot_w,
+        angle)
+
+    bm, obj = create_turtle('slot_cutter')
+    bm.select_mode = {'VERT'}
+
+    turtle = bpy.context.scene.cursor
+    # move turtle to start
+    orig_rot = turtle.rotation_euler.copy()
+
+    pu(bm)
+    dn(bm, 0.001)
+    rt(angle)
+    fd(bm, triangles_1['a_adj'])
+    lt(90)
+    fd(bm, outer_w)
+    lt(90)
+    fd(bm, triangles_1['b_adj'])
+    turtle.rotation_euler = orig_rot
+    turtle_start_loc = turtle.location.copy()
+    pd(bm)
+
+    add_vert(bm)
+    rt(angle)
+    fd(bm, triangles_2['a_adj'] - (radius / 2))
+    lt(90)
+    fd(bm, slot_w)
+    lt(90)
+    fd(bm, triangles_2['b_adj'] - (radius / 2))
+    pu(bm)
+    home(obj)
+    turtle.location = turtle_start_loc
+    pd(bm)
+    add_vert(bm)
+    fd(bm, triangles_2['c_adj'] - (radius / 2))
+    rt(90)
+    fd(bm, slot_w)
+    rt(90)
+    fd(bm, triangles_2['d_adj'] - (radius / 2))
+
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.01)
+    bmesh.ops.triangle_fill(bm, use_beauty=True, use_dissolve=False, edges=bm.edges)
+    bm.select_mode = {'FACE'}
+    bm_select_all(bm)
+    up(bm, slot_h, False)
+    pu(bm)
+    home(obj)
+    finalise_turtle(bm, obj)
     return obj
 
 

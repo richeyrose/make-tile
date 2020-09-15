@@ -1,10 +1,6 @@
 import os
 from math import (
-    radians,
-    sqrt,
-    cos,
-    degrees,
-    acos)
+    radians)
 from mathutils.geometry import intersect_line_line
 import bpy
 import bmesh
@@ -32,7 +28,9 @@ from .. lib.utils.selection import (
     activate)
 from .. lib.utils.utils import (
     mode,
-    get_all_subclasses)
+    get_all_subclasses,
+    distance_between_two_points,
+    calc_tri)
 from .. lib.utils.collections import (
     add_object_to_collection,
     create_collection,
@@ -442,57 +440,6 @@ def spawn_core(tile_props):
     obj_props.tile_name = tile_props.tile_name
     return core
 
-'''
-def create_openlock_neg_curve_base_cutters(tile_props):
-    """Generate base cutters for negatively curved tiles.
-
-    Args:
-        tile_props (bpy.types.MT_Tile_Properties): tile properties
-
-    Returns:
-        list[bpy.types.Object]: Base cutters
-    """
-    length = tile_props.base_radius / 2
-    angle = tile_props.angle
-    face_dist = 0.233
-    slot_width = 0.197
-    slot_height = 0.25
-    end_dist = 0.24  # distance of slot from base end
-
-    cutter_triangles_1 = calculate_corner_wall_triangles(
-        length,
-        length,
-        face_dist,
-        angle)
-
-    # reuse method we use to work out where to start our corner wall
-    move_cursor_to_wall_start(
-        cutter_triangles_1,
-        angle,
-        face_dist)
-
-    cutter_x_leg = cutter_triangles_1['b_adj'] - end_dist
-    cutter_y_leg = cutter_triangles_1['d_adj'] - end_dist
-
-    # work out dimensions of cutter
-    cutter_triangles_2 = calculate_corner_wall_triangles(
-        cutter_x_leg,
-        cutter_y_leg,
-        slot_width,
-        angle
-    )
-
-    cutter = draw_corner_3D(
-        cutter_triangles_2,
-        angle,
-        slot_width,
-        slot_height
-    )
-
-    cutter.name = 'Slot Cutter.' + tile_props.tile_name + '.base.cutter'
-
-    return cutter
-'''
 
 def create_openlock_base_clip_cutters(tile_props):
     """Generate base clip cutters for semi circular tiles.
@@ -625,235 +572,20 @@ def create_openlock_base_clip_cutters(tile_props):
 
     return cutters
 
-'''
-def neg_curved_floor_to_vert_groups(obj, height, side_length, vert_locs):
-    """Create vertex groups for negatively curved semi circular floors.
-
-    Args:
-        obj (bpy.types.Object): Floor core
-        height (float): height
-        side_length (float): side length
-        vert_locs (dict): vertex locations
-    """
-    ctx = {
-        'object': obj,
-        'active_object': obj,
-        'selected_objects': [obj]
-    }
-
-    obj.vertex_groups.new(name='Side a')
-    obj.vertex_groups.new(name='Side b')
-    obj.vertex_groups.new(name='Side c')
-    obj.vertex_groups.new(name='Bottom')
-    obj.vertex_groups.new(name='Top')
-    select(obj.name)
-    mode('EDIT')
-    deselect_all()
-
-    select_by_loc(
-        lbound=(obj.location),
-        ubound=(
-            obj.location[0] + side_length,
-            obj.location[1] + side_length,
-            obj.location[2]),
-        buffer=0.0001,
-        coords='GLOBAL'
-    )
-    bpy.ops.object.vertex_group_set_active(group='Bottom')
-    bpy.ops.object.vertex_group_assign()
-    deselect_all()
-
-    select_by_loc(
-        lbound=(
-            obj.location[0],
-            obj.location[1],
-            obj.location[2] + height),
-        ubound=(
-            obj.location[0] + side_length,
-            obj.location[1] + side_length,
-            obj.location[2] + height),
-        buffer=0.0001,
-        coords='GLOBAL'
-    )
-    bpy.ops.object.vertex_group_set_active(group='Top')
-    bpy.ops.object.vertex_group_assign()
-    deselect_all()
-
-    for key, value in vert_locs.items():
-        if key == 'side_a':
-            for v in value:
-                select_by_loc(
-                    lbound=v,
-                    ubound=(v[0], v[1], v[2] + height),
-                    select_mode='VERT',
-                    coords='GLOBAL',
-                    additive=True,
-                    buffer=0.0001
-                )
-
-    select_by_loc(
-        lbound=(
-            obj.location[0],
-            obj.location[1] + side_length,
-            obj.location[2]),
-        ubound=(
-            obj.location[0],
-            obj.location[1] + side_length,
-            obj.location[2] + height),
-        buffer=0.0001,
-        additive=True,
-        coords='GLOBAL'
-    )
-
-    bpy.ops.object.vertex_group_set_active(ctx, group='Side a')
-    bpy.ops.object.vertex_group_assign(ctx)
-    deselect_all()
-
-    # side b
-    select_by_loc(
-        lbound=(
-            obj.location[0],
-            obj.location[1],
-            obj.location[2]),
-        ubound=(
-            obj.location[0],
-            obj.location[1] + side_length,
-            obj.location[2] + height),
-        buffer=0.0001,
-        coords='GLOBAL'
-    )
-
-    bpy.ops.object.vertex_group_set_active(group='Side b')
-    bpy.ops.object.vertex_group_assign()
-    deselect_all()
-
-    select_by_loc(
-        lbound=(
-            obj.location[0],
-            obj.location[1],
-            obj.location[2]),
-        ubound=(
-            obj.location[0] + side_length,
-            obj.location[1],
-            obj.location[2] + height),
-        buffer=0.0001,
-        coords='GLOBAL'
-    )
-    bpy.ops.object.vertex_group_set_active(group='Side c')
-    bpy.ops.object.vertex_group_assign()
-    deselect_all()
-
-    mode('OBJECT')
-
-    # get verts in side groups
-    side_groups = ['Side a', 'Side b', 'Side c']
-    side_vert_indices = []
-
-    for group in side_groups:
-        verts = get_vert_indexes_in_vert_group(group, bpy.context.object)
-        side_vert_indices.extend(verts)
-
-    remove_verts_from_group('Top', bpy.context.object, side_vert_indices)
-'''
-'''
-def positively_curved_floor_to_vert_groups(obj, height, side_length):
-    """Create vertex groups for positively curved semi circular floors.
-
-    Args:
-        obj (bpy.types.Object): Floor core
-        height (float): height
-        side_length (float): side length
-        vert_locs (dict): vertex locations
-    """
-    obj.vertex_groups.new(name='Side a')
-    obj.vertex_groups.new(name='Side b')
-    obj.vertex_groups.new(name='Side c')
-    obj.vertex_groups.new(name='Bottom')
-    obj.vertex_groups.new(name='Top')
-    select(obj.name)
-    mode('EDIT')
-
-    deselect_all()
-    select_by_loc(
-        lbound=(obj.location),
-        ubound=(
-            obj.location[0] + side_length,
-            obj.location[1] + side_length,
-            obj.location[2]),
-        buffer=0.0001,
-        coords='GLOBAL'
-    )
-    bpy.ops.object.vertex_group_set_active(group='Bottom')
-    bpy.ops.object.vertex_group_assign()
-
-    deselect_all()
-    select_by_loc(
-        lbound=(
-            obj.location[0],
-            obj.location[1],
-            obj.location[2] + height),
-        ubound=(
-            obj.location[0] + side_length,
-            obj.location[1] + side_length,
-            obj.location[2] + height),
-        buffer=0.0001,
-        coords='GLOBAL'
-    )
-    bpy.ops.object.vertex_group_set_active(group='Top')
-    bpy.ops.object.vertex_group_assign()
-
-    deselect_all()
-    select_by_loc(
-        lbound=(
-            obj.location[0],
-            obj.location[1],
-            obj.location[2]),
-        ubound=(
-            obj.location[0] + side_length,
-            obj.location[1],
-            obj.location[2] + height),
-        buffer=0.0001,
-        coords='GLOBAL'
-    )
-    bpy.ops.object.vertex_group_set_active(group='Side c')
-    bpy.ops.object.vertex_group_assign()
-
-    deselect_all()
-    select_by_loc(
-        lbound=(
-            obj.location[0],
-            obj.location[1],
-            obj.location[2]),
-        ubound=(
-            obj.location[0],
-            obj.location[1] + side_length,
-            obj.location[2] + height),
-        buffer=0.0001,
-        coords='GLOBAL'
-    )
-    bpy.ops.object.vertex_group_set_active(group='Side b')
-    bpy.ops.object.vertex_group_assign()
-
-    deselect_all()
-    select_inverse_by_loc(
-        lbound=(
-            obj.location[0],
-            obj.location[1],
-            obj.location[2]),
-        ubound=(
-            obj.location[0],
-            obj.location[1],
-            obj.location[2] + height),
-        buffer=0.0001,
-        coords='GLOBAL'
-    )
-    bpy.ops.object.vertex_group_set_active(group='Side a')
-    bpy.ops.object.vertex_group_assign()
-
-    mode('OBJECT')
-'''
 
 def draw_pos_curved_semi_circ_base(dimensions, subdivs):
+    """Return a positively curved semi circular base.
+
+    Args:
+        dimensions (dict{
+            radius: float,
+            angle: float,
+            height: float}): dimensions
+        subdivs (dict{arc: float}): subdivisions
+
+    Returns:
+        bpy.type.Object: base
+    """
     radius = dimensions['radius']
     angle = dimensions['angle']
     height = dimensions['height']
@@ -890,6 +622,18 @@ def draw_pos_curved_semi_circ_base(dimensions, subdivs):
 
 
 def draw_neg_curved_semi_circ_base(dimensions, subdivs):
+    """Return a negatively curved semi circular base.
+
+    Args:
+        dimensions (dict{
+            radius: float,
+            angle: float,
+            height: float}): dimensions
+        subdivs (dict{arc: float}): subdivisions
+
+    Returns:
+        bpy.type.Object: base
+    """
     radius = dimensions['radius']
     angle = dimensions['angle']
     height = dimensions['height']
@@ -932,6 +676,21 @@ def draw_neg_curved_semi_circ_base(dimensions, subdivs):
 
 
 def draw_pos_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
+    """Return a positively curved semi circular core.
+
+    Args:
+        dimensions (dict{
+            radius: float,
+            angle: float,
+            height: float}): dimensions
+        subdivs (dict{
+            sides: float,
+            arc: float}): subdivisions
+        margin (float): margin between texturewd and blank area
+
+    Returns:
+        bpy.type.Object: core
+    """
 
     #   B
     #   |\
@@ -1084,6 +843,21 @@ def draw_pos_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
 
 
 def draw_neg_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
+    """Return a negatively curved semi circular core.
+
+    Args:
+        dimensions (dict{
+            radius: float,
+            angle: float,
+            height: float}): dimensions
+        subdivs (dict{
+            sides: float,
+            arc: float}): subdivisions
+        margin (float): margin between texturewd and blank area
+
+    Returns:
+        bpy.type.Object: core
+    """
 
     #   B
     #   |\
@@ -1231,6 +1005,18 @@ def draw_neg_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
 
 
 def draw_pos_curved_slot_cutter(dimensions, subdivs):
+    """Return a positively curved base slot cutter.
+
+    Args:
+        dimensions (dict{
+            radius: float,
+            angle: float,
+            height: float}): dimensions
+        subdivs (dict{arc: float}): subdivisions
+
+    Returns:
+        bpy.type.Object: slot cutter
+    """
     radius = dimensions['radius']
     angle = dimensions['angle']
     outer_w = dimensions['outer_w']
@@ -1352,6 +1138,17 @@ def draw_pos_curved_slot_cutter(dimensions, subdivs):
 
 
 def draw_neg_curved_slot_cutter(dimensions):
+    """Return a negatively curved base slot cutter.
+
+    Args:
+        dimensions (dict{
+            radius: float,
+            angle: float,
+            height: float}): dimensions
+
+    Returns:
+        bpy.type.Object: slot cutter
+    """
     radius = dimensions['radius']
     angle = dimensions['angle']
     outer_w = dimensions['outer_w']
@@ -1419,27 +1216,3 @@ def draw_neg_curved_slot_cutter(dimensions):
     home(obj)
     finalise_turtle(bm, obj)
     return obj
-
-
-def distance_between_two_points(v1, v2):
-    '''returns the distance between 2 points'''
-    locx = v2[0] - v1[0]
-    locy = v2[1] - v1[1]
-    locz = v2[2] - v1[2]
-
-    distance = sqrt((locx)**2 + (locy)**2 + (locz)**2)
-
-    return distance
-
-
-def calc_tri(A, b, c):
-    a = sqrt((b**2 + c**2) - ((2 * b * c) * cos(radians(A))))
-    B = degrees(acos((c**2 + a**2 - (b**2)) / (2 * c * a)))
-    C = 180 - A - B
-
-    dimensions = {
-        'a': a,
-        'B': B,
-        'C': C}
-
-    return dimensions

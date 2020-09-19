@@ -11,7 +11,7 @@ from ..operators.maketile import (
     create_common_tile_props)
 
 from . create_tile import (
-    create_displacement_core,
+    convert_to_displacement_core,
     finalise_tile,
     spawn_empty_base,
     spawn_prefab,
@@ -386,12 +386,9 @@ def spawn_plain_floor_cores(base, tile_props):
     preview_core = spawn_core(tile_props)
     textured_vertex_groups = ['Top']
 
-    core, displacement_core = create_displacement_core(
-        base,
+    convert_to_displacement_core(
         preview_core,
-        tile_props,
         textured_vertex_groups)
-    displacement_core.hide_viewport = True
     return core
 
 

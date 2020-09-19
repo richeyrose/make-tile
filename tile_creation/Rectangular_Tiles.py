@@ -21,7 +21,7 @@ from .. lib.utils.selection import (
     select_by_loc)
 
 from .create_tile import (
-    create_displacement_core,
+    convert_to_displacement_core,
     finalise_tile,
     spawn_empty_base,
     spawn_prefab,
@@ -199,12 +199,12 @@ class MT_OT_Make_Rect_Floor_Tile(MT_Tile_Generator, Operator):
             context, scene_props)
         base = spawn_prefab(context, subclasses, base_blueprint, base_type)
 
-        if core_type == 'NONE':
-            preview_core = None
+        if core_blueprint == 'NONE':
+            core = None
         else:
-            preview_core = spawn_prefab(context, subclasses, core_blueprint, core_type)
+            core = spawn_prefab(context, subclasses, core_blueprint, core_type)
 
-        finalise_tile(base, preview_core, cursor_orig_loc, cursor_orig_rot)
+        finalise_tile(base, core, cursor_orig_loc, cursor_orig_rot)
 
         scene.render.engine = original_renderer
 
@@ -260,19 +260,10 @@ def create_plain_rect_floor_cores(base, tile_props):
     preview_core = spawn_floor_core(tile_props)
     textured_vertex_groups = ['Top']
 
-    '''
-    preview_core, displacement_core = create_displacement_core(
-        base,
+    convert_to_displacement_core(
         preview_core,
-        tile_props,
         textured_vertex_groups)
-    '''
-    preview_core = create_displacement_core(
-        base,
-        preview_core,
-        tile_props,
-        textured_vertex_groups)
-    # displacement_core.hide_viewport = True
+
     bpy.context.view_layer.objects.active = preview_core
 
     return preview_core

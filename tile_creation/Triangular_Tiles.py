@@ -15,7 +15,7 @@ from .. lib.utils.collections import (
 from .. lib.utils.utils import mode, get_all_subclasses
 from .. lib.utils.selection import select
 from .create_tile import (
-    create_displacement_core,
+    convert_to_displacement_core,
     finalise_tile,
     spawn_empty_base,
     spawn_prefab,
@@ -527,12 +527,10 @@ def create_plain_triangular_floor_cores(base, tile_props):
     """
     preview_core = spawn_floor_core(tile_props)
     textured_vertex_groups = ['Top']
-    preview_core, displacement_core = create_displacement_core(
-        base,
+    convert_to_displacement_core(
         preview_core,
-        tile_props,
         textured_vertex_groups)
-    displacement_core.hide_viewport = True
+
     return preview_core
 
 

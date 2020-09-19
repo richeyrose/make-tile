@@ -29,7 +29,7 @@ from .. lib.utils.collections import (
     create_collection,
     activate_collection)
 from .create_tile import (
-    create_displacement_core,
+    convert_to_displacement_core,
     finalise_tile,
     spawn_empty_base,
     spawn_prefab,
@@ -261,13 +261,11 @@ def spawn_openlock_wall_cores(base, tile_props):
     textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'End Wall Inner', 'End Wall Outer', 'Leg 2 Inner', 'Leg 2 Outer']
     preview_core = spawn_core(tile_props)
 
-    preview_core, displacement_core = create_displacement_core(
-        base,
+    convert_to_displacement_core(
         preview_core,
-        tile_props,
         textured_vertex_groups)
 
-    cores = [preview_core, displacement_core]
+    cores = [preview_core]
 
     cutters = spawn_openlock_wall_cutters(base, tile_props)
 
@@ -286,7 +284,6 @@ def spawn_openlock_wall_cores(base, tile_props):
             for core in cores:
                 set_bool_props(peg, core, 'UNION')
 
-    displacement_core.hide_viewport = True
     return preview_core
 
 
@@ -556,12 +553,9 @@ def spawn_plain_wall_cores(base, tile_props):
     """
     preview_core = spawn_core(tile_props)
     textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'End Wall Inner', 'End Wall Outer', 'Leg 2 Inner', 'Leg 2 Outer']
-    preview_core, displacement_core = create_displacement_core(
-        base,
+    convert_to_displacement_core(
         preview_core,
-        tile_props,
         textured_vertex_groups)
-    displacement_core.hide_viewport = True
     return preview_core
 
 

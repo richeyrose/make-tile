@@ -21,7 +21,7 @@ from ..operators.maketile import (
 from .create_tile import (
     finalise_tile,
     spawn_empty_base,
-    create_displacement_core,
+    convert_to_displacement_core,
     spawn_prefab,
     set_bool_obj_props,
     set_bool_props,
@@ -705,12 +705,9 @@ def spawn_plain_wall_cores(base, tile_props):
     """
     preview_core = spawn_wall_core(tile_props)
     textured_vertex_groups = ['Front', 'Back']
-    preview_core, displacement_core = create_displacement_core(
-        base,
+    convert_to_displacement_core(
         preview_core,
-        tile_props,
         textured_vertex_groups)
-    displacement_core.hide_viewport = True
     return preview_core
 
 
@@ -726,13 +723,11 @@ def spawn_openlock_wall_cores(base, tile_props):
     """
     preview_core = spawn_wall_core(tile_props)
     textured_vertex_groups = ['Front', 'Back']
-    preview_core, displacement_core = create_displacement_core(
-        base,
+    convert_to_displacement_core(
         preview_core,
-        tile_props,
         textured_vertex_groups)
 
-    cores = [preview_core, displacement_core]
+    cores = [preview_core]
 
     wall_cutters = spawn_openlock_wall_cutters(
         preview_core,
@@ -752,8 +747,6 @@ def spawn_openlock_wall_cores(base, tile_props):
 
         for core in cores:
             set_bool_props(wall_cutter, core, 'DIFFERENCE')
-
-    displacement_core.hide_viewport = True
 
     return preview_core
 

@@ -9,7 +9,7 @@ from . bakedisplacement import (
     set_cycles_to_bake_mode,
     reset_renderer_from_bake,
     bake_displacement_map)
-from . return_to_preview import reset_displacement_modifiers
+from . return_to_preview import set_to_preview
 
 
 class MT_OT_Export_Tile_Variants(bpy.types.Operator):
@@ -114,7 +114,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
 
                     # hide original, resetting disp modifiers if disp_object was not originally visible
                     if disp_obj_is_visible is False:
-                        reset_displacement_modifiers(obj)
+                        set_to_preview(obj)
                     obj.hide_viewport = True
 
 
@@ -167,7 +167,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                 # construct filepath
                 file_path = os.path.join(
                     context.scene.mt_export_path,
-                    collection.name + '.' + str(random()) + '.stl')
+             objn.name + '.' + str(random()) + '.stl')
 
                 ctx = {
                     'selected_objects': obj_copies,

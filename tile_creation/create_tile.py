@@ -1,88 +1,115 @@
 import os
 import bpy
 from .. utils.registration import get_prefs
-from . create_displacement_mesh import create_displacement_object
 from .. lib.utils.vertex_groups import construct_displacement_mod_vert_group
 from .. lib.utils.collections import add_object_to_collection
 from .. lib.utils.selection import select, deselect_all, activate
 from .. materials.materials import (
-    assign_displacement_materials,
-    assign_preview_materials,
-    add_preview_mesh_subsurf)
+    assign_mat_to_vert_group)
 
 
-def create_displacement_core(base, preview_core, tile_props, textured_vertex_groups):
-    """Return the preview and displacement cores."""
+def lock_all_transforms(obj):
+    """Lock all transforms.
+
+    Args:
+        obj (bpy.type.Object): object
+    """
+    # For some reason iterating doesn't work here
+    obj.lock_location[0] = True
+    obj.lock_location[1] = True
+    obj.lock_location[2] = True
+    obj.lock_rotation[0] = True
+    obj.lock_rotation[1] = True
+    obj.lock_rotation[2] = True
+    obj.lock_scale[0] = True
+    obj.lock_scale[1] = True
+    obj.lock_scale[2] = True
+
+
+def convert_to_displacement_core(core, textured_vertex_groups):
+    """Convert the core part of a tile so it can be used by the maketile dispacement system
+
+    Args:
+        core (bpy.types.Object): object
+        textured_vertex_groups (list[str]): list of vertex group names that should have a texture applied
+    """
     scene = bpy.context.scene
     preferences = get_prefs()
 
-    # For some reason iterating doesn't work here so lock these individually so user
-    # can only transform base
-    preview_core.lock_location[0] = True
-    preview_core.lock_location[1] = True
-    preview_core.lock_location[2] = True
-    preview_core.lock_rotation[0] = True
-    preview_core.lock_rotation[1] = True
-    preview_core.lock_rotation[2] = True
-    preview_core.lock_scale[0] = True
-    preview_core.lock_scale[1] = True
-    preview_core.lock_scale[2] = True
-
-    preview_core.parent = base
-
-    preview_core = create_displacement_object(preview_core)
+    # create a custom property that we use to save what material is
+    # assigned to what vertex group when changing between preview
+    # and displacement mode
+    core['preview_materials'] = {}
 
     primary_material = bpy.data.materials[scene.mt_scene_props.tile_material_1]
     secondary_material = bpy.data.materials[preferences.secondary_material]
 
-    image_size = bpy.context.scene.mt_scene_props.tile_resolution
+    # create new displacement modifier
+    disp_mod = core.modifiers.new('MT Displacement', 'DISPLACE')
+    disp_mod.strength = 0
+    disp_mod.texture_coords = 'UV'
+    disp_mod.direction = 'NORMAL'
+    disp_mod.mid_level = 0
+    disp_mod.show_render = True
+
+    # save modifier name as custom property for use my maketile
+    core['disp_mod_name'] = disp_mod.name
 
     # create a vertex group for the displacement modifier
-    #mod_vert_group_name = construct_displacement_mod_vert_group(displacement_core, textured_vertex_groups)
-    preview_mod_vert_group_name = construct_displacement_mod_vert_group(preview_core, textured_vertex_groups)
-    '''
-    assign_displacement_materials(
-        displacement_core,
-        [image_size, image_size],
-        primary_material,
-        secondary_material,
-        vert_group=mod_vert_group_name)
-    '''
-    assign_preview_materials(
-        preview_core,
-        primary_material,
-        secondary_material,
-        textured_vertex_groups)
+    vert_group = construct_displacement_mod_vert_group(core, textured_vertex_groups)
+    disp_mod.vertex_group = vert_group
 
-    assign_displacement_materials(
-        preview_core,
-        [image_size, image_size],
-        primary_material,
-        secondary_material,
-        vert_group=preview_mod_vert_group_name)
+    # create texture for displacement modifier
+    core['disp_texture'] = bpy.data.textures.new(core.name + '.texture', 'IMAGE')
 
-    preview_core.mt_object_props.geometry_type = 'PREVIEW'
-    #displacement_core.mt_object_props.geometry_type = 'DISPLACEMENT'
+    # add a subsurf modifier
+    subsurf = core.modifiers.new('MT Subsurf', 'SUBSURF')
+    subsurf.subdivision_type = 'SIMPLE'
+    subsurf.levels = 3
+    core['subsurf_mod_name'] = subsurf.name
+    core.cycles.use_adaptive_subdivision = True
 
-    #return preview_core, displacement_core
-    return preview_core
+    # assign materials
+    if secondary_material.name not in core.data.materials:
+        core.data.materials.append(secondary_material)
+
+    if primary_material.name not in core.data.materials:
+        core.data.materials.append(primary_material)
+
+    for group in textured_vertex_groups:
+        assign_mat_to_vert_group(group, core, primary_material)
+
+    core.mt_object_props.geometry_type = 'PREVIEW'
 
 
-def finalise_tile(base, preview_core, cursor_orig_loc, cursor_orig_rot):
+def finalise_tile(base, core, cursor_orig_loc, cursor_orig_rot):
+    """Finalise tile.
+    Parent core to base, assign secondary material to base, reset cursor,
+    select and activate base.
+
+    Args:
+        base (bpy.type.Object): base
+        core (bpy.types.Object): core
+        cursor_orig_loc (Vector(3)): original cursor location
+        cursor_orig_rot (Vector(3)): original cursor rotation
+    """
     # Assign secondary material to our base if its a mesh
     if base.type == 'MESH':
         prefs = get_prefs()
         base.data.materials.append(bpy.data.materials[prefs.secondary_material])
-    '''
-    # Add subsurf modifier to our cores
-    if preview_core is not None:
-        add_preview_mesh_subsurf(preview_core)
-    '''
+
     # Reset location
     base.location = cursor_orig_loc
     cursor = bpy.context.scene.cursor
     cursor.location = cursor_orig_loc
     cursor.rotation_euler = cursor_orig_rot
+
+    # Parent core to base
+    if core is not None:
+        core.parent = base
+
+        # lock all transforms so we can only translate base
+        lock_all_transforms(core)
 
     deselect_all()
     select(base.name)

@@ -113,7 +113,7 @@ def update_preview_material_2(obj, primary_material_name):
             assign_mat_to_vert_group(key, obj, primary_material)
 
 
-def assign_displacement_materials(obj, image_size, primary_material, secondary_material, vert_group='None'):
+def assign_displacement_materials(obj, vert_group='None'):
     '''Keyword Arguments:
     obj - bpy.types.Object
     image_isize = [float, float]
@@ -135,9 +135,6 @@ def assign_displacement_materials(obj, image_size, primary_material, secondary_m
     obj['disp_texture'] = obj_disp_texture
     obj['disp_mod_name'] = obj_disp_mod.name
 
-    obj.data.materials.append(secondary_material)
-    obj.data.materials.append(primary_material)
-
 
 def assign_preview_materials(obj, primary_material, secondary_material, textured_vertex_groups):
     '''Keyword Arguments:
@@ -146,13 +143,12 @@ def assign_preview_materials(obj, primary_material, secondary_material, textured
     secondary_material - bpy.types.Material
     textured_vertex_groups - [str]
     '''
-    for material in obj.data.materials:
-        obj.data.materials.pop(index=0)
 
-    # add_preview_mesh_subsurf(obj)
+    if secondary_material.name not in obj.data.materials:
+        obj.data.materials.append(secondary_material)
 
-    obj.data.materials.append(secondary_material)
-    obj.data.materials.append(primary_material)
+    if primary_material.name not in obj.data.materials:
+        obj.data.materials.append(primary_material)
 
     for group in textured_vertex_groups:
         assign_mat_to_vert_group(group, obj, primary_material)

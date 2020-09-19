@@ -25,7 +25,7 @@ from .. lib.turtle.scripts.L_Tile import (
     calculate_corner_wall_triangles,
     move_cursor_to_wall_start)
 from . create_tile import (
-    create_displacement_core,
+    convert_to_displacement_core,
     finalise_tile,
     spawn_empty_base,
     spawn_prefab,
@@ -401,12 +401,10 @@ def spawn_plain_wall_cores(base, tile_props):
     """
     preview_core = spawn_wall_core(tile_props)
     textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner']
-    preview_core, displacement_core = create_displacement_core(
-        base,
+    convert_to_displacement_core(
         preview_core,
-        tile_props,
         textured_vertex_groups)
-    displacement_core.hide_viewport = True
+
     return preview_core
 
 
@@ -423,12 +421,10 @@ def spawn_plain_floor_cores(base, tile_props):
     textured_vertex_groups = ['Leg 1 Top', 'Leg 2 Top']
     preview_core = spawn_floor_core(tile_props)
 
-    preview_core, displacement_core = create_displacement_core(
-        base,
+    convert_to_displacement_core(
         preview_core,
-        tile_props,
         textured_vertex_groups)
-    displacement_core.hide_viewport = True
+
     return preview_core
 
 
@@ -515,15 +511,13 @@ def spawn_openlock_wall_cores(base, tile_props):
 
     preview_core = spawn_wall_core(tile_props)
     textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner']
-    preview_core, displacement_core = create_displacement_core(
-        base,
+    convert_to_displacement_core(
         preview_core,
-        tile_props,
         textured_vertex_groups)
 
     cutters = spawn_openlock_wall_cutters(preview_core, tile_props)
 
-    cores = [preview_core, displacement_core]
+    cores = [preview_core]
 
     if tile_props.leg_1_len >= 1 or tile_props.leg_2_len >= 1:
         top_pegs = spawn_openlock_top_pegs(
@@ -540,7 +534,6 @@ def spawn_openlock_wall_cores(base, tile_props):
         for core in cores:
             set_bool_props(cutter, core, 'DIFFERENCE')
 
-    displacement_core.hide_viewport = True
     bpy.context.scene.cursor.location = (0, 0, 0)
 
     return preview_core

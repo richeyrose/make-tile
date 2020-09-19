@@ -218,8 +218,7 @@ class MT_OT_Make_Plain_Curved_Wall_Core(MT_Tile_Generator, Operator):
         """Execute the operator."""
         tile = context.collection
         tile_props = tile.mt_tile_props
-        base = context.active_object
-        spawn_plain_wall_cores(base, tile_props)
+        spawn_plain_wall_cores(tile_props)
         return{'FINISHED'}
 
 
@@ -387,7 +386,7 @@ def initialise_floor_creator(context, scene_props):
     return original_renderer, cursor_orig_loc, cursor_orig_rot
 
 
-def spawn_plain_wall_cores(base, tile_props):
+def spawn_plain_wall_cores(tile_props):
     """Spawn plain wall cores into scene.
 
     Args:
@@ -422,16 +421,14 @@ def spawn_openlock_wall_cores(base, tile_props):
     tile_props.core_radius = tile_props.base_radius + offset
 
     textured_vertex_groups = ['Front', 'Back']
-    preview_core = spawn_wall_core(tile_props)
-    straight_wall_to_vert_groups(preview_core)
+    core = spawn_wall_core(tile_props)
+    straight_wall_to_vert_groups(core)
     convert_to_displacement_core(
-        preview_core,
+        core,
         textured_vertex_groups)
 
-    cores = [preview_core]
-
     cutters = spawn_openlock_wall_cutters(
-        preview_core,
+        core,
         base.location,
         tile_props)
 
@@ -440,22 +437,20 @@ def spawn_openlock_wall_cores(base, tile_props):
         tile_props)
 
     set_bool_obj_props(top_peg, base, tile_props)
-    for core in cores:
-        set_bool_props(top_peg, core, 'UNION')
+    set_bool_props(top_peg, core, 'UNION')
 
     for cutter in cutters:
         set_bool_obj_props(cutter, base, tile_props)
-        for core in cores:
-            set_bool_props(cutter, core, 'DIFFERENCE')
+        set_bool_props(cutter, core, 'DIFFERENCE')
 
-    return preview_core
+    return core
 
 
 def spawn_openlock_top_pegs(base, tile_props):
     """Spawn top peg(s) for stacking wall tiles and position it.
 
     Args:
-        core (bpy.types.Object): tile core
+        base (bpy.types.Object): tile base
         tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
 
     Returns:

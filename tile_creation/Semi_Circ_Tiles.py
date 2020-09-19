@@ -195,8 +195,7 @@ class MT_OT_Make_Plain_Semi_Circ_Floor_Core(MT_Tile_Generator, Operator):
         """Execute the operator."""
         tile = context.collection
         tile_props = tile.mt_tile_props
-        base = context.active_object
-        spawn_plain_floor_cores(base, tile_props)
+        spawn_plain_floor_cores(tile_props)
         return{'FINISHED'}
 
 
@@ -213,8 +212,7 @@ class MT_OT_Make_Openlock_Semi_Circ_Floor_Core(MT_Tile_Generator, Operator):
         """Execute the operator."""
         tile = context.collection
         tile_props = tile.mt_tile_props
-        base = context.active_object
-        spawn_plain_floor_cores(base, tile_props)
+        spawn_plain_floor_cores(tile_props)
         return{'FINISHED'}
 
 
@@ -373,21 +371,20 @@ def spawn_openlock_base(tile_props):
     return base
 
 
-def spawn_plain_floor_cores(base, tile_props):
+def spawn_plain_floor_cores(tile_props):
     """Spawn preview and displacement cores into scene.
 
     Args:
-        base (bpy.types.Object): tile base
         tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
 
     Returns:
         bpy.types.Object: preview core
     """
-    preview_core = spawn_core(tile_props)
+    core = spawn_core(tile_props)
     textured_vertex_groups = ['Top']
 
     convert_to_displacement_core(
-        preview_core,
+        core,
         textured_vertex_groups)
     return core
 

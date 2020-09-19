@@ -211,8 +211,7 @@ class MT_OT_Make_Plain_U_Wall_Core(MT_Tile_Generator, Operator):
         """Execute the operator."""
         tile = context.collection
         tile_props = tile.mt_tile_props
-        base = context.active_object
-        spawn_plain_wall_cores(base, tile_props)
+        spawn_plain_wall_cores(tile_props)
         return{'FINISHED'}
 
 
@@ -259,21 +258,18 @@ def spawn_openlock_wall_cores(base, tile_props):
         bpy.types.Object: preview core
     """
     textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'End Wall Inner', 'End Wall Outer', 'Leg 2 Inner', 'Leg 2 Outer']
-    preview_core = spawn_core(tile_props)
+    core = spawn_core(tile_props)
 
     convert_to_displacement_core(
-        preview_core,
+        core,
         textured_vertex_groups)
-
-    cores = [preview_core]
 
     cutters = spawn_openlock_wall_cutters(base, tile_props)
 
     for cutter in cutters:
         set_bool_obj_props(cutter, base, tile_props)
 
-        for core in cores:
-            set_bool_props(cutter, core, 'DIFFERENCE')
+        set_bool_props(cutter, core, 'DIFFERENCE')
 
     if tile_props.tile_size[0] >= 1:
         pegs = spawn_openlock_top_pegs(core, tile_props)
@@ -281,10 +277,9 @@ def spawn_openlock_wall_cores(base, tile_props):
         for peg in pegs:
             set_bool_obj_props(peg, base, tile_props)
 
-            for core in cores:
-                set_bool_props(peg, core, 'UNION')
+            set_bool_props(peg, core, 'UNION')
 
-    return preview_core
+    return core
 
 
 def spawn_openlock_wall_cutters(base, tile_props):
@@ -541,11 +536,10 @@ def spawn_openlock_top_pegs(core, tile_props):
     return pegs
 
 
-def spawn_plain_wall_cores(base, tile_props):
+def spawn_plain_wall_cores(tile_props):
     """Spawn preview and displacement cores into scene.
 
     Args:
-        base (bpy.types.Object): tile base
         tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
 
     Returns:

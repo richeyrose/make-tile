@@ -41,7 +41,8 @@ def set_to_preview(obj):
 
     for key, value in obj['preview_materials'].items():
         if key != 'disp_mod_vert_group':
-            assign_mat_to_vert_group(key, obj, value)
+            if value is not None:
+                assign_mat_to_vert_group(key, obj, value)
 
     ctx = {
         'object': obj,

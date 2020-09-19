@@ -2,16 +2,12 @@ import os
 from math import radians
 import bpy
 from bpy.types import Panel, Operator
-import bmesh
 from mathutils import Vector
 from .. lib.utils.collections import (
     add_object_to_collection,
     create_collection,
     activate_collection)
-from .. lib.utils.vertex_groups import (
-    get_vert_indexes_in_vert_group,
-    remove_verts_from_group)
-from .. lib.utils.utils import mode, vectors_are_close, get_all_subclasses
+from .. lib.utils.utils import mode, get_all_subclasses
 from .. utils.registration import get_prefs
 from .. lib.utils.selection import (
     deselect_all,
@@ -218,8 +214,7 @@ class MT_OT_Make_Plain_L_Wall_Core(MT_Tile_Generator, Operator):
         """Execute the operator."""
         tile = context.collection
         tile_props = tile.mt_tile_props
-        base = context.active_object
-        spawn_plain_wall_cores(base, tile_props)
+        spawn_plain_wall_cores(tile_props)
         return{'FINISHED'}
 
 
@@ -268,8 +263,7 @@ class MT_OT_Make_Plain_L_Floor_Core(MT_Tile_Generator, Operator):
         """Execute the operator."""
         tile = context.collection
         tile_props = tile.mt_tile_props
-        base = context.active_object
-        spawn_plain_floor_cores(base, tile_props)
+        spawn_plain_floor_cores(tile_props)
         return{'FINISHED'}
 
 
@@ -286,8 +280,7 @@ class MT_OT_Make_Openlock_L_Floor_Core(MT_Tile_Generator, Operator):
         """Execute the operator."""
         tile = context.collection
         tile_props = tile.mt_tile_props
-        base = context.active_object
-        spawn_plain_floor_cores(base, tile_props)
+        spawn_plain_floor_cores(tile_props)
         return{'FINISHED'}
 
 
@@ -389,7 +382,7 @@ def initialise_floor_creator(context, scene_props):
     return original_renderer, cursor_orig_loc, cursor_orig_rot
 
 
-def spawn_plain_wall_cores(base, tile_props):
+def spawn_plain_wall_cores(tile_props):
     """Spawn plain wall cores into scene.
 
     Args:
@@ -408,7 +401,7 @@ def spawn_plain_wall_cores(base, tile_props):
     return preview_core
 
 
-def spawn_plain_floor_cores(base, tile_props):
+def spawn_plain_floor_cores(tile_props):
     """Spawn plain floor cores into scene.
 
     Args:
@@ -506,37 +499,33 @@ def spawn_openlock_wall_cores(base, tile_props):
         tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
 
     Returns:
-        (bpy.types.Object): preview_core
+        (bpy.types.Object): core
     """
 
-    preview_core = spawn_wall_core(tile_props)
+    core = spawn_wall_core(tile_props)
     textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner']
     convert_to_displacement_core(
-        preview_core,
+        core,
         textured_vertex_groups)
 
-    cutters = spawn_openlock_wall_cutters(preview_core, tile_props)
-
-    cores = [preview_core]
+    cutters = spawn_openlock_wall_cutters(core, tile_props)
 
     if tile_props.leg_1_len >= 1 or tile_props.leg_2_len >= 1:
         top_pegs = spawn_openlock_top_pegs(
-            preview_core,
+            core,
             tile_props)
 
         for pegs in top_pegs:
             set_bool_obj_props(pegs, base, tile_props)
-            for core in cores:
-                set_bool_props(pegs, core, 'UNION')
+            set_bool_props(pegs, core, 'UNION')
 
     for cutter in cutters:
         set_bool_obj_props(cutter, base, tile_props)
-        for core in cores:
-            set_bool_props(cutter, core, 'DIFFERENCE')
+        set_bool_props(cutter, core, 'DIFFERENCE')
 
     bpy.context.scene.cursor.location = (0, 0, 0)
 
-    return preview_core
+    return core
 
 
 def spawn_openlock_top_pegs(core, tile_props):

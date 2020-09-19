@@ -16,10 +16,6 @@ from .. lib.utils.collections import (
 from .. lib.utils.utils import mode, get_all_subclasses
 from .. utils.registration import get_prefs
 
-from .. lib.utils.selection import (
-    deselect_all,
-    select_by_loc)
-
 from .create_tile import (
     convert_to_displacement_core,
     finalise_tile,
@@ -142,8 +138,7 @@ class MT_OT_Make_Plain_Rect_Floor_Core(MT_Tile_Generator, Operator):
         """Execute the operator."""
         tile = context.collection
         tile_props = tile.mt_tile_props
-        base = context.active_object
-        create_plain_rect_floor_cores(base, tile_props)
+        create_plain_rect_floor_cores(tile_props)
         return{'FINISHED'}
 
 
@@ -247,11 +242,10 @@ def initialise_floor_creator(context, scene_props):
     return original_renderer, cursor_orig_loc, cursor_orig_rot
 
 
-def create_plain_rect_floor_cores(base, tile_props):
+def create_plain_rect_floor_cores(tile_props):
     """Create preview and displacement cores.
 
     Args:
-        base (bpy.types.Object): tile base
         tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
 
     Returns:
@@ -278,8 +272,6 @@ def spawn_floor_core(tile_props):
     Returns:
         bpy.types.Object: tile core
     """
-    cursor = bpy.context.scene.cursor
-    cursor_start_loc = cursor.location.copy()
     tile_size = tile_props.tile_size
     base_size = tile_props.base_size
     tile_name = tile_props.tile_name
@@ -309,8 +301,6 @@ def spawn_floor_core(tile_props):
 
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
     bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
-
-    # make_rect_floor_vert_groups(core)
 
     obj_props = core.mt_object_props
     obj_props.is_mt_object = True
@@ -362,10 +352,7 @@ def spawn_openlock_base(tile_props):
     Returns:
         bpy.types.Object: tile base
     """
-    tile_name = tile_props.tile_name
-    base_size = tile_props.base_size
 
-    # base = draw_openlock_rect_floor_base(base_size)
     base = spawn_plain_base(tile_props)
 
     slot_cutter = spawn_openlock_base_slot_cutter(base, tile_props)
@@ -567,116 +554,3 @@ def spawn_openlock_base_clip_cutters(base, tile_props):
     bpy.ops.object.make_single_user(type='ALL', object=True, obdata=True)
 
     return [clip_cutter, clip_cutter2, clip_cutter3, clip_cutter4]
-
-
-def make_rect_floor_vert_groups(core):
-    """Make a vertex group for each side of floor and assigns vertices to it.
-
-    Args:
-        core (bpy.types.Object): tile core
-    """
-    mode('OBJECT')
-    dim = core.dimensions / 2
-
-    # get original location of object origin and of cursor
-    obj_original_loc = core.location.copy()
-    cursor_original_loc = bpy.context.scene.cursor.location.copy()
-
-    # set origin to center of bounds
-    bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='BOUNDS')
-
-    # make vertex groups
-    core.vertex_groups.new(name='Left')
-    core.vertex_groups.new(name='Right')
-    core.vertex_groups.new(name='Front')
-    core.vertex_groups.new(name='Back')
-    core.vertex_groups.new(name='Top')
-    core.vertex_groups.new(name='Bottom')
-
-    mode('EDIT')
-
-    # select X- and assign to X-
-    select_by_loc(
-        lbound=[-dim[0], -dim[1], -dim[2]],
-        ubound=[-dim[0] + 0.001, dim[1], dim[2]],
-        select_mode='VERT',
-        coords='LOCAL',
-        buffer=0.0001,
-        additive=True)
-
-    bpy.ops.object.vertex_group_set_active(group='Left')
-    bpy.ops.object.vertex_group_assign()
-
-    deselect_all()
-
-    # select X+ and assign to X+
-    select_by_loc(
-        lbound=[dim[0] - 0.001, -dim[1], -dim[2]],
-        ubound=[dim[0], dim[1], dim[2]],
-        select_mode='VERT',
-        coords='LOCAL',
-        buffer=0.0001,
-        additive=True)
-    bpy.ops.object.vertex_group_set_active(group='Right')
-    bpy.ops.object.vertex_group_assign()
-
-    deselect_all()
-
-    # select Y- and assign to Y-
-    select_by_loc(
-        lbound=[-dim[0], -dim[1], -dim[2]],
-        ubound=[dim[0], -dim[1] + 0.001, dim[2]],
-        select_mode='VERT',
-        coords='LOCAL',
-        buffer=0.0001,
-        additive=True)
-    bpy.ops.object.vertex_group_set_active(group='Front')
-    bpy.ops.object.vertex_group_assign()
-
-    deselect_all()
-
-    # select Y+ and assign to Y+
-    select_by_loc(
-        lbound=[-dim[0], dim[1] - 0.001, -dim[2]],
-        ubound=[dim[0], dim[1], dim[2]],
-        select_mode='VERT',
-        coords='LOCAL',
-        buffer=0.0001,
-        additive=True)
-    bpy.ops.object.vertex_group_set_active(group='Back')
-    bpy.ops.object.vertex_group_assign()
-
-    deselect_all()
-
-    # select Z- and assign to Z-
-    select_by_loc(
-        lbound=[-dim[0] + 0.001, -dim[1] + 0.001, -dim[2]],
-        ubound=[dim[0] - 0.001, dim[1] - 0.001, -dim[2]],
-        select_mode='VERT',
-        coords='LOCAL',
-        buffer=0.0001,
-        additive=True)
-    bpy.ops.object.vertex_group_set_active(group='Bottom')
-    bpy.ops.object.vertex_group_assign()
-
-    deselect_all()
-
-    # select Z+ and assign to Z+
-    select_by_loc(
-        lbound=[-dim[0] + 0.001, -dim[1] + 0.001, dim[2]],
-        ubound=[dim[0] - 0.001, dim[1] - 0.001, dim[2]],
-        select_mode='VERT',
-        coords='LOCAL',
-        buffer=0.0001,
-        additive=True)
-    bpy.ops.object.vertex_group_set_active(group='Top')
-    bpy.ops.object.vertex_group_assign()
-
-    deselect_all()
-
-    mode('OBJECT')
-
-    # reset cursor and object origin
-    bpy.context.scene.cursor.location = obj_original_loc
-    bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
-    bpy.context.scene.cursor.location = cursor_original_loc

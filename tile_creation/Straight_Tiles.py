@@ -194,8 +194,7 @@ class MT_OT_Make_Plain_Straight_Wall_Core(MT_Tile_Generator, Operator):
         """Execute the operator."""
         tile = context.collection
         tile_props = tile.mt_tile_props
-        base = context.active_object
-        spawn_plain_wall_cores(base, tile_props)
+        spawn_plain_wall_cores(tile_props)
         return{'FINISHED'}
 
 
@@ -244,8 +243,7 @@ class MT_OT_Make_Plain_Straight_Floor_Core(MT_Tile_Generator, Operator):
         """Execute the operator."""
         tile = context.collection
         tile_props = tile.mt_tile_props
-        base = context.active_object
-        create_plain_floor_cores(base, tile_props)
+        create_plain_floor_cores(tile_props)
         return{'FINISHED'}
 
 
@@ -262,8 +260,7 @@ class MT_OT_Make_Openlock_Straight_Floor_Core(MT_Tile_Generator, Operator):
         """Execute the operator."""
         tile = context.collection
         tile_props = tile.mt_tile_props
-        base = context.active_object
-        create_plain_floor_cores(base, tile_props)
+        create_plain_floor_cores(tile_props)
         return{'FINISHED'}
 
 
@@ -693,7 +690,7 @@ def straight_wall_to_vert_groups(obj):
     bpy.context.scene.cursor.location = cursor_original_loc
 
 
-def spawn_plain_wall_cores(base, tile_props):
+def spawn_plain_wall_cores(tile_props):
     """Create preview and displacement cores.
 
     Args:

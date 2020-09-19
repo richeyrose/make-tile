@@ -260,12 +260,19 @@ def create_plain_rect_floor_cores(base, tile_props):
     preview_core = spawn_floor_core(tile_props)
     textured_vertex_groups = ['Top']
 
+    '''
     preview_core, displacement_core = create_displacement_core(
         base,
         preview_core,
         tile_props,
         textured_vertex_groups)
-    displacement_core.hide_viewport = True
+    '''
+    preview_core = create_displacement_core(
+        base,
+        preview_core,
+        tile_props,
+        textured_vertex_groups)
+    # displacement_core.hide_viewport = True
     bpy.context.view_layer.objects.active = preview_core
 
     return preview_core

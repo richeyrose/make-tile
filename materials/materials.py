@@ -58,6 +58,17 @@ def assign_mat_to_vert_group(vert_group, obj, material):
             poly.material_index = material_index
 
 
+def get_vert_group_material(vert_group, obj):
+    vert_group = get_vert_indexes_in_vert_group(vert_group.name, obj)
+    for poly in obj.data.polygons:
+        count = 0
+        for vert in poly.vertices:
+            if vert in vert_group:
+                count += 1
+        if count == len(poly.vertices):
+            return obj.material_slots[poly.material_index].material
+
+
 def add_preview_mesh_subsurf(obj):
     '''Adds an adaptive subdivison modifier'''
 

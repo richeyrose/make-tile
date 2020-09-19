@@ -30,7 +30,7 @@ def create_displacement_core(base, preview_core, tile_props, textured_vertex_gro
 
     preview_core.parent = base
 
-    preview_core, displacement_core = create_displacement_object(preview_core)
+    preview_core = create_displacement_object(preview_core)
 
     primary_material = bpy.data.materials[scene.mt_scene_props.tile_material_1]
     secondary_material = bpy.data.materials[preferences.secondary_material]
@@ -38,25 +38,34 @@ def create_displacement_core(base, preview_core, tile_props, textured_vertex_gro
     image_size = bpy.context.scene.mt_scene_props.tile_resolution
 
     # create a vertex group for the displacement modifier
-    mod_vert_group_name = construct_displacement_mod_vert_group(displacement_core, textured_vertex_groups)
-
+    #mod_vert_group_name = construct_displacement_mod_vert_group(displacement_core, textured_vertex_groups)
+    preview_mod_vert_group_name = construct_displacement_mod_vert_group(preview_core, textured_vertex_groups)
+    '''
     assign_displacement_materials(
         displacement_core,
         [image_size, image_size],
         primary_material,
         secondary_material,
         vert_group=mod_vert_group_name)
-
+    '''
     assign_preview_materials(
         preview_core,
         primary_material,
         secondary_material,
         textured_vertex_groups)
 
-    preview_core.mt_object_props.geometry_type = 'PREVIEW'
-    displacement_core.mt_object_props.geometry_type = 'DISPLACEMENT'
+    assign_displacement_materials(
+        preview_core,
+        [image_size, image_size],
+        primary_material,
+        secondary_material,
+        vert_group=preview_mod_vert_group_name)
 
-    return preview_core, displacement_core
+    preview_core.mt_object_props.geometry_type = 'PREVIEW'
+    #displacement_core.mt_object_props.geometry_type = 'DISPLACEMENT'
+
+    #return preview_core, displacement_core
+    return preview_core
 
 
 def finalise_tile(base, preview_core, cursor_orig_loc, cursor_orig_rot):
@@ -64,11 +73,11 @@ def finalise_tile(base, preview_core, cursor_orig_loc, cursor_orig_rot):
     if base.type == 'MESH':
         prefs = get_prefs()
         base.data.materials.append(bpy.data.materials[prefs.secondary_material])
-
+    '''
     # Add subsurf modifier to our cores
     if preview_core is not None:
         add_preview_mesh_subsurf(preview_core)
-
+    '''
     # Reset location
     base.location = cursor_orig_loc
     cursor = bpy.context.scene.cursor

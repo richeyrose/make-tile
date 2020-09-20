@@ -18,9 +18,6 @@ from . create_tile import (
     set_bool_obj_props,
     set_bool_props)
 
-from .. lib.turtle.scripts.L_Tile import (
-    calculate_corner_wall_triangles)
-
 from .. utils.registration import get_prefs
 from .. lib.utils.selection import (
     select,
@@ -38,7 +35,8 @@ from .. lib.utils.collections import (
 from ..lib.bmturtle.helpers import (
     bm_select_all,
     select_verts_in_bounds,
-    assign_verts_to_group)
+    assign_verts_to_group,
+    calculate_corner_wall_triangles)
 from ..lib.bmturtle.commands import (
     create_turtle,
     home,

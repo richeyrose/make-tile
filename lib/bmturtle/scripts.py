@@ -22,7 +22,6 @@ from .helpers import (
     assign_verts_to_group,
     select_verts_in_bounds,
     bm_shortest_path)
-from ..utils.selection import activate
 
 def draw_cuboid(dimensions):
     """Draw a cuboid.
@@ -1077,6 +1076,96 @@ def create_corner_vert_groups_vert_lists(bm, height, margin, vert_locs):
     return vert_groups
 
 
+def draw_corner_slot_cutter(dimensions):
+    """Draw a slot cutter for an openlock corner base.
+
+    Args:
+        triangles (dict {
+            'a_adj': float, (leg 1 outer leg length)
+            'b_adj': float, (leg 1 inner leg length)
+            'c_adj': float, (leg 2 outer leg length)
+            'd_adj': float  (leg 2 inner leg length) }) : length of triangle edges
+        dimensions (dict{
+            angle: float,
+            height: float,
+            thickness: float}): dimensions
+
+    Returns:
+        bpy.types.Object: object
+    """
+    triangles_1 = dimensions['triangles_1']
+    triangles_2 = dimensions['triangles_2']
+    angle = dimensions['angle']
+    height = dimensions['height'] + 0.01
+    thickness = dimensions['thickness']
+    thickness_diff = dimensions['thickness_diff']
+
+    turtle = bpy.context.scene.cursor
+    orig_rot = turtle.location.copy()
+
+    bm, obj = create_turtle('cutter')
+    bm.select_mode = {'VERT'}
+
+    # move turtle to slot start loc
+    pu(bm)
+    dn(bm, 0.01)
+    rt(angle)
+    fd(bm, triangles_1['a_adj'])
+    lt(90)
+    fd(bm, thickness_diff)
+    lt(90)
+    fd(bm, triangles_1['b_adj'])
+    turtle.rotation_euler = orig_rot
+    turtle_start_loc = turtle.location.copy()
+    pd(bm)
+
+    # draw leg_1
+    add_vert(bm)
+    rt(angle)
+    fd(bm, triangles_2['a_adj'])
+    lt(90)
+    fd(bm, thickness)
+    lt(90)
+    fd(bm, triangles_2['b_adj'])
+
+    bmesh.ops.contextual_create(
+        bm,
+        geom=bm.verts,
+        mat_nr=0,
+        use_smooth=False
+    )
+    bm_deselect_all(bm)
+    home(obj)
+    turtle.location = turtle_start_loc
+
+    # draw leg 2
+    add_vert(bm)
+    fd(bm, triangles_2['c_adj'])
+    rt(90)
+    fd(bm, thickness)
+    rt(90)
+    fd(bm, triangles_2['d_adj'])
+    bm.verts.ensure_lookup_table()
+    verts = [v for v in bm.verts if v.index >= 3]
+
+    bmesh.ops.contextual_create(
+        bm,
+        geom=verts,
+        mat_nr=0,
+        use_smooth=False
+    )
+
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0001)
+    bm.select_mode = {'FACE'}
+    bm_select_all(bm)
+    up(bm, height, False)
+
+    home(obj)
+    finalise_turtle(bm, obj)
+
+    return obj
+
+
 def draw_corner_3D(triangles, dimensions):
     """Draw a corner (L) shape.
 
@@ -1089,7 +1178,7 @@ def draw_corner_3D(triangles, dimensions):
         dimensions (dict{
             angle: float,
             height: float,
-            width: float}): dimensions
+            thickness: float}): dimensions
 
     Returns:
         bpy.types.Object: object

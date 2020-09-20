@@ -5,7 +5,7 @@ from . create_displacement_mesh import create_displacement_object
 from .. lib.utils.vertex_groups import construct_displacement_mod_vert_group
 from .. lib.utils.collections import add_object_to_collection
 from .. lib.utils.selection import select, deselect_all, activate
-from .. lib.turtle.scripts.primitives import draw_cuboid
+#from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. materials.materials import (
     assign_displacement_materials,
     assign_preview_materials,

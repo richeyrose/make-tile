@@ -1,4 +1,4 @@
-from math import inf
+from math import inf, tan, radians
 import bmesh
 import bpy
 from mathutils import Vector, geometry
@@ -225,3 +225,53 @@ def add_vertex_to_intersection(bm, edges):
             bm.verts.ensure_lookup_table()
 
             bm.verts[-1].select = True
+
+
+def calculate_corner_wall_triangles(
+        leg_1_len,
+        leg_2_len,
+        thickness,
+        angle):
+
+    #  leg 2
+    #   |
+    #   |
+    #   |_ _ _ leg 1
+
+    #   |      *
+    #   |   *  | <- tri_a
+    #   |*_ _ _|
+
+    #           _ _ _ _
+    #          |      *
+    # tri_c -> |   *
+    #          |*_ _ _
+
+    # X leg
+    # right triangle
+    tri_a_angle = angle / 2
+    tri_a_adj = leg_1_len
+    tri_a_opp = tri_a_adj * tan(radians(tri_a_angle))
+
+    # right triangle
+    tri_b_angle = 180 - tri_a_angle - 90
+    tri_b_opp = tri_a_opp - thickness
+    tri_b_adj = tri_b_opp * tan(radians(tri_b_angle))
+
+    # Y leg
+    # right triangle
+    tri_c_angle = angle / 2
+    tri_c_adj = leg_2_len
+    tri_c_opp = tri_c_adj * tan(radians(tri_c_angle))
+
+    tri_d_angle = 180 - tri_c_angle - 90
+    tri_d_opp = tri_c_opp - thickness
+    tri_d_adj = tri_d_opp * tan(radians(tri_d_angle))
+
+    triangles = {
+        'a_adj': tri_a_adj,  # leg 1 outer leg length
+        'b_adj': tri_b_adj,  # leg 1 inner leg length
+        'c_adj': tri_c_adj,  # leg 2 outer leg length
+        'd_adj': tri_d_adj}  # leg 2 inner leg length
+
+    return triangles

@@ -662,6 +662,11 @@ class MT_Object_Properties(PropertyGroup):
         default=False
     )
 
+    is_converted: bpy.props.BoolProperty(
+        name="Is Converted",
+        default=False
+    )
+
     tile_name: bpy.props.StringProperty(
         name="Tile Name"
     )
@@ -677,13 +682,13 @@ class MT_Object_Properties(PropertyGroup):
         name="Cutters Collection",
         type=MT_Cutter_Item
     )
-
+    '''
     linked_object: bpy.props.PointerProperty(
         name="Linked Object",
         type=bpy.types.Object,
         description="Used for storing a reference from a preview object to a displacement object and vice versa"
     )
-
+    '''
 
 class MT_Tile_Properties(PropertyGroup):
     is_mt_collection: bpy.props.BoolProperty(

@@ -6,7 +6,6 @@ from .utils.registration import get_prefs, get_path
 from .materials.materials import (
     get_blend_filenames,
     load_materials)
-from .lib.utils.utils import get_all_subclasses
 
 
 def load_materials_on_addon_activation(dummy):

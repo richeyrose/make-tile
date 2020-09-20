@@ -47,12 +47,20 @@ def get_tile_type(tile_type):
 
 @persistent
 def update_mt_scene_props_handler(dummy):
-    scene_props = bpy.context.scene.mt_scene_props
-    if hasattr(bpy.context, 'object'):
-        obj = bpy.context.object
+    context = bpy.context
+    scene = context.scene
+    if not hasattr(scene, 'mt_scene_props'):
+        return
+    scene_props = scene.mt_scene_props
+    if not hasattr(context, 'object'):
+        return
+    obj = context.object
+    if not hasattr(obj, 'mt_object_props'):
+        return
+    obj_props = obj.mt_object_props
 
-        if obj is not None and obj != scene_props.mt_last_selected and obj.mt_object_props.is_mt_object is True and obj in bpy.context.selected_objects:
-            obj_props = obj.mt_object_props
+    if obj in context.selected_objects:
+        if obj != scene_props.mt_last_selected and not obj_props.is_converted and obj_props.is_mt_object:
             tile_name = obj_props.tile_name
             tile_props = bpy.data.collections[tile_name].mt_tile_props
 

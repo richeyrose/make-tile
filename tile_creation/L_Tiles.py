@@ -12,14 +12,15 @@ from .. utils.registration import get_prefs
 from .. lib.utils.selection import (
     deselect_all,
     select)
+
 from ..lib.bmturtle.scripts import (
     draw_corner_3D as draw_corner_3D_bm,
     draw_corner_floor_core,
-    draw_corner_wall_core)
-from .. lib.turtle.scripts.L_Tile import (
-    draw_corner_3D,
-    calculate_corner_wall_triangles,
-    move_cursor_to_wall_start)
+    draw_corner_wall_core,
+    draw_corner_slot_cutter)
+
+from ..lib.bmturtle.helpers import calculate_corner_wall_triangles
+
 from . create_tile import (
     convert_to_displacement_core,
     finalise_tile,
@@ -1033,35 +1034,31 @@ def create_openlock_base_slot_cutter(tile_props):
     slot_height = 0.25
     end_dist = 0.236  # distance of slot from base end
 
-    cutter_triangles_1 = calculate_corner_wall_triangles(
+    triangles_1 = calculate_corner_wall_triangles(
         leg_1_len,
         leg_2_len,
         face_dist,
         angle)
 
-    # reuse method we use to work out where to start our wall
-    move_cursor_to_wall_start(
-        cutter_triangles_1,
-        angle,
-        face_dist,
-        -0.01)
-
-    cutter_x_leg = cutter_triangles_1['b_adj'] - end_dist
-    cutter_y_leg = cutter_triangles_1['d_adj'] - end_dist
+    cutter_x_leg = triangles_1['b_adj'] - end_dist
+    cutter_y_leg = triangles_1['d_adj'] - end_dist
 
     # work out dimensions of cutter
-    cutter_triangles_2 = calculate_corner_wall_triangles(
+    triangles_2 = calculate_corner_wall_triangles(
         cutter_x_leg,
         cutter_y_leg,
         slot_width,
-        angle
-    )
+        angle)
 
-    cutter = draw_corner_3D(
-        cutter_triangles_2,
-        angle,
-        slot_width,
-        slot_height)
+    dimensions = {
+        'triangles_1': triangles_1,
+        'triangles_2': triangles_2,
+        'angle': angle,
+        'height': slot_height,
+        'thickness': slot_width,
+        'thickness_diff': end_dist}
+
+    cutter = draw_corner_slot_cutter(dimensions)
 
     cutter.name = 'Slot.' + tile_props.tile_name + '.base.cutter'
 

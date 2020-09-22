@@ -655,6 +655,28 @@ class MT_Scene_Properties(PropertyGroup):
         items=units
     )
 
+    # voxel properties
+    voxel_size: bpy.props.FloatProperty(
+        name="Voxel Size",
+        description="Quality of the voxelisation. Smaller = Better",
+        soft_min=0.005,
+        default=0.0101,
+        precision=3,
+    )
+
+    voxel_adaptivity: bpy.props.FloatProperty(
+        name="Adaptivity",
+        description="Amount by which to simplify mesh",
+        default=0.05,
+        precision=3,
+    )
+
+    voxel_merge: bpy.props.BoolProperty(
+        name="Merge",
+        description="Merge objects on voxelisation? Creates a single mesh.",
+        default=True
+    )
+
 
 class MT_Object_Properties(PropertyGroup):
     is_mt_object: bpy.props.BoolProperty(

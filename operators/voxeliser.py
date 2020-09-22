@@ -190,9 +190,9 @@ def voxelise(obj):
     Args:
         obj (bpy.types.Object): object to be voxelised
     """
-
-    obj.data.remesh_voxel_size = bpy.context.scene.mt_voxel_size
-    obj.data.remesh_voxel_adaptivity = bpy.context.scene.mt_voxel_adaptivity
+    props = bpy.context.scene.mt_scene_props
+    obj.data.remesh_voxel_size = props.voxel_size
+    obj.data.remesh_voxel_adaptivity = props.voxel_adaptivity
 
     ctx = {
         'object': obj,
@@ -201,6 +201,5 @@ def voxelise(obj):
         'selected_editable_objects': [obj]}
     obj.hide_set(False)
 
-    bpy.ops.object.convert(ctx, target='MESH', keep_original=False)
     bpy.ops.object.voxel_remesh(ctx)
     obj.mt_object_props.geometry_type = 'VOXELISED'

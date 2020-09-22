@@ -1,5 +1,31 @@
 import bpy
+from bpy.types import Panel
 from .. lib.utils.collections import get_objects_owning_collections
+
+
+class MT_PT_Voxelise_Panel(Panel):
+    bl_order = 9
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Make Tile"
+    bl_idname = "MT_PT_Voxelise_Panel"
+    bl_label = "Voxelise Settings"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        return obj and obj.type in {'MESH'}
+
+    def draw(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.operator('scene.mt_voxelise_objects', text='Voxelise Objects')
+        layout.prop(scene_props, 'voxel_size')
+        layout.prop(scene_props, 'voxel_adaptivity')
+        layout.prop(scene_props, 'voxel_merge')
 
 
 class MT_OT_Object_Voxeliser(bpy.types.Operator):
@@ -15,7 +41,8 @@ class MT_OT_Object_Voxeliser(bpy.types.Operator):
         return obj is not None and obj.mode == 'OBJECT'
 
     def execute(self, context):
-        merge = context.scene.mt_merge
+        scene_props = context.scene.mt_scene_props
+        merge = scene_props.voxel_merge
         selected_objects = context.selected_objects
         meshes = []
 
@@ -24,6 +51,7 @@ class MT_OT_Object_Voxeliser(bpy.types.Operator):
         for obj in selected_objects:
             if context.object.type == 'MESH':
                 meshes.append(obj.data)
+                # low level version of apply all modifiers
                 object_eval = obj.evaluated_get(depsgraph)
                 mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
                 obj.modifiers.clear()
@@ -31,6 +59,7 @@ class MT_OT_Object_Voxeliser(bpy.types.Operator):
 
         ctx = {
             'selected_objects': selected_objects,
+            'selected_editable_objects': selected_objects,
             'object': context.active_object,
             'active_object': context.active_object
         }
@@ -38,12 +67,14 @@ class MT_OT_Object_Voxeliser(bpy.types.Operator):
         if merge is True:
             bpy.ops.object.join(ctx)
 
+        selected_objects = [obj for obj in context.selected_editable_objects if obj.type == 'MESH']
         for obj in context.selected_objects:
             if obj.type == 'MESH':
-                obj.data.remesh_voxel_size = bpy.context.scene.mt_voxel_size
-                obj.data.remesh_voxel_adaptivity = bpy.context.scene.mt_voxel_adaptivity
+                obj.data.remesh_voxel_size = scene_props.voxel_size
+                obj.data.remesh_voxel_adaptivity = scene_props.voxel_adaptivity
                 ctx = {
-                    'selected_objects': context.selected_objects,
+                    'selected_editable_objects': selected_objects,
+                    'selected_objects': selected_objects,
                     'object': obj,
                     'active_object': obj
                 }
@@ -75,7 +106,8 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
 
     def execute(self, context):
         tile_collections = set()
-        merge = context.scene.mt_merge
+        scene_props = context.scene.mt_scene_props
+        merge = scene_props.voxel_merge
         selected_objects = context.selected_objects
 
         sel_obs_names = []
@@ -89,111 +121,74 @@ class MT_OT_Tile_Voxeliser(bpy.types.Operator):
             for collection in obj_collections:
                 tile_collections.add(collection)
 
-        for obj in selected_objects:
-            obj.select_set(False)
-
         for collection in tile_collections:
             ctx = {
+                'selected_editable_objects': collection.all_objects,
                 'selected_objects': collection.all_objects
             }
 
             for obj in collection.objects:
                 if obj.visible_get() is True:
                     sel_obs_names.append(obj.name)
-                    obj.select_set(True)
 
             for name in sel_obs_names:
                 if name in collection.objects:
                     obj = bpy.data.objects[name]
                     ctx['object'] = obj
                     ctx['active_object'] = obj
-                    obj.select_set(True)
                     bpy.ops.object.convert(ctx, target='MESH', keep_original=False)
-                    obj.select_set(False)
 
             for obj in collection.all_objects:
                 if obj.name not in sel_obs_names:
                     bpy.data.objects.remove(obj, do_unlink=True)
 
             ctx = {
+                'selected_editable_objects': collection.all_objects,
                 'selected_objects': collection.all_objects,
                 'active_object': collection.all_objects[0],
                 'object': collection.all_objects[0]
             }
 
             if merge is True:
+                '''
                 for obj in collection.all_objects:
                     obj.select_set(True)
-
+                '''
                 obj = collection.all_objects[0]
 
                 bpy.ops.object.join(ctx)
 
                 ctx = {
                     'selected_objects': collection.all_objects,
+                    'selected_editable_objects': collection.all_objects,
                     'active_object': collection.all_objects[0],
-                    'object': collection.all_objects[0]
-                }
+                    'object': collection.all_objects[0]}
 
                 obj = collection.all_objects[0]
-                obj.data.remesh_voxel_size = bpy.context.scene.mt_voxel_size
-                obj.data.remesh_voxel_adaptivity = bpy.context.scene.mt_voxel_adaptivity
+                obj.data.remesh_voxel_size = scene_props.voxel_size
+                obj.data.remesh_voxel_adaptivity = scene_props.voxel_adaptivity
 
-                obj.select_set(True)
                 bpy.ops.object.voxel_remesh(ctx)
-                obj.select_set(False)
 
                 obj.mt_object_props.geometry_type = 'VOXELISED'
 
             else:
                 for obj in collection.all_objects:
-                    obj.data.remesh_voxel_size = bpy.context.scene.mt_voxel_size
-                    obj.data.remesh_voxel_adaptivity = bpy.context.scene.mt_voxel_adaptivity
+                    obj.data.remesh_voxel_size = scene_props.voxel_size
+                    obj.data.remesh_voxel_adaptivity = scene_props.voxel_adaptivity
                     ctx['active_object'] = obj
                     ctx['object'] = obj
-                    obj.select_set(True)
                     bpy.ops.object.voxel_remesh(ctx)
-                    obj.select_set(False)
                     obj.mt_object_props.geometry_type = 'VOXELISED'
 
         return {'FINISHED'}
 
 
-    @classmethod
-    def register(cls):
-        bpy.types.Scene.mt_voxel_size = bpy.props.FloatProperty(
-            name="Voxel Size",
-            description="Quality of the voxelisation. Smaller = Better",
-            soft_min=0.005,
-            default=0.0101,
-            precision=3,
-        )
-
-        bpy.types.Scene.mt_voxel_adaptivity = bpy.props.FloatProperty(
-            name="Adaptivity",
-            description="Amount by which to simplify mesh",
-            default=0.05,
-            precision=3,
-        )
-
-        bpy.types.Scene.mt_merge = bpy.props.BoolProperty(
-            name="Merge",
-            description="Merge tile? Creates a single mesh.",
-            default=True
-        )
-
-    @classmethod
-    def unregister(cls):
-        del bpy.types.Scene.mt_merge
-        del bpy.types.Scene.mt_voxel_adaptivity
-        del bpy.types.Scene.mt_voxel_size
-
-
 def voxelise(obj):
-    """Voxelises the passed in object
-    by default
-    Keyword Arguments:
-    obj -- bpy.types.Mesh
+    """Voxelise the passed in object
+
+    Args:
+        obj (bpy.types.Object): object to be voxelised
     """
 
     obj.data.remesh_voxel_size = bpy.context.scene.mt_voxel_size
@@ -202,11 +197,10 @@ def voxelise(obj):
     ctx = {
         'object': obj,
         'active_object': obj,
-        'selected_objects': [obj]}
+        'selected_objects': [obj],
+        'selected_editable_objects': [obj]}
     obj.hide_set(False)
-    obj.select_set(True)
+
     bpy.ops.object.convert(ctx, target='MESH', keep_original=False)
     bpy.ops.object.voxel_remesh(ctx)
     obj.mt_object_props.geometry_type = 'VOXELISED'
-
-    return obj

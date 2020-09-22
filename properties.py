@@ -282,7 +282,7 @@ class MT_Scene_Properties(PropertyGroup):
                 mod.strength = context.scene.mt_scene_props.displacement_strength
 
     def update_disp_subdivisions(self, context):
-        '''Updates the numnber of subdivisions used by the displacement material modifier'''
+        '''Updates the number of subdivisions used by the displacement material modifier'''
         obj = bpy.context.object
         obj_props = obj.mt_object_props
         if obj_props.geometry_type == 'DISPLACEMENT':
@@ -354,6 +354,8 @@ class MT_Scene_Properties(PropertyGroup):
                     if obj_props.geometry_type == 'DISPLACEMENT':
                         bpy.ops.scene.mt_return_to_preview()
                         bpy.ops.scene.mt_make_3d()
+
+
 
     mt_is_just_activated: bpy.props.BoolProperty(
         description="Has the add-on just been activated. Used to populate materials list first time round",
@@ -675,6 +677,31 @@ class MT_Scene_Properties(PropertyGroup):
         name="Merge",
         description="Merge objects on voxelisation? Creates a single mesh.",
         default=True
+    )
+
+    # exporter properties
+    num_variants: bpy.props.IntProperty(
+        name="Variants",
+        description="Number of variants of tile to export",
+        default=1
+    )
+
+    randomise_on_export: bpy.props.BoolProperty(
+        name="Randomise",
+        description="Create random variant on export?",
+        default=True
+    )
+
+    voxelise_on_export: bpy.props.BoolProperty(
+        name="Voxelise",
+        default=True
+    )
+
+    export_units: bpy.props.EnumProperty(
+        name="Units",
+        items=units,
+        description="Export units",
+        default='INCHES'
     )
 
 

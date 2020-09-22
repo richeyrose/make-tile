@@ -12,6 +12,36 @@ from . bakedisplacement import (
 from . return_to_preview import set_to_preview
 
 
+class MT_PT_Export_Panel(Panel):
+    bl_order = 10
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Make Tile"
+    bl_idname = "MT_PT_Export_Panel"
+    bl_label = "Export"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        return obj and obj.type in {'MESH'}
+
+    def draw(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        prefs = get_prefs()
+        layout = self.layout
+
+        layout.operator('scene.mt_export_tile', text='Export Tile')
+        layout.prop(prefs, 'default_export_path')
+        layout.prop(scene_props, 'export_units')
+        layout.prop(scene_props, 'voxelise_on_export')
+        layout.prop(scene_props, 'randomise_on_export')
+
+        if scene_props.randomise_on_export is True:
+            layout.prop(scene_props, 'num_variants')
+
+
 class MT_OT_Export_Tile_Variants(bpy.types.Operator):
     bl_idname = "scene.mt_export_multiple_tile_variants"
     bl_label = "Export multiple tile variants"

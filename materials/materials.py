@@ -13,8 +13,10 @@ def load_materials(directory_path, blend_filenames):
 
 
 def get_blend_filenames(directory_path):
-    blend_filenames = [name for name in os.listdir(directory_path)
-                       if name.endswith('.blend')]
+    blend_filenames = []
+    if os.path.exists(directory_path):
+        blend_filenames = [name for name in os.listdir(directory_path)
+                        if name.endswith('.blend')]
     return blend_filenames
 
 

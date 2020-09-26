@@ -51,7 +51,7 @@ def convert_to_displacement_core(core, textured_vertex_groups):
     disp_mod.direction = 'NORMAL'
     disp_mod.mid_level = 0
     disp_mod.show_render = True
-
+    #TODO change these to properties stored in mt_object_props
     # save modifier name as custom property for use my maketile
     core['disp_mod_name'] = disp_mod.name
 

@@ -420,12 +420,7 @@ def spawn_openlock_wall_cores(base, tile_props):
     offset = (tile_props.base_size[1] - tile_props.tile_size[1]) / 2
     tile_props.core_radius = tile_props.base_radius + offset
 
-    textured_vertex_groups = ['Front', 'Back']
     core = spawn_wall_core(tile_props)
-
-    convert_to_displacement_core(
-        core,
-        textured_vertex_groups)
 
     cutters = spawn_openlock_wall_cutters(
         core,
@@ -442,6 +437,11 @@ def spawn_openlock_wall_cores(base, tile_props):
     for cutter in cutters:
         set_bool_obj_props(cutter, base, tile_props)
         set_bool_props(cutter, core, 'DIFFERENCE')
+
+    textured_vertex_groups = ['Front', 'Back']
+    convert_to_displacement_core(
+        core,
+        textured_vertex_groups)
 
     activate(core.name)
 

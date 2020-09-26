@@ -257,12 +257,8 @@ def spawn_openlock_wall_cores(base, tile_props):
     Returns:
         bpy.types.Object: preview core
     """
-    textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'End Wall Inner', 'End Wall Outer', 'Leg 2 Inner', 'Leg 2 Outer']
-    core = spawn_core(tile_props)
 
-    convert_to_displacement_core(
-        core,
-        textured_vertex_groups)
+    core = spawn_core(tile_props)
 
     cutters = spawn_openlock_wall_cutters(base, tile_props)
 
@@ -278,6 +274,11 @@ def spawn_openlock_wall_cores(base, tile_props):
             set_bool_obj_props(peg, base, tile_props)
 
             set_bool_props(peg, core, 'UNION')
+
+    textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'End Wall Inner', 'End Wall Outer', 'Leg 2 Inner', 'Leg 2 Outer']
+    convert_to_displacement_core(
+        core,
+        textured_vertex_groups)
 
     return core
 

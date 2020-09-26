@@ -504,10 +504,6 @@ def spawn_openlock_wall_cores(base, tile_props):
     """
 
     core = spawn_wall_core(tile_props)
-    textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner']
-    convert_to_displacement_core(
-        core,
-        textured_vertex_groups)
 
     cutters = spawn_openlock_wall_cutters(core, tile_props)
 
@@ -523,6 +519,11 @@ def spawn_openlock_wall_cores(base, tile_props):
     for cutter in cutters:
         set_bool_obj_props(cutter, base, tile_props)
         set_bool_props(cutter, core, 'DIFFERENCE')
+
+    textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner']
+    convert_to_displacement_core(
+        core,
+        textured_vertex_groups)
 
     bpy.context.scene.cursor.location = (0, 0, 0)
 

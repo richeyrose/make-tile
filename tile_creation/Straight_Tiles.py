@@ -719,10 +719,6 @@ def spawn_openlock_wall_cores(base, tile_props):
         bpy.types.Object: preview core
     """
     core = spawn_wall_core(tile_props)
-    textured_vertex_groups = ['Front', 'Back']
-    convert_to_displacement_core(
-        core,
-        textured_vertex_groups)
 
     wall_cutters = spawn_openlock_wall_cutters(
         core,
@@ -739,6 +735,11 @@ def spawn_openlock_wall_cores(base, tile_props):
     for wall_cutter in wall_cutters:
         set_bool_obj_props(wall_cutter, base, tile_props)
         set_bool_props(wall_cutter, core, 'DIFFERENCE')
+
+    textured_vertex_groups = ['Front', 'Back']
+    convert_to_displacement_core(
+        core,
+        textured_vertex_groups)
 
     return core
 

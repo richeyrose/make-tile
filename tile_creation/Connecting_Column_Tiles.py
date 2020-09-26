@@ -5,16 +5,16 @@ from . create_displacement_mesh import create_displacement_object
 from .. lib.utils.vertex_groups import construct_displacement_mod_vert_group
 from .. lib.utils.collections import add_object_to_collection
 from .. lib.utils.selection import select, deselect_all, activate
-from .. lib.turtle.scripts.primitives import draw_cuboid
+#from .. lib.turtle.scripts.primitives import draw_cuboid
 from .. materials.materials import (
     assign_displacement_materials,
     assign_preview_materials,
     add_preview_mesh_subsurf)
-from .create_tile import MT_Tile
-from ..lib.bmturtle.bmturtle import *
+#from .create_tile import MT_Tile
+#from ..lib.bmturtle.bmturtle import *
 
 
-class MT_Connecting_Column_Tile(MT_Tile):
+class MT_Connecting_Column_Tile():
     def __init__(self, tile_props):
         self.tile_props = tile_props
         scene = bpy.context.scene
@@ -325,7 +325,7 @@ class MT_Connecting_Column_Tile(MT_Tile):
 
         pu(bm)
         home(obj)
-        pd(bm)
+        pd()
 
         # draw faces
         bm.select_mode = {'FACE'}

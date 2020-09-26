@@ -33,12 +33,12 @@ base_systems = [
 tile_types = [
     ("STRAIGHT_WALL", "Straight Wall", "", 1),
     ("CURVED_WALL", "Curved Wall", "", 2),
-    ("CORNER_WALL", "Corner Wall", "", 3),
+    ("L_WALL", "Corner Wall", "", 3),
     ("U_WALL", "U Wall", "", 4),
     ("RECTANGULAR_FLOOR", "Rectangular Floor", "", 5),
     ("TRIANGULAR_FLOOR", "Triangular Floor", "", 6),
     ("CURVED_FLOOR", "Curved Floor", "", 7),
-    ("CORNER_FLOOR", "Corner Floor", "", 8),
+    ("L_FLOOR", "Corner Floor", "", 8),
     ("STRAIGHT_FLOOR", "Straight Floor", "", 9),
     ("SEMI_CIRC_FLOOR", "Semi Circular Floor", "", 10)
     #("CONNECTING_COLUMN", "Connecting Column", "", 11)

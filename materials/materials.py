@@ -1,9 +1,9 @@
 import os
 import bpy
 from .. utils.registration import get_prefs
-# from .. lib.utils.utils import mode
-# from .. lib.utils.selection import deselect_all, select_all, select, activate
-from .. lib.utils.vertex_groups import get_verts_in_vert_group, get_vert_indexes_in_vert_group
+from .. lib.utils.vertex_groups import (
+    get_verts_in_vert_group,
+    get_vert_indexes_in_vert_group)
 
 
 def load_materials(directory_path, blend_filenames):
@@ -13,8 +13,10 @@ def load_materials(directory_path, blend_filenames):
 
 
 def get_blend_filenames(directory_path):
-    blend_filenames = [name for name in os.listdir(directory_path)
-                       if name.endswith('.blend')]
+    blend_filenames = []
+    if os.path.exists(directory_path):
+        blend_filenames = [name for name in os.listdir(directory_path)
+                        if name.endswith('.blend')]
     return blend_filenames
 
 
@@ -58,6 +60,17 @@ def assign_mat_to_vert_group(vert_group, obj, material):
             poly.material_index = material_index
 
 
+def get_vert_group_material(vert_group, obj):
+    vert_group = get_vert_indexes_in_vert_group(vert_group.name, obj)
+    for poly in obj.data.polygons:
+        count = 0
+        for vert in poly.vertices:
+            if vert in vert_group:
+                count += 1
+        if count == len(poly.vertices):
+            return obj.material_slots[poly.material_index].material
+
+
 def add_preview_mesh_subsurf(obj):
     '''Adds an adaptive subdivison modifier'''
 
@@ -65,12 +78,20 @@ def add_preview_mesh_subsurf(obj):
 
     obj_subsurf = obj.modifiers.new('Subsurf', 'SUBSURF')
     obj_subsurf.subdivision_type = 'SIMPLE'
-    obj_subsurf.levels = 1
+    obj_subsurf.levels = 0
     obj.cycles.use_adaptive_subdivision = True
     bpy.context.scene.cycles.preview_dicing_rate = 1
 
+    '''
     if 'Camera' in bpy.data.objects:
         bpy.context.scene.cycles.dicing_camera = bpy.data.objects['Camera']
+    '''
+
+    ctx = {
+        'object': obj,
+        'active_object': obj,
+        'selected_objects': [obj]
+    }
 
 
 def update_displacement_material_2(obj, primary_material_name):
@@ -94,7 +115,7 @@ def update_preview_material_2(obj, primary_material_name):
             assign_mat_to_vert_group(key, obj, primary_material)
 
 
-def assign_displacement_materials(obj, image_size, primary_material, secondary_material, vert_group='None'):
+def assign_displacement_materials(obj, vert_group='None'):
     '''Keyword Arguments:
     obj - bpy.types.Object
     image_isize = [float, float]
@@ -116,9 +137,6 @@ def assign_displacement_materials(obj, image_size, primary_material, secondary_m
     obj['disp_texture'] = obj_disp_texture
     obj['disp_mod_name'] = obj_disp_mod.name
 
-    obj.data.materials.append(secondary_material)
-    obj.data.materials.append(primary_material)
-
 
 def assign_preview_materials(obj, primary_material, secondary_material, textured_vertex_groups):
     '''Keyword Arguments:
@@ -127,13 +145,12 @@ def assign_preview_materials(obj, primary_material, secondary_material, textured
     secondary_material - bpy.types.Material
     textured_vertex_groups - [str]
     '''
-    for material in obj.data.materials:
-        obj.data.materials.pop(index=0)
 
-    # add_preview_mesh_subsurf(obj)
+    if secondary_material.name not in obj.data.materials:
+        obj.data.materials.append(secondary_material)
 
-    obj.data.materials.append(secondary_material)
-    obj.data.materials.append(primary_material)
+    if primary_material.name not in obj.data.materials:
+        obj.data.materials.append(primary_material)
 
     for group in textured_vertex_groups:
         assign_mat_to_vert_group(group, obj, primary_material)

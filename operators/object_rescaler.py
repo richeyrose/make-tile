@@ -14,7 +14,7 @@ class MT_OT_Rescale_Object(bpy.types.Operator):
 
     def execute(self, context):
         scene_props = context.scene.mt_scene_props
-        base_unit = scene_props.mt_base_unit
+        base_unit = scene_props.base_unit
 
         for obj in context.selected_editable_objects:
             if base_unit == 'INCHES':

@@ -145,23 +145,6 @@ def distance_between_two_verts(first, second):
     return distance
 
 
-def calc_tri(A, b, c):
-    '''returns full dimensions of triangle given 1 angle and 2 sides'''
-    a = sqrt((b**2 + c**2) - ((2 * b * c) * cos(radians(A))))
-    B = degrees(acos((c**2 + a**2 - (b**2)) / (2 * c * a)))
-    C = 180 - A - B
-
-    dimensions = {
-        'a': a,
-        'b': b,
-        'c': c,
-        'A': A,
-        'B': B,
-        'C': C}
-
-    return dimensions
-
-
 def clear_parent_and_apply_transformation(ctx, ob):
     #ob = bpy.context.object
     mat = ob.matrix_world
@@ -181,8 +164,93 @@ def clear_parent_and_apply_transformation(ctx, ob):
     for v in ob.data.vertices:
         v.co = mat_h @ v.co
 
+
 def vectors_are_close(vec_1, vec_2, tolerance=0.0001):
-    '''Tests whether two vectors are almost equal to each other'''
+    """Return true if two vectors are close to each other.
+
+    Args:
+        vec_1 (tuple(float 3)): vector 1
+        vec_2 (tuple(float 3)): vector 2
+        tolerance (float, optional): tolerance. Defaults to 0.0001.
+
+    Returns:
+        bool: true if vectors within tolerance
+    """
+
     return isclose(vec_1[0], vec_2[0], abs_tol=tolerance) and \
         isclose(vec_1[1], vec_2[1], abs_tol=tolerance) and \
         isclose(vec_1[2], vec_2[2], abs_tol=tolerance)
+
+
+def get_all_subclasses(python_class):
+    """
+    Helper function to get all the subclasses of a class.
+    :param python_class: Any Python class that implements __subclasses__()
+    """
+    python_class.__subclasses__()
+
+    subclasses = set()
+    check_these = [python_class]
+
+    while check_these:
+        parent = check_these.pop()
+        for child in parent.__subclasses__():
+            if child not in subclasses:
+                subclasses.add(child)
+                check_these.append(child)
+
+    return sorted(subclasses, key=lambda x: x.__name__)
+
+
+def distance_between_two_points(v1, v2):
+    """Return the distance between two point
+
+    Args:
+        v1 (tuple(3 float)): location 1
+        v2 (tuple(3 float)): location 2
+
+    Returns:
+        float: distance bertween v1 and v2
+    """
+    locx = v2[0] - v1[0]
+    locy = v2[1] - v1[1]
+    locz = v2[2] - v1[2]
+
+    distance = sqrt((locx)**2 + (locy)**2 + (locz)**2)
+
+    return distance
+
+
+def calc_tri(A, b, c):
+    """Return dimensions of triangle.
+
+    Args:
+        A (float): Angle A
+        b (float): length of side b
+        c (float): length of side c
+
+    Returns:
+        dict{
+            a: length of side a,
+            B: angle of corner B,
+            C: angle of corner C}: missing dimensions
+    """
+    #      B
+    #      /\
+    #   c /  \ a
+    #    /    \
+    #   /______\
+    #  A    b    C
+    a = sqrt((b**2 + c**2) - ((2 * b * c) * cos(radians(A))))
+    B = degrees(acos((c**2 + a**2 - (b**2)) / (2 * c * a)))
+    C = 180 - A - B
+
+    dimensions = {
+        'a': a,
+        'b': b,
+        'c': c,
+        'A': A,
+        'B': B,
+        'C': C}
+
+    return dimensions

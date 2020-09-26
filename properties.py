@@ -60,11 +60,6 @@ class MT_Cutter_Item(PropertyGroup):
             bool_mod = parent_obj.modifiers[self.name + '.bool']
             bool_mod.show_viewport = self.value
 
-            if parent_obj.mt_object_props.linked_object is not None:
-                linked_obj = parent_obj.mt_object_props.linked_object
-                bool_mod = linked_obj.modifiers[self.name + '.bool']
-                bool_mod.show_viewport = self.value
-
     name: bpy.props.StringProperty(
         name="Cutter Name")
     value: bpy.props.BoolProperty(
@@ -335,7 +330,6 @@ class MT_Scene_Properties(PropertyGroup):
             if obj.type == 'MESH':
                 obj_props = obj.mt_object_props
                 if obj_props.geometry_type in ('DISPLACEMENT', 'PREVIEW'):
-                    linked_obj = obj_props.linked_object
 
                     tile = bpy.data.collections[obj_props.tile_name]
                     tile_props = tile.mt_tile_props
@@ -344,7 +338,7 @@ class MT_Scene_Properties(PropertyGroup):
                     UV_island_margin = scene_props.UV_island_margin
                     tile_props.UV_island_margin = UV_island_margin
 
-                    for ob in (obj, linked_obj):
+                    for ob in (obj):
                         ctx = {
                             'object': ob,
                             'active_object': ob,
@@ -731,13 +725,7 @@ class MT_Object_Properties(PropertyGroup):
         name="Cutters Collection",
         type=MT_Cutter_Item
     )
-    '''
-    linked_object: bpy.props.PointerProperty(
-        name="Linked Object",
-        type=bpy.types.Object,
-        description="Used for storing a reference from a preview object to a displacement object and vice versa"
-    )
-    '''
+
 
 class MT_Tile_Properties(PropertyGroup):
     is_mt_collection: bpy.props.BoolProperty(

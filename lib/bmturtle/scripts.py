@@ -847,8 +847,18 @@ def draw_corner_wall_core(
         verts = [v for v in vert_groups[group] if v not in blank_group_verts]
         assign_verts_to_group(verts, core, deform_groups, group)
 
-    for group in blank_groups:
-        assign_verts_to_group(vert_groups[group], core, deform_groups, group)
+    leg_1_end = [v for v in vert_groups['Leg 1 End'] if v not in vert_groups['Leg 1 Top']]
+    assign_verts_to_group(leg_1_end, core, deform_groups, 'Leg 1 End')
+    leg_2_end = [v for v in vert_groups['Leg 2 End'] if v not in vert_groups['Leg 2 Top']]
+    assign_verts_to_group(leg_2_end, core, deform_groups, 'Leg 2 End')
+    leg_1_top_verts = [v for v in vert_groups['Leg 1 Top'] if v not in vert_groups['Leg 1 End']]
+    assign_verts_to_group(leg_1_top_verts, core, deform_groups, 'Leg 1 Top')
+    leg_2_top_verts = [v for v in vert_groups['Leg 2 Top'] if v not in vert_groups['Leg 2 End']]
+    assign_verts_to_group(leg_2_top_verts, core, deform_groups, 'Leg 2 Top')
+    leg_1_bottom_verts = [v for v in vert_groups['Leg 1 Bottom'] if v not in vert_groups['Leg 1 End']]
+    assign_verts_to_group(leg_1_bottom_verts, core, deform_groups, 'Leg 1 Bottom')
+    leg_2_bottom_verts = [v for v in vert_groups['Leg 2 Bottom'] if v not in vert_groups['Leg 2 End']]
+    assign_verts_to_group(leg_2_bottom_verts, core, deform_groups, 'Leg 2 Bottom')
 
     finalise_turtle(bm, core)
 
@@ -874,12 +884,12 @@ def create_corner_vert_groups_vert_lists(bm, height, margin, vert_locs):
 
     Returns:
         dict {
-            'Leg 1 Inner': list[Vector(3)],
-            'Leg 2 Inner': list[Vector(3)],
-            'Leg 1 Outer': list[Vector(3)],
-            'Leg 2 Outer': list[Vector(3)],
-            'Leg 1 End': list[Vector(3)],
-            'Leg 2 End': list[Vector(3)]} : Locations of all verts in each group
+            'Leg 1 Inner': list[BMVert],
+            'Leg 2 Inner': list[BMVert],
+            'Leg 1 Outer': list[BMVert],
+            'Leg 2 Outer': list[BMVert],
+            'Leg 1 End': list[BMVert],
+            'Leg 2 End': list[BMVert]} : verts in each group
     """
     # sides
     sides = {

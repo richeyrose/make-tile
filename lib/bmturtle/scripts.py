@@ -440,8 +440,7 @@ def draw_straight_wall_core(dims, subdivs, margin=0.001):
     # Save top verts to add to top vertex group
     top_verts = [v for v in bm.verts if v.select]
 
-    # assign top and bottom verts to vertex groups
-    assign_verts_to_group(top_verts, obj, deform_groups, 'Top')
+    # assign bottom verts to vertex groups
     assign_verts_to_group(bottom_verts, obj, deform_groups, 'Bottom')
 
     # home turtle
@@ -454,7 +453,8 @@ def draw_straight_wall_core(dims, subdivs, margin=0.001):
     ubound = (0, dims[1], dims[2])
     buffer = margin / 2
 
-    left_verts = select_verts_in_bounds(lbound, ubound, buffer, bm)
+    left_verts_orig = select_verts_in_bounds(lbound, ubound, buffer, bm)
+    left_verts = [v for v in left_verts_orig if v not in top_verts]
     assign_verts_to_group(left_verts, obj, deform_groups, 'Left')
 
     # select right side and assign to vert group
@@ -462,8 +462,13 @@ def draw_straight_wall_core(dims, subdivs, margin=0.001):
     ubound = dims
     buffer = margin / 2
 
-    right_verts = select_verts_in_bounds(lbound, ubound, buffer, bm)
+    right_verts_orig = select_verts_in_bounds(lbound, ubound, buffer, bm)
+    right_verts = [v for v in right_verts_orig if v not in top_verts]
     assign_verts_to_group(right_verts, obj, deform_groups, 'Right')
+
+    # make sure top verts doesn;t contain any verts from ends
+    top_verts = [v for v in top_verts if v not in left_verts_orig and v not in right_verts_orig]
+    assign_verts_to_group(top_verts, obj, deform_groups, 'Top')
 
     # select front side and assign to vert group
     lbound = (margin, 0, margin)

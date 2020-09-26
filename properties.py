@@ -338,18 +338,13 @@ class MT_Scene_Properties(PropertyGroup):
                     UV_island_margin = scene_props.UV_island_margin
                     tile_props.UV_island_margin = UV_island_margin
 
-                    for ob in (obj):
-                        ctx = {
-                            'object': ob,
-                            'active_object': ob,
-                            'selected_objects': [ob]
-                        }
-                        bpy.ops.uv.smart_project(ctx, island_margin=UV_island_margin)
+                    ctx = {
+                        'object': obj,
+                        'active_object': obj,
+                        'selected_objects': [obj],
+                        'selected_editable_objects': [obj]}
 
-                    if obj_props.geometry_type == 'DISPLACEMENT':
-                        bpy.ops.scene.mt_return_to_preview()
-                        bpy.ops.scene.mt_make_3d()
-
+                    bpy.ops.uv.smart_project(ctx, island_margin=UV_island_margin)
 
     mt_is_just_activated: bpy.props.BoolProperty(
         description="Has the add-on just been activated. Used to populate materials list first time round",

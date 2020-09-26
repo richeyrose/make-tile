@@ -27,6 +27,7 @@ class MT_PT_Tile_Generator_Panel(Panel):
         layout.prop(scene_props, 'tile_type')
         layout.prop(scene_props, 'tile_material_1', text="Main Material")
         layout.prop(scene_props, 'UV_island_margin')
+        layout.prop(scene_props, 'subdivisions')
 
         tile_type = scene_props.tile_type
         tile_defaults = scene_props['tile_defaults']

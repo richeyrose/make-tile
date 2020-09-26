@@ -20,7 +20,6 @@ class MT_OT_Return_To_Preview(bpy.types.Operator):
         for obj in context.selected_editable_objects:
             if obj.type == 'MESH' and hasattr(obj, 'mt_object_props'):
                 set_to_preview(obj)
-                obj.mt_object_props.geometry_type = 'PREVIEW'
 
         return {'FINISHED'}
 
@@ -54,3 +53,4 @@ def set_to_preview(obj):
     new_index = len(obj.modifiers) - 1
     bpy.ops.object.modifier_move_to_index(ctx, modifier=obj['subsurf_mod_name'], index=new_index)
     obj.cycles.use_adaptive_subdivision = True
+    obj.mt_object_props.geometry_type = 'PREVIEW'

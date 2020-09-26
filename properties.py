@@ -286,8 +286,9 @@ class MT_Scene_Properties(PropertyGroup):
         obj = bpy.context.object
         obj_props = obj.mt_object_props
         if obj_props.geometry_type == 'DISPLACEMENT':
-            if 'Subsurf' in obj.modifiers:
-                modifier = obj.modifiers['Subsurf']
+            subsurf_mod = obj['subsurf_mod_name']
+            if subsurf_mod in obj.modifiers:
+                modifier = obj.modifiers[subsurf_mod]
                 modifier.levels = context.scene.mt_scene_props.subdivisions
 
     def update_material_mapping(self, context):
@@ -354,7 +355,6 @@ class MT_Scene_Properties(PropertyGroup):
                     if obj_props.geometry_type == 'DISPLACEMENT':
                         bpy.ops.scene.mt_return_to_preview()
                         bpy.ops.scene.mt_make_3d()
-
 
 
     mt_is_just_activated: bpy.props.BoolProperty(

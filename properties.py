@@ -200,8 +200,10 @@ def load_material_enums(self, context):
     if context is None:
         return enum_items
 
+    '''
     if context.scene.mt_scene_props.mt_is_just_activated is True:
         load_material_libraries(dummy=None)
+    '''
 
     prefs = get_prefs()
 

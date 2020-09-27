@@ -73,25 +73,11 @@ def get_vert_group_material(vert_group, obj):
 
 def add_preview_mesh_subsurf(obj):
     '''Adds an adaptive subdivison modifier'''
-
-    #obj.modifiers.new('Triangulate', 'TRIANGULATE')
-
     obj_subsurf = obj.modifiers.new('Subsurf', 'SUBSURF')
     obj_subsurf.subdivision_type = 'SIMPLE'
     obj_subsurf.levels = 0
     obj.cycles.use_adaptive_subdivision = True
     bpy.context.scene.cycles.preview_dicing_rate = 1
-
-    '''
-    if 'Camera' in bpy.data.objects:
-        bpy.context.scene.cycles.dicing_camera = bpy.data.objects['Camera']
-    '''
-
-    ctx = {
-        'object': obj,
-        'active_object': obj,
-        'selected_objects': [obj]
-    }
 
 
 def update_displacement_material_2(obj, primary_material_name):
@@ -109,7 +95,7 @@ def update_preview_material_2(obj, primary_material_name):
     obj.data.materials.append(secondary_material)
     obj.data.materials.append(primary_material)
 
-    # for some reason the bools stored in our dict haver been converted to ints /\0/\
+    # for some reason the bools stored in our dict have been converted to ints /\0/\
     for key, value in textured_groups.items():
         if value is 1 or value is True:
             assign_mat_to_vert_group(key, obj, primary_material)

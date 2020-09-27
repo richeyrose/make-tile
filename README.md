@@ -15,6 +15,7 @@ Features tagged **Community** will be available for download from this public re
 Features tagged **Core** will be available to Kickstarter backers who have supported the core tier.
 
 Features tagged **Plus** will be available to Kickstarter backers who have supported the plus tier.
+
 ## Phase 1
 - [x] Basic user documentation - Community - Complete - Released
 - [x] Prototype code refactor, cleanup and documentation - Community - Complete

@@ -2,17 +2,20 @@
 
 MakeTile is a custom dungeon tile creator for [Blender](https://www.blender.org/) - the free, open source 3D modelling program. Using MakeTile you can simply and easily create 3D printable tiles of the exact dimensions you need, add procedurally generated, customizable materials to make them look like stone, wood, brick etc. hit the Make3D button and export them for printing.
 
-You can download the [prototype](https://github.com/richeyrose/make-tile/releases) version of MakeTile today from GitHub. (Be warned, here be bugs!).
-
-If you back MakeTile on [Kickstarter](https://www.kickstarter.com/projects/modmodterrain/maketile-custom-dungeon-tile-creator) you will get access to additional tile types and materials.
+After running a succesful [Kickstarter](https://www.kickstarter.com/projects/modmodterrain/maketile-custom-dungeon-tile-creator) you can now purchase the early access version of MakeTile on [Gumroad](https://gum.co/LaLVb)
 
 Check out my [YouTube](https://www.youtube.com/channel/UC7TUNzEtli-sQRj5anS7DFA) channel for more hints and tips.
 
 ## Installing MakeTile
 1. MakeTile is an add-on for Blender. First [download](https://www.blender.org/download/) the latest build of Blender and install it. If you've not used Blender before I *strongly* advise that you first take a look at the first five Blender fundamentals [videos](https://www.youtube.com/playlist?list=PLa1F2ddGya_-UvuAqHAksYnB0qL9yWDO6) on the official Blender YouTube channel. These will teach you the basics of viewport navigation, the Blender interface and how to add and delete objects. It should take you no more than 30 minutes.
-2. Download the latest build of MakeTile. If you are downloading the prototype or community version you can download the latest version from [here](https://github.com/richeyrose/make-tile/releases). If you have supported MakeTile on Kickstarter you will be emailed a link to download your supported version when the campaign is over. If you;re downloading the prototype click on the **Assets** drop down and download the **MakeTile.zip** file. This contains several materials and meshes that are needed for MakeTile to work which aren't included in the source. **Do not unzip this file!!!** Blender uses the .zip file directly to install add-ons and if you unzip it the installation will silently fail.
+2. Download the latest build of MakeTile from [Gumroad](https://gumroad.com/). If you have backed MakeTile on Kickstarter you will have received a discount code letting you download it for free. Login to your account, go to your library, hover over the MakeTile thumbnail, click on "View content" and download the ZIP file. **Do not unzip this file!!!** Blender uses the .zip file directly to install add-ons and if you unzip it the installation will silently fail.
 3. Launch Blender and click anywhere in 3D space to get rid of the splash screen.
 4. In the top menu go to **Edit** > **Preferences** > **Add-ons** > **Install...** Select the .zip file you have just downloaded and click on **Install Add-on.** After a few seconds MakeTile should appear. If it doesn't use the search box in the top right. Click on the box to the left of MakeTile to activate it. Close the preferences window.
+
+## Updating MakeTile
+1. If you update MakeTile you'll need to ensure that the old version is uninstalled properly first. In the top menu go to **Edit** > **Preferences** > **Add-ons** > **MakeTile**. Click on the down arrow to the left of MakeTile and click on **Remove**
+2. Restart Blender
+3. Install the new version of the MakeTile add-on as above
 
 ## Quickstart guide
 MakeTile lives in its own tab in the right hand menu. Press **N** to show or hide this menu and click on the MakeTile tab to access its options.
@@ -23,7 +26,7 @@ To create your first tile select the default cube by left clicking and press **d
 
 Currently your tile will be blank, so in the **Display Settings** panel click on **Create lighting setup.** Blender should think for a second or two and now your tile should be in glorious 3D!
 
-You will notice that as you rotate around the scene the viewport doesn't update instantaneously. This is because we are currently in Cycles mode, which is Blender's none real time renderer, which we need to use to preview our tiles in 3D. When we're in Cycles mode the 3D displacement is being calculated in the shader and it is not yet "real" geometry.
+You will notice that as you rotate around the scene the viewport doesn't update instantaneously. This is because we are currently in Cycles mode, which is Blender's none real time renderer, which we need to use to preview our tiles in 3D. When we're in Cycles mode the 3D displacement is being calculated in the shader and it is not yet "real" geometry. Also while the Cycles preview gives us a good idea of what the finished tile will look like it is not 100% accurate, so if something looks wrong when in Cycles mode, always check what happens when you Make3D.
 
 ![Cycles Tile](images/CyclesTile.png)
 
@@ -51,19 +54,31 @@ If you want to delete a tile you should use the **Delete Tiles** button in the t
 
 ![Outliner](images/Outliner.png)
 
-## Tile Blueprints
-When creating a tile you can choose the tile blueprint and the tile type from the MakeTile panel drop down. There are currently three tile blueprints supported: OpenLOCK tiles, plain tiles and custom tiles.
+## Creating Tiles
+When creating a tile you can choose the tile type (Straight wall, Rectangular floor, Curved wall etc.) and main material from the MakeTile panel. You can also choose what Blueprint to use for the Base and Core of your tile in the Tile Options Panel.
 
 ![Outliner](images/MainPanel.png)
 
-OpenLOCK tiles are fully compatible with the OpenLOCK system from Printable Scenery and have sockets on the bases, and for walls, on ther sides also. Plain tiles have no sockets on either the bases or the sides. Custom tiles can either have plain bases, OpenLOCK bases or no bases and can also have either plain, OpenLOCK or no textured parts. This is useful if you want to create a tile where the material goes all the way to the ground, but you still want to use the OpenLOCK side clips, or you want to create an OpenLOCK compatible base for a custom tile or object.
+The **Subdivisions** option controls the number of times the tile is subdivided before being made 3D and controls how detailed your tile will be on export. The higher this number the more subdivisions and the more detail you will pick up, however setting this too high, especially when working on your tiles, can severely slow things down.
 
-If you create a tile without a base MakeTile will create an empty which it will parent the rest of the tile to. This will appear as a black cross and it is this you should select in order to move your tile.
+The **UV Margin** control is used to correct for occasional glitches that occur at the edges of tiles. If you've got strange gaps on the edges of your tile material try tweaking this number.
+
+## Tile Blueprints
+There are currently three tile blueprints supported: OpenLOCK, Plain, and "None".
+
+Bases and Cores (the none base part of a tile) created with the OpenLOCK blueprint are fully compatible with the OpenLOCK system from Printable Scenery and have sockets for joining your tiles together. Bases and Cores created with the plain blueprint have no sockets.
+
+If you create select the "None" blueprint for your tile MakeTile will create an "empty" which it will parent the rest of the tile to. This will appear as a black cross and it is this you should select in order to move your tile.
 
 ## Tile Types
 The tile type (Straight wall, Rectangular floor, Curved wall etc.) can be chosen in the **Type** drop down. Each tile type is customisable and a set of different options will appear in the **Tile Options** panel allowing you to set the size of your tile on creation, along with other parameters such as base angle and leg length for corner tiles or triangular floor tiles. Currently once you have created a tile you cannot change its dimensions.
 
 ![Tile Options Panel](images/TileOptions.png)
+
+If you are using the OpenLOCK bluprints then the defaults wil create tiles compatible with the OpenLOCK system. You can change all of these, but be warned your tiles may not be 100% compatible if you alter the height of floor tiles or the width of wall tiles.
+
+## Booleans
+Features such as top pegs and side and base sockets can be toggled on and off after a tile has been created in the **Booleans** sub-panel by selecting the core or base and toggling the appropriate boolean. You may notice sockets look slightly distorted in preview mode. This shouldn't affect the exported tiles and will be fixed in a later result.
 
 ## Swapping Materials
 You can choose what material to add to your tile on creation in the **Main Material** drop down in the main panel. If you want to change this after creation then  make sure the main part of your tile is selected, go to the **Materials** panel, click on the name of the material that is currently on your tile and select a new material from the drop down menu.

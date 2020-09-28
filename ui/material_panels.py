@@ -36,7 +36,7 @@ class MT_PT_Material_Slots_Panel(Panel):
             layout.template_ID(obj, "active_material")
 
             row = layout.row()
-            row.operator('material.mt_copy')
+            row.operator('material.mt_copy', text="Duplicate Material")
             row.operator('material.mt_export_material', text='Save Material')
 
 

@@ -195,24 +195,26 @@ def update_main_part_defaults(self, context):
 
 
 def load_material_enums(self, context):
-    '''Constructs a material Enum from materials found in the materials asset folder'''
+    """Create a list of enum items of materials compatible with the MakeTile material system.
+
+    Args:
+        context (bpy.context): context
+
+    Returns:
+        list[EnumPropertyItem]: enum items
+    """
     enum_items = []
     if context is None:
         return enum_items
-
-    '''
-    if context.scene.mt_scene_props.mt_is_just_activated is True:
-        load_material_libraries(dummy=None)
-    '''
 
     prefs = get_prefs()
 
     materials = bpy.data.materials
     for material in materials:
-        # prevent make-tile adding the default material to the list
-        if material.name != prefs.secondary_material and material.name != 'Material':
-            enum = (material.name, material.name, "")
-            enum_items.append(enum)
+        if 'mt_material' in material.keys():
+            if material['mt_material']:
+                enum = (material.name, material.name, "")
+                enum_items.append(enum)
     return enum_items
 
 
@@ -229,6 +231,7 @@ def update_base_x(self, context):
 
     if proportionate:
         scene_props.base_x = base_x + (tile_x - base_x)
+
 
 def update_base_y(self, context):
     """Update the y dimension of the base based on the size of the tile.

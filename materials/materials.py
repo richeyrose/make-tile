@@ -7,16 +7,18 @@ from .. lib.utils.vertex_groups import (
 
 
 def load_materials(directory_path, blend_filenames):
+    materials = []
     for filename in blend_filenames:
         file_path = os.path.join(directory_path, filename)
-        get_materials_from_file(file_path)
+        materials.extend(get_materials_from_file(file_path))
+    return materials
 
 
 def get_blend_filenames(directory_path):
     blend_filenames = []
     if os.path.exists(directory_path):
         blend_filenames = [name for name in os.listdir(directory_path)
-                        if name.endswith('.blend')]
+                           if name.endswith('.blend')]
     return blend_filenames
 
 

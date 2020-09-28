@@ -72,7 +72,6 @@ class MT_OT_Remove_Material_From_Vert_Group(bpy.types.Operator):
 
     def execute(self, context):
         prefs = get_prefs()
-
         active_obj = context.active_object
         vert_group_name = active_obj.vertex_groups.active.name
 
@@ -81,13 +80,25 @@ class MT_OT_Remove_Material_From_Vert_Group(bpy.types.Operator):
         selected_objects = context.selected_objects
 
         for obj in selected_objects:
-            if secondary_material.name not in obj.material_slots:
-                obj.data.materials.append(secondary_material)
-            assign_mat_to_vert_group('disp_mod_vert_group', obj, secondary_material)
-            vert_groups = obj.vertex_groups
 
+            vert_groups = obj.vertex_groups
             if vert_group_name in vert_groups:
+                # obj_props = obj.mt_object_props
                 assign_mat_to_vert_group(vert_group_name, obj, secondary_material)
+                textured_verts = set()
+
+                for key, value in obj.material_slots.items():
+                    if key != secondary_material.name:
+                        verts = get_verts_with_material(obj, key)
+                        textured_verts = verts | textured_verts
+
+                if 'disp_mod_vert_group' in obj.vertex_groups:
+                    disp_vert_group = obj.vertex_groups['disp_mod_vert_group']
+                    clear_vert_group(disp_vert_group, obj)
+                    disp_vert_group.add(index=list(textured_verts), weight=1, type='ADD')
+                else:
+                    disp_vert_group = obj.vertex_groups.new(name='disp_mod_vert_group')
+                    disp_vert_group.add(index=list(textured_verts), weight=1, type='ADD')
 
         return {'FINISHED'}
 

@@ -653,14 +653,14 @@ class MT_Scene_Properties(PropertyGroup):
         name="Voxel Size",
         description="Quality of the voxelisation. Smaller = Better",
         soft_min=0.005,
-        default=0.0101,
+        default=0.0051,
         precision=3,
     )
 
     voxel_adaptivity: bpy.props.FloatProperty(
         name="Adaptivity",
         description="Amount by which to simplify mesh",
-        default=0.05,
+        default=0.25,
         precision=3,
     )
 

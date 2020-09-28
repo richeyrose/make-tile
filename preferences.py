@@ -1,15 +1,15 @@
 import os
 import shutil
 import bpy
-from bpy.props import StringProperty, EnumProperty, BoolProperty
+from bpy.props import StringProperty, EnumProperty
 from . utils.registration import get_path
 from . utils.system import makedir, abspath
-from . enums.enums import tile_main_systems, base_systems, tile_blueprints, units
-from . materials.materials import get_blend_filenames
+from . enums.enums import tile_blueprints, units
 from .properties import (
     create_tile_type_enums,
     create_base_blueprint_enums,
     create_main_part_blueprint_enums)
+
 
 class MT_MakeTilePreferences(bpy.types.AddonPreferences):
     '''contains methods and properties for setting addon preferences'''

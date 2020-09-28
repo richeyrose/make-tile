@@ -8,29 +8,30 @@ from .materials.materials import (
     load_materials)
 
 
-def load_materials_on_addon_activation(dummy):
-    bpy.app.handlers.depsgraph_update_pre.remove(load_materials_on_addon_activation)
-    prefs = get_prefs()
-    default_materials_path = os.path.join(prefs.assets_path, "materials")
-    user_materials_path = os.path.join(prefs.user_assets_path, "materials")
-
-    blend_filenames = get_blend_filenames(default_materials_path)
-    load_materials(default_materials_path, blend_filenames)
-
-    blend_filenames = get_blend_filenames(user_materials_path)
-    load_materials(user_materials_path, blend_filenames)
+def create_properties_on_activation(dummy):
+    bpy.app.handlers.depsgraph_update_pre.remove(create_properties_on_activation)
+    create_properties()
+    load_material_libraries()
 
 @persistent
-def load_material_libraries(dummy):
+def create_properties_on_load(dummy):
+    create_properties()
+    load_material_libraries()
+
+
+def load_material_libraries():
     prefs = get_prefs()
+    scene_props = bpy.context.scene.mt_scene_props
     default_materials_path = os.path.join(prefs.assets_path, "materials")
     user_materials_path = os.path.join(prefs.user_assets_path, "materials")
-
+    
     blend_filenames = get_blend_filenames(default_materials_path)
-    load_materials(default_materials_path, blend_filenames)
+    materials = load_materials(default_materials_path, blend_filenames)
 
     blend_filenames = get_blend_filenames(user_materials_path)
-    load_materials(user_materials_path, blend_filenames)
+    materials.extend(load_materials(user_materials_path, blend_filenames))
+
+    scene_props['mt_materials'] = [mat for mat in materials if mat['mt_material']]
 
 
 def get_tile_type(tile_type):
@@ -79,17 +80,14 @@ def update_mt_scene_props_handler(dummy):
                         scene_props[k] = value
 
 
-def create_properties_on_activation(dummy):
-    bpy.app.handlers.depsgraph_update_pre.remove(create_properties_on_activation)
+def create_properties():
     context = bpy.context
     load_tile_defaults(context)
     refresh_scene_props(context)
+    scene_props = bpy.context.scene.mt_scene_props
 
-@persistent
-def create_properties_on_load(dummy):
-    context = bpy.context
-    load_tile_defaults(context)
-    refresh_scene_props(context)
+    scene_props['mt_materials'] = []  # list of MakeTile compatible displacement materials
+
 
 def load_tile_defaults(context):
     """Load tile defaults into memory."""
@@ -107,6 +105,7 @@ def load_tile_defaults(context):
             tile_defaults = json.load(json_file)
         scene_props['tile_defaults'] = tile_defaults
 
+
 def refresh_scene_props(context):
     scene_props = context.scene.mt_scene_props
     prefs = get_prefs()
@@ -116,5 +115,3 @@ bpy.app.handlers.depsgraph_update_pre.append(create_properties_on_activation)
 bpy.app.handlers.load_post.append(create_properties_on_load)
 
 bpy.app.handlers.depsgraph_update_post.append(update_mt_scene_props_handler)
-bpy.app.handlers.load_post.append(load_material_libraries)
-bpy.app.handlers.depsgraph_update_pre.append(load_materials_on_addon_activation)

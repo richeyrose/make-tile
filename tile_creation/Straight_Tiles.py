@@ -577,119 +577,6 @@ def spawn_openlock_base_clip_cutter(base, tile_props):
     return clip_cutter
 
 
-def straight_wall_to_vert_groups(obj):
-    """Make a vertex group for each side of wall.
-
-    Corrects for displacement map distortion
-
-    """
-    mode('OBJECT')
-    dim = obj.dimensions / 2
-
-    # get original location of object origin and of cursor
-    obj_original_loc = obj.location.copy()
-    cursor_original_loc = bpy.context.scene.cursor.location.copy()
-
-    # set origin to center of bounds
-    bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='BOUNDS')
-
-    # make vertex groups
-    obj.vertex_groups.new(name='Left')
-    obj.vertex_groups.new(name='Right')
-    obj.vertex_groups.new(name='Front')
-    obj.vertex_groups.new(name='Back')
-    obj.vertex_groups.new(name='Top')
-    obj.vertex_groups.new(name='Bottom')
-
-    mode('EDIT')
-
-    # select X- and assign to X-
-    select_by_loc(
-        lbound=[-dim[0] - 0.01, -dim[1], -dim[2] + 0.001],
-        ubound=[-dim[0] + 0.01, dim[1], dim[2] - 0.001],
-        select_mode='VERT',
-        coords='LOCAL',
-        buffer=0.0001,
-        additive=True)
-
-    bpy.ops.object.vertex_group_set_active(group='Left')
-    bpy.ops.object.vertex_group_assign()
-
-    deselect_all()
-
-    # select X+ and assign to X+
-    select_by_loc(
-        lbound=[dim[0] - 0.01, -dim[1], -dim[2] + 0.001],
-        ubound=[dim[0] + 0.01, dim[1], dim[2] - 0.001],
-        select_mode='VERT',
-        coords='LOCAL',
-        buffer=0.0001,
-        additive=True)
-    bpy.ops.object.vertex_group_set_active(group='Right')
-    bpy.ops.object.vertex_group_assign()
-
-    deselect_all()
-
-    # select Y- and assign to Y-
-    select_by_loc(
-        lbound=[-dim[0] + 0.001, -dim[1], -dim[2] + 0.001],
-        ubound=[dim[0] - 0.001, -dim[1], dim[2] - 0.001],
-        select_mode='VERT',
-        coords='LOCAL',
-        buffer=0.0001,
-        additive=True)
-    bpy.ops.object.vertex_group_set_active(group='Front')
-    bpy.ops.object.vertex_group_assign()
-
-    deselect_all()
-
-    # select Y+ and assign to Y+
-    select_by_loc(
-        lbound=[-dim[0] + 0.001, dim[1], -dim[2] + 0.001],
-        ubound=[dim[0] - 0.001, dim[1], dim[2] - 0.001],
-        select_mode='VERT',
-        coords='LOCAL',
-        buffer=0.0001,
-        additive=True)
-    bpy.ops.object.vertex_group_set_active(group='Back')
-    bpy.ops.object.vertex_group_assign()
-
-    deselect_all()
-
-    # select Z- and assign to Z-
-    select_by_loc(
-        lbound=[-dim[0] + 0.001, -dim[1], -dim[2]],
-        ubound=[dim[0] - 0.001, dim[1], -dim[2] + 0.01],
-        select_mode='VERT',
-        coords='LOCAL',
-        buffer=0.0001,
-        additive=True)
-    bpy.ops.object.vertex_group_set_active(group='Bottom')
-    bpy.ops.object.vertex_group_assign()
-
-    deselect_all()
-
-    # select Z+ and assign to Z+
-    select_by_loc(
-        lbound=[-dim[0] + 0.001, -dim[1], dim[2] - 0.012],
-        ubound=[dim[0] - 0.001, dim[1], dim[2]],
-        select_mode='VERT',
-        coords='LOCAL',
-        buffer=0.0001,
-        additive=True)
-    bpy.ops.object.vertex_group_set_active(group='Top')
-    bpy.ops.object.vertex_group_assign()
-
-    deselect_all()
-
-    mode('OBJECT')
-
-    # reset cursor and object origin
-    bpy.context.scene.cursor.location = obj_original_loc
-    bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
-    bpy.context.scene.cursor.location = cursor_original_loc
-
-
 def spawn_plain_wall_cores(tile_props):
     """Create preview and displacement cores.
 
@@ -816,7 +703,7 @@ def spawn_openlock_top_pegs(core, tile_props):
 
     if tile_size[0] < 4 and tile_size[0] >= 1:
         peg.location = (
-            core_location[0] + (base_size[0] / 2) - 0.252,
+            core_location[0] + (tile_size[0] / 2) - 0.252,
             core_location[1] + (base_size[1] / 2) + 0.08,
             core_location[2] + tile_size[2])
     else:

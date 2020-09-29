@@ -19,7 +19,8 @@ class MT_OT_Return_To_Preview(bpy.types.Operator):
     def execute(self, context):
         for obj in context.selected_editable_objects:
             if obj.type == 'MESH' and hasattr(obj, 'mt_object_props'):
-                set_to_preview(obj)
+                if obj.mt_object_props.geometry_type == 'DISPLACEMENT':
+                    set_to_preview(obj)
 
         return {'FINISHED'}
 

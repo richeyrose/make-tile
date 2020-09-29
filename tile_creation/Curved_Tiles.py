@@ -32,8 +32,6 @@ from .create_tile import (
     set_bool_props,
     load_openlock_top_peg)
 
-from . Straight_Tiles import straight_wall_to_vert_groups
-
 
 class MT_PT_Curved_Wall_Tile_Panel(Panel):
     """Draw a tile options panel in the UI."""

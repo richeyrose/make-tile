@@ -10,10 +10,9 @@ from .. lib.utils.collections import (
     create_collection,
     activate_collection)
 from ..lib.bmturtle.scripts import (
-    draw_cuboid as draw_cuboid_new,
-    draw_straight_wall_core as draw_straight_wall_core_new)
+    draw_cuboid,
+    draw_straight_wall_core)
 from .. lib.utils.utils import mode, get_all_subclasses
-from .. lib.utils.selection import deselect_all, select_by_loc
 from ..operators.maketile import (
     MT_Tile_Generator,
     initialise_tile_creator,
@@ -432,7 +431,7 @@ def spawn_plain_base(tile_props):
 
     # make base
     # base = draw_cuboid(base_size)
-    base = draw_cuboid_new(base_size)
+    base = draw_cuboid(base_size)
     base.name = tile_name + '.base'
     add_object_to_collection(base, tile_name)
 
@@ -502,7 +501,7 @@ def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
             0.197,
             0.25]
 
-    cutter = draw_cuboid_new(bool_size)
+    cutter = draw_cuboid(bool_size)
     cutter.name = 'Base Slot.' + tile_props.tile_name + ".slot_cutter"
 
     diff = base_size[0] - bool_size[0]
@@ -578,14 +577,13 @@ def spawn_openlock_base_clip_cutter(base, tile_props):
 
 
 def spawn_plain_wall_cores(tile_props):
-    """Create preview and displacement cores.
+    """Spawn plain Core.
 
     Args:
-        base (bpy.types.Object): tile base
         tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
 
     Returns:
-        bpy.types.Object: preview core
+        bpy.types.Object: core
     """
     preview_core = spawn_wall_core(tile_props)
     textured_vertex_groups = ['Front', 'Back']
@@ -596,7 +594,7 @@ def spawn_plain_wall_cores(tile_props):
 
 
 def spawn_openlock_wall_cores(base, tile_props):
-    """Create preview and displacement cores.
+    """Spawn OpenLOCK core.
 
     Args:
         base (bpy.types.Object): tile base
@@ -632,7 +630,7 @@ def spawn_openlock_wall_cores(base, tile_props):
 
 
 def spawn_wall_core(tile_props):
-    """Returns the core (vertical) part of a straight wall tile
+    """Return the core (vertical) part of a straight wall tile.
     """
 
     cursor = bpy.context.scene.cursor
@@ -645,7 +643,7 @@ def spawn_wall_core(tile_props):
         tile_props.y_native_subdivisions,
         tile_props.z_native_subdivisions]
 
-    core = draw_straight_wall_core_new(
+    _straight_wall_core(
         [tile_size[0],
          tile_size[1],
          tile_size[2] - base_size[2]],

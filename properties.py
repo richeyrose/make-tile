@@ -623,8 +623,8 @@ class MT_Scene_Properties(PropertyGroup):
         description="Whether the tile has a positive or negative curvature"
     )
 
-    # Openlock connecting column specific
-    openlock_column_type: bpy.props.EnumProperty(
+    # Connecting column specific
+    column_type: bpy.props.EnumProperty(
         items=openlock_column_types,
         name="Column type",
         default="O"
@@ -866,7 +866,7 @@ class MT_Tile_Properties(PropertyGroup):
         items=curve_types
     )
 
-    openlock_column_type: bpy.props.EnumProperty(
+    column_type: bpy.props.EnumProperty(
         items=openlock_column_types,
         name="Column type"
     )

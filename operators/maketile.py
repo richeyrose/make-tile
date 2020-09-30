@@ -1,23 +1,21 @@
-"""Operator class to make tiles"""
 import bpy
-from bpy.types import Operator
 from .. lib.utils.selection import deselect_all
 from .. lib.utils.collections import (
     create_collection,
     add_object_to_collection)
 
-'''
-from .. tile_creation.L_Tiles import MT_L_Wall, MT_L_Floor
-from .. tile_creation.Straight_Tiles import MT_Straight_Wall_Tile, MT_Straight_Floor_Tile
-from .. tile_creation.Curved_Tiles import MT_Curved_Wall_Tile, MT_Curved_Floor_Tile
-from .. tile_creation.Rectangular_Tiles import MT_Rectangular_Floor_Tile
-from .. tile_creation.Triangular_Tiles import MT_Triangular_Floor_Tile
-from .. tile_creation.Semi_Circ_Tiles import MT_Semi_Circ_Floor_Tile
-from .. tile_creation.U_Tiles import MT_U_Wall_Tile
-from .. tile_creation.Connecting_Column_Tiles import MT_Connecting_Column_Tile
-'''
+#TODO Merge this file with create_tile.py
+class MT_Tile_Generator:
+    """Subclass this to create your tile operator."""
 
+    @classmethod
+    def poll(cls, context):
+        if context.object is not None:
+            return context.object.mode == 'OBJECT'
+        else:
+            return True
 
+#TODO get rid of renderer switch
 def initialise_tile_creator(context):
     deselect_all()
     scene = context.scene
@@ -70,17 +68,6 @@ def initialise_tile_creator(context):
     cursor.rotation_euler = (0, 0, 0)
 
     return original_renderer, tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot
-
-
-class MT_Tile_Generator:
-    """Subclass this to create your tile operator."""
-
-    @classmethod
-    def poll(cls, context):
-        if context.object is not None:
-            return context.object.mode == 'OBJECT'
-        else:
-            return True
 
 
 def create_common_tile_props(scene_props, tile_props, tile_collection):

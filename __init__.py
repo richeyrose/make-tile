@@ -30,8 +30,10 @@ bl_info = {
 
 auto_load.init()
 
+
 def register():
     auto_load.register()
+
 
 def unregister():
     auto_load.unregister()

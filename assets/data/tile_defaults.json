@@ -657,5 +657,72 @@
                 }
             }
         }
+    },
+    {
+        "bl_idname": "object.make_connecting_column",
+        "bl_label": "Connecting Column",
+        "blueprint":"CUSTOM",
+        "type": "CONNECTING_COLUMN",
+        "base_blueprints": {
+            "PLAIN": "Plain",
+            "OPENLOCK": "OpenLOCK",
+            "NONE": "None"
+        },
+        "main_part_blueprints": {
+            "PLAIN": "Plain",
+            "OPENLOCK": "OpenLOCK",
+            "NONE": "None"
+        },
+        "column_types": {
+            "I": "I",
+            "L": "L",
+            "O": "O",
+            "T": "T",
+            "X": "X"
+        },
+        "defaults":{
+            "base_blueprint": "NONE",
+            "main_part_blueprint": "OPENLOCK",
+            "column_type": "I",
+            "x_native_subdivisions": 2,
+            "y_native_subdivisions": 2,
+            "z_native_subdivisions": 15,
+            "x_proportionate_scale": true,
+            "y_proportionate_scale": true,
+            "base_defaults":{
+                "OPENLOCK":{
+                    "base_x": 0.5,
+                    "base_y": 0.5,
+                    "base_z": 0.2755
+                },
+                "PLAIN":{
+                    "base_x": 0.5,
+                    "base_y": 0.5,
+                    "base_z": 0.2755
+                },
+                "NONE":{
+                    "base_x": 0.5,
+                    "base_y": 0.5,
+                    "base_z": 0
+                }
+            },
+            "tile_defaults":{
+                "PLAIN": {
+                    "tile_x": 0.4,
+                    "tile_y": 0.4,
+                    "tile_z": 2
+                },
+                "OPENLOCK": {
+                    "tile_x": 0.4,
+                    "tile_y": 0.4,
+                    "tile_z": 2
+                },
+                "NONE":{
+                    "tile_x": 0.4,
+                    "tile_y": 0.4,
+                    "tile_z": 0
+                }
+            }
+        }
     }
 ]

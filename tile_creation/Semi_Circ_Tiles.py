@@ -591,8 +591,14 @@ def draw_pos_curved_semi_circ_base(dimensions, subdivs):
     pu(bm)
     home(obj)
     pd(bm)
-    arc(bm, radius, angle, subdivs['arc'])
 
+    # we only draw part of the arc and then join the end to the final side later
+    # we do this because there's always a difference in the location of the final
+    # vert  of the arc and the final vert of the side it needs to connect to so
+    # merge by distance doesn't work.
+    part_angle = (angle / subdivs['arc'])
+    part_angle = part_angle * (subdivs['arc'] - 1)
+    arc(bm, radius, part_angle, subdivs['arc'] - 1)
     pd(bm)
     add_vert(bm)
     rt(angle)
@@ -601,6 +607,10 @@ def draw_pos_curved_semi_circ_base(dimensions, subdivs):
     home(obj)
 
     bmesh.ops.remove_doubles(bm, verts=verts, dist=0.001)
+
+    # join final vert of arc with side
+    bmesh.ops.edgenet_prepare(bm, edges=bm.edges)
+
     bmesh.ops.triangle_fill(bm, use_beauty=True, use_dissolve=False, edges=bm.edges)
     pd(bm)
     bm.select_mode = {'FACE'}
@@ -651,13 +661,18 @@ def draw_neg_curved_semi_circ_base(dimensions, subdivs):
     fd(bm, radius)
     lt(180)
 
-    arc(bm, radius, angle, subdivs['arc'])
+    part_angle = (angle / subdivs['arc'])
+    part_angle = part_angle * (subdivs['arc'] - 1)
+
+    arc(bm, radius, part_angle, subdivs['arc'] - 1)
     pu(bm)
     home(obj)
     bmesh.ops.remove_doubles(bm, verts=verts, dist=0.01)
-    bm_select_all(bm)
+    bmesh.ops.edgenet_prepare(bm, edges=bm.edges)
+
     bmesh.ops.triangle_fill(bm, use_beauty=True, use_dissolve=False, edges=bm.edges)
     bm.select_mode = {'FACE'}
+    bm_select_all(bm)
     pd(bm)
     up(bm, height, False)
     pu(bm)
@@ -730,7 +745,12 @@ def draw_pos_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
 
     verts.ensure_lookup_table()
     start_index = verts[-1].index + 1
-    arc(bm, radius, angle, subdivs['arc'])
+
+    # only draw n-1 segments of arc as we will join arc and side together later
+    part_angle = (angle / subdivs['arc'])
+    part_angle = part_angle * (subdivs['arc'] - 1)
+
+    arc(bm, radius, part_angle, subdivs['arc'] - 1)
 
     verts.ensure_lookup_table()
     i = start_index
@@ -759,9 +779,13 @@ def draw_pos_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
     home(obj)
 
     bmesh.ops.remove_doubles(bm, verts=verts, dist=0.001)
+    bmesh.ops.edgenet_prepare(bm, edges=bm.edges)
+
+    # bmesh.ops.grid_fill doesn't work as well as bpy.ops.grid_fill so we use that instead despite
+    # it being slower and requiring us to rebuild our bmesh
+
     bm_select_all(bm)
     bm.select_flush(True)
-    # bmesh.ops.grid_fill doesn't work as well as bpy.ops.grid_fill so we use that
     mesh = obj.data
     bm.to_mesh(mesh)
     bm.free()
@@ -923,7 +947,11 @@ def draw_neg_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
 
     verts.ensure_lookup_table()
     start_index = bm.verts[-1].index + 1
-    arc(bm, radius, angle, subdivs['arc'])
+
+    part_angle = (angle / subdivs['arc'])
+    part_angle = part_angle * (subdivs['arc'] - 1)
+
+    arc(bm, radius, part_angle, subdivs['arc'] - 1)
 
     verts.ensure_lookup_table()
     i = start_index
@@ -935,7 +963,8 @@ def draw_neg_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
     home(obj)
 
     bmesh.ops.remove_doubles(bm, verts=verts, dist=0.01)
-    bm_select_all(bm)
+    bmesh.ops.edgenet_prepare(bm, edges=bm.edges)
+
     bmesh.ops.triangle_fill(bm, use_beauty=True, use_dissolve=False, edges=bm.edges)
     bottom_verts = [v for v in bm.verts]
 

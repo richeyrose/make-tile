@@ -778,7 +778,7 @@ def draw_pos_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
     pu(bm)
     home(obj)
 
-    bmesh.ops.remove_doubles(bm, verts=verts, dist=0.001)
+    bmesh.ops.remove_doubles(bm, verts=verts, dist=margin / 2)
     bmesh.ops.edgenet_prepare(bm, edges=bm.edges)
 
     # bmesh.ops.grid_fill doesn't work as well as bpy.ops.grid_fill so we use that instead despite
@@ -962,10 +962,14 @@ def draw_neg_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
     pu(bm)
     home(obj)
 
-    bmesh.ops.remove_doubles(bm, verts=verts, dist=0.01)
+    bmesh.ops.remove_doubles(bm, verts=verts, dist=margin / 2)
     bmesh.ops.edgenet_prepare(bm, edges=bm.edges)
 
-    bmesh.ops.triangle_fill(bm, use_beauty=True, use_dissolve=False, edges=bm.edges)
+    # we get a glitch on some sizes of cores if we just use triangle fill so we do this instead
+    bmesh.ops.triangle_fill(bm, use_beauty=True, use_dissolve=True, edges=bm.edges)
+    bmesh.ops.triangulate(bm, faces=bm.faces)
+    bmesh.ops.beautify_fill(bm, faces=bm.faces, edges=bm.edges)
+
     bottom_verts = [v for v in bm.verts]
 
     bm.select_mode = {'FACE'}
@@ -980,7 +984,7 @@ def draw_neg_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
         faces=selected_faces,
         thickness=margin,
         use_boundary=True,
-        use_even_offset=True)
+        use_even_offset=False)
 
     verts.layers.deform.verify()
     deform_groups = verts.layers.deform.active

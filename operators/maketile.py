@@ -81,3 +81,4 @@ def create_common_tile_props(scene_props, tile_props, tile_collection):
     tile_props.tile_units = scene_props.tile_units
     tile_props.displacement_strength = scene_props.displacement_strength
     tile_props.tile_resolution = scene_props.tile_resolution
+    tile_props.texture_margin = scene_props.texture_margin

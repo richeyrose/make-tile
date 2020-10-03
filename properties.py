@@ -494,6 +494,23 @@ class MT_Scene_Properties(PropertyGroup):
         update=update_disp_subdivisions
     )
 
+    texture_margin: bpy.props.FloatProperty(
+        name="Texture Margin",
+        description="Margin around displacement texture. Used for correcting distortion",
+        default=0.001,
+        min=0.0001,
+        soft_max=0.1,
+        step=0.0001
+    )
+
+    # used for where it makes sense to set displacement thickness directly rather than
+    # as an offset between base and core. e.g. connecting columns
+    displacement_thickness: bpy.props.FloatProperty(
+        name="Displacement Thickness",
+        description="Thickness of displacement texture.",
+        default=0.0915
+    )
+
     # Tile and base size. We use seperate floats so that we can only show
     # customisable ones where appropriate. These are wrapped up
     # in a vector and passed on as tile_size and base_size
@@ -821,6 +838,24 @@ class MT_Tile_Properties(PropertyGroup):
         min=0,
         step=0.001,
         description="Tweak this if you have gaps at edges of tiles when you Make3D"
+    )
+
+    # stops texture projecting beyond bounds of vert group
+    texture_margin: bpy.props.FloatProperty(
+        name="Texture Margin",
+        description="Margin around displacement texture. Used for correcting distortion",
+        default=0.001,
+        min=0.0001,
+        soft_max=0.1,
+        step=0.0001
+    )
+
+    # used for where it makes sense to set displacement thickness directly rather than
+    # as an offset between base and core. e.g. connecting columns
+    displacement_thickness: bpy.props.FloatProperty(
+        name="Displacement Thickness",
+        description="Thickness of displacement texture.",
+        default=0.0915
     )
 
     # Dimensions #

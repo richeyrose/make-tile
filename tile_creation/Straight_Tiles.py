@@ -643,7 +643,7 @@ def spawn_wall_core(tile_props):
         tile_props.y_native_subdivisions,
         tile_props.z_native_subdivisions]
 
-    _straight_wall_core(
+    core = draw_straight_wall_core(
         [tile_size[0],
          tile_size[1],
          tile_size[2] - base_size[2]],

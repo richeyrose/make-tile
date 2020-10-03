@@ -1,8 +1,8 @@
 import bpy
-
+import bmesh
 from bpy.types import Operator, Panel
 from .. utils.registration import get_prefs
-from .. lib.utils.utils import mode, get_all_subclasses
+from .. lib.utils.utils import get_all_subclasses
 from .. lib.utils.collections import (
     add_object_to_collection,
     create_collection,
@@ -20,9 +20,25 @@ from .create_tile import (
     set_bool_props,
     load_openlock_top_peg)
 from ..lib.bmturtle.scripts import (
-    draw_cuboid,
-    draw_straight_wall_core)
-from .Rectangular_Tiles import spawn_openlock_base
+    draw_cuboid)
+from .Rectangular_Tiles import (
+    spawn_openlock_base,
+    spawn_floor_core)
+from ..lib.bmturtle.commands import (
+    create_turtle,
+    finalise_turtle,
+    add_vert,
+    fd,
+    ri,
+    up,
+    pu,
+    pd,
+    home)
+from ..lib.bmturtle.helpers import (
+    bm_deselect_all,
+    assign_verts_to_group,
+    select_verts_in_bounds)
+
 
 class MT_PT_Connecting_Column_Panel(Panel):
     """Draw a tile options panel in UI."""
@@ -52,11 +68,10 @@ class MT_PT_Connecting_Column_Panel(Panel):
         scene_props = scene.mt_scene_props
         layout = self.layout
 
-        layout.prop(scene_props, 'column_type')
-
         layout.label(text="Blueprints")
+        layout.prop(scene_props, 'column_type')
         layout.prop(scene_props, 'base_blueprint')
-        layout.prop(scene_props, 'tile_blueprint')
+        layout.prop(scene_props, 'main_part_blueprint')
 
         layout.label(text="Column Size")
         row = layout.row()
@@ -68,6 +83,7 @@ class MT_PT_Connecting_Column_Panel(Panel):
         row = layout.row()
         row.prop(scene_props, 'x_proportionate_scale')
         row.prop(scene_props, 'y_proportionate_scale')
+        row.prop(scene_props, 'z_proportionate_scale')
 
         layout.label(text="Base Size")
         row = layout.row()
@@ -75,6 +91,7 @@ class MT_PT_Connecting_Column_Panel(Panel):
         row.prop(scene_props, 'base_y')
         row.prop(scene_props, 'base_z')
 
+        layout.prop(scene_props, 'displacement_thickness')
         layout.operator('scene.reset_tile_defaults')
 
 
@@ -237,6 +254,7 @@ def initialise_column_creator(context, scene_props):
     tile_props = tile_collection.mt_tile_props
     create_common_tile_props(scene_props, tile_props, tile_collection)
 
+    tile_props.column_type = scene_props.column_type
     tile_props.tile_type = 'CONNECTING_COLUMN'
     tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
     tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
@@ -245,8 +263,9 @@ def initialise_column_creator(context, scene_props):
     tile_props.y_native_subdivisions = scene_props.y_native_subdivisions
     tile_props.z_native_subdivisions = scene_props.z_native_subdivisions
 
-    return original_renderer, cursor_orig_loc, cursor_orig_rot
+    tile_props.displacement_thickness = scene_props.displacement_thickness
 
+    return original_renderer, cursor_orig_loc, cursor_orig_rot
 
 
 def spawn_openlock_connecting_column_cores(base, tile_props):
@@ -259,10 +278,6 @@ def spawn_openlock_connecting_column_cores(base, tile_props):
         bpy.types.Object: core
     """
     preview_core = spawn_connecting_column_core(tile_props)
-    textured_vertex_groups = ['Front', 'Back']
-    convert_to_displacement_core(
-        preview_core,
-        textured_vertex_groups)
     return preview_core
 
 
@@ -327,30 +342,54 @@ def spawn_connecting_column_core(tile_props):
     Returns:
         bpy.types.Object: core
     """
+    if tile_props.column_type == 'I':
+        core = spawn_I_core(tile_props)
+    elif tile_props.column_type == 'L':
+        core = spawn_L_core(tile_props)
+    elif tile_props.column_type == 'O':
+        core = spawn_O_core(tile_props)
+    elif tile_props.column_type == 'T':
+        core = spawn_T_core(tile_props)
+    elif tile_props.column_type == 'X':
+        core = spawn_X_core(tile_props)
 
+    return core
+
+
+def spawn_I_core(tile_props):
     cursor = bpy.context.scene.cursor
     cursor_start_loc = cursor.location.copy()
+
+    disp_thickness = tile_props.displacement_thickness
     tile_size = tile_props.tile_size
     base_size = tile_props.base_size
     tile_name = tile_props.tile_name
+
     native_subdivisions = [
         tile_props.x_native_subdivisions,
         tile_props.y_native_subdivisions,
         tile_props.z_native_subdivisions]
 
-    core = draw_straight_wall_core(
-        [tile_size[0],
-         tile_size[1],
-         tile_size[2] - base_size[2]],
-        native_subdivisions)
+    dims = [tile_size[0],
+            tile_size[1] - disp_thickness * 2,
+            tile_size[2] - base_size[2]]
+
+    margin = tile_props.texture_margin
+
+    core, bm, top_verts, bottom_verts, deform_groups = draw_column_core(
+        dims,
+        native_subdivisions,
+        margin)
+
+    make_I_core_vert_groups(core, bm, dims, margin, top_verts, bottom_verts, deform_groups)
 
     core.name = tile_name + '.core'
     add_object_to_collection(core, tile_name)
 
     # move core so centred, move up so on top of base and set origin to world origin
     core.location = (
-        core.location[0],
-        core.location[1] + (base_size[1] - tile_size[1]) / 2,
+        core.location[0] + ((base_size[0] - tile_size[0]) / 2),
+        core.location[1] + ((base_size[1] - tile_size[1]) / 2) + (disp_thickness),
         cursor_start_loc[2] + base_size[2])
 
     ctx = {
@@ -367,4 +406,476 @@ def spawn_connecting_column_core(tile_props):
     obj_props.is_mt_object = True
     obj_props.tile_name = tile_props.tile_name
 
+    textured_vertex_groups = ['Front', 'Back']
+    convert_to_displacement_core(
+        core,
+        textured_vertex_groups)
     return core
+
+
+def spawn_L_core(tile_props):
+    cursor = bpy.context.scene.cursor
+    cursor_start_loc = cursor.location.copy()
+
+    disp_thickness = tile_props.displacement_thickness
+    tile_size = tile_props.tile_size
+    base_size = tile_props.base_size
+    tile_name = tile_props.tile_name
+
+    native_subdivisions = [
+        tile_props.x_native_subdivisions,
+        tile_props.y_native_subdivisions,
+        tile_props.z_native_subdivisions]
+
+    dims = [tile_size[0] - disp_thickness,
+            tile_size[1] - disp_thickness,
+            tile_size[2] - base_size[2]]
+
+    margin = tile_props.texture_margin
+
+    core, bm, top_verts, bottom_verts, deform_groups = draw_column_core(
+        dims,
+        native_subdivisions,
+        margin)
+
+    make_L_core_vert_groups(core, bm, dims, margin, top_verts, bottom_verts, deform_groups)
+
+    core.name = tile_name + '.core'
+    add_object_to_collection(core, tile_name)
+
+    # move core so centred, move up so on top of base and set origin to world origin
+    core.location = (
+        core.location[0] + ((base_size[0] - tile_size[0]) / 2) + disp_thickness,
+        core.location[1] + ((base_size[1] - tile_size[1]) / 2) + disp_thickness,
+        cursor_start_loc[2] + base_size[2])
+
+    ctx = {
+        'object': core,
+        'active_object': core,
+        'selected_editable_objects': [core],
+        'selected_objects': [core]
+    }
+
+    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+    bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
+
+    obj_props = core.mt_object_props
+    obj_props.is_mt_object = True
+    obj_props.tile_name = tile_props.tile_name
+
+    textured_vertex_groups = ['Front', 'Left']
+    convert_to_displacement_core(
+        core,
+        textured_vertex_groups)
+    return core
+
+
+def spawn_O_core(tile_props):
+    cursor = bpy.context.scene.cursor
+    cursor_start_loc = cursor.location.copy()
+
+    disp_thickness = tile_props.displacement_thickness
+    tile_size = tile_props.tile_size
+    base_size = tile_props.base_size
+    tile_name = tile_props.tile_name
+
+    native_subdivisions = [
+        tile_props.x_native_subdivisions,
+        tile_props.y_native_subdivisions,
+        tile_props.z_native_subdivisions]
+
+    dims = [tile_size[0] - disp_thickness,
+            tile_size[1] - (disp_thickness * 2),
+            tile_size[2] - base_size[2]]
+
+    margin = tile_props.texture_margin
+
+    core, bm, top_verts, bottom_verts, deform_groups = draw_column_core(
+        dims,
+        native_subdivisions,
+        margin)
+
+    make_O_core_vert_groups(core, bm, dims, margin, top_verts, bottom_verts, deform_groups)
+
+    core.name = tile_name + '.core'
+    add_object_to_collection(core, tile_name)
+
+    # move core so centred, move up so on top of base and set origin to world origin
+    core.location = (
+        core.location[0] + ((base_size[0] - tile_size[0]) / 2) + disp_thickness,
+        core.location[1] + ((base_size[1] - tile_size[1]) / 2) + disp_thickness,
+        cursor_start_loc[2] + base_size[2])
+
+    ctx = {
+        'object': core,
+        'active_object': core,
+        'selected_editable_objects': [core],
+        'selected_objects': [core]
+    }
+
+    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+    bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
+
+    obj_props = core.mt_object_props
+    obj_props.is_mt_object = True
+    obj_props.tile_name = tile_props.tile_name
+
+    textured_vertex_groups = ['Front', 'Back', 'Left']
+    convert_to_displacement_core(
+        core,
+        textured_vertex_groups)
+
+    return core
+
+
+def spawn_T_core(tile_props):
+    cursor = bpy.context.scene.cursor
+    cursor_start_loc = cursor.location.copy()
+
+    disp_thickness = tile_props.displacement_thickness
+    tile_size = tile_props.tile_size
+    base_size = tile_props.base_size
+    tile_name = tile_props.tile_name
+
+    native_subdivisions = [
+        tile_props.x_native_subdivisions,
+        tile_props.y_native_subdivisions,
+        tile_props.z_native_subdivisions]
+
+    dims = [tile_size[0],
+            tile_size[1] - disp_thickness,
+            tile_size[2] - base_size[2]]
+
+    margin = tile_props.texture_margin
+
+    core, bm, top_verts, bottom_verts, deform_groups = draw_column_core(
+        dims,
+        native_subdivisions,
+        margin)
+
+    make_T_core_vert_groups(core, bm, dims, margin, top_verts, bottom_verts, deform_groups)
+
+    core.name = tile_name + '.core'
+    add_object_to_collection(core, tile_name)
+
+    # move core so centred, move up so on top of base and set origin to world origin
+    core.location = (
+        core.location[0] + ((base_size[0] - tile_size[0]) / 2),
+        core.location[1] + ((base_size[1] - tile_size[1]) / 2) + disp_thickness,
+        cursor_start_loc[2] + base_size[2])
+
+    ctx = {
+        'object': core,
+        'active_object': core,
+        'selected_editable_objects': [core],
+        'selected_objects': [core]
+    }
+
+    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+    bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
+
+    obj_props = core.mt_object_props
+    obj_props.is_mt_object = True
+    obj_props.tile_name = tile_props.tile_name
+
+    textured_vertex_groups = ['Front']
+    convert_to_displacement_core(
+        core,
+        textured_vertex_groups)
+    return core
+
+    '''
+    core = spawn_wall_core(tile_props)
+    textured_vertex_groups = ['Front', 'Top']
+    convert_to_displacement_core(
+        core,
+        textured_vertex_groups)
+    return core
+    '''
+
+def spawn_X_core(tile_props):
+    # we only ever want texture on the top of our X column so use the rectangular floor core
+    core = spawn_floor_core(tile_props)
+    textured_vertex_groups = []
+    convert_to_displacement_core(
+        core,
+        textured_vertex_groups)
+    return core
+
+
+def draw_column_core(dims, subdivs, margin=0.001):
+    """Draw a column core and return bmesh.
+
+    Args:
+        dims (tuple[3]): X, Y, Z Dimensions
+        subdivs (tuple[3]): How many times to subdivide along X, Y, Z dims
+        margin (float, optional): Margin to leave around textured areas. Defaults to 0.001.
+
+    Returns:
+        bm: core bmesh
+        top_verts(list): BMVerts
+        bottom_verts(list): BMVerts
+    """
+    vert_groups = ['Left', 'Right', 'Front', 'Back', 'Top', 'Bottom']
+
+    bm, obj = create_turtle('Straight Wall', vert_groups)
+
+    # create vertex group layer
+    bm.verts.layers.deform.verify()
+    deform_groups = bm.verts.layers.deform.active
+    bm.select_mode = {'VERT'}
+
+    bottom_verts = []
+    top_verts = []
+
+    # Start drawing column
+    pd(bm)
+    add_vert(bm)
+    bm.select_mode = {'VERT'}
+
+    # Draw front bottom edges
+    ri(bm, margin)
+
+    subdiv_x_dist = (dims[0] - (margin * 2)) / subdivs[0]
+
+    i = 0
+    while i < subdivs[0]:
+        ri(bm, subdiv_x_dist)
+        i += 1
+
+    ri(bm, margin)
+
+    # Select edge and extrude to create bottom
+    bm.select_mode = {'EDGE'}
+    bm_select_all(bm)
+    fd(bm, margin)
+
+    subdiv_y_dist = (dims[1] - (margin * 2)) / subdivs[1]
+
+    i = 0
+    while i < subdivs[1]:
+        fd(bm, subdiv_y_dist)
+        i += 1
+
+    fd(bm, margin)
+
+    # Save verts to add to bottom vert group
+    for v in bm.verts:
+        bottom_verts.append(v)
+
+    # select bottom and extrude up
+    bm.select_mode = {'FACE'}
+    bm_select_all(bm)
+    up(bm, margin, False)
+
+    subdiv_z_dist = (dims[2] - (margin * 2)) / subdivs[2]
+
+    i = 0
+    while i < subdivs[2]:
+        up(bm, subdiv_z_dist)
+        i += 1
+
+    up(bm, margin)
+
+    # Save top verts to add to top vertex group
+    top_verts = [v for v in bm.verts if v.select]
+
+    # assign bottom verts to vertex groups
+    assign_verts_to_group(bottom_verts, obj, deform_groups, 'Bottom')
+
+    # home turtle
+    pu(bm)
+
+    home(obj)
+
+    return obj, bm, top_verts, bottom_verts, deform_groups
+
+
+def make_L_core_vert_groups(obj, bm, dims, margin, top_verts, bottom_verts, deform_groups):
+    # select front verts
+    lbound = (0, 0, 0)
+    ubound = (dims[0], 0, dims[2])
+    buffer = margin / 2
+
+    front_verts_orig = select_verts_in_bounds(lbound, ubound, buffer, bm)
+
+    # select left verts
+    lbound = (0, 0, 0)
+    ubound = (0, dims[1], dims[2])
+    buffer = margin / 2
+
+    left_verts_orig = select_verts_in_bounds(lbound, ubound, buffer, bm)
+
+    # select right verts
+    lbound = (dims[0], 0, 0)
+    ubound = dims
+    buffer = margin / 2
+
+    right_verts_orig = select_verts_in_bounds(lbound, ubound, buffer, bm)
+
+    # select back side
+    lbound = (0, dims[1], 0)
+    ubound = (dims[0], dims[1], dims[2])
+    buffer = margin / 2
+
+    back_verts_orig = select_verts_in_bounds(lbound, ubound, buffer, bm)
+
+    # ensure vert groups only contain the verts we want.
+    front_verts = [v for v in front_verts_orig if v not in right_verts_orig]
+    left_verts = [v for v in left_verts_orig if v not in back_verts_orig]
+    right_verts = [v for v in right_verts_orig if v not in front_verts_orig and v not in back_verts_orig]
+    back_verts = [v for v in back_verts_orig if v not in left_verts_orig and v not in right_verts_orig]
+
+    side_verts = front_verts_orig + back_verts_orig + left_verts_orig + right_verts_orig
+    top_verts = [v for v in top_verts if v not in side_verts]
+
+    assign_verts_to_group(front_verts, obj, deform_groups, 'Front')
+    assign_verts_to_group(back_verts, obj, deform_groups, 'Back')
+    assign_verts_to_group(top_verts, obj, deform_groups, 'Top')
+    assign_verts_to_group(right_verts, obj, deform_groups, 'Right')
+    assign_verts_to_group(left_verts, obj, deform_groups, 'Left')
+    # finalise turtle and release bmesh
+    finalise_turtle(bm, obj)
+
+    return obj
+
+def make_I_core_vert_groups(obj, bm, dims, margin, top_verts, bottom_verts, deform_groups):
+    # select front verts
+    lbound = (0, 0, 0)
+    ubound = (dims[0], 0, dims[2])
+    buffer = margin / 2
+
+    front_verts_orig = select_verts_in_bounds(lbound, ubound, buffer, bm)
+
+    # select left verts
+    lbound = (0, 0, 0)
+    ubound = (0, dims[1], dims[2])
+    buffer = margin / 2
+
+    left_verts_orig = select_verts_in_bounds(lbound, ubound, buffer, bm)
+
+    # select right verts
+    lbound = (dims[0], 0, 0)
+    ubound = dims
+    buffer = margin / 2
+
+    right_verts_orig = select_verts_in_bounds(lbound, ubound, buffer, bm)
+
+    # select back side
+    lbound = (0, dims[1], 0)
+    ubound = (dims[0], dims[1], dims[2])
+    buffer = margin / 2
+
+    back_verts_orig = select_verts_in_bounds(lbound, ubound, buffer, bm)
+
+    # ensure vert groups only contain the verts we want.
+    front_verts = [v for v in front_verts_orig if v not in right_verts_orig and v not in left_verts_orig and v not in top_verts]
+    left_verts = [v for v in left_verts_orig if v not in back_verts_orig and v not in front_verts_orig and v not in top_verts]
+    right_verts = [v for v in right_verts_orig if v not in front_verts_orig and v not in back_verts_orig and v not in top_verts]
+    back_verts = [v for v in back_verts_orig if v not in left_verts_orig and v not in right_verts_orig and v not in top_verts]
+
+    side_verts = left_verts_orig + right_verts_orig
+    top_verts = [v for v in top_verts if v not in side_verts]
+
+    assign_verts_to_group(front_verts, obj, deform_groups, 'Front')
+    assign_verts_to_group(back_verts, obj, deform_groups, 'Back')
+    assign_verts_to_group(top_verts, obj, deform_groups, 'Top')
+    assign_verts_to_group(right_verts, obj, deform_groups, 'Right')
+    assign_verts_to_group(left_verts, obj, deform_groups, 'Left')
+    # finalise turtle and release bmesh
+    finalise_turtle(bm, obj)
+
+    return obj
+
+def make_O_core_vert_groups(obj, bm, dims, margin, top_verts, bottom_verts, deform_groups):
+    # select front verts
+    lbound = (0, 0, 0)
+    ubound = (dims[0], 0, dims[2])
+    buffer = margin / 2
+
+    front_verts_orig = select_verts_in_bounds(lbound, ubound, buffer, bm)
+
+    # select left verts
+    lbound = (0, 0, 0)
+    ubound = (0, dims[1], dims[2])
+    buffer = margin / 2
+
+    left_verts_orig = select_verts_in_bounds(lbound, ubound, buffer, bm)
+
+    # select right verts
+    lbound = (dims[0], 0, 0)
+    ubound = dims
+    buffer = margin / 2
+
+    right_verts_orig = select_verts_in_bounds(lbound, ubound, buffer, bm)
+
+    # select back side
+    lbound = (0, dims[1], 0)
+    ubound = (dims[0], dims[1], dims[2])
+    buffer = margin / 2
+
+    back_verts_orig = select_verts_in_bounds(lbound, ubound, buffer, bm)
+
+    # ensure vert groups only contain the verts we want.
+    front_verts = [v for v in front_verts_orig if v not in right_verts_orig and v not in left_verts_orig and v not in top_verts]
+    left_verts = [v for v in left_verts_orig if v not in top_verts]
+    right_verts = [v for v in right_verts_orig if v not in front_verts_orig and v not in back_verts_orig and v not in top_verts]
+    back_verts = [v for v in back_verts_orig if v not in left_verts_orig and v not in right_verts_orig and v not in top_verts]
+
+    top_verts = [v for v in top_verts if v not in right_verts_orig]
+
+    assign_verts_to_group(front_verts, obj, deform_groups, 'Front')
+    assign_verts_to_group(back_verts, obj, deform_groups, 'Back')
+    assign_verts_to_group(top_verts, obj, deform_groups, 'Top')
+    assign_verts_to_group(right_verts, obj, deform_groups, 'Right')
+    assign_verts_to_group(left_verts, obj, deform_groups, 'Left')
+    # finalise turtle and release bmesh
+    finalise_turtle(bm, obj)
+
+    return obj
+
+
+def make_T_core_vert_groups(obj, bm, dims, margin, top_verts, bottom_verts, deform_groups):
+    # select front verts
+    lbound = (0, 0, 0)
+    ubound = (dims[0], 0, dims[2])
+    buffer = margin / 2
+
+    front_verts_orig = select_verts_in_bounds(lbound, ubound, buffer, bm)
+
+    # select left verts
+    lbound = (0, 0, 0)
+    ubound = (0, dims[1], dims[2])
+    buffer = margin / 2
+
+    left_verts_orig = select_verts_in_bounds(lbound, ubound, buffer, bm)
+
+    # select right verts
+    lbound = (dims[0], 0, 0)
+    ubound = dims
+    buffer = margin / 2
+
+    right_verts_orig = select_verts_in_bounds(lbound, ubound, buffer, bm)
+
+    # select back side
+    lbound = (0, dims[1], 0)
+    ubound = (dims[0], dims[1], dims[2])
+    buffer = margin / 2
+
+    back_verts_orig = select_verts_in_bounds(lbound, ubound, buffer, bm)
+
+    # ensure vert groups only contain the verts we want.
+    front_verts = [v for v in front_verts_orig if v not in right_verts_orig and v not in left_verts_orig and v not in top_verts]
+
+    side_verts = back_verts_orig + left_verts_orig + right_verts_orig
+    top_verts = [v for v in top_verts if v not in side_verts]
+
+    assign_verts_to_group(front_verts, obj, deform_groups, 'Front')
+    assign_verts_to_group(back_verts_orig, obj, deform_groups, 'Back')
+    assign_verts_to_group(top_verts, obj, deform_groups, 'Top')
+    assign_verts_to_group(right_verts_orig, obj, deform_groups, 'Right')
+    assign_verts_to_group(left_verts_orig, obj, deform_groups, 'Left')
+    # finalise turtle and release bmesh
+    finalise_turtle(bm, obj)
+
+    return obj

@@ -368,7 +368,7 @@ def draw_straight_wall_core(dims, subdivs, margin=0.001):
     """Draws a Straight Wall Core and assigns Verts to appropriate groups
 
     Args:
-        dims (tuple[3]): Dimensions
+        dims (tuple[3]): X, Y, Z Dimensions
         subdivs (tuple[3]): How many times to subdivide each face
         margin (float, optional): Margin to leave around textured areas to correct for displacement distortion.
         Defaults to 0.001.

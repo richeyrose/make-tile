@@ -708,18 +708,18 @@
             },
             "tile_defaults":{
                 "PLAIN": {
-                    "tile_x": 0.4,
-                    "tile_y": 0.4,
+                    "tile_x": 0.5,
+                    "tile_y": 0.5,
                     "tile_z": 2
                 },
                 "OPENLOCK": {
-                    "tile_x": 0.4,
-                    "tile_y": 0.4,
+                    "tile_x": 0.5,
+                    "tile_y": 0.5,
                     "tile_z": 2
                 },
                 "NONE":{
-                    "tile_x": 0.4,
-                    "tile_y": 0.4,
+                    "tile_x": 0.5,
+                    "tile_y": 0.5,
                     "tile_z": 0
                 }
             }

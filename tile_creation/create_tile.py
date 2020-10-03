@@ -125,7 +125,6 @@ def spawn_empty_base(tile_props):
     Returns:
         bpy.types.Object: Empty
     """
-    tile_props.base_size = (0, 0, 0)
     tile_name = tile_props.tile_name
 
     base = bpy.data.objects.new(tile_props.tile_name + '.base', None)

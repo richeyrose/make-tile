@@ -1,5 +1,6 @@
+import os
+from math import radians
 import bpy
-import bmesh
 from bpy.types import Operator, Panel
 from .. utils.registration import get_prefs
 from .. lib.utils.utils import get_all_subclasses
@@ -35,7 +36,7 @@ from ..lib.bmturtle.commands import (
     pd,
     home)
 from ..lib.bmturtle.helpers import (
-    bm_deselect_all,
+    bm_select_all,
     assign_verts_to_group,
     select_verts_in_bounds)
 
@@ -177,7 +178,7 @@ class MT_OT_Make_Openlock_Connecting_Column_Core(MT_Tile_Generator, Operator):
         tile = context.collection
         tile_props = tile.mt_tile_props
         base = context.active_object
-        spawn_openlock_connecting_column_cores(base, tile_props)
+        spawn_openlock_connecting_column_core(base, tile_props)
         return{'FINISHED'}
 
 
@@ -213,7 +214,9 @@ class MT_OT_Make_Connecting_Column_Tile(MT_Tile_Generator, Operator):
         base_type = 'CONNECTING_COLUMN_BASE'
         core_type = 'CONNECTING_COLUMN_CORE'
 
-        original_renderer, cursor_orig_loc, cursor_orig_rot = initialise_column_creator(context, scene_props)
+        original_renderer, cursor_orig_loc, cursor_orig_rot = initialise_column_creator(
+            context,
+            scene_props)
         subclasses = get_all_subclasses(MT_Tile_Generator)
         base = spawn_prefab(context, subclasses, base_blueprint, base_type)
 
@@ -268,36 +271,6 @@ def initialise_column_creator(context, scene_props):
     return original_renderer, cursor_orig_loc, cursor_orig_rot
 
 
-def spawn_openlock_connecting_column_cores(base, tile_props):
-    """Spawn OpenLOCK Core.
-
-    Args:
-        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
-
-    Returns:
-        bpy.types.Object: core
-    """
-    preview_core = spawn_connecting_column_core(tile_props)
-    return preview_core
-
-
-def spawn_plain_connecting_column_core(tile_props):
-    """Spawn plain Core.
-
-    Args:
-        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
-
-    Returns:
-        bpy.types.Object: core
-    """
-    preview_core = spawn_connecting_column_core(tile_props)
-    textured_vertex_groups = ['Front', 'Back']
-    convert_to_displacement_core(
-        preview_core,
-        textured_vertex_groups)
-    return preview_core
-
-
 def spawn_plain_base(tile_props):
     """Spawn a plain base into the scene.
 
@@ -333,7 +306,7 @@ def spawn_plain_base(tile_props):
     return base
 
 
-def spawn_connecting_column_core(tile_props):
+def spawn_plain_connecting_column_core(tile_props):
     """Return the column core.
 
     Args:
@@ -355,6 +328,506 @@ def spawn_connecting_column_core(tile_props):
 
     return core
 
+def spawn_openlock_connecting_column_core(base, tile_props):
+    """Return the column core.
+
+    Args:
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
+
+    Returns:
+        bpy.types.Object: core
+    """
+    cutters = []
+    if tile_props.column_type == 'I':
+        core = spawn_I_core(tile_props)
+        cutters = spawn_openlock_I_cutters(
+            core,
+            tile_props)
+    elif tile_props.column_type == 'L':
+        core = spawn_L_core(tile_props)
+        cutters = spawn_openlock_L_cutters(
+            core,
+            tile_props)
+    elif tile_props.column_type == 'O':
+        core = spawn_O_core(tile_props)
+        cutters = spawn_openlock_O_cutters(
+            core,
+            tile_props)
+    elif tile_props.column_type == 'T':
+        core = spawn_T_core(tile_props)
+        cutters = spawn_openlock_T_cutters(
+            core,
+            tile_props)
+    elif tile_props.column_type == 'X':
+        core = spawn_X_core(tile_props)
+        cutters = spawn_openlock_X_cutters(
+            core,
+            tile_props)
+    for cutter in cutters:
+        set_bool_obj_props(cutter, base, tile_props)
+        set_bool_props(cutter, core, 'DIFFERENCE')
+    return core
+
+
+def spawn_openlock_L_cutters(core, tile_props):
+    prefs = get_prefs()
+    tile_name = tile_props.tile_name
+    tile_size = tile_props.tile_size
+    base_size = tile_props.base_size
+
+    booleans_path = os.path.join(
+        prefs.assets_path,
+        "meshes",
+        "booleans",
+        "openlock.blend")
+
+    # load side cutter and add to collection
+    with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
+        data_to.objects = ['openlock.wall.cutter.side']
+
+    bottom_right_cutter = data_to.objects[0].copy()
+    bottom_right_cutter.name = 'Right Bottom.' + tile_name
+
+    add_object_to_collection(bottom_right_cutter, tile_name)
+
+    # move cutter to position
+    front_left = core.location.copy()
+
+    bottom_right_cutter.rotation_euler[2] = radians(180)
+
+    bottom_right_cutter.location = [
+        front_left[0] + base_size[0],
+        front_left[1] + (base_size[1] / 2),
+        front_left[2] + 0.63]
+
+    # add array mod
+    array_mod = bottom_right_cutter.modifiers.new('Array', 'ARRAY')
+    array_mod.use_relative_offset = False
+    array_mod.use_constant_offset = True
+    array_mod.constant_offset_displace[2] = 2
+    array_mod.fit_type = 'FIT_LENGTH'
+    array_mod.fit_length = tile_size[2] - 1
+
+    # make a copy of bottom cutter
+    top_right_cutter = bottom_right_cutter.copy()
+    top_right_cutter.name = 'right Top.' + tile_name
+
+    add_object_to_collection(top_right_cutter, tile_name)
+
+    # move cutter up by 0.75 inches
+    top_right_cutter.location[2] = top_right_cutter.location[2] + 0.75
+
+    # adjust array modifier
+    array_mod = top_right_cutter.modifiers[array_mod.name]
+    array_mod.fit_length = tile_size[2] - 1.8
+
+    # Back bottom
+    back_bottom_cutter = bottom_right_cutter.copy()
+    back_bottom_cutter.rotation_euler[2] = radians(-90)
+    back_bottom_cutter.location[0] = front_left[0] + (base_size[0] / 2)
+    back_bottom_cutter.location[1] = front_left[1] + base_size[1]
+    # offset
+    back_bottom_cutter.location[2] = back_bottom_cutter.location[2] - 0.001
+
+    # Rename and add to collection
+    back_bottom_cutter.name = 'Back Bottom.' + tile_name
+    add_object_to_collection(back_bottom_cutter, tile_name)
+
+    # Back top
+    back_top_cutter = top_right_cutter.copy()
+    back_top_cutter.rotation_euler[2] = radians(-90)
+    back_top_cutter.location[0] = front_left[0] + (base_size[0] / 2)
+    back_top_cutter.location[1] = front_left[1] + base_size[1]
+    # offset
+    back_top_cutter.location[2] = back_top_cutter.location[2] - 0.001
+
+    # Rename and add to collection
+    back_top_cutter.name = 'Back Top.' + tile_name
+    add_object_to_collection(back_top_cutter, tile_name)
+
+    cutters = [
+        bottom_right_cutter,
+        top_right_cutter,
+        back_top_cutter,
+        back_bottom_cutter]
+
+    return cutters
+
+
+def spawn_openlock_T_cutters(core, tile_props):
+    prefs = get_prefs()
+    tile_name = tile_props.tile_name
+    tile_size = tile_props.tile_size
+    base_size = tile_props.base_size
+
+    booleans_path = os.path.join(
+        prefs.assets_path,
+        "meshes",
+        "booleans",
+        "openlock.blend")
+
+    # load side cutter and add to collection
+    with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
+        data_to.objects = ['openlock.wall.cutter.side']
+
+    bottom_left_cutter = data_to.objects[0].copy()
+    bottom_left_cutter.name = 'Left Bottom.' + tile_name
+
+    add_object_to_collection(bottom_left_cutter, tile_name)
+
+    # move cutter to position
+    front_left = core.location.copy()
+    # bottom_left_cutter.rotation_euler[2] = radians(180)
+    bottom_left_cutter.location = [
+        front_left[0],
+        front_left[1] + (base_size[1] / 2),
+        front_left[2] + 0.63]
+
+    # add array mod
+    array_mod = bottom_left_cutter.modifiers.new('Array', 'ARRAY')
+    array_mod.use_relative_offset = False
+    array_mod.use_constant_offset = True
+    array_mod.constant_offset_displace[2] = 2
+    array_mod.fit_type = 'FIT_LENGTH'
+    array_mod.fit_length = tile_size[2] - 1
+
+    # make a copy of bottom cutter
+    top_left_cutter = bottom_left_cutter.copy()
+    top_left_cutter.name = 'Left Top.' + tile_name
+
+    add_object_to_collection(top_left_cutter, tile_name)
+
+    # move cutter up by 0.75 inches
+    top_left_cutter.location[2] = top_left_cutter.location[2] + 0.75
+
+    # adjust array modifier
+    array_mod = top_left_cutter.modifiers[array_mod.name]
+    array_mod.fit_length = tile_size[2] - 1.8
+
+    # bottom right
+    bottom_right_cutter = bottom_left_cutter.copy()
+    bottom_right_cutter.rotation_euler[2] = radians(180)
+    bottom_right_cutter.location[0] = bottom_left_cutter.location[0] + (base_size[0])
+
+    # offset to prevent boolean error
+    bottom_right_cutter.location[1] = bottom_right_cutter.location[1] + 0.001
+    bottom_right_cutter.location[2] = bottom_right_cutter.location[2] + 0.001
+
+    # Rename and add to collection
+    bottom_right_cutter.name = 'Right Bottom.'  + tile_name
+    add_object_to_collection(bottom_right_cutter, tile_name)
+
+    # top right
+    top_right_cutter = top_left_cutter.copy()
+    top_right_cutter.rotation_euler[2] = radians(180)
+    top_right_cutter.location[0] = top_left_cutter.location[0] + (base_size[0])
+    top_right_cutter.location[1] = top_right_cutter.location[1] + 0.001
+    top_right_cutter.location[2] = top_right_cutter.location[2] + 0.001
+
+    # Rename and add to colleciton
+    top_right_cutter.name = 'Right Top.' + tile_name
+    add_object_to_collection(top_right_cutter, tile_name)
+
+    # Back bottom
+    back_bottom_cutter = bottom_left_cutter.copy()
+    back_bottom_cutter.rotation_euler[2] = radians(-90)
+    back_bottom_cutter.location[0] = back_bottom_cutter.location[0] + (base_size[0] / 2)
+    back_bottom_cutter.location[1] = front_left[1] + base_size[1]
+    # offset
+    back_bottom_cutter.location[2] = back_bottom_cutter.location[2] - 0.001
+
+    # Rename and add to collection
+    back_bottom_cutter.name = 'Back Bottom.' + tile_name
+    add_object_to_collection(back_bottom_cutter, tile_name)
+
+    # Back top
+    back_top_cutter = top_left_cutter.copy()
+    back_top_cutter.rotation_euler[2] = radians(-90)
+    back_top_cutter.location[0] = back_top_cutter.location[0] + (base_size[0] / 2)
+    back_top_cutter.location[1] = front_left[1] + base_size[1]
+    # offset
+    back_top_cutter.location[2] = back_top_cutter.location[2] - 0.001
+
+    # Rename and add to collection
+    back_top_cutter.name = 'Back Top.' + tile_name
+    add_object_to_collection(back_top_cutter, tile_name)
+
+    cutters = [
+        bottom_left_cutter,
+        top_left_cutter,
+        bottom_right_cutter,
+        top_right_cutter,
+        back_bottom_cutter,
+        back_top_cutter]
+
+    return cutters
+
+
+def spawn_openlock_X_cutters(core, tile_props):
+    prefs = get_prefs()
+    tile_name = tile_props.tile_name
+    tile_size = tile_props.tile_size
+    base_size = tile_props.base_size
+
+    booleans_path = os.path.join(
+        prefs.assets_path,
+        "meshes",
+        "booleans",
+        "openlock.blend")
+
+    # load side cutter and add to collection
+    with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
+        data_to.objects = ['openlock.wall.cutter.side']
+
+    bottom_left_cutter = data_to.objects[0].copy()
+    bottom_left_cutter.name = 'Left Bottom.' + tile_name
+
+    add_object_to_collection(bottom_left_cutter, tile_name)
+
+    # move cutter to position
+    front_left = core.location.copy()
+    # bottom_left_cutter.rotation_euler[2] = radians(180)
+    bottom_left_cutter.location = [
+        front_left[0],
+        front_left[1] + (base_size[1] / 2),
+        front_left[2] + 0.63]
+
+    # add array mod
+    array_mod = bottom_left_cutter.modifiers.new('Array', 'ARRAY')
+    array_mod.use_relative_offset = False
+    array_mod.use_constant_offset = True
+    array_mod.constant_offset_displace[2] = 2
+    array_mod.fit_type = 'FIT_LENGTH'
+    array_mod.fit_length = tile_size[2] - 1
+
+    # make a copy of bottom cutter
+    top_left_cutter = bottom_left_cutter.copy()
+    top_left_cutter.name = 'Left Top.' + tile_name
+
+    add_object_to_collection(top_left_cutter, tile_name)
+
+    # move cutter up by 0.75 inches
+    top_left_cutter.location[2] = top_left_cutter.location[2] + 0.75
+
+    # adjust array modifier
+    array_mod = top_left_cutter.modifiers[array_mod.name]
+    array_mod.fit_length = tile_size[2] - 1.8
+
+    # bottom right
+    bottom_right_cutter = bottom_left_cutter.copy()
+    bottom_right_cutter.rotation_euler[2] = radians(180)
+    bottom_right_cutter.location[0] = bottom_left_cutter.location[0] + (base_size[0])
+
+    # offset to prevent boolean error
+    bottom_right_cutter.location[1] = bottom_right_cutter.location[1] + 0.001
+    bottom_right_cutter.location[2] = bottom_right_cutter.location[2] + 0.001
+
+    # Rename and add to collection
+    bottom_right_cutter.name = 'Right Bottom.'  + tile_name
+    add_object_to_collection(bottom_right_cutter, tile_name)
+
+    # top right
+    top_right_cutter = top_left_cutter.copy()
+    top_right_cutter.rotation_euler[2] = radians(180)
+    top_right_cutter.location[0] = top_left_cutter.location[0] + (base_size[0])
+    top_right_cutter.location[1] = top_right_cutter.location[1] + 0.001
+    top_right_cutter.location[2] = top_right_cutter.location[2] + 0.001
+
+    # Rename and add to colleciton
+    top_right_cutter.name = 'Right Top.' + tile_name
+    add_object_to_collection(top_right_cutter, tile_name)
+
+    # Front bottom
+    front_bottom_cutter = bottom_left_cutter.copy()
+    front_bottom_cutter.rotation_euler[2] = radians(90)
+    front_bottom_cutter.location[0] = front_bottom_cutter.location[0] + (base_size[0] / 2)
+    front_bottom_cutter.location[1] = front_left[1]
+
+    # Offset
+    front_bottom_cutter.location[0] = front_bottom_cutter.location[0] + 0.001
+    front_bottom_cutter.location[2] = front_bottom_cutter.location[2] + 0.001
+
+    # Rename and add to collection
+    front_bottom_cutter.name = 'Front Bottom.' + tile_name
+    add_object_to_collection(front_bottom_cutter, tile_name)
+
+    # Front top
+    front_top_cutter = top_left_cutter.copy()
+    front_top_cutter.rotation_euler[2] = radians(90)
+    front_top_cutter.location[0] = front_top_cutter.location[0] + (base_size[0] / 2)
+    front_top_cutter.location[1] = front_left[1]
+
+    # Offset
+    front_top_cutter.location[0] = front_top_cutter.location[0] + 0.001
+    front_top_cutter.location[2] = front_top_cutter.location[2] + 0.001
+
+    # Rename and add to collection
+    front_top_cutter.name = 'Front Top.' + tile_name
+    add_object_to_collection(front_top_cutter, tile_name)
+
+    # Back bottom
+    back_bottom_cutter = bottom_left_cutter.copy()
+    back_bottom_cutter.rotation_euler[2] = radians(-90)
+    back_bottom_cutter.location[0] = back_bottom_cutter.location[0] + (base_size[0] / 2)
+    back_bottom_cutter.location[1] = front_left[1] + base_size[1]
+    # offset
+    back_bottom_cutter.location[2] = back_bottom_cutter.location[2] - 0.001
+
+    # Rename and add to collection
+    back_bottom_cutter.name = 'Back Bottom.' + tile_name
+    add_object_to_collection(back_bottom_cutter, tile_name)
+
+    # Back top
+    back_top_cutter = top_left_cutter.copy()
+    back_top_cutter.rotation_euler[2] = radians(-90)
+    back_top_cutter.location[0] = back_top_cutter.location[0] + (base_size[0] / 2)
+    back_top_cutter.location[1] = front_left[1] + base_size[1]
+    # offset
+    back_top_cutter.location[2] = back_top_cutter.location[2] - 0.001
+
+    # Rename and add to collection
+    back_top_cutter.name = 'Back Top.' + tile_name
+    add_object_to_collection(back_top_cutter, tile_name)
+
+    cutters = [
+        bottom_left_cutter,
+        top_left_cutter,
+        bottom_right_cutter,
+        top_right_cutter,
+        back_bottom_cutter,
+        back_top_cutter,
+        front_bottom_cutter,
+        front_top_cutter]
+
+    return cutters
+
+
+def spawn_openlock_I_cutters(core, tile_props):
+    prefs = get_prefs()
+    tile_name = tile_props.tile_name
+    tile_size = tile_props.tile_size
+    base_size = tile_props.base_size
+
+    booleans_path = os.path.join(
+        prefs.assets_path,
+        "meshes",
+        "booleans",
+        "openlock.blend")
+
+    # load side cutter and add to collection
+    with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
+        data_to.objects = ['openlock.wall.cutter.side']
+
+    bottom_left_cutter = data_to.objects[0].copy()
+    bottom_left_cutter.name = 'Left Bottom.' + tile_name
+
+    add_object_to_collection(bottom_left_cutter, tile_name)
+
+    # move cutter to position
+    front_left = core.location.copy()
+    # bottom_left_cutter.rotation_euler[2] = radians(180)
+    bottom_left_cutter.location = [
+        front_left[0],
+        front_left[1] + (base_size[1] / 2),
+        front_left[2] + 0.63]
+
+    # add array mod
+    array_mod = bottom_left_cutter.modifiers.new('Array', 'ARRAY')
+    array_mod.use_relative_offset = False
+    array_mod.use_constant_offset = True
+    array_mod.constant_offset_displace[2] = 2
+    array_mod.fit_type = 'FIT_LENGTH'
+    array_mod.fit_length = tile_size[2] - 1
+
+    # make a copy of bottom cutter
+    top_left_cutter = bottom_left_cutter.copy()
+    top_left_cutter.name = 'Left Top.' + tile_name
+
+    add_object_to_collection(top_left_cutter, tile_name)
+
+    # move cutter up by 0.75 inches
+    top_left_cutter.location[2] = top_left_cutter.location[2] + 0.75
+
+    # adjust array modifier
+    array_mod = top_left_cutter.modifiers[array_mod.name]
+    array_mod.fit_length = tile_size[2] - 1.8
+
+    # bottom right
+    bottom_right_cutter = bottom_left_cutter.copy()
+    bottom_right_cutter.rotation_euler[2] = radians(180)
+    bottom_right_cutter.location[0] = bottom_left_cutter.location[0] + (base_size[0])
+    # offset to prevent boolean error
+    bottom_right_cutter.location[1] = bottom_right_cutter.location[1] + 0.001
+    bottom_right_cutter.location[2] = bottom_right_cutter.location[2] + 0.001
+    bottom_right_cutter.name = 'Right Bottom.'  + tile_name
+    add_object_to_collection(bottom_right_cutter, tile_name)
+
+    # top right
+    top_right_cutter = top_left_cutter.copy()
+    top_right_cutter.rotation_euler[2] = radians(180)
+    top_right_cutter.location[0] = top_left_cutter.location[0] + (base_size[0])
+    top_right_cutter.location[1] = top_right_cutter.location[1] + 0.001
+    top_right_cutter.location[2] = top_right_cutter.location[2] + 0.001
+    top_right_cutter.name = 'Right Top.' + tile_name
+    add_object_to_collection(top_right_cutter, tile_name)
+
+    cutters = [bottom_left_cutter, top_left_cutter, bottom_right_cutter, top_right_cutter]
+    return cutters
+
+
+def spawn_openlock_O_cutters(core, tile_props):
+    prefs = get_prefs()
+    tile_name = tile_props.tile_name
+    tile_size = tile_props.tile_size
+    base_size = tile_props.base_size
+
+    booleans_path = os.path.join(
+        prefs.assets_path,
+        "meshes",
+        "booleans",
+        "openlock.blend")
+
+    # load side cutter and add to collection
+    with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
+        data_to.objects = ['openlock.wall.cutter.side']
+
+    bottom_cutter = data_to.objects[0].copy()
+    bottom_cutter.name = 'Bottom.' + tile_name
+
+    add_object_to_collection(bottom_cutter, tile_name)
+
+    # move cutter to position
+    front_left = core.location.copy()
+    bottom_cutter.rotation_euler[2] = radians(180)
+    bottom_cutter.location = [
+        front_left[0] + (base_size[0]),
+        front_left[1] + (base_size[1] / 2),
+        front_left[2] + 0.63]
+
+    # add array mod
+    array_mod = bottom_cutter.modifiers.new('Array', 'ARRAY')
+    array_mod.use_relative_offset = False
+    array_mod.use_constant_offset = True
+    array_mod.constant_offset_displace[2] = 2
+    array_mod.fit_type = 'FIT_LENGTH'
+    array_mod.fit_length = tile_size[2] - 1
+
+    # make a copy of bottom cutter
+    top_cutter = bottom_cutter.copy()
+    top_cutter.name = 'Top.' + tile_name
+
+    add_object_to_collection(top_cutter, tile_name)
+
+    # move cutter up by 0.75 inches
+    top_cutter.location[2] = top_cutter.location[2] + 0.75
+
+    # adjust array modifier
+    array_mod = top_cutter.modifiers[array_mod.name]
+    array_mod.fit_length = tile_size[2] - 1.8
+
+    cutters = [bottom_cutter, top_cutter]
+
+    return cutters
 
 def spawn_I_core(tile_props):
     cursor = bpy.context.scene.cursor
@@ -584,14 +1057,6 @@ def spawn_T_core(tile_props):
         textured_vertex_groups)
     return core
 
-    '''
-    core = spawn_wall_core(tile_props)
-    textured_vertex_groups = ['Front', 'Top']
-    convert_to_displacement_core(
-        core,
-        textured_vertex_groups)
-    return core
-    '''
 
 def spawn_X_core(tile_props):
     # we only ever want texture on the top of our X column so use the rectangular floor core
@@ -612,9 +1077,10 @@ def draw_column_core(dims, subdivs, margin=0.001):
         margin (float, optional): Margin to leave around textured areas. Defaults to 0.001.
 
     Returns:
-        bm: core bmesh
-        top_verts(list): BMVerts
-        bottom_verts(list): BMVerts
+        bpy.types.Object: core
+        bmesh: core bmesh
+        list[BMVerts]: list of top verts
+        BMVerts.layers.deform: deform groups
     """
     vert_groups = ['Left', 'Right', 'Front', 'Back', 'Top', 'Bottom']
 
@@ -721,10 +1187,20 @@ def make_L_core_vert_groups(obj, bm, dims, margin, top_verts, bottom_verts, defo
     back_verts_orig = select_verts_in_bounds(lbound, ubound, buffer, bm)
 
     # ensure vert groups only contain the verts we want.
-    front_verts = [v for v in front_verts_orig if v not in right_verts_orig]
-    left_verts = [v for v in left_verts_orig if v not in back_verts_orig]
-    right_verts = [v for v in right_verts_orig if v not in front_verts_orig and v not in back_verts_orig]
-    back_verts = [v for v in back_verts_orig if v not in left_verts_orig and v not in right_verts_orig]
+    front_verts = [v for v in front_verts_orig
+                   if v not in right_verts_orig
+                   and v not in bottom_verts]
+    left_verts = [v for v in left_verts_orig
+                  if v not in back_verts_orig
+                  and v not in bottom_verts]
+    right_verts = [v for v in right_verts_orig
+                   if v not in front_verts_orig
+                   and v not in back_verts_orig
+                   and v not in bottom_verts]
+    back_verts = [v for v in back_verts_orig
+                  if v not in left_verts_orig
+                  and v not in right_verts_orig
+                  and v not in bottom_verts]
 
     side_verts = front_verts_orig + back_verts_orig + left_verts_orig + right_verts_orig
     top_verts = [v for v in top_verts if v not in side_verts]
@@ -738,6 +1214,7 @@ def make_L_core_vert_groups(obj, bm, dims, margin, top_verts, bottom_verts, defo
     finalise_turtle(bm, obj)
 
     return obj
+
 
 def make_I_core_vert_groups(obj, bm, dims, margin, top_verts, bottom_verts, deform_groups):
     # select front verts
@@ -769,10 +1246,26 @@ def make_I_core_vert_groups(obj, bm, dims, margin, top_verts, bottom_verts, defo
     back_verts_orig = select_verts_in_bounds(lbound, ubound, buffer, bm)
 
     # ensure vert groups only contain the verts we want.
-    front_verts = [v for v in front_verts_orig if v not in right_verts_orig and v not in left_verts_orig and v not in top_verts]
-    left_verts = [v for v in left_verts_orig if v not in back_verts_orig and v not in front_verts_orig and v not in top_verts]
-    right_verts = [v for v in right_verts_orig if v not in front_verts_orig and v not in back_verts_orig and v not in top_verts]
-    back_verts = [v for v in back_verts_orig if v not in left_verts_orig and v not in right_verts_orig and v not in top_verts]
+    front_verts = [v for v in front_verts_orig
+                   if v not in right_verts_orig
+                   and v not in left_verts_orig
+                   and v not in top_verts
+                   and v not in bottom_verts]
+    left_verts = [v for v in left_verts_orig
+                  if v not in back_verts_orig
+                  and v not in front_verts_orig
+                  and v not in top_verts
+                  and v not in bottom_verts]
+    right_verts = [v for v in right_verts_orig
+                   if v not in front_verts_orig
+                   and v not in back_verts_orig
+                   and v not in top_verts
+                   and v not in bottom_verts]
+    back_verts = [v for v in back_verts_orig
+                  if v not in left_verts_orig
+                  and v not in right_verts_orig
+                  and v not in top_verts
+                  and v not in bottom_verts]
 
     side_verts = left_verts_orig + right_verts_orig
     top_verts = [v for v in top_verts if v not in side_verts]
@@ -786,6 +1279,7 @@ def make_I_core_vert_groups(obj, bm, dims, margin, top_verts, bottom_verts, defo
     finalise_turtle(bm, obj)
 
     return obj
+
 
 def make_O_core_vert_groups(obj, bm, dims, margin, top_verts, bottom_verts, deform_groups):
     # select front verts
@@ -817,12 +1311,26 @@ def make_O_core_vert_groups(obj, bm, dims, margin, top_verts, bottom_verts, defo
     back_verts_orig = select_verts_in_bounds(lbound, ubound, buffer, bm)
 
     # ensure vert groups only contain the verts we want.
-    front_verts = [v for v in front_verts_orig if v not in right_verts_orig and v not in left_verts_orig and v not in top_verts]
-    left_verts = [v for v in left_verts_orig if v not in top_verts]
-    right_verts = [v for v in right_verts_orig if v not in front_verts_orig and v not in back_verts_orig and v not in top_verts]
-    back_verts = [v for v in back_verts_orig if v not in left_verts_orig and v not in right_verts_orig and v not in top_verts]
-
-    top_verts = [v for v in top_verts if v not in right_verts_orig]
+    front_verts = [v for v in front_verts_orig
+                   if v not in right_verts_orig
+                   and v not in left_verts_orig
+                   and v not in top_verts
+                   and v not in bottom_verts]
+    left_verts = [v for v in left_verts_orig
+                  if v not in top_verts
+                  and v not in bottom_verts]
+    right_verts = [v for v in right_verts_orig
+                   if v not in front_verts_orig
+                   and v not in back_verts_orig
+                   and v not in top_verts
+                   and v not in bottom_verts]
+    back_verts = [v for v in back_verts_orig
+                  if v not in left_verts_orig
+                  and v not in right_verts_orig
+                  and v not in top_verts
+                  and v not in bottom_verts]
+    top_verts = [v for v in top_verts
+                 if v not in right_verts_orig]
 
     assign_verts_to_group(front_verts, obj, deform_groups, 'Front')
     assign_verts_to_group(back_verts, obj, deform_groups, 'Back')
@@ -865,7 +1373,11 @@ def make_T_core_vert_groups(obj, bm, dims, margin, top_verts, bottom_verts, defo
     back_verts_orig = select_verts_in_bounds(lbound, ubound, buffer, bm)
 
     # ensure vert groups only contain the verts we want.
-    front_verts = [v for v in front_verts_orig if v not in right_verts_orig and v not in left_verts_orig and v not in top_verts]
+    front_verts = [v for v in front_verts_orig
+                   if v not in right_verts_orig
+                   and v not in left_verts_orig
+                   and v not in top_verts
+                   and v not in bottom_verts]
 
     side_verts = back_verts_orig + left_verts_orig + right_verts_orig
     top_verts = [v for v in top_verts if v not in side_verts]

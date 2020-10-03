@@ -508,7 +508,7 @@ class MT_Scene_Properties(PropertyGroup):
     displacement_thickness: bpy.props.FloatProperty(
         name="Displacement Thickness",
         description="Thickness of displacement texture.",
-        default=0.0915
+        default=0.09
     )
 
     # Tile and base size. We use seperate floats so that we can only show
@@ -855,7 +855,7 @@ class MT_Tile_Properties(PropertyGroup):
     displacement_thickness: bpy.props.FloatProperty(
         name="Displacement Thickness",
         description="Thickness of displacement texture.",
-        default=0.0915
+        default=0.09
     )
 
     # Dimensions #

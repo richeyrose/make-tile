@@ -27,13 +27,14 @@ def lock_all_transforms(obj):
 
 
 def convert_to_displacement_core(core, textured_vertex_groups):
-    """Convert the core part of a tile so it can be used by the maketile dispacement system
+    """Convert the core part of a tile so it can be used by the maketile dispacement system.
 
     Args:
         core (bpy.types.Object): object
-        textured_vertex_groups (list[str]): list of vertex group names that should have a texture applied
+        textured_vertex_groups (list[str]): \
+        list of vertex group names that should have a texture applied
     """
-    #TODO change these to properties stored in mt_object_props
+    # TODO change these to properties stored in mt_object_props
     scene = bpy.context.scene
     preferences = get_prefs()
 
@@ -64,7 +65,7 @@ def convert_to_displacement_core(core, textured_vertex_groups):
     core['disp_texture'] = bpy.data.textures.new(core.name + '.texture', 'IMAGE')
 
     # add a triangulate modifier to correct for distortion after bools
-    tri = core.modifiers.new('MT Triangulate', 'TRIANGULATE')
+    core.modifiers.new('MT Triangulate', 'TRIANGULATE')
 
     # add a subsurf modifier
     subsurf = core.modifiers.new('MT Subsurf', 'SUBSURF')
@@ -112,6 +113,7 @@ def finalise_core(core, tile_props):
 
 def finalise_tile(base, core, cursor_orig_loc, cursor_orig_rot):
     """Finalise tile.
+
     Parent core to base, assign secondary material to base, reset cursor,
     select and activate base.
 
@@ -222,7 +224,7 @@ def load_openlock_top_peg(tile_props):
 
 
 def set_bool_obj_props(bool_obj, parent_obj, tile_props):
-    """Set properties for boolean object used for e.g. clip cutters
+    """Set properties for boolean object used for e.g. clip cutters.
 
     Args:
         bool_obj (bpy.types.Object): Boolean Object
@@ -241,6 +243,7 @@ def set_bool_obj_props(bool_obj, parent_obj, tile_props):
 
 def set_bool_props(bool_obj, target_obj, bool_type):
     """Set Properties for boolean and add bool to target_object's cutters collection.
+
     This allows boolean to be toggled on and off in MakeTile menu
 
     Args:

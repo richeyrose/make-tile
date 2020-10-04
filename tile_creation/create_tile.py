@@ -86,6 +86,30 @@ def convert_to_displacement_core(core, textured_vertex_groups):
     core.mt_object_props.geometry_type = 'PREVIEW'
 
 
+def finalise_core(core, tile_props):
+    """Finalise core.
+
+    Set origin, UV project, set object props
+
+    Args:
+        core (bpy.types.Object): core
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
+    """
+    ctx = {
+        'object': core,
+        'active_object': core,
+        'selected_editable_objects': [core],
+        'selected_objects': [core]
+    }
+
+    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+    bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
+
+    obj_props = core.mt_object_props
+    obj_props.is_mt_object = True
+    obj_props.tile_name = tile_props.tile_name
+
+
 def finalise_tile(base, core, cursor_orig_loc, cursor_orig_rot):
     """Finalise tile.
     Parent core to base, assign secondary material to base, reset cursor,

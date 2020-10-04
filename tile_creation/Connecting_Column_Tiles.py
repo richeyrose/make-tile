@@ -4,6 +4,7 @@ import bpy
 from bpy.types import Operator, Panel
 from .. utils.registration import get_prefs
 from .. lib.utils.utils import get_all_subclasses
+from .. lib.utils.selection import activate
 from .. lib.utils.collections import (
     add_object_to_collection,
     create_collection,
@@ -19,7 +20,7 @@ from .create_tile import (
     spawn_prefab,
     set_bool_obj_props,
     set_bool_props,
-    load_openlock_top_peg)
+    finalise_core)
 from ..lib.bmturtle.scripts import (
     draw_cuboid)
 from .Rectangular_Tiles import (
@@ -330,19 +331,19 @@ def spawn_plain_connecting_column_core(tile_props):
         textured_vertex_groups = ['Front', 'Back', 'Left', 'Right']
     else:
         if column_type == 'I':
-        core = spawn_I_core(tile_props)
+            core = spawn_I_core(tile_props)
             textured_vertex_groups = ['Front', 'Back']
         elif column_type == 'L':
-        core = spawn_L_core(tile_props)
+            core = spawn_L_core(tile_props)
             textured_vertex_groups = ['Front', 'Left']
         elif column_type == 'O':
-        core = spawn_O_core(tile_props)
+            core = spawn_O_core(tile_props)
             textured_vertex_groups = ['Front', 'Back', 'Left']
         elif column_type == 'T':
-        core = spawn_T_core(tile_props)
+            core = spawn_T_core(tile_props)
             textured_vertex_groups = ['Front']
         elif column_type == 'X':
-        core = spawn_X_core(tile_props)
+            core = spawn_X_core(tile_props)
             textured_vertex_groups = []
 
     convert_to_displacement_core(
@@ -430,6 +431,15 @@ def spawn_openlock_connecting_column_core(base, tile_props):
 
 
 def spawn_openlock_L_cutters(core, tile_props):
+    """Return openlock cutter objects.
+
+    Args:
+        core (bpy.types.Object): core
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
+
+    Returns:
+        list(bpy.types.Object): cutter objects
+    """
     prefs = get_prefs()
     tile_name = tile_props.tile_name
     tile_size = tile_props.tile_size
@@ -515,6 +525,15 @@ def spawn_openlock_L_cutters(core, tile_props):
 
 
 def spawn_openlock_T_cutters(core, tile_props):
+    """Return openlock cutter objects.
+
+    Args:
+        core (bpy.types.Object): core
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
+
+    Returns:
+        list(bpy.types.Object): cutter objects
+    """
     prefs = get_prefs()
     tile_name = tile_props.tile_name
     tile_size = tile_props.tile_size
@@ -574,7 +593,7 @@ def spawn_openlock_T_cutters(core, tile_props):
     bottom_right_cutter.location[2] = bottom_right_cutter.location[2] + 0.001
 
     # Rename and add to collection
-    bottom_right_cutter.name = 'Right Bottom.'  + tile_name
+    bottom_right_cutter.name = 'Right Bottom.' + tile_name
     add_object_to_collection(bottom_right_cutter, tile_name)
 
     # top right
@@ -624,6 +643,15 @@ def spawn_openlock_T_cutters(core, tile_props):
 
 
 def spawn_openlock_X_cutters(core, tile_props):
+    """Return openlock cutter objects.
+
+    Args:
+        core (bpy.types.Object): core
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
+
+    Returns:
+        list(bpy.types.Object): cutter objects
+    """
     prefs = get_prefs()
     tile_name = tile_props.tile_name
     tile_size = tile_props.tile_size
@@ -763,6 +791,17 @@ def spawn_openlock_X_cutters(core, tile_props):
 
 
 def spawn_socket_buffers(cutters):
+    """Spawn buffer objects (basically flat plates so tiles sit flush) \
+    to use for boolean union on columns with wrap around textures.
+
+    Takes a list of cutter objects and swaps out the mesh.
+
+    Args:
+        cutters (list[bpy.types.Object]): cutters
+
+    Returns:
+        list[bpy.types.Object]: buffer objects
+    """
     prefs = get_prefs()
     booleans_path = os.path.join(
         prefs.assets_path,
@@ -786,6 +825,15 @@ def spawn_socket_buffers(cutters):
 
 
 def spawn_openlock_I_cutters(core, tile_props):
+    """Return openlock cutter objects.
+
+    Args:
+        core (bpy.types.Object): core
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
+
+    Returns:
+        list(bpy.types.Object): cutter objects
+    """
     prefs = get_prefs()
     tile_name = tile_props.tile_name
     tile_size = tile_props.tile_size
@@ -842,7 +890,7 @@ def spawn_openlock_I_cutters(core, tile_props):
     # offset to prevent boolean error
     bottom_right_cutter.location[1] = bottom_right_cutter.location[1] + 0.001
     bottom_right_cutter.location[2] = bottom_right_cutter.location[2] + 0.001
-    bottom_right_cutter.name = 'Right Bottom.'  + tile_name
+    bottom_right_cutter.name = 'Right Bottom.' + tile_name
     add_object_to_collection(bottom_right_cutter, tile_name)
 
     # top right
@@ -859,6 +907,15 @@ def spawn_openlock_I_cutters(core, tile_props):
 
 
 def spawn_openlock_O_cutters(core, tile_props):
+    """Return openlock cutter objects.
+
+    Args:
+        core (bpy.types.Object): core
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
+
+    Returns:
+        list(bpy.types.Object): cutter objects
+    """
     prefs = get_prefs()
     tile_name = tile_props.tile_name
     tile_size = tile_props.tile_size
@@ -914,6 +971,14 @@ def spawn_openlock_O_cutters(core, tile_props):
 
 
 def spawn_generic_core(tile_props):
+    """Spawn column core.
+
+    Args:
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
+
+    Returns:
+        bpy.types.Object: Core
+    """
     cursor = bpy.context.scene.cursor
     cursor_start_loc = cursor.location.copy()
 
@@ -949,24 +1014,20 @@ def spawn_generic_core(tile_props):
         core.location[1] + ((base_size[1] - tile_size[1]) / 2) + disp_thickness,
         cursor_start_loc[2] + base_size[2])
 
-    ctx = {
-        'object': core,
-        'active_object': core,
-        'selected_editable_objects': [core],
-        'selected_objects': [core]
-    }
-
-    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-    bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
-
-    obj_props = core.mt_object_props
-    obj_props.is_mt_object = True
-    obj_props.tile_name = tile_props.tile_name
+    finalise_core(core, tile_props)
 
     return core
 
 
 def spawn_I_core(tile_props):
+    """Spawn column core.
+
+    Args:
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
+
+    Returns:
+        bpy.types.Object: Core
+    """
     cursor = bpy.context.scene.cursor
     cursor_start_loc = cursor.location.copy()
 
@@ -1002,24 +1063,20 @@ def spawn_I_core(tile_props):
         core.location[1] + ((base_size[1] - tile_size[1]) / 2) + (disp_thickness),
         cursor_start_loc[2] + base_size[2])
 
-    ctx = {
-        'object': core,
-        'active_object': core,
-        'selected_editable_objects': [core],
-        'selected_objects': [core]
-    }
-
-    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-    bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
-
-    obj_props = core.mt_object_props
-    obj_props.is_mt_object = True
-    obj_props.tile_name = tile_props.tile_name
+    finalise_core(core, tile_props)
 
     return core
 
 
 def spawn_L_core(tile_props):
+    """Spawn column core.
+
+    Args:
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
+
+    Returns:
+        bpy.types.Object: Core
+    """
     cursor = bpy.context.scene.cursor
     cursor_start_loc = cursor.location.copy()
 
@@ -1055,24 +1112,20 @@ def spawn_L_core(tile_props):
         core.location[1] + ((base_size[1] - tile_size[1]) / 2) + disp_thickness,
         cursor_start_loc[2] + base_size[2])
 
-    ctx = {
-        'object': core,
-        'active_object': core,
-        'selected_editable_objects': [core],
-        'selected_objects': [core]
-    }
-
-    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-    bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
-
-    obj_props = core.mt_object_props
-    obj_props.is_mt_object = True
-    obj_props.tile_name = tile_props.tile_name
+    finalise_core(core, tile_props)
 
     return core
 
 
 def spawn_O_core(tile_props):
+    """Spawn column core.
+
+    Args:
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
+
+    Returns:
+        bpy.types.Object: Core
+    """
     cursor = bpy.context.scene.cursor
     cursor_start_loc = cursor.location.copy()
 
@@ -1108,24 +1161,20 @@ def spawn_O_core(tile_props):
         core.location[1] + ((base_size[1] - tile_size[1]) / 2) + disp_thickness,
         cursor_start_loc[2] + base_size[2])
 
-    ctx = {
-        'object': core,
-        'active_object': core,
-        'selected_editable_objects': [core],
-        'selected_objects': [core]
-    }
-
-    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-    bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
-
-    obj_props = core.mt_object_props
-    obj_props.is_mt_object = True
-    obj_props.tile_name = tile_props.tile_name
+    finalise_core(core, tile_props)
 
     return core
 
 
 def spawn_T_core(tile_props):
+    """Spawn column core.
+
+    Args:
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
+
+    Returns:
+        bpy.types.Object: Core
+    """
     cursor = bpy.context.scene.cursor
     cursor_start_loc = cursor.location.copy()
 
@@ -1161,24 +1210,20 @@ def spawn_T_core(tile_props):
         core.location[1] + ((base_size[1] - tile_size[1]) / 2) + disp_thickness,
         cursor_start_loc[2] + base_size[2])
 
-    ctx = {
-        'object': core,
-        'active_object': core,
-        'selected_editable_objects': [core],
-        'selected_objects': [core]
-    }
-
-    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-    bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
-
-    obj_props = core.mt_object_props
-    obj_props.is_mt_object = True
-    obj_props.tile_name = tile_props.tile_name
+    finalise_core(core, tile_props)
 
     return core
 
 
 def spawn_X_core(tile_props):
+    """Spawn column core.
+
+    Args:
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
+
+    Returns:
+        bpy.types.Object: Core
+    """
     # we only ever want texture on the top of our X column so use the rectangular floor core
     core = spawn_floor_core(tile_props)
     textured_vertex_groups = []
@@ -1278,6 +1323,20 @@ def draw_column_core(dims, subdivs, margin=0.001):
 
 
 def make_generic_core_vert_groups(obj, bm, dims, margin, top_verts, bottom_verts, deform_groups):
+    """Create vertex groups for column tile.
+
+    Args:
+        obj (bpy.types.Object): object
+        bm (BMesh): bmesh
+        dims (Vector[3]): X, Y, Z
+        margin (float): texture margin
+        top_verts (list(BMVerts)): top verts
+        bottom_verts (list[BMVert]): bottom verts
+        deform_groups (bmesh.types.BMLayerCollection): corresponds to vertex groups
+
+    Returns:
+        bpy.types.Object: core
+    """
     # select front verts
     lbound = (0, 0, 0)
     ubound = (dims[0], 0, dims[2])
@@ -1336,6 +1395,20 @@ def make_generic_core_vert_groups(obj, bm, dims, margin, top_verts, bottom_verts
 
 
 def make_L_core_vert_groups(obj, bm, dims, margin, top_verts, bottom_verts, deform_groups):
+    """Create vertex groups for column tile.
+
+    Args:
+        obj (bpy.types.Object): object
+        bm (BMesh): bmesh
+        dims (Vector[3]): X, Y, Z
+        margin (float): texture margin
+        top_verts (list(BMVerts)): top verts
+        bottom_verts (list[BMVert]): bottom verts
+        deform_groups (bmesh.types.BMLayerCollection): corresponds to vertex groups
+
+    Returns:
+        bpy.types.Object: core
+    """
     # select front verts
     lbound = (0, 0, 0)
     ubound = (dims[0], 0, dims[2])
@@ -1395,6 +1468,20 @@ def make_L_core_vert_groups(obj, bm, dims, margin, top_verts, bottom_verts, defo
 
 
 def make_I_core_vert_groups(obj, bm, dims, margin, top_verts, bottom_verts, deform_groups):
+    """Create vertex groups for column tile.
+
+    Args:
+        obj (bpy.types.Object): object
+        bm (BMesh): bmesh
+        dims (Vector[3]): X, Y, Z
+        margin (float): texture margin
+        top_verts (list(BMVerts)): top verts
+        bottom_verts (list[BMVert]): bottom verts
+        deform_groups (bmesh.types.BMLayerCollection): corresponds to vertex groups
+
+    Returns:
+        bpy.types.Object: core
+    """
     # select front verts
     lbound = (0, 0, 0)
     ubound = (dims[0], 0, dims[2])
@@ -1460,6 +1547,20 @@ def make_I_core_vert_groups(obj, bm, dims, margin, top_verts, bottom_verts, defo
 
 
 def make_O_core_vert_groups(obj, bm, dims, margin, top_verts, bottom_verts, deform_groups):
+    """Create vertex groups for column tile.
+
+    Args:
+        obj (bpy.types.Object): object
+        bm (BMesh): bmesh
+        dims (Vector[3]): X, Y, Z
+        margin (float): texture margin
+        top_verts (list(BMVerts)): top verts
+        bottom_verts (list[BMVert]): bottom verts
+        deform_groups (bmesh.types.BMLayerCollection): corresponds to vertex groups
+
+    Returns:
+        bpy.types.Object: core
+    """
     # select front verts
     lbound = (0, 0, 0)
     ubound = (dims[0], 0, dims[2])
@@ -1522,6 +1623,20 @@ def make_O_core_vert_groups(obj, bm, dims, margin, top_verts, bottom_verts, defo
 
 
 def make_T_core_vert_groups(obj, bm, dims, margin, top_verts, bottom_verts, deform_groups):
+    """Create vertex groups for column tile.
+
+    Args:
+        obj (bpy.types.Object): object
+        bm (BMesh): bmesh
+        dims (Vector[3]): X, Y, Z
+        margin (float): texture margin
+        top_verts (list(BMVerts)): top verts
+        bottom_verts (list[BMVert]): bottom verts
+        deform_groups (bmesh.types.BMLayerCollection): corresponds to vertex groups
+
+    Returns:
+        bpy.types.Object: core
+    """
     # select front verts
     lbound = (0, 0, 0)
     ubound = (dims[0], 0, dims[2])

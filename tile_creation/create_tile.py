@@ -33,6 +33,7 @@ def convert_to_displacement_core(core, textured_vertex_groups):
         core (bpy.types.Object): object
         textured_vertex_groups (list[str]): list of vertex group names that should have a texture applied
     """
+    #TODO change these to properties stored in mt_object_props
     scene = bpy.context.scene
     preferences = get_prefs()
 
@@ -51,7 +52,7 @@ def convert_to_displacement_core(core, textured_vertex_groups):
     disp_mod.direction = 'NORMAL'
     disp_mod.mid_level = 0
     disp_mod.show_render = True
-    #TODO change these to properties stored in mt_object_props
+
     # save modifier name as custom property for use my maketile
     core['disp_mod_name'] = disp_mod.name
 

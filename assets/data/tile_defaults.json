@@ -689,6 +689,7 @@
             "z_native_subdivisions": 15,
             "x_proportionate_scale": true,
             "y_proportionate_scale": true,
+            "displacement_thickness": 0.05,
             "base_defaults":{
                 "OPENLOCK":{
                     "base_x": 0.5,

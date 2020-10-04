@@ -71,6 +71,7 @@ class MT_PT_Connecting_Column_Panel(Panel):
 
         layout.label(text="Blueprints")
         layout.prop(scene_props, 'column_type')
+        layout.prop(scene_props, 'column_socket_style')
         layout.prop(scene_props, 'base_blueprint')
         layout.prop(scene_props, 'main_part_blueprint')
 
@@ -267,6 +268,7 @@ def initialise_column_creator(context, scene_props):
     tile_props.z_native_subdivisions = scene_props.z_native_subdivisions
 
     tile_props.displacement_thickness = scene_props.displacement_thickness
+    tile_props.column_socket_style = scene_props.column_socket_style
 
     return original_renderer, cursor_orig_loc, cursor_orig_rot
 
@@ -328,6 +330,7 @@ def spawn_plain_connecting_column_core(tile_props):
 
     return core
 
+
 def spawn_openlock_connecting_column_core(base, tile_props):
     """Return the column core.
 
@@ -338,34 +341,70 @@ def spawn_openlock_connecting_column_core(base, tile_props):
         bpy.types.Object: core
     """
     cutters = []
-    if tile_props.column_type == 'I':
-        core = spawn_I_core(tile_props)
+    buffers = []
+    column_type = tile_props.column_type
+    socket_style = tile_props.column_socket_style
+    if column_type == 'I':
+        if socket_style == 'TEXTURED':
+            core = spawn_generic_core(tile_props)
+        else:
+            core = spawn_I_core(tile_props)
+            textured_vertex_groups = ['Front', 'Back']
         cutters = spawn_openlock_I_cutters(
             core,
             tile_props)
-    elif tile_props.column_type == 'L':
-        core = spawn_L_core(tile_props)
+    elif column_type == 'L':
+        if socket_style == 'TEXTURED':
+            core = spawn_generic_core(tile_props)
+        else:
+            core = spawn_L_core(tile_props)
+            textured_vertex_groups = ['Front', 'Left']
         cutters = spawn_openlock_L_cutters(
             core,
             tile_props)
-    elif tile_props.column_type == 'O':
-        core = spawn_O_core(tile_props)
+    elif column_type == 'O':
+        if socket_style == 'TEXTURED':
+            core = spawn_generic_core(tile_props)
+        else:
+            core = spawn_O_core(tile_props)
+            textured_vertex_groups = ['Front', 'Back', 'Left']
         cutters = spawn_openlock_O_cutters(
             core,
             tile_props)
-    elif tile_props.column_type == 'T':
-        core = spawn_T_core(tile_props)
+    elif column_type == 'T':
+        if socket_style == 'TEXTURED':
+            core = spawn_generic_core(tile_props)
+        else:
+            core = spawn_T_core(tile_props)
+            textured_vertex_groups = ['Front']
         cutters = spawn_openlock_T_cutters(
             core,
             tile_props)
-    elif tile_props.column_type == 'X':
-        core = spawn_X_core(tile_props)
+    elif column_type == 'X':
+        if socket_style == 'TEXTURED':
+            core = spawn_generic_core(tile_props)
+        else:
+            core = spawn_X_core(tile_props)
+            textured_vertex_groups = []
         cutters = spawn_openlock_X_cutters(
             core,
             tile_props)
+
+    if socket_style == 'TEXTURED':
+        textured_vertex_groups = ['Front', 'Back', 'Left', 'Right']
+        buffers = spawn_socket_buffers(cutters)
+
+    for buffer in buffers:
+        set_bool_obj_props(buffer, base, tile_props)
+        set_bool_props(buffer, core, 'UNION')
     for cutter in cutters:
         set_bool_obj_props(cutter, base, tile_props)
         set_bool_props(cutter, core, 'DIFFERENCE')
+
+    convert_to_displacement_core(
+        core,
+        textured_vertex_groups)
+
     return core
 
 
@@ -623,7 +662,7 @@ def spawn_openlock_X_cutters(core, tile_props):
     bottom_right_cutter.location[2] = bottom_right_cutter.location[2] + 0.001
 
     # Rename and add to collection
-    bottom_right_cutter.name = 'Right Bottom.'  + tile_name
+    bottom_right_cutter.name = 'Right Bottom.' + tile_name
     add_object_to_collection(bottom_right_cutter, tile_name)
 
     # top right
@@ -700,6 +739,29 @@ def spawn_openlock_X_cutters(core, tile_props):
         front_top_cutter]
 
     return cutters
+
+
+def spawn_socket_buffers(cutters):
+    prefs = get_prefs()
+    booleans_path = os.path.join(
+        prefs.assets_path,
+        "meshes",
+        "booleans",
+        "openlock.blend")
+
+    # load buffer mesh
+    with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
+        data_to.meshes = ['socket_buffer']
+
+    buffers = []
+
+    for cutter in cutters:
+        buffer = cutter.copy()
+        buffer.data = data_to.meshes[0].copy()
+        buffer.name = 'Buffer ' + cutter.name
+        buffers.append(buffer)
+
+    return buffers
 
 
 def spawn_openlock_I_cutters(core, tile_props):
@@ -829,6 +891,60 @@ def spawn_openlock_O_cutters(core, tile_props):
 
     return cutters
 
+
+def spawn_generic_core(tile_props):
+    cursor = bpy.context.scene.cursor
+    cursor_start_loc = cursor.location.copy()
+
+    disp_thickness = tile_props.displacement_thickness
+    tile_size = tile_props.tile_size
+    base_size = tile_props.base_size
+    tile_name = tile_props.tile_name
+
+    native_subdivisions = [
+        tile_props.x_native_subdivisions,
+        tile_props.y_native_subdivisions,
+        tile_props.z_native_subdivisions]
+
+    dims = [tile_size[0] - disp_thickness * 2,
+            tile_size[1] - disp_thickness * 2,
+            tile_size[2] - base_size[2]]
+
+    margin = tile_props.texture_margin
+
+    core, bm, top_verts, bottom_verts, deform_groups = draw_column_core(
+        dims,
+        native_subdivisions,
+        margin)
+
+    make_generic_core_vert_groups(core, bm, dims, margin, top_verts, bottom_verts, deform_groups)
+
+    core.name = tile_name + '.core'
+    add_object_to_collection(core, tile_name)
+
+    # move core so centred, move up so on top of base and set origin to world origin
+    core.location = (
+        core.location[0] + ((base_size[0] - tile_size[0]) / 2) + disp_thickness,
+        core.location[1] + ((base_size[1] - tile_size[1]) / 2) + disp_thickness,
+        cursor_start_loc[2] + base_size[2])
+
+    ctx = {
+        'object': core,
+        'active_object': core,
+        'selected_editable_objects': [core],
+        'selected_objects': [core]
+    }
+
+    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+    bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
+
+    obj_props = core.mt_object_props
+    obj_props.is_mt_object = True
+    obj_props.tile_name = tile_props.tile_name
+
+    return core
+
+
 def spawn_I_core(tile_props):
     cursor = bpy.context.scene.cursor
     cursor_start_loc = cursor.location.copy()
@@ -879,10 +995,6 @@ def spawn_I_core(tile_props):
     obj_props.is_mt_object = True
     obj_props.tile_name = tile_props.tile_name
 
-    textured_vertex_groups = ['Front', 'Back']
-    convert_to_displacement_core(
-        core,
-        textured_vertex_groups)
     return core
 
 
@@ -936,10 +1048,6 @@ def spawn_L_core(tile_props):
     obj_props.is_mt_object = True
     obj_props.tile_name = tile_props.tile_name
 
-    textured_vertex_groups = ['Front', 'Left']
-    convert_to_displacement_core(
-        core,
-        textured_vertex_groups)
     return core
 
 
@@ -992,11 +1100,6 @@ def spawn_O_core(tile_props):
     obj_props = core.mt_object_props
     obj_props.is_mt_object = True
     obj_props.tile_name = tile_props.tile_name
-
-    textured_vertex_groups = ['Front', 'Back', 'Left']
-    convert_to_displacement_core(
-        core,
-        textured_vertex_groups)
 
     return core
 
@@ -1051,10 +1154,6 @@ def spawn_T_core(tile_props):
     obj_props.is_mt_object = True
     obj_props.tile_name = tile_props.tile_name
 
-    textured_vertex_groups = ['Front']
-    convert_to_displacement_core(
-        core,
-        textured_vertex_groups)
     return core
 
 
@@ -1155,6 +1254,64 @@ def draw_column_core(dims, subdivs, margin=0.001):
     home(obj)
 
     return obj, bm, top_verts, bottom_verts, deform_groups
+
+
+def make_generic_core_vert_groups(obj, bm, dims, margin, top_verts, bottom_verts, deform_groups):
+    # select front verts
+    lbound = (0, 0, 0)
+    ubound = (dims[0], 0, dims[2])
+    buffer = margin / 2
+
+    front_verts_orig = select_verts_in_bounds(lbound, ubound, buffer, bm)
+
+    # select left verts
+    lbound = (0, 0, 0)
+    ubound = (0, dims[1], dims[2])
+    buffer = margin / 2
+
+    left_verts_orig = select_verts_in_bounds(lbound, ubound, buffer, bm)
+
+    # select right verts
+    lbound = (dims[0], 0, 0)
+    ubound = dims
+    buffer = margin / 2
+
+    right_verts_orig = select_verts_in_bounds(lbound, ubound, buffer, bm)
+
+    # select back side
+    lbound = (0, dims[1], 0)
+    ubound = (dims[0], dims[1], dims[2])
+    buffer = margin / 2
+
+    back_verts_orig = select_verts_in_bounds(lbound, ubound, buffer, bm)
+
+    # ensure vert groups only contain the verts we want.
+    front_verts = [v for v in front_verts_orig
+                   if v not in right_verts_orig
+                   and v not in left_verts_orig
+                   and v not in bottom_verts
+                   and v not in top_verts]
+    left_verts = [v for v in left_verts_orig
+                  if v not in bottom_verts
+                  and v not in top_verts]
+    right_verts = [v for v in right_verts_orig
+                   if v not in top_verts
+                   and v not in bottom_verts]
+    back_verts = [v for v in back_verts_orig
+                  if v not in left_verts_orig
+                  and v not in right_verts_orig
+                  and v not in top_verts
+                  and v not in bottom_verts]
+
+    assign_verts_to_group(front_verts, obj, deform_groups, 'Front')
+    assign_verts_to_group(back_verts, obj, deform_groups, 'Back')
+    assign_verts_to_group(top_verts, obj, deform_groups, 'Top')
+    assign_verts_to_group(right_verts, obj, deform_groups, 'Right')
+    assign_verts_to_group(left_verts, obj, deform_groups, 'Left')
+    # finalise turtle and release bmesh
+    finalise_turtle(bm, obj)
+
+    return obj
 
 
 def make_L_core_vert_groups(obj, bm, dims, margin, top_verts, bottom_verts, deform_groups):

@@ -12,7 +12,8 @@ from . enums.enums import (
     base_socket_side,
     units,
     material_mapping,
-    openlock_column_types)
+    openlock_column_types,
+    column_socket_style)
 
 from .app_handlers import load_material_libraries
 from .lib.utils.utils import get_all_subclasses
@@ -277,8 +278,8 @@ class MT_Scene_Properties(PropertyGroup):
         tile = bpy.data.collections[obj_props.tile_name]
         tile.mt_tile_props.displacement_strength = context.scene.mt_scene_props.displacement_strength
         if obj_props.geometry_type == 'DISPLACEMENT':
-            if 'Displacement' in obj.modifiers:
-                mod = obj.modifiers['Displacement']
+            if obj['disp_mod_name'] in obj.modifiers:
+                mod = obj.modifiers[obj['disp_mod_name']]
                 mod.strength = context.scene.mt_scene_props.displacement_strength
 
     def update_disp_subdivisions(self, context):
@@ -467,8 +468,8 @@ class MT_Scene_Properties(PropertyGroup):
         name="Displacement Strength",
         description="Overall Displacement Strength",
         default=0.1,
-        step=50,
-        precision=1,
+        step=1,
+        precision=3,
         update=update_disp_strength
     )
 
@@ -508,7 +509,7 @@ class MT_Scene_Properties(PropertyGroup):
     displacement_thickness: bpy.props.FloatProperty(
         name="Displacement Thickness",
         description="Thickness of displacement texture.",
-        default=0.09
+        default=0.05
     )
 
     # Tile and base size. We use seperate floats so that we can only show
@@ -645,6 +646,13 @@ class MT_Scene_Properties(PropertyGroup):
         items=openlock_column_types,
         name="Column type",
         default="O"
+    )
+
+    column_socket_style: bpy.props.EnumProperty(
+        name="Socket Style",
+        items=column_socket_style,
+        default="TEXTURED",
+        description="Whether to have texture on the sides with sockets."
     )
 
     # TODO: Fix hack to make 360 curved wall work. Ideally this should merge everything
@@ -855,7 +863,7 @@ class MT_Tile_Properties(PropertyGroup):
     displacement_thickness: bpy.props.FloatProperty(
         name="Displacement Thickness",
         description="Thickness of displacement texture.",
-        default=0.09
+        default=0.05
     )
 
     # Dimensions #
@@ -904,6 +912,12 @@ class MT_Tile_Properties(PropertyGroup):
     column_type: bpy.props.EnumProperty(
         items=openlock_column_types,
         name="Column type"
+    )
+
+    column_socket_style: bpy.props.EnumProperty(
+        name="Socket Style",
+        items=column_socket_style,
+        default="TEXTURED"
     )
 
     tile_units: bpy.props.EnumProperty(

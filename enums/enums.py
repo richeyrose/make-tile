@@ -85,3 +85,8 @@ openlock_column_types = [
     ("T", "T Column", "", 4),
     ("X", "X Column", "", 5)
 ]
+
+column_socket_style = [
+    ("FLAT", "Flat", "", 1),
+    ("TEXTURED", "Textured", "", 2)
+]

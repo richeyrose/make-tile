@@ -10,7 +10,7 @@ from . bakedisplacement import (
     reset_renderer_from_bake,
     bake_displacement_map)
 from . return_to_preview import set_to_preview
-
+# TODO fix it so we don't reset to preview on exporting
 
 class MT_PT_Export_Panel(Panel):
     bl_order = 10
@@ -132,14 +132,16 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                     disp_image, obj = bake_displacement_map(obj)
                     tile_props = collection.mt_tile_props
                     disp_strength = tile_props.displacement_strength
-                    disp_texture = obj['disp_texture']
+                    disp_texture = obj_props.disp_texture
+
                     disp_texture.image = disp_image
-                    disp_mod = obj.modifiers[obj['disp_mod_name']]
+                    disp_mod = obj.modifiers[obj_props.disp_mod_name]
+                    # disp_mod = obj.modifiers[obj['disp_mod_name']]
                     disp_mod.texture = disp_texture
                     disp_mod.mid_level = 0
                     disp_mod.strength = disp_strength
-
-                    subsurf_mod = obj.modifiers[obj['subsurf_mod_name']]
+                    subsurf_mod = obj.modifiers[obj_props.subsurf_mod_name]
+                    # subsurf_mod = obj.modifiers[obj['subsurf_mod_name']]
                     subsurf_mod.levels = scene_props.subdivisions
                     bpy.ops.object.modifier_move_to_index(ctx, modifier=subsurf_mod.name, index=0)
                     obj_props.geometry_type = 'DISPLACEMENT'

@@ -33,7 +33,9 @@ def set_to_preview(obj):
     """
     prefs = get_prefs()
     secondary_material = bpy.data.materials[prefs.secondary_material]
-    disp_mod = obj.modifiers[obj['disp_mod_name']]
+    props = obj.mt_object_props
+    disp_mod = obj.modifiers[props.disp_mod_name]
+    #disp_mod = obj.modifiers[obj['disp_mod_name']]
     disp_mod.strength = 0
 
     assign_mat_to_vert_group('disp_mod_vert_group', obj, secondary_material)
@@ -52,6 +54,6 @@ def set_to_preview(obj):
     }
 
     new_index = len(obj.modifiers) - 1
-    bpy.ops.object.modifier_move_to_index(ctx, modifier=obj['subsurf_mod_name'], index=new_index)
+    bpy.ops.object.modifier_move_to_index(ctx, modifier=props.subsurf_mod_name, index=new_index)
     obj.cycles.use_adaptive_subdivision = True
     obj.mt_object_props.geometry_type = 'PREVIEW'

@@ -122,8 +122,9 @@ def assign_displacement_materials(obj, vert_group='None'):
 
     # Create texture for this displacement modifier
     obj_disp_texture = bpy.data.textures.new(obj.name + '.texture', 'IMAGE')
-    obj['disp_texture'] = obj_disp_texture
-    obj['disp_mod_name'] = obj_disp_mod.name
+    props = obj.mt_object_props
+    props.disp_texture = obj_disp_texture
+    props.disp_mod_name = obj_disp_texture.name
 
 
 def assign_preview_materials(obj, primary_material, secondary_material, textured_vertex_groups):

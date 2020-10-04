@@ -17,7 +17,9 @@ def create_turtle(name, vert_groups=None):
     # create new empty turtle world
     mesh = bpy.data.meshes.new("mesh")
     obj = bpy.data.objects.new(name, mesh)
-    obj['penstate'] = True
+    props = obj.mt_object_props
+    props.penstate = True
+    #obj['penstate'] = True
 
     # create vertex groups
     if vert_groups:
@@ -61,7 +63,8 @@ def pu(bm):
         v.select_set(False)
     bm.select_flush(False)
 
-    bpy.context.view_layer.objects.active['penstate'] = False
+    bpy.context.view_layer.objects.active.mt_object_props.penstate = False
+    # bpy.context.view_layer.objects.active['penstate'] = False
 
 
 def pd(bm):
@@ -71,7 +74,7 @@ def pd(bm):
     Args:
         bm (bmesh): bmesh
     """
-    bpy.context.view_layer.objects.active['penstate'] = True
+    bpy.context.view_layer.objects.active.mt_object_props.penstate = True
 
 
 def fd(bm, distance, del_original=True):

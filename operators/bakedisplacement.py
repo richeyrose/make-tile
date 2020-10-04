@@ -132,14 +132,13 @@ class MT_OT_Make_3D(bpy.types.Operator):
                 tile = bpy.data.collections[obj_props.tile_name]
                 disp_strength = tile.mt_tile_props.displacement_strength
                 disp_image, obj = bake_displacement_map(obj)
-                disp_texture = obj['disp_texture']
+                disp_texture = obj_props.disp_texture
                 disp_texture.image = disp_image
-                disp_mod = obj.modifiers[obj['disp_mod_name']]
+                disp_mod = obj.modifiers[obj_props.disp_mod_name]
                 disp_mod.texture = disp_texture
                 disp_mod.mid_level = 0
                 disp_mod.strength = disp_strength
-
-                subsurf_mod = obj.modifiers[obj['subsurf_mod_name']]
+                subsurf_mod = obj.modifiers[obj_props.subsurf_mod_name]
                 subsurf_mod.levels = bpy.context.scene.mt_scene_props.subdivisions
                 bpy.ops.object.modifier_move_to_index(ctx, modifier=subsurf_mod.name, index=0)
 
@@ -219,14 +218,6 @@ def bake_displacement_map(obj):
 
                 # save displacement strength
                 strength_node = tree.nodes['Strength']
-
-                if 'disp_dir' in obj:
-                    if obj['disp_dir'] == 'neg':
-                        obj['disp_strength'] = -strength_node.outputs[0].default_value
-                    else:
-                        obj['disp_strength'] = strength_node.outputs[0].default_value
-                else:
-                    obj['disp_strength'] = strength_node.outputs[0].default_value
 
                 # assign image to image node
                 texture_node = tree.nodes['disp_texture_node']

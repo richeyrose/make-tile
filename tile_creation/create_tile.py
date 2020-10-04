@@ -37,6 +37,7 @@ def convert_to_displacement_core(core, textured_vertex_groups):
     # TODO change these to properties stored in mt_object_props
     scene = bpy.context.scene
     preferences = get_prefs()
+    props = core.mt_object_props
 
     # create a custom property that we use to save what material is
     # assigned to what vertex group when changing between preview
@@ -55,14 +56,15 @@ def convert_to_displacement_core(core, textured_vertex_groups):
     disp_mod.show_render = True
 
     # save modifier name as custom property for use my maketile
-    core['disp_mod_name'] = disp_mod.name
+    props.disp_mod_name = disp_mod.name
+    # core['disp_mod_name'] = disp_mod.name
 
     # create a vertex group for the displacement modifier
     vert_group = construct_displacement_mod_vert_group(core, textured_vertex_groups)
     disp_mod.vertex_group = vert_group
 
     # create texture for displacement modifier
-    core['disp_texture'] = bpy.data.textures.new(core.name + '.texture', 'IMAGE')
+    props.disp_texture = bpy.data.textures.new(core.name + '.texture', 'IMAGE')
 
     # add a triangulate modifier to correct for distortion after bools
     core.modifiers.new('MT Triangulate', 'TRIANGULATE')
@@ -71,7 +73,8 @@ def convert_to_displacement_core(core, textured_vertex_groups):
     subsurf = core.modifiers.new('MT Subsurf', 'SUBSURF')
     subsurf.subdivision_type = 'SIMPLE'
     subsurf.levels = 3
-    core['subsurf_mod_name'] = subsurf.name
+    props.subsurf_mod_name = subsurf.name
+    # core['subsurf_mod_name'] = subsurf.name
     core.cycles.use_adaptive_subdivision = True
 
     # assign materials

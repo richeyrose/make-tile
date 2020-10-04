@@ -81,7 +81,7 @@ def extrude_translate(bm, local_trans, del_original=True):
     world_trans = turtle.matrix.to_3x3() @ local_trans
     turtle.location = turtle.matrix.translation + world_trans
 
-    if bpy.context.view_layer.objects.active['penstate'] is 1:
+    if bpy.context.view_layer.objects.active.mt_object_props.penstate is True:
         if bm.select_mode == {'VERT'}:
             bm.select_flush(True)
             # get selected verts

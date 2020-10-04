@@ -278,8 +278,8 @@ class MT_Scene_Properties(PropertyGroup):
         tile = bpy.data.collections[obj_props.tile_name]
         tile.mt_tile_props.displacement_strength = context.scene.mt_scene_props.displacement_strength
         if obj_props.geometry_type == 'DISPLACEMENT':
-            if obj['disp_mod_name'] in obj.modifiers:
-                mod = obj.modifiers[obj['disp_mod_name']]
+            if obj_props.disp_mod_name in obj.modifiers:
+                mod = obj.modifiers[obj_props.disp_mod_name]
                 mod.strength = context.scene.mt_scene_props.displacement_strength
 
     def update_disp_subdivisions(self, context):
@@ -287,7 +287,7 @@ class MT_Scene_Properties(PropertyGroup):
         obj = bpy.context.object
         obj_props = obj.mt_object_props
         if obj_props.geometry_type == 'DISPLACEMENT':
-            subsurf_mod = obj['subsurf_mod_name']
+            subsurf_mod = obj_props.subsurf_mod_name
             if subsurf_mod in obj.modifiers:
                 modifier = obj.modifiers[subsurf_mod]
                 modifier.levels = context.scene.mt_scene_props.subdivisions
@@ -744,11 +744,31 @@ class MT_Object_Properties(PropertyGroup):
         items=geometry_types
     )
 
-    # Collection of cutters that can be turned on or off
-    # by MakeTile.
     cutters_collection: bpy.props.CollectionProperty(
         name="Cutters Collection",
-        type=MT_Cutter_Item
+        type=MT_Cutter_Item,
+        description="Collection of booleans that can be turned on or off by MakeTile."
+    )
+
+    disp_mod_name: bpy.props.StringProperty(
+        name="Displacement Modifier Name",
+        default='MT Displacement'
+    )
+
+    subsurf_mod_name: bpy.props.StringProperty(
+        name="Subsurf Modifier Name",
+        default="MT Subsurf"
+    )
+
+    disp_texture: bpy.props.PointerProperty(
+        name="Displacement Texture",
+        type=bpy.types.ImageTexture
+    )
+
+    penstate: bpy.props.BoolProperty(
+        name="Pen State",
+        description="Used by bmturtle. If penstate is true turtle draws on move",
+        default=False
     )
 
 

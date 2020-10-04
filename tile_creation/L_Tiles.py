@@ -73,12 +73,20 @@ class MT_PT_L_Tile_Panel(Panel):
         layout.prop(scene_props, 'tile_y', text="Width")
 
         layout.label(text="Sync Proportions")
-        layout.prop(scene_props, 'z_proportionate_scale', text="Height")
-        layout.prop(scene_props, 'y_proportionate_scale', text="Width")
+        row = layout.row()
+        row.prop(scene_props, 'z_proportionate_scale', text="Height")
+        row.prop(scene_props, 'y_proportionate_scale', text="Width")
 
         layout.label(text="Base Properties")
         layout.prop(scene_props, "base_z", text="Height")
         layout.prop(scene_props, "base_y", text="Width")
+
+        layout.label(text="Native Subdivisions")
+        row = layout.row()
+        row.prop(scene_props, 'leg_1_native_subdivisions')
+        row.prop(scene_props, 'leg_2_native_subdivisions')
+        row.prop(scene_props, 'width_native_subdivisions')
+        row.prop(scene_props, 'z_native_subdivisions')
 
         layout.operator('scene.reset_tile_defaults')
 

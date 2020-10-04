@@ -81,6 +81,12 @@ class MT_PT_Curved_Wall_Tile_Panel(Panel):
         layout.prop(scene_props, 'base_y', text="Width")
         layout.prop(scene_props, 'base_z', text="Height")
 
+        layout.label(text="Native Subdivisions")
+        row = layout.row()
+        row.prop(scene_props, 'curve_native_subdivisions')
+        row.prop(scene_props, 'y_native_subdivisions')
+        row.prop(scene_props, 'z_native_subdivisions')
+
         layout.operator('scene.reset_tile_defaults')
 
 

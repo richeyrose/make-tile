@@ -63,6 +63,11 @@ class MT_PT_Triangular_Floor_Panel(Panel):
         layout.label(text="Base Properties")
         layout.prop(scene_props, 'base_z', text='Base Height')
 
+        layout.label(text="Native Subdivisions")
+        row = layout.row()
+        row.prop(scene_props, 'opposite_native_subdivisions')
+        row.prop(scene_props, 'z_native_subdivisions')
+
         layout.operator('scene.reset_tile_defaults')
 
 
@@ -230,6 +235,7 @@ def initialise_floor_creator(context, scene_props):
     tile_props.angle = scene_props.angle
     tile_props.tile_z = scene_props.tile_z
     tile_props.base_z = scene_props.base_z
+
     tile_props.opposite_native_subdivisions = scene_props.opposite_native_subdivisions
     tile_props.z_native_subdivisions = scene_props.z_native_subdivisions
 

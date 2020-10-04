@@ -92,6 +92,12 @@ class MT_PT_Semi_Circ_Floor_Panel(Panel):
         layout.label(text="Base Properties")
         layout.prop(scene_props, 'base_z', text="Height")
 
+        layout.label(text="Native Subdivisions")
+        row = layout.row()
+        row.prop(scene_props, 'x_native_subdivisions')
+        row.prop(scene_props, 'z_native_subdivisions')
+        row.prop(scene_props, 'curve_native_subdivisions')
+
         layout.operator('scene.reset_tile_defaults')
 
 
@@ -260,7 +266,6 @@ def initialise_floor_creator(context, scene_props):
     tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
 
     tile_props.x_native_subdivisions = scene_props.x_native_subdivisions
-    tile_props.y_native_subdivisions = scene_props.y_native_subdivisions
     tile_props.z_native_subdivisions = scene_props.z_native_subdivisions
     tile_props.curve_native_subdivisions = scene_props.curve_native_subdivisions
 

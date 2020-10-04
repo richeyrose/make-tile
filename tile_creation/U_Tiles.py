@@ -103,12 +103,13 @@ class MT_PT_U_Tile_Panel(Panel):
             layout.prop(scene_props, 'base_socket_side', text='Base Socket Side')
 
         layout.label(text="Native Subdivisions:")
-
-        layout.prop(scene_props, 'leg_1_native_subdivisions')
-        layout.prop(scene_props, 'leg_2_native_subdivisions')
-        layout.prop(scene_props, 'x_native_subdivisions')
-        layout.prop(scene_props, 'y_native_subdivisions')
-        layout.prop(scene_props, 'z_native_subdivisions')
+        row = layout.row()
+        row.prop(scene_props, 'leg_1_native_subdivisions')
+        row.prop(scene_props, 'leg_2_native_subdivisions')
+        row = layout.row()
+        row.prop(scene_props, 'x_native_subdivisions')
+        row.prop(scene_props, 'y_native_subdivisions')
+        row.prop(scene_props, 'z_native_subdivisions')
 
         layout.operator('scene.reset_tile_defaults')
 

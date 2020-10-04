@@ -317,16 +317,31 @@ def spawn_plain_connecting_column_core(tile_props):
     Returns:
         bpy.types.Object: core
     """
-    if tile_props.column_type == 'I':
+    column_type = tile_props.column_type
+    socket_style = tile_props.column_socket_style
+    if socket_style == 'TEXTURED':
+        core = spawn_generic_core(tile_props)
+        textured_vertex_groups = ['Front', 'Back', 'Left', 'Right']
+    else:
+        if column_type == 'I':
         core = spawn_I_core(tile_props)
-    elif tile_props.column_type == 'L':
+            textured_vertex_groups = ['Front', 'Back']
+        elif column_type == 'L':
         core = spawn_L_core(tile_props)
-    elif tile_props.column_type == 'O':
+            textured_vertex_groups = ['Front', 'Left']
+        elif column_type == 'O':
         core = spawn_O_core(tile_props)
-    elif tile_props.column_type == 'T':
+            textured_vertex_groups = ['Front', 'Back', 'Left']
+        elif column_type == 'T':
         core = spawn_T_core(tile_props)
-    elif tile_props.column_type == 'X':
+            textured_vertex_groups = ['Front']
+        elif column_type == 'X':
         core = spawn_X_core(tile_props)
+            textured_vertex_groups = []
+
+    convert_to_displacement_core(
+        core,
+        textured_vertex_groups)
 
     return core
 

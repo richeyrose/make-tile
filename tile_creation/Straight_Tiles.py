@@ -13,10 +13,7 @@ from ..lib.bmturtle.scripts import (
     draw_cuboid,
     draw_straight_wall_core)
 from .. lib.utils.utils import mode, get_all_subclasses
-from ..operators.maketile import (
-    MT_Tile_Generator,
-    initialise_tile_creator,
-    create_common_tile_props)
+
 from .create_tile import (
     finalise_tile,
     spawn_empty_base,
@@ -24,7 +21,10 @@ from .create_tile import (
     spawn_prefab,
     set_bool_obj_props,
     set_bool_props,
-    load_openlock_top_peg)
+    load_openlock_top_peg,
+    MT_Tile_Generator,
+    initialise_tile_creator,
+    create_common_tile_props)
 
 from .Rectangular_Tiles import create_plain_rect_floor_cores as create_plain_floor_cores
 

@@ -9,10 +9,6 @@ from .. lib.utils.collections import (
     add_object_to_collection,
     create_collection,
     activate_collection)
-from ..operators.maketile import (
-    MT_Tile_Generator,
-    initialise_tile_creator,
-    create_common_tile_props)
 from .create_tile import (
     finalise_tile,
     spawn_empty_base,
@@ -20,7 +16,10 @@ from .create_tile import (
     spawn_prefab,
     set_bool_obj_props,
     set_bool_props,
-    finalise_core)
+    finalise_core,
+    MT_Tile_Generator,
+    initialise_tile_creator,
+    create_common_tile_props)
 from ..lib.bmturtle.scripts import (
     draw_cuboid)
 from .Rectangular_Tiles import (

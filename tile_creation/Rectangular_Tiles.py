@@ -3,10 +3,6 @@ import math
 import bpy
 
 from bpy.types import Operator, Panel
-from ..operators.maketile import (
-    MT_Tile_Generator,
-    initialise_tile_creator,
-    create_common_tile_props)
 
 from ..lib.bmturtle.scripts import draw_cuboid, draw_rectangular_floor_core
 from .. lib.utils.collections import (
@@ -22,7 +18,10 @@ from .create_tile import (
     spawn_empty_base,
     spawn_prefab,
     set_bool_obj_props,
-    set_bool_props)
+    set_bool_props,
+    MT_Tile_Generator,
+    initialise_tile_creator,
+    create_common_tile_props)
 
 
 class MT_PT_Rect_Floor_Panel(Panel):

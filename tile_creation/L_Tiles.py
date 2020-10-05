@@ -28,11 +28,11 @@ from . create_tile import (
     spawn_prefab,
     set_bool_props,
     set_bool_obj_props,
-    load_openlock_top_peg)
-from ..operators.maketile import (
+    load_openlock_top_peg,
     MT_Tile_Generator,
     initialise_tile_creator,
     create_common_tile_props)
+
 
 
 class MT_PT_L_Tile_Panel(Panel):

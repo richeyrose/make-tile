@@ -2,7 +2,7 @@ import os
 import bpy
 from bpy.types import PropertyGroup
 from .utils.registration import get_prefs
-from .operators.maketile import MT_Tile_Generator
+from .tile_creation.create_tile import MT_Tile_Generator
 from . enums.enums import (
     tile_main_systems,
     base_systems,

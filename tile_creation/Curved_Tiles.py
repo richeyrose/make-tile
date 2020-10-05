@@ -3,10 +3,6 @@ from math import radians, pi, modf, degrees
 from mathutils import Vector
 import bpy
 from bpy.types import Operator, Panel
-from ..operators.maketile import (
-    MT_Tile_Generator,
-    initialise_tile_creator,
-    create_common_tile_props)
 from .. lib.utils.collections import (
     add_object_to_collection,
     create_collection,
@@ -30,7 +26,10 @@ from .create_tile import (
     spawn_prefab,
     set_bool_obj_props,
     set_bool_props,
-    load_openlock_top_peg)
+    load_openlock_top_peg,
+    MT_Tile_Generator,
+    initialise_tile_creator,
+    create_common_tile_props)
 
 
 class MT_PT_Curved_Wall_Tile_Panel(Panel):

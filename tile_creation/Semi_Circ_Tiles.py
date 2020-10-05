@@ -5,10 +5,6 @@ from mathutils.geometry import intersect_line_line
 import bpy
 import bmesh
 from bpy.types import Operator, Panel
-from ..operators.maketile import (
-    MT_Tile_Generator,
-    initialise_tile_creator,
-    create_common_tile_props)
 
 from . create_tile import (
     convert_to_displacement_core,
@@ -16,7 +12,10 @@ from . create_tile import (
     spawn_empty_base,
     spawn_prefab,
     set_bool_obj_props,
-    set_bool_props)
+    set_bool_props,
+    MT_Tile_Generator,
+    initialise_tile_creator,
+    create_common_tile_props)
 
 from .. utils.registration import get_prefs
 from .. lib.utils.selection import (

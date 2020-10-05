@@ -2,10 +2,7 @@ import os
 from math import radians
 import bpy
 from bpy.types import Panel, Operator
-from ..operators.maketile import (
-    MT_Tile_Generator,
-    initialise_tile_creator,
-    create_common_tile_props)
+
 from .. utils.registration import get_prefs
 from ..lib.bmturtle.scripts import draw_tri_prism, draw_tri_floor_core, draw_tri_slot_cutter
 from .. lib.utils.collections import (
@@ -20,7 +17,10 @@ from .create_tile import (
     spawn_empty_base,
     spawn_prefab,
     set_bool_obj_props,
-    set_bool_props)
+    set_bool_props,
+    MT_Tile_Generator,
+    initialise_tile_creator,
+    create_common_tile_props)
 
 
 class MT_PT_Triangular_Floor_Panel(Panel):

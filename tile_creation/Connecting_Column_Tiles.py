@@ -1225,10 +1225,7 @@ def spawn_X_core(tile_props):
     """
     # we only ever want texture on the top of our X column so use the rectangular floor core
     core = spawn_floor_core(tile_props)
-    textured_vertex_groups = []
-    convert_to_displacement_core(
-        core,
-        textured_vertex_groups)
+
     return core
 
 

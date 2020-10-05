@@ -4,6 +4,7 @@ import bpy
 from bpy.types import Panel
 from .. utils.registration import get_prefs
 from .voxeliser import voxelise
+from .decimator import decimate
 from .. lib.utils.collections import get_objects_owning_collections
 from . bakedisplacement import (
     set_cycles_to_bake_mode,
@@ -37,6 +38,7 @@ class MT_PT_Export_Panel(Panel):
         layout.prop(scene_props, 'export_units')
         layout.prop(scene_props, 'voxelise_on_export')
         layout.prop(scene_props, 'randomise_on_export')
+        layout.prop(scene_props, 'decimate_on_export')
 
         if scene_props.randomise_on_export is True:
             layout.prop(scene_props, 'num_variants')
@@ -60,6 +62,9 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
 
         # voxelise options
         voxelise_on_export = scene_props.voxelise_on_export
+
+        # decimate options
+        decimate_on_export = scene_props.decimate_on_export
 
         # ensure export path exists
         export_path = prefs.default_export_path
@@ -146,7 +151,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                     bpy.ops.object.modifier_move_to_index(ctx, modifier=subsurf_mod.name, index=0)
                     obj_props.geometry_type = 'DISPLACEMENT'
 
-                if voxelise_on_export:
+                if voxelise_on_export or decimate_on_export:
                     depsgraph = context.evaluated_depsgraph_get()
                     dupes = []
 
@@ -170,7 +175,10 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                             'selected_editable_objects': dupes}
                         bpy.ops.object.join(ctx)
 
-                    voxelise(dupes[0])
+                    if voxelise_on_export:
+                        voxelise(dupes[0])
+                    if decimate_on_export:
+                        decimate(dupes[0])
 
                     ctx = {
                         'object': dupes[0],
@@ -195,6 +203,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                         if mesh.users == 0:
                             bpy.data.meshes.remove(mesh)
                 else:
+
                     ctx = {
                         'object': visible_objects[0],
                         'active_object': visible_objects[0],
@@ -244,6 +253,9 @@ class MT_OT_Export_Tile(bpy.types.Operator):
         # voxelise options
         voxelise_on_export = scene_props.voxelise_on_export
 
+        # decimate options
+        decimate_on_export = scene_props.decimate_on_export
+
         # ensure export path exists
         export_path = prefs.default_export_path
         if not os.path.exists(export_path):
@@ -283,12 +295,12 @@ class MT_OT_Export_Tile(bpy.types.Operator):
                     export_path,
                     collection.name + '.' + str(random()) + '.stl')
 
-                # if we are voxelising exported mesh we need to merge
-                # all objects together and then voxelise them. To do this
+                # if we are voxelising or decimating exported mesh we need to merge
+                # all objects together and then voxelise / decimate them. To do this
                 # we create a duplicate of each visible object, apply all modifiers
-                # join all meshes together, voxelise the joint mesh, export the joint mesh
+                # join all meshes together, voxelise the joint mesh, decimate it, export the joint mesh
                 # and then delete it
-                if voxelise_on_export:
+                if voxelise_on_export or decimate_on_export:
                     # duplicate
                     depsgraph = context.evaluated_depsgraph_get()
                     dupes = []
@@ -313,7 +325,12 @@ class MT_OT_Export_Tile(bpy.types.Operator):
                         bpy.ops.object.join(ctx)
 
                     # voxelise
-                    voxelise(dupes[0])
+                    if voxelise_on_export:
+                        voxelise(dupes[0])
+
+                    # decimate
+                    if decimate_on_export:
+                        decimate(dupes[0])
 
                     ctx = {
                         'object': dupes[0],

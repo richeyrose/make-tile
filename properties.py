@@ -719,6 +719,38 @@ class MT_Scene_Properties(PropertyGroup):
         default=True
     )
 
+    # decimator properties
+    decimation_ratio: bpy.props.FloatProperty(
+        name="Decimation Ratio",
+        description="Amount to decimate by. Smaller = more simplification",
+        min=0.0,
+        max=1,
+        precision=3,
+        step=0.01,
+        default=0.25
+    )
+
+    decimation_merge: bpy.props.BoolProperty(
+        name="Merge",
+        description="Merge selected before decimation",
+        default=True
+    )
+
+    planar_decimation: bpy.props.BoolProperty(
+        name="Planar Decimation",
+        description="Further simplify the planar (flat) parts of the mesh",
+        default=True
+    )
+
+    planar_decimation_angle: bpy.props.FloatProperty(
+        name="Decimation Angle",
+        description="Angle below which to simplify",
+        default=5,
+        max=90,
+        min=0,
+        step=5
+    )
+
     # exporter properties
     num_variants: bpy.props.IntProperty(
         name="Variants",
@@ -734,6 +766,11 @@ class MT_Scene_Properties(PropertyGroup):
 
     voxelise_on_export: bpy.props.BoolProperty(
         name="Voxelise",
+        default=True
+    )
+
+    decimate_on_export: bpy.props.BoolProperty(
+        name="Decimate",
         default=True
     )
 

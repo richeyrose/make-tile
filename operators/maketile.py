@@ -21,17 +21,6 @@ def initialise_tile_creator(context):
     scene = context.scene
     scene_props = scene.mt_scene_props
 
-    # Switch renderer to Eevee. This is a hack to compensate
-    # for an issue where the tile generators sometimes
-    # produce different results depending on what
-    # renderer we are using. Hopefully when the turtle
-    # is rewritten to work on a bmesh this will no longer
-    # be an issue
-
-    original_renderer = scene.render.engine
-    if original_renderer != 'BLENDER_EEVEE':
-        scene.render.engine = 'BLENDER_EEVEE'
-
     # Set defaults for different tile systems
     tile_blueprint = scene_props.tile_blueprint
     tile_type = scene_props.tile_type
@@ -67,7 +56,7 @@ def initialise_tile_creator(context):
     cursor.location = (0, 0, 0)
     cursor.rotation_euler = (0, 0, 0)
 
-    return original_renderer, tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot
+    return tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot
 
 
 def create_common_tile_props(scene_props, tile_props, tile_collection):

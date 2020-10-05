@@ -222,7 +222,7 @@ class MT_OT_Make_Connecting_Column_Tile(MT_Tile_Generator, Operator):
         base_type = 'CONNECTING_COLUMN_BASE'
         core_type = 'CONNECTING_COLUMN_CORE'
 
-        original_renderer, cursor_orig_loc, cursor_orig_rot = initialise_column_creator(
+        cursor_orig_loc, cursor_orig_rot = initialise_column_creator(
             context,
             scene_props)
         subclasses = get_all_subclasses(MT_Tile_Generator)
@@ -235,7 +235,7 @@ class MT_OT_Make_Connecting_Column_Tile(MT_Tile_Generator, Operator):
 
         finalise_tile(base, preview_core, cursor_orig_loc, cursor_orig_rot)
 
-        scene.render.engine = original_renderer
+        # scene.render.engine = original_renderer
 
         return {'FINISHED'}
 
@@ -253,7 +253,7 @@ def initialise_column_creator(context, scene_props):
         list[3]: cursor original rotation
 
     """
-    original_renderer, tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator(context)
+    tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator(context)
     # We store tile properties in the mt_tile_props property group of
     # the collection so we can access them from any object in this
     # collection.
@@ -277,7 +277,7 @@ def initialise_column_creator(context, scene_props):
     tile_props.displacement_thickness = scene_props.displacement_thickness
     tile_props.column_socket_style = scene_props.column_socket_style
 
-    return original_renderer, cursor_orig_loc, cursor_orig_rot
+    return cursor_orig_loc, cursor_orig_rot
 
 
 def spawn_plain_base(tile_props):

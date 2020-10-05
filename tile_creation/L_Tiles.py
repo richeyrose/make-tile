@@ -109,7 +109,7 @@ class MT_OT_Make_L_Wall_Tile(MT_Tile_Generator, Operator):
         base_type = 'L_BASE'
         core_type = 'L_WALL_CORE'
 
-        original_renderer, cursor_orig_loc, cursor_orig_rot = initialise_wall_creator(
+        cursor_orig_loc, cursor_orig_rot = initialise_wall_creator(
             context, scene_props)
         subclasses = get_all_subclasses(MT_Tile_Generator)
         base = spawn_prefab(context, subclasses, base_blueprint, base_type)
@@ -121,7 +121,7 @@ class MT_OT_Make_L_Wall_Tile(MT_Tile_Generator, Operator):
 
         finalise_tile(base, preview_core, cursor_orig_loc, cursor_orig_rot)
 
-        scene.render.engine = original_renderer
+        # scene.render.engine = original_renderer
         return {'FINISHED'}
 
 
@@ -143,7 +143,7 @@ class MT_OT_Make_L_Floor_Tile(MT_Tile_Generator, Operator):
         base_type = 'L_BASE'
         core_type = 'L_FLOOR_CORE'
 
-        original_renderer, cursor_orig_loc, cursor_orig_rot = initialise_floor_creator(
+        cursor_orig_loc, cursor_orig_rot = initialise_floor_creator(
             context, scene_props)
         subclasses = get_all_subclasses(MT_Tile_Generator)
         base = spawn_prefab(context, subclasses, base_blueprint, base_type)
@@ -155,7 +155,7 @@ class MT_OT_Make_L_Floor_Tile(MT_Tile_Generator, Operator):
 
         finalise_tile(base, preview_core, cursor_orig_loc, cursor_orig_rot)
 
-        scene.render.engine = original_renderer
+        # scene.render.engine = original_renderer
         return {'FINISHED'}
 
 
@@ -320,7 +320,7 @@ def initialise_wall_creator(context, scene_props):
         list[3]: cursor original rotation
 
     """
-    original_renderer, tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator(context)
+    tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator(context)
     # We store tile properties in the mt_tile_props property group of
     # the collection so we can access them from any object in this
     # collection.
@@ -346,7 +346,7 @@ def initialise_wall_creator(context, scene_props):
     tile_props.width_native_subdivisions = scene_props.width_native_subdivisions
     tile_props.z_native_subdivisions = scene_props.z_native_subdivisions
 
-    return original_renderer, cursor_orig_loc, cursor_orig_rot
+    return cursor_orig_loc, cursor_orig_rot
 
 
 def initialise_floor_creator(context, scene_props):
@@ -362,7 +362,7 @@ def initialise_floor_creator(context, scene_props):
         list[3]: cursor original rotation
 
     """
-    original_renderer, tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator(context)
+    tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator(context)
     # We store tile properties in the mt_tile_props property group of
     # the collection so we can access them from any object in this
     # collection.
@@ -388,7 +388,7 @@ def initialise_floor_creator(context, scene_props):
     tile_props.width_native_subdivisions = scene_props.width_native_subdivisions
     tile_props.z_native_subdivisions = scene_props.z_native_subdivisions
 
-    return original_renderer, cursor_orig_loc, cursor_orig_rot
+    return cursor_orig_loc, cursor_orig_rot
 
 
 def spawn_plain_wall_cores(tile_props):

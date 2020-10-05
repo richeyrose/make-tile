@@ -51,6 +51,13 @@ def get_material_index(obj, material):
 
 
 def assign_mat_to_vert_group(vert_group, obj, material):
+    """Assigns the passed in material to the passed in vertex group.
+
+    Args:
+        vert_group (bpy.types.VertexGroup): vertex group
+        obj (bpy.types.Object): Owning object
+        material (bpy.types.Material): material
+    """
     vert_group = get_vert_indexes_in_vert_group(vert_group, obj)
     material_index = get_material_index(obj, material)
     for poly in obj.data.polygons:
@@ -63,6 +70,15 @@ def assign_mat_to_vert_group(vert_group, obj, material):
 
 
 def get_vert_group_material(vert_group, obj):
+    """Return the material assigned to the passed in vertex group.
+
+    Args:
+        vert_group (bpy.types.VertexGroup): vertex group
+        obj (bpy.types.Object): Owning object
+
+    Returns:
+        bpy.types.Material: material
+    """
     vert_group = get_vert_indexes_in_vert_group(vert_group.name, obj)
     for poly in obj.data.polygons:
         count = 0

@@ -19,6 +19,27 @@ from .app_handlers import load_material_libraries
 from .lib.utils.utils import get_all_subclasses
 
 
+class MT_Preview_Materials(PropertyGroup):
+    """Used to store a list of preview materials during baking.
+
+    When we hit the Make3D button maketile assigns the secondary material to the entire
+    mesh so we only see actual displacement. We store what materials have been assigned
+    to what vertex groups here so we can reassign them to the object later
+
+    Args:
+        PropertyGroup (bpy.types.PropertyGroup): Parent class
+    """
+
+    vertex_group: bpy.props.StringProperty(
+        name="vertex group"
+    )
+
+    material: bpy.props.PointerProperty(
+        type=bpy.types.Material,
+        name="material"
+    )
+
+
 # Radio buttons used in menus
 class MT_Radio_Buttons(PropertyGroup):
     def update_mapping_axis(self, context):
@@ -769,6 +790,11 @@ class MT_Object_Properties(PropertyGroup):
         name="Pen State",
         description="Used by bmturtle. If penstate is true turtle draws on move",
         default=False
+    )
+
+    preview_materials: bpy.props.CollectionProperty(
+        name="Preview materials",
+        type=MT_Preview_Materials
     )
 
 

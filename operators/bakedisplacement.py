@@ -248,12 +248,17 @@ def bake_displacement_map(obj):
         tree.links.new(surface_shader_node.outputs['BSDF'], mat_output_node.inputs['Surface'])
         tree.links.new(displacement_node.outputs['Displacement'], mat_output_node.inputs['Displacement'])
 
+    preview_materials = obj.mt_object_props.preview_materials
+    preview_materials.clear()
 
     # store which material is assigned to which vertex group
     for group in obj.vertex_groups:
-        obj['preview_materials'][group.name] = get_vert_group_material(group, obj)
+        mat = preview_materials.add()
+        mat.vertex_group = group.name
+        mat.material = get_vert_group_material(group, obj)
 
     # assign secondary material to entire mesh
+    # We do this because when the mesh is being displaced we want to see what the actual geometry is without any texture
     sec_mat_index = get_material_index(obj, bpy.data.materials[prefs.secondary_material])
 
     for poly in obj.data.polygons:

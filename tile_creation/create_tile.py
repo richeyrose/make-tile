@@ -7,6 +7,7 @@ from .. lib.utils.selection import select, deselect_all, activate
 from .. materials.materials import (
     assign_mat_to_vert_group)
 
+
 class MT_Tile_Generator:
     """Subclass this to create your tile operator."""
 
@@ -100,15 +101,9 @@ def convert_to_displacement_core(core, textured_vertex_groups):
         textured_vertex_groups (list[str]): \
         list of vertex group names that should have a texture applied
     """
-    # TODO change these to properties stored in mt_object_props
     scene = bpy.context.scene
     preferences = get_prefs()
     props = core.mt_object_props
-
-    # create a custom property that we use to save what material is
-    # assigned to what vertex group when changing between preview
-    # and displacement mode
-    core['preview_materials'] = {}
 
     primary_material = bpy.data.materials[scene.mt_scene_props.tile_material_1]
     secondary_material = bpy.data.materials[preferences.secondary_material]

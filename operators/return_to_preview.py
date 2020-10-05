@@ -38,13 +38,16 @@ def set_to_preview(obj):
     #disp_mod = obj.modifiers[obj['disp_mod_name']]
     disp_mod.strength = 0
 
+    # reassign preview material to mesh. While in displacement mode we had assigned the secondary material
+    # to the entire mesh so we only saw actual geometry.
     assign_mat_to_vert_group('disp_mod_vert_group', obj, secondary_material)
-    obj['preview_materials']['disp_mod_vert_group'] = secondary_material.name
 
-    for key, value in obj['preview_materials'].items():
-        if key != 'disp_mod_vert_group':
-            if value is not None:
-                assign_mat_to_vert_group(key, obj, value)
+    preview_materials = props.preview_materials
+
+    for mat in preview_materials:
+        if mat.vertex_group != 'disp_mod_vert_group':
+            if mat.material is not None:
+                assign_mat_to_vert_group(mat.vertex_group, obj, mat.material)
 
     ctx = {
         'object': obj,

@@ -9,7 +9,6 @@ def create_displacement_object(obj):
     subsurf.subdivision_type = 'SIMPLE'
     subsurf.levels = 3
     obj['subsurf_mod_name'] = subsurf.name
-    obj['preview_materials'] = {}
 
     # add a geometry_type custom property so MakeTile knows that these objects
     # are preview / displacement objects

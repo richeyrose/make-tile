@@ -124,14 +124,11 @@ class MT_OT_Make_3D(bpy.types.Operator):
             obj_props = obj.mt_object_props
 
             if obj_props.geometry_type == 'PREVIEW':
-                ctx = {
-                    'selected_objects': [obj],
-                    'selected_editable_objects': [obj],
-                    'active_object': obj,
-                    'object': obj}
                 tile = bpy.data.collections[obj_props.tile_name]
                 disp_strength = tile.mt_tile_props.displacement_strength
+
                 disp_image, obj = bake_displacement_map(obj)
+
                 disp_texture = obj_props.disp_texture
                 disp_texture.image = disp_image
                 disp_mod = obj.modifiers[obj_props.disp_mod_name]
@@ -140,6 +137,12 @@ class MT_OT_Make_3D(bpy.types.Operator):
                 disp_mod.strength = disp_strength
                 subsurf_mod = obj.modifiers[obj_props.subsurf_mod_name]
                 subsurf_mod.levels = bpy.context.scene.mt_scene_props.subdivisions
+
+                ctx = {
+                    'selected_objects': [obj],
+                    'selected_editable_objects': [obj],
+                    'active_object': obj,
+                    'object': obj}
                 bpy.ops.object.modifier_move_to_index(ctx, modifier=subsurf_mod.name, index=0)
 
                 obj_props.geometry_type = 'DISPLACEMENT'
@@ -157,7 +160,8 @@ def set_cycles_to_bake_mode():
         'orig_samples': context.scene.cycles.samples,
         'orig_x': context.scene.render.tile_x,
         'orig_y': context.scene.render.tile_y,
-        'orig_bake_type': context.scene.cycles.bake_type
+        'orig_bake_type': context.scene.cycles.bake_type,
+        'use_selected_to_active': context.scene.render.bake.use_selected_to_active
     }
 
     # switch to Cycles and set up rendering settings for baking
@@ -166,6 +170,7 @@ def set_cycles_to_bake_mode():
     context.scene.render.tile_x = resolution
     context.scene.render.tile_y = resolution
     context.scene.cycles.bake_type = 'EMIT'
+    context.scene.render.bake.use_selected_to_active = False
 
     return cycles_settings
 
@@ -176,6 +181,7 @@ def reset_renderer_from_bake(orig_settings):
     context.scene.render.tile_x = orig_settings['orig_x']
     context.scene.render.tile_y = orig_settings['orig_y']
     context.scene.cycles.bake_type = orig_settings['orig_bake_type']
+    context.scene.render.bake.use_selected_to_active = orig_settings['use_selected_to_active']
     context.scene.render.engine = orig_settings['orig_engine']
 
 

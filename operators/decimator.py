@@ -29,7 +29,7 @@ class MT_PT_Decimator_Panel(Panel):
         layout.operator('scene.mt_decimate_objects', text='Decimate Selected Objects')
 
 
-class MT_OT_Object_Decimator(bpy.types.Operator):
+class MT_OT_Object_Decimator(Operator):
     """Applies all modifiers to the selected objects and, optionally merges them and then decimates them."""
     bl_idname = "scene.mt_decimate_objects"
     bl_label = "Decimate Objects"

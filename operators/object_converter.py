@@ -41,7 +41,7 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
         # UV Project
         ctx = {
             'selected_objects': [obj],
-            'selected_editable_objects':[obj],
+            'selected_editable_objects': [obj],
             'object': obj,
             'active_object': obj
         }
@@ -53,7 +53,6 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
         # set some object props
         obj_props = obj.mt_object_props
         obj_props.is_mt_object = True
-        obj_props.is_converted = True
 
         # Yeah it might not be a tile technically. Deal with it :P
         obj_props.tile_name = new_collection.name
@@ -66,17 +65,21 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
         tile_props.tile_resolution = scene_props.tile_resolution
         tile_props.subdivisions = scene_props.subdivisions
 
-        # We assume we want to add texture to entire object and so create an
-        # "All" vertex group if there isn't one already
-        if 'All' not in obj.vertex_groups:
+        # check to see if there is already a vertex group on the object.
+        # If there is we assume that we want the material to be applied to the
+        # first vertex group
+        if len(obj.vertex_groups) > 0:
+            textured_vertex_groups = [obj.vertex_groups[0].name]
+        else:
+            # apply texture to entire object
             group = obj.vertex_groups.new(name="All")
             verts = []
             for vert in obj.data.vertices:
                 verts.append(vert.index)
             group.add(verts, 1.0, 'ADD')
+            textured_vertex_groups = ['All']
 
-        textured_vertex_groups = ['All']
-        lock_all_transforms(obj)
+        # convert our object to a displacement object
         convert_to_displacement_core(obj, textured_vertex_groups)
 
         # create an empty that we will parent our object to
@@ -92,6 +95,11 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
             'object': object_empty}
 
         bpy.ops.object.parent_set(ctx, type='OBJECT', keep_transform=True)
+
+        # lock transforms so we can only move the parent
+        lock_all_transforms(obj)
+
+        # select and activate parent
         deselect_all()
         activate(object_empty.name)
         select(object_empty.name)

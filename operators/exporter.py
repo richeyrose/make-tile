@@ -14,7 +14,7 @@ from . return_to_preview import set_to_preview
 # TODO fix it so we don't reset to preview on exporting
 
 class MT_PT_Export_Panel(Panel):
-    bl_order = 10
+    bl_order = 50
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Make Tile"

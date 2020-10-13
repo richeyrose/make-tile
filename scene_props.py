@@ -594,7 +594,7 @@ class MT_Scene_Properties(PropertyGroup):
     planar_decimation: bpy.props.BoolProperty(
         name="Planar Decimation",
         description="Further simplify the planar (flat) parts of the mesh",
-        default=True
+        default=False
     )
 
     planar_decimation_angle: bpy.props.FloatProperty(
@@ -626,7 +626,7 @@ class MT_Scene_Properties(PropertyGroup):
 
     decimate_on_export: bpy.props.BoolProperty(
         name="Decimate",
-        default=True
+        default=False
     )
 
     export_units: bpy.props.EnumProperty(

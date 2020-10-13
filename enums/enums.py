@@ -2,8 +2,8 @@
 
 
 units = [
-    ("CM", "Centimeters", "", 1),
-    ("INCHES", "Inches", "", 2)
+    ("INCHES", "Inches", "", 1),
+    ("CM", "Centimeters", "", 2)
 ]
 
 curve_types = [

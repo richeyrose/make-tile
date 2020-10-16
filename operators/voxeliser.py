@@ -26,7 +26,7 @@ class MT_PT_Voxelise_Panel(Panel):
 
         char_width = 9  # TODO find a way of actually getting this rather than guessing
         print_tools_txt = "For more options please enable the 3D print Tools addon included with blender"
-        
+
         # get panel width so we can line wrap print_tools_txt
         tool_shelf = None
         area = bpy.context.area
@@ -133,7 +133,7 @@ def make_manifold(context, obj):
         obj (bpy.types.Object): object
     """
     # TODO See if we can speed this up by calling the individual methods of the print3D toolkit
-    # check 3d print toolkit is instaleld and active
+    # check 3d print toolkit is installed and active
     if addon_utils.check("object_print3d_utils") == (True, True):
         selected = context.selected_objects
         active = context.active_object

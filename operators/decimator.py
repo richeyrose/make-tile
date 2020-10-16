@@ -29,7 +29,6 @@ class MT_PT_Decimator_Panel(Panel):
         layout.prop(scene_props, 'decimation_ratio')
         layout.prop(scene_props, 'planar_decimation')
         layout.prop(scene_props, 'planar_decimation_angle')
-             
 
 
 class MT_OT_Object_Decimator(Operator):

@@ -636,6 +636,12 @@ class MT_Scene_Properties(PropertyGroup):
         default='INCHES'
     )
 
+    fix_non_manifold: bpy.props.BoolProperty(
+        name="Fix non-manifold",
+        description="Attempt to fix geometry errors",
+        default=True
+    )
+
 
 def register():
     # Property group that contains properties set in UI

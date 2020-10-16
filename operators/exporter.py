@@ -1,9 +1,11 @@
 import os
+import textwrap
 from random import random
 import bpy
+import addon_utils
 from bpy.types import Panel
 from .. utils.registration import get_prefs
-from .voxeliser import voxelise
+from .voxeliser import voxelise, make_manifold
 from .decimator import decimate
 from .. lib.utils.collections import get_objects_owning_collections
 from . bakedisplacement import (
@@ -31,6 +33,21 @@ class MT_PT_Export_Panel(Panel):
         scene = context.scene
         scene_props = scene.mt_scene_props
         prefs = get_prefs()
+
+        char_width = 9  # TODO find a way of actually getting this rather than guessing
+        print_tools_txt = "For more options please enable the 3D print Tools addon included with blender"
+        
+        # get panel width so we can line wrap print_tools_txt
+        tool_shelf = None
+        area = bpy.context.area
+
+        for region in area.regions:
+            if region.type == 'UI':
+                tool_shelf = region
+
+        width = tool_shelf.width / char_width
+        wrapped = textwrap.wrap(print_tools_txt, width)
+
         layout = self.layout
 
         layout.operator('scene.mt_export_tile', text='Export Tile')
@@ -42,6 +59,14 @@ class MT_PT_Export_Panel(Panel):
 
         if scene_props.randomise_on_export is True:
             layout.prop(scene_props, 'num_variants')
+        
+        if addon_utils.check("object_print3d_utils") == (True, True):
+            layout.prop(scene_props, 'fix_non_manifold')
+        else:
+            for line in wrapped:
+                row = layout.row()
+                row.label(text=line)
+
 
 
 class MT_OT_Export_Tile_Variants(bpy.types.Operator):
@@ -103,10 +128,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
             # we will generate variants of preview obs equal to num_variants
             displacement_obs = []
             for obj in visible_objects:
-                if obj.mt_object_props.geometry_type == 'PREVIEW':
-                    displacement_obs.append(obj)
-                if obj.mt_object_props.geometry_type == 'DISPLACEMENT':
-                    set_to_preview(obj)
+                if obj.mt_object_props.geometry_type in ('PREVIEW', 'DISPLACEMENT'):
                     displacement_obs.append(obj)
 
             i = 0
@@ -118,6 +140,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
 
                 # generate a random variant for each displacement object
                 for obj in displacement_obs:
+                    set_to_preview(obj)
                     obj_props = obj.mt_object_props
                     ctx = {
                         'selected_objects': [obj],
@@ -151,77 +174,59 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                     bpy.ops.object.modifier_move_to_index(ctx, modifier=subsurf_mod.name, index=0)
                     obj_props.geometry_type = 'DISPLACEMENT'
 
-                if voxelise_on_export or decimate_on_export:
-                    depsgraph = context.evaluated_depsgraph_get()
-                    dupes = []
 
-                    for obj in visible_objects:
-                        object_eval = obj.evaluated_get(depsgraph)
-                        mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
-                        dup_obj = bpy.data.objects.new('dupe', mesh_from_eval)
-                        dup_obj.location = obj.location
-                        dup_obj.rotation_euler = obj.rotation_euler
-                        dup_obj.scale = obj.scale
-                        dup_obj.parent = obj.parent
-                        collection.objects.link(dup_obj)
-                        dupes.append(dup_obj)
+                depsgraph = context.evaluated_depsgraph_get()
+                dupes = []
 
-                    # join dupes together
-                    if len(dupes) > 0:
-                        ctx = {
-                            'object': dupes[0],
-                            'active_object': dupes[0],
-                            'selected_objects': dupes,
-                            'selected_editable_objects': dupes}
-                        bpy.ops.object.join(ctx)
+                for obj in visible_objects:
+                    object_eval = obj.evaluated_get(depsgraph)
+                    mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
+                    dup_obj = bpy.data.objects.new('dupe', mesh_from_eval)
+                    dup_obj.location = obj.location
+                    dup_obj.rotation_euler = obj.rotation_euler
+                    dup_obj.scale = obj.scale
+                    dup_obj.parent = obj.parent
+                    collection.objects.link(dup_obj)
+                    dupes.append(dup_obj)
 
-                    if voxelise_on_export:
-                        voxelise(dupes[0])
-                    if decimate_on_export:
-                        decimate(dupes[0])
-
+                # join dupes together
+                if len(dupes) > 0:
                     ctx = {
                         'object': dupes[0],
                         'active_object': dupes[0],
-                        'selected_objects': [dupes[0]],
-                        'selected_editable_objects': [dupes[0]]}
+                        'selected_objects': dupes,
+                        'selected_editable_objects': dupes}
+                    bpy.ops.object.join(ctx)
 
-                    # export our object
-                    bpy.ops.export_mesh.stl(
-                        ctx,
-                        filepath=file_path,
-                        check_existing=True,
-                        filter_glob="*.stl",
-                        use_selection=True,
-                        global_scale=unit_multiplier,
-                        use_mesh_modifiers=True)
+                if voxelise_on_export:
+                    voxelise(dupes[0])
+                if decimate_on_export:
+                    decimate(dupes[0])
+                if scene_props.fix_non_manifold:
+                    make_manifold(context, dupes[0])
 
-                    objects.remove(dupes[0], do_unlink=True)
+                ctx = {
+                    'object': dupes[0],
+                    'active_object': dupes[0],
+                    'selected_objects': [dupes[0]],
+                    'selected_editable_objects': [dupes[0]]}
 
-                    # clean up orphaned meshes
-                    for mesh in bpy.data.meshes:
-                        if mesh.users == 0:
-                            bpy.data.meshes.remove(mesh)
-                else:
+                # export our object
+                bpy.ops.export_mesh.stl(
+                    ctx,
+                    filepath=file_path,
+                    check_existing=True,
+                    filter_glob="*.stl",
+                    use_selection=True,
+                    global_scale=unit_multiplier,
+                    use_mesh_modifiers=True)
 
-                    ctx = {
-                        'object': visible_objects[0],
-                        'active_object': visible_objects[0],
-                        'selected_objects': visible_objects,
-                        'selected_editable_objects': visible_objects}
+                objects.remove(dupes[0], do_unlink=True)
 
-                    # export our object
-                    bpy.ops.export_mesh.stl(
-                        ctx,
-                        filepath=file_path,
-                        check_existing=True,
-                        filter_glob="*.stl",
-                        use_selection=True,
-                        global_scale=unit_multiplier,
-                        use_mesh_modifiers=True)
-
-                for obj in displacement_obs:
-                    set_to_preview(obj)
+                # clean up orphaned meshes
+                for mesh in bpy.data.meshes:
+                    if mesh.users == 0:
+                        bpy.data.meshes.remove(mesh)                   
                 i += 1
 
         reset_renderer_from_bake(orig_settings)

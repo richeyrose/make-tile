@@ -1,3 +1,5 @@
+import textwrap
+import addon_utils
 from math import radians
 import bpy
 from bpy.types import Panel, Operator
@@ -22,11 +24,12 @@ class MT_PT_Decimator_Panel(Panel):
         scene_props = scene.mt_scene_props
         layout = self.layout
 
+        layout.operator('scene.mt_decimate_objects', text='Decimate Selected Objects')
         layout.prop(scene_props, 'decimation_merge')
         layout.prop(scene_props, 'decimation_ratio')
         layout.prop(scene_props, 'planar_decimation')
         layout.prop(scene_props, 'planar_decimation_angle')
-        layout.operator('scene.mt_decimate_objects', text='Decimate Selected Objects')
+             
 
 
 class MT_OT_Object_Decimator(Operator):

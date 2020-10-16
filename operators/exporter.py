@@ -36,7 +36,7 @@ class MT_PT_Export_Panel(Panel):
 
         char_width = 9  # TODO find a way of actually getting this rather than guessing
         print_tools_txt = "For more options please enable the 3D print Tools addon included with blender"
-        
+
         # get panel width so we can line wrap print_tools_txt
         tool_shelf = None
         area = bpy.context.area
@@ -50,7 +50,7 @@ class MT_PT_Export_Panel(Panel):
 
         layout = self.layout
 
-        layout.operator('scene.mt_export_tile', text='Export Tile')
+        layout.operator('scene.mt_export_multiple_tile_variants', text='Export Tile')
         layout.prop(prefs, 'default_export_path')
         layout.prop(scene_props, 'export_units')
         layout.prop(scene_props, 'voxelise_on_export')
@@ -59,7 +59,7 @@ class MT_PT_Export_Panel(Panel):
 
         if scene_props.randomise_on_export is True:
             layout.prop(scene_props, 'num_variants')
-        
+
         if addon_utils.check("object_print3d_utils") == (True, True):
             layout.prop(scene_props, 'fix_non_manifold')
         else:
@@ -79,8 +79,11 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
         prefs = get_prefs()
         scene_props = context.scene.mt_scene_props
 
-        #number of variants we will generate
-        num_variants = scene_props.num_variants
+        # number of variants we will generate
+        if scene_props.randomise_on_export:
+            num_variants = scene_props.num_variants
+        else:
+            num_variants = 1
 
         # set cycles to bake mode and store original settings
         orig_settings = set_cycles_to_bake_mode()
@@ -125,11 +128,11 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                 if obj.type == 'MESH' and obj.visible_get() is True:
                     visible_objects.append(obj)
 
-            # we will generate variants of preview obs equal to num_variants
+            # we will generate variants of displacement obs equal to num_variants
             displacement_obs = []
             for obj in visible_objects:
                 if obj.mt_object_props.geometry_type in ('PREVIEW', 'DISPLACEMENT'):
-                    displacement_obs.append(obj)
+                    displacement_obs.append((obj, obj.mt_object_props.geometry_type))
 
             i = 0
             while i < num_variants:
@@ -138,10 +141,13 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                     export_path,
                     collection.name + '.' + str(random()) + '.stl')
 
-                # generate a random variant for each displacement object
-                for obj in displacement_obs:
-                    set_to_preview(obj)
+                for ob in displacement_obs:
+                    obj = ob[0]
                     obj_props = obj.mt_object_props
+
+                    if obj_props.geometry_type == 'DISPLACEMENT':
+                        set_to_preview(obj)
+
                     ctx = {
                         'selected_objects': [obj],
                         'selected_editable_objects': [obj],
@@ -152,10 +158,21 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                         if item[0]:
                             material = bpy.data.materials[item[0]]
                             tree = material.node_tree
-                            if 'Seed' in tree.nodes:
-                                rand = random()
-                                seed_node = tree.nodes['Seed']
-                                seed_node.outputs[0].default_value = rand * 1000
+
+                            # generate a random variant for each displacement object
+                            if scene_props.randomise_on_export:
+                                if num_variants == 1:
+                                    if 'Seed' in tree.nodes:
+                                        rand = random()
+                                        seed_node = tree.nodes['Seed']
+                                        seed_node.outputs[0].default_value = rand * 1000
+                                else:
+                                    # only generate a random variant on second iteration
+                                    if i > 1:
+                                        if 'Seed' in tree.nodes:
+                                            rand = random()
+                                            seed_node = tree.nodes['Seed']
+                                            seed_node.outputs[0].default_value = rand * 1000
 
                     disp_image, obj = bake_displacement_map(obj)
                     tile_props = collection.mt_tile_props
@@ -164,16 +181,13 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
 
                     disp_texture.image = disp_image
                     disp_mod = obj.modifiers[obj_props.disp_mod_name]
-                    # disp_mod = obj.modifiers[obj['disp_mod_name']]
                     disp_mod.texture = disp_texture
                     disp_mod.mid_level = 0
                     disp_mod.strength = disp_strength
                     subsurf_mod = obj.modifiers[obj_props.subsurf_mod_name]
-                    # subsurf_mod = obj.modifiers[obj['subsurf_mod_name']]
                     subsurf_mod.levels = scene_props.subdivisions
                     bpy.ops.object.modifier_move_to_index(ctx, modifier=subsurf_mod.name, index=0)
                     obj_props.geometry_type = 'DISPLACEMENT'
-
 
                 depsgraph = context.evaluated_depsgraph_get()
                 dupes = []
@@ -226,14 +240,20 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                 # clean up orphaned meshes
                 for mesh in bpy.data.meshes:
                     if mesh.users == 0:
-                        bpy.data.meshes.remove(mesh)                   
+                        bpy.data.meshes.remove(mesh)
                 i += 1
+
+            # reset displacement obs
+            for ob in displacement_obs:
+                obj, orig_geom_type = ob
+                if orig_geom_type == 'PREVIEW':
+                    set_to_preview(obj)
 
         reset_renderer_from_bake(orig_settings)
 
         return {'FINISHED'}
 
-
+"""
 class MT_OT_Export_Tile(bpy.types.Operator):
     '''Exports visible contents of current tile as an .stl.'''
 
@@ -378,3 +398,4 @@ class MT_OT_Export_Tile(bpy.types.Operator):
                         use_mesh_modifiers=True)
 
         return {'FINISHED'}
+"""

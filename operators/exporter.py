@@ -168,7 +168,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                                         seed_node.outputs[0].default_value = rand * 1000
                                 else:
                                     # only generate a random variant on second iteration
-                                    if i > 1:
+                                    if i > 0:
                                         if 'Seed' in tree.nodes:
                                             rand = random()
                                             seed_node = tree.nodes['Seed']

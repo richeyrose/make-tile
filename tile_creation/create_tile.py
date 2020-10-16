@@ -1,5 +1,6 @@
 import os
 import bpy
+from ..operators.assign_reference_object import assign_obj_to_obj_texture_coords
 from .. utils.registration import get_prefs
 from .. lib.utils.vertex_groups import construct_displacement_mod_vert_group
 from .. lib.utils.collections import add_object_to_collection, create_collection
@@ -42,11 +43,12 @@ def initialise_tile_creator(context):
     # Helper object collection
     helper_collection = create_collection('MT Helpers', scene.collection)
 
-    # Used as a reference object for material projection
+    # Add an empty used as a reference object for material projection
     if 'Material Helper Empty' not in bpy.data.objects:
         material_helper = bpy.data.objects.new('Material Helper Empty', None)
         material_helper.hide_viewport = True
         add_object_to_collection(material_helper, helper_collection.name)
+        assign_obj_to_obj_texture_coords(material_helper)
 
     tile_name = tile_blueprint.lower() + "." + tile_type.lower()
 
@@ -74,6 +76,7 @@ def create_common_tile_props(scene_props, tile_props, tile_collection):
     tile_props.displacement_strength = scene_props.displacement_strength
     tile_props.tile_resolution = scene_props.tile_resolution
     tile_props.texture_margin = scene_props.texture_margin
+
 
 def lock_all_transforms(obj):
     """Lock all transforms.

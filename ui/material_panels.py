@@ -124,15 +124,19 @@ class MT_PT_Material_Mapping_Options_Panel(Panel):
         obj = context.object
         material = obj.active_material
         tree = material.node_tree
-        nodes = tree.nodes
 
         layout.prop(scene_props, 'material_mapping_method')
         if scene_props.material_mapping_method == 'WRAP_AROUND':
             layout.prop(context.window_manager.mt_radio_buttons, 'mapping_axis', expand=True)
-        if 'Texture Coordinate' in nodes:
-            layout.label(text='Reference Object')
-            texture_node = nodes['Texture Coordinate']
-            layout.prop(texture_node, "object", text="")
+
+        if hasattr(tree, 'nodes'):
+            text_coord_nodes = [node for node in tree.nodes if node.type == 'TEX_COORD']
+            for node in text_coord_nodes:
+                if hasattr(node.parent, 'name'):
+                    if node.parent.name == 'Root Nodes':
+                        layout.label(text='Reference Object')
+                        layout.prop(node, "object", text="")
+
 
 
 class MT_PT_Vertex_Groups_Panel(bpy.types.Panel):

@@ -3,7 +3,7 @@ import textwrap
 from random import random
 import bpy
 import addon_utils
-from bpy.types import Panel
+from bpy.types import Panel, PropertyGroup
 from .. utils.registration import get_prefs
 from .voxeliser import voxelise, make_manifold
 from .decimator import decimate
@@ -13,6 +13,8 @@ from . bakedisplacement import (
     reset_renderer_from_bake,
     bake_displacement_map)
 from . return_to_preview import set_to_preview
+from ..enums.enums import units
+
 # TODO fix it so we don't reset to preview on exporting
 
 class MT_PT_Export_Panel(Panel):
@@ -32,6 +34,8 @@ class MT_PT_Export_Panel(Panel):
     def draw(self, context):
         scene = context.scene
         scene_props = scene.mt_scene_props
+        export_props = scene.mt_export_props
+
         prefs = get_prefs()
 
         char_width = 9  # TODO find a way of actually getting this rather than guessing
@@ -52,21 +56,20 @@ class MT_PT_Export_Panel(Panel):
 
         layout.operator('scene.mt_export_multiple_tile_variants', text='Export Tile')
         layout.prop(prefs, 'default_export_path')
-        layout.prop(scene_props, 'export_units')
-        layout.prop(scene_props, 'voxelise_on_export')
-        layout.prop(scene_props, 'randomise_on_export')
-        layout.prop(scene_props, 'decimate_on_export')
+        layout.prop(export_props, 'export_units')
+        layout.prop(export_props, 'voxelise_on_export')
+        layout.prop(export_props, 'randomise_on_export')
+        layout.prop(export_props, 'decimate_on_export')
 
-        if scene_props.randomise_on_export is True:
-            layout.prop(scene_props, 'num_variants')
+        if export_props.randomise_on_export is True:
+            layout.prop(export_props, 'num_variants')
 
         if addon_utils.check("object_print3d_utils") == (True, True):
-            layout.prop(scene_props, 'fix_non_manifold')
+            layout.prop(export_props, 'fix_non_manifold')
         else:
             for line in wrapped:
                 row = layout.row()
                 row.label(text=line)
-
 
 
 class MT_OT_Export_Tile_Variants(bpy.types.Operator):
@@ -78,10 +81,10 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
         # set up exporter options
         prefs = get_prefs()
         scene_props = context.scene.mt_scene_props
-
+        export_props = context.scene.mt_export_props
         # number of variants we will generate
-        if scene_props.randomise_on_export:
-            num_variants = scene_props.num_variants
+        if export_props.randomise_on_export:
+            num_variants = export_props.num_variants
         else:
             num_variants = 1
 
@@ -89,10 +92,10 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
         orig_settings = set_cycles_to_bake_mode()
 
         # voxelise options
-        voxelise_on_export = scene_props.voxelise_on_export
+        voxelise_on_export = export_props.voxelise_on_export
 
         # decimate options
-        decimate_on_export = scene_props.decimate_on_export
+        decimate_on_export = export_props.decimate_on_export
 
         # ensure export path exists
         export_path = prefs.default_export_path
@@ -100,7 +103,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
             os.mkdir(export_path)
 
         # Controls if we rescale on export
-        blend_units = scene_props.export_units
+        blend_units = export_props.export_units
         if blend_units == 'CM':
             unit_multiplier = 10
         elif blend_units == 'INCHES':
@@ -160,7 +163,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                             tree = material.node_tree
 
                             # generate a random variant for each displacement object
-                            if scene_props.randomise_on_export:
+                            if export_props.randomise_on_export:
                                 if num_variants == 1:
                                     if 'Seed' in tree.nodes:
                                         rand = random()
@@ -216,7 +219,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                     voxelise(dupes[0])
                 if decimate_on_export:
                     decimate(dupes[0])
-                if scene_props.fix_non_manifold:
+                if export_props.fix_non_manifold:
                     make_manifold(context, dupes[0])
 
                 ctx = {
@@ -253,149 +256,56 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
 
         return {'FINISHED'}
 
-"""
-class MT_OT_Export_Tile(bpy.types.Operator):
-    '''Exports visible contents of current tile as an .stl.'''
 
-    bl_idname = "scene.mt_export_tile"
-    bl_label = "Export tile"
-    bl_options = {'REGISTER'}
+class MT_Export_Props(PropertyGroup):
+    # exporter properties
+    num_variants: bpy.props.IntProperty(
+        name="Variants",
+        description="Number of variants of tile to export",
+        default=1
+    )
 
-    @classmethod
-    def poll(cls, context):
-        obj = context.object
-        return obj is not None and obj.mode == 'OBJECT' and obj.mt_object_props.is_mt_object is True
+    randomise_on_export: bpy.props.BoolProperty(
+        name="Randomise",
+        description="Create random variant on export?",
+        default=True
+    )
 
-    def execute(self, context):
-        if context.scene.mt_scene_props.randomise_on_export is True:
-            bpy.ops.scene.mt_export_multiple_tile_variants()
-            return {'PASS_THROUGH'}
+    voxelise_on_export: bpy.props.BoolProperty(
+        name="Voxelise",
+        default=True
+    )
 
-        # set up exporter options
-        prefs = get_prefs()
-        scene_props = context.scene.mt_scene_props
+    decimate_on_export: bpy.props.BoolProperty(
+        name="Decimate",
+        default=False
+    )
 
-        # voxelise options
-        voxelise_on_export = scene_props.voxelise_on_export
+    export_units: bpy.props.EnumProperty(
+        name="Units",
+        items=units,
+        description="Export units",
+        default='INCHES'
+    )
 
-        # decimate options
-        decimate_on_export = scene_props.decimate_on_export
+    fix_non_manifold: bpy.props.BoolProperty(
+        name="Fix non-manifold",
+        description="Attempt to fix geometry errors",
+        default=True
+    )
 
-        # ensure export path exists
-        export_path = prefs.default_export_path
-        if not os.path.exists(export_path):
-            os.mkdir(export_path)
+    export_subdivs: bpy.props.IntProperty(
+        name="Export Subdivisions",
+        description="Subdivision levels of exported tile",
+        default=3
+    )
 
-        # Controls if we rescale on export
-        blend_units = scene_props.export_units
-        if blend_units == 'CM':
-            unit_multiplier = 10
-        elif blend_units == 'INCHES':
-            unit_multiplier = 25.4
-        else:
-            unit_multiplier = 1
 
-        objects = bpy.data.objects
+def register():
+    bpy.types.Scene.mt_export_props = bpy.props.PointerProperty(
+        type=MT_Export_Props
+    )
 
-        # get list of tile collections our selected objects are in. We export
-        # all visible objects in the collections
-        tile_collections = set()
-        for obj in context.selected_objects:
-            obj_collections = get_objects_owning_collections(obj.name)
 
-            for collection in obj_collections:
-                tile_collections.add(collection)
-
-        for collection in tile_collections:
-            # check if collection is a MakeTile collection
-            if collection.mt_tile_props.is_mt_collection is True:
-                # create a list of visible objects to export
-                visible_objects = []
-                for obj in collection.objects:
-                    if obj.type == 'MESH' and obj.visible_get() is True:
-                        visible_objects.append(obj)
-
-                # construct a random name for our collection
-                file_path = os.path.join(
-                    export_path,
-                    collection.name + '.' + str(random()) + '.stl')
-
-                # if we are voxelising or decimating exported mesh we need to merge
-                # all objects together and then voxelise / decimate them. To do this
-                # we create a duplicate of each visible object, apply all modifiers
-                # join all meshes together, voxelise the joint mesh, decimate it, export the joint mesh
-                # and then delete it
-                if voxelise_on_export or decimate_on_export:
-                    # duplicate
-                    depsgraph = context.evaluated_depsgraph_get()
-                    dupes = []
-                    for obj in visible_objects:
-                        object_eval = obj.evaluated_get(depsgraph)
-                        mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
-                        dup_obj = bpy.data.objects.new('dupe', mesh_from_eval)
-                        dup_obj.location = obj.location
-                        dup_obj.rotation_euler = obj.rotation_euler
-                        dup_obj.scale = obj.scale
-                        dup_obj.parent = obj.parent
-                        collection.objects.link(dup_obj)
-                        dupes.append(dup_obj)
-
-                    # join dupes together
-                    if len(dupes) > 0:
-                        ctx = {
-                            'object': dupes[0],
-                            'active_object': dupes[0],
-                            'selected_objects': dupes,
-                            'selected_editable_objects': dupes}
-                        bpy.ops.object.join(ctx)
-
-                    # voxelise
-                    if voxelise_on_export:
-                        voxelise(dupes[0])
-
-                    # decimate
-                    if decimate_on_export:
-                        decimate(dupes[0])
-
-                    ctx = {
-                        'object': dupes[0],
-                        'active_object': dupes[0],
-                        'selected_objects': [dupes[0]],
-                        'selected_editable_objects': [dupes[0]]}
-
-                    # export our object
-                    bpy.ops.export_mesh.stl(
-                        ctx,
-                        filepath=file_path,
-                        check_existing=True,
-                        filter_glob="*.stl",
-                        use_selection=True,
-                        global_scale=unit_multiplier,
-                        use_mesh_modifiers=True)
-
-                    # delete duplicate objects
-                    objects.remove(dupes[0], do_unlink=True)
-
-                    # clean up orphaned meshes
-                    for mesh in bpy.data.meshes:
-                        if mesh.users == 0:
-                            bpy.data.meshes.remove(mesh)
-                else:
-                    ctx = {
-                        'object': visible_objects[0],
-                        'active_object': visible_objects[0],
-                        'selected_objects': visible_objects,
-                        'selected_editable_objects': visible_objects}
-
-                    # export our object
-                    bpy.ops.export_mesh.stl(
-                        ctx,
-                        filepath=file_path,
-                        check_existing=True,
-                        filter_glob="*.stl",
-                        use_selection=True,
-                        global_scale=unit_multiplier,
-                        use_mesh_modifiers=True)
-
-        return {'FINISHED'}
-"""
+def unregister():
+    del bpy.types.Scene.mt_export_props

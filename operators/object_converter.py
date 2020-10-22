@@ -77,9 +77,11 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
         obj_props = obj.mt_object_props
         obj_props.is_mt_object = True
         obj_props.tile_name = tile_collection.name
-        # tagging this as a converted ibject prevents MakeTile from updating the tile options
+
+        # tagging this as a converted object prevents MakeTile from updating the tile options
         # panel when this object is selected.
         obj_props.is_converted = True
+        base.mt_object_props.is_converted = True
 
         # Remove any existing materials
         obj.data.materials.clear()

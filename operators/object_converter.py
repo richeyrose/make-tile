@@ -1,5 +1,10 @@
 import bpy
-from ..tile_creation.create_tile import convert_to_displacement_core, lock_all_transforms
+from ..tile_creation.create_tile import (
+    convert_to_displacement_core,
+    lock_all_transforms,
+    create_helper_object,
+    create_common_tile_props,
+    spawn_empty_base)
 from .. lib.utils.selection import (
     deselect_all,
     select,
@@ -7,7 +12,9 @@ from .. lib.utils.selection import (
 from .. lib.utils.collections import (
     create_collection,
     add_object_to_collection,
-    get_collection)
+    get_collection,
+    activate_collection)
+from ..utils.registration import get_prefs
 
 
 class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
@@ -22,21 +29,40 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
         return obj is not None and obj.mode == 'OBJECT' and obj.type in {'MESH'}
 
     def execute(self, context):
+        prefs = get_prefs()
         obj = context.object
-
         scene = context.scene
         scene_props = scene.mt_scene_props
-        scene_collection = scene.collection
 
         # creates a converted objects collection if one doesn't already exist
-        converted_obj_collection = create_collection('Converted Objects', scene_collection)
+        converted_obj_collection = create_collection('Converted Objects', scene.collection)
+
+        # create helper object for material mapping
+        create_helper_object(context)
 
         # create a new collection named after our object as a sub collection
         # of the converted objects collection
-        new_collection = bpy.data.collections.new(obj.name)
-        converted_obj_collection.children.link(new_collection)
-        collection = get_collection(context.view_layer.layer_collection, new_collection.name)
-        bpy.context.view_layer.active_layer_collection = collection
+        tile_collection = bpy.data.collections.new(obj.name)
+        converted_obj_collection.children.link(tile_collection)
+        activate_collection(tile_collection.name)
+
+        # move object to new collection
+        add_object_to_collection(obj, tile_collection.name)
+
+        # Create tile properties
+        tile_props = tile_collection.mt_tile_props
+        create_common_tile_props(scene_props, tile_props, tile_collection)
+
+        # create empty and parent our object to it
+        base = spawn_empty_base(tile_props)
+        base.location = obj.location
+        base.rotation_euler = obj.rotation_euler
+        ctx = {
+            'selected_objects': [base, obj],
+            'active_object': base,
+            'object': base}
+
+        bpy.ops.object.parent_set(ctx, type='OBJECT', keep_transform=True)
 
         # UV Project
         ctx = {
@@ -47,23 +73,18 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
         }
         bpy.ops.uv.smart_project(ctx, island_margin=0.01)
 
-        # move object to new collection
-        add_object_to_collection(obj, new_collection.name)
-
-        # set some object props
+        # set object props
         obj_props = obj.mt_object_props
         obj_props.is_mt_object = True
+        obj_props.tile_name = tile_collection.name
+        # tagging this as a converted ibject prevents MakeTile from updating the tile options
+        # panel when this object is selected.
+        obj_props.is_converted = True
 
-        # Yeah it might not be a tile technically. Deal with it :P
-        obj_props.tile_name = new_collection.name
-
-        # set some props on the "Tile" collection
-        tile_props = new_collection.mt_tile_props
-        tile_props.tile_name = new_collection.name
-        tile_props.is_mt_collection = True
-        tile_props.displacement_strength = scene_props.displacement_strength
-        tile_props.tile_resolution = scene_props.tile_resolution
-        tile_props.subdivisions = scene_props.subdivisions
+        # Remove any existing materials
+        obj.data.materials.clear()
+        # append secondary material
+        obj.data.materials.append(bpy.data.materials[prefs.secondary_material])
 
         # check to see if there is already a vertex group on the object.
         # If there is we assume that we want the material to be applied to the
@@ -82,26 +103,12 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
         # convert our object to a displacement object
         convert_to_displacement_core(obj, textured_vertex_groups)
 
-        # create an empty that we will parent our object to
-        object_empty = bpy.data.objects.new(obj.name + ".empty", None)
-        add_object_to_collection(object_empty, new_collection.name)
-        object_empty.location = obj.location
-        object_empty.rotation_euler = obj.rotation_euler
-        object_empty.show_in_front = True
-
-        ctx = {
-            'selected_objects': [object_empty, obj],
-            'active_object': object_empty,
-            'object': object_empty}
-
-        bpy.ops.object.parent_set(ctx, type='OBJECT', keep_transform=True)
-
-        # lock transforms so we can only move the parent
+        # lock all transforms so we can only move parent
         lock_all_transforms(obj)
 
         # select and activate parent
         deselect_all()
-        activate(object_empty.name)
-        select(object_empty.name)
+        activate(base.name)
+        select(base.name)
 
         return {'FINISHED'}

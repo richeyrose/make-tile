@@ -12,8 +12,9 @@ from .. lib.utils.selection import (
 from .. lib.utils.collections import (
     create_collection,
     add_object_to_collection,
-    get_collection,
     activate_collection)
+
+
 from ..utils.registration import get_prefs
 
 
@@ -88,18 +89,25 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
         # append secondary material
         obj.data.materials.append(bpy.data.materials[prefs.secondary_material])
 
-        # check to see if there is already a vertex group on the object.
-        # If there is we assume that we want the material to be applied to the
-        # first vertex group
-        if len(obj.vertex_groups) > 0:
-            textured_vertex_groups = [obj.vertex_groups[0].name]
+        # create an all vertex group and ensuire it is at index 0 as otherwise
+        # the return to preview feature doesn't work properly
+        group = obj.vertex_groups.new(name="All")
+        verts = []
+        for vert in obj.data.vertices:
+            verts.append(vert.index)
+        group.add(verts, 1.0, 'ADD')
+
+        obj.vertex_groups.active_index = group.index
+        while group.index > 0:
+            bpy.ops.object.vertex_group_move(ctx, direction='UP')
+
+        # check to see if there are already vertex groups on the object.
+        # If there are we assume that we want the material to be applied to each
+        # vertex group
+        if len(obj.vertex_groups) > 1:
+            textured_vertex_groups = [group.name for group in obj.vertex_groups if group.name != 'All']
+        # otherwise we assume we want to add the material to the entire object
         else:
-            # apply texture to entire object
-            group = obj.vertex_groups.new(name="All")
-            verts = []
-            for vert in obj.data.vertices:
-                verts.append(vert.index)
-            group.add(verts, 1.0, 'ADD')
             textured_vertex_groups = ['All']
 
         # convert our object to a displacement object

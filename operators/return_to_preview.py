@@ -34,29 +34,35 @@ def set_to_preview(obj):
     prefs = get_prefs()
     secondary_material = bpy.data.materials[prefs.secondary_material]
     props = obj.mt_object_props
-    disp_mod = obj.modifiers[props.disp_mod_name]
-    #disp_mod = obj.modifiers[obj['disp_mod_name']]
-    disp_mod.strength = 0
 
-    # reassign preview material to mesh. While in displacement mode we had assigned the secondary material
-    # to the entire mesh so we only saw actual geometry.
-    assign_mat_to_vert_group('disp_mod_vert_group', obj, secondary_material)
+    # check if displacement modifier exists. If it doesn't user has removed it.
+    if props.disp_mod_name in obj.modifiers:
+        disp_mod = obj.modifiers[props.disp_mod_name]
+        disp_mod.strength = 0
 
-    preview_materials = props.preview_materials
+        # reassign preview material to mesh. While in displacement mode we had assigned the secondary material
+        # to the entire mesh so we only saw actual geometry.
+        assign_mat_to_vert_group('disp_mod_vert_group', obj, secondary_material)
 
-    for mat in preview_materials:
-        if mat.vertex_group != 'disp_mod_vert_group':
-            if mat.material is not None:
-                assign_mat_to_vert_group(mat.vertex_group, obj, mat.material)
+        preview_materials = props.preview_materials
 
-    ctx = {
-        'object': obj,
-        'active_object': obj,
-        'selected_objects': [obj],
-        'selected_editable_objects': [obj]
-    }
+        for mat in preview_materials:
+            if mat.vertex_group != 'disp_mod_vert_group':
+                if mat.material is not None:
+                    assign_mat_to_vert_group(mat.vertex_group, obj, mat.material)
 
-    new_index = len(obj.modifiers) - 1
-    bpy.ops.object.modifier_move_to_index(ctx, modifier=props.subsurf_mod_name, index=new_index)
-    obj.cycles.use_adaptive_subdivision = True
+    # check if subsurf modifier exists. If it doesn't user has removed it.
+    if props.subsurf_mod_name in obj.modifiers:
+        ctx = {
+            'object': obj,
+            'active_object': obj,
+            'selected_objects': [obj],
+            'selected_editable_objects': [obj]
+        }
+
+        new_index = len(obj.modifiers) - 1
+
+        bpy.ops.object.modifier_move_to_index(ctx, modifier=props.subsurf_mod_name, index=new_index)
+        obj.cycles.use_adaptive_subdivision = True
+
     obj.mt_object_props.geometry_type = 'PREVIEW'

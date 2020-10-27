@@ -4,6 +4,8 @@ from random import random
 import bpy
 import addon_utils
 from bpy.types import Panel, PropertyGroup
+from bpy.props import BoolProperty, StringProperty, EnumProperty
+from bpy_extras.io_utils import ExportHelper
 from .. utils.registration import get_prefs
 from .voxeliser import voxelise, make_manifold
 from .decimator import decimate
@@ -14,8 +16,6 @@ from . bakedisplacement import (
     bake_displacement_map)
 from . return_to_preview import set_to_preview
 from ..enums.enums import units
-
-# TODO fix it so we don't reset to preview on exporting
 
 class MT_PT_Export_Panel(Panel):
     bl_order = 50
@@ -35,7 +35,7 @@ class MT_PT_Export_Panel(Panel):
         scene = context.scene
         scene_props = scene.mt_scene_props
         export_props = scene.mt_export_props
-
+        obj = context.object
         prefs = get_prefs()
 
         char_width = 9  # TODO find a way of actually getting this rather than guessing
@@ -54,7 +54,16 @@ class MT_PT_Export_Panel(Panel):
 
         layout = self.layout
 
-        layout.operator('scene.mt_export_multiple_tile_variants', text='Export Tile')
+        layout.operator('scene.mt_export_tile', text='Export Tile')
+        op = layout.operator('scene.mt_export_object', text='Export Active Object')
+        op.voxelise = export_props.voxelise_on_export
+        op.decimate = export_props.decimate_on_export
+        op.make_manifold = export_props.fix_non_manifold
+        op.export_units = export_props.export_units
+        op.filepath = os.path.join(
+            prefs.default_export_path,
+            obj.name + '.stl')
+
         layout.prop(prefs, 'default_export_path')
         layout.prop(export_props, 'export_units')
         layout.prop(export_props, 'voxelise_on_export')
@@ -72,10 +81,130 @@ class MT_PT_Export_Panel(Panel):
                 row.label(text=line)
 
 
+class MT_OT_Export_Object(bpy.types.Operator, ExportHelper):
+    bl_idname = "scene.mt_export_object"
+    bl_label = "Export Object"
+    bl_description = "Export the active object."
+    bl_options = {'REGISTER'}
+
+    filename_ext = ".stl"
+
+    filter_glob: StringProperty(
+        default="*.stl",
+        options={'HIDDEN'},
+        maxlen=255)
+
+    voxelise: BoolProperty(
+        name="Voxelise",
+        description="Voxelise on Export",
+        default=False
+    )
+
+    decimate: BoolProperty(
+        name="Decimate",
+        description="Decimate on Export",
+        default=False
+    )
+
+    make_manifold: BoolProperty(
+        name="Make Manifold",
+        description="Make Manifold",
+        default=False
+    )
+
+    export_units: EnumProperty(
+        name="Units",
+        description="Default Units",
+        items=units
+    )
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        return obj is not None and obj.mode == 'OBJECT' and obj.type == 'MESH'
+
+    def execute(self, context):
+        # set up exporter options
+        voxelise_on_export = self.voxelise
+        decimate_on_export = self.decimate
+        fix_non_manifold = self.make_manifold
+
+        # Controls if we rescale on export
+        blend_units = self.export_units
+        if blend_units == 'CM':
+            unit_multiplier = 10
+        elif blend_units == 'INCHES':
+            unit_multiplier = 25.4
+        else:
+            unit_multiplier = 1
+
+        # The object to export
+        obj = context.active_object
+
+        if voxelise_on_export or decimate_on_export or fix_non_manifold:
+            depsgraph = context.evaluated_depsgraph_get()
+            object_eval = obj.evaluated_get(depsgraph)
+            mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
+            dup_obj = bpy.data.objects.new('dupe', mesh_from_eval)
+            dup_obj.location = obj.location
+            dup_obj.rotation_euler = obj.rotation_euler
+            dup_obj.scale = obj.scale
+            dup_obj.parent = obj.parent
+            context.view_layer.active_layer_collection.collection.objects.link(dup_obj)
+
+            if voxelise_on_export:
+                voxelise(dup_obj)
+            if decimate_on_export:
+                decimate(dup_obj)
+            if fix_non_manifold:
+                make_manifold(context, dup_obj)
+
+            ctx = {
+                'object': dup_obj,
+                'active_object': dup_obj,
+                'selected_objects': [dup_obj],
+                'selected_editable_objects': [dup_obj]}
+
+            # export our object
+            bpy.ops.export_mesh.stl(
+                ctx,
+                filepath=self.filepath,
+                check_existing=True,
+                filter_glob="*.stl",
+                use_selection=True,
+                global_scale=unit_multiplier,
+                use_mesh_modifiers=True)
+
+            bpy.data.objects.remove(dup_obj, do_unlink=True)
+
+        else:
+            ctx = {
+                'object': obj,
+                'active_object': obj,
+                'selected_objects': [obj],
+                'selected_editable_objects': [obj]}
+
+            # export our object
+            bpy.ops.export_mesh.stl(
+                ctx,
+                filepath=self.filepath,
+                check_existing=True,
+                filter_glob="*.stl",
+                use_selection=True,
+                global_scale=unit_multiplier,
+                use_mesh_modifiers=True)
+
+        return {'FINISHED'}
+
 class MT_OT_Export_Tile_Variants(bpy.types.Operator):
-    bl_idname = "scene.mt_export_multiple_tile_variants"
+    bl_idname = "scene.mt_export_tile"
     bl_label = "Export multiple tile variants"
     bl_options = {'REGISTER'}
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        return obj is not None and obj.mode == 'OBJECT' and obj.mt_object_props.is_mt_object is True
 
     def execute(self, context):
         # set up exporter options
@@ -117,6 +246,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
         # get list of tile collections our selected objects are in. We export
         # all visible objects in the collections
         tile_collections = set()
+
         for obj in context.selected_objects:
             obj_collections = get_objects_owning_collections(obj.name)
 
@@ -124,6 +254,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                 if collection.mt_tile_props.is_mt_collection is True:
                     tile_collections.add(collection)
 
+        # If a collection is a tile collection we generate variants
         for collection in tile_collections:
             visible_objects = []
 

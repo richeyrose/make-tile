@@ -24,7 +24,7 @@ def load_material_libraries():
     scene_props = bpy.context.scene.mt_scene_props
     default_materials_path = os.path.join(prefs.assets_path, "materials")
     user_materials_path = os.path.join(prefs.user_assets_path, "materials")
-    
+
     blend_filenames = get_blend_filenames(default_materials_path)
     materials = load_materials(default_materials_path, blend_filenames)
 
@@ -43,6 +43,20 @@ def get_tile_type(tile_type):
         if default['type'] == tile_type:
             return default['type']
     return None
+
+# TODO: Currently using scene_props['tile_defaults'] as a proxy. Should make this more robust
+# Blender's undo system also undoes actions triggered by the load_post app handler
+# when the appropriate undo step is reached.
+# Therefore here we check to see if our tile_defaults custom scene property is being
+# unloaded and if it is we rerun create_properties_on_load
+@persistent
+def recreate_properties_on_undo(dummy):
+    context = bpy.context
+    scene_props = context.scene.mt_scene_props
+    try:
+        scene_props['tile_defaults']
+    except KeyError:
+        create_properties_on_load(dummy)
 
 
 @persistent
@@ -115,3 +129,4 @@ bpy.app.handlers.depsgraph_update_pre.append(create_properties_on_activation)
 bpy.app.handlers.load_post.append(create_properties_on_load)
 
 bpy.app.handlers.depsgraph_update_post.append(update_mt_scene_props_handler)
+bpy.app.handlers.undo_post.append(recreate_properties_on_undo)

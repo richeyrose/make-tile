@@ -12,7 +12,7 @@ from .properties import (
     create_main_part_blueprint_enums,
     create_tile_type_enums,
     create_base_blueprint_enums)
-
+from .app_handlers import create_properties_on_load
 
 def load_material_enums(self, context):
     """Create a list of enum items of materials compatible with the MakeTile material system.
@@ -39,7 +39,10 @@ def load_material_enums(self, context):
 def update_scene_defaults(self, context):
     scene_props = context.scene.mt_scene_props
     tile_type = scene_props.tile_type
-    tile_defaults = scene_props['tile_defaults']
+    try:
+        tile_defaults = scene_props['tile_defaults']
+    except KeyError:
+        create_properties_on_load(dummy=None)
 
     for tile in tile_defaults:
         if tile['type'] == tile_type:

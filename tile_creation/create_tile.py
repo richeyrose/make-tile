@@ -123,10 +123,10 @@ def convert_to_displacement_core(core, textured_vertex_groups):
 
     # create texture for displacement modifier
     props.disp_texture = bpy.data.textures.new(core.name + '.texture', 'IMAGE')
-
+    '''
     # add a triangulate modifier to correct for distortion after bools
     core.modifiers.new('MT Triangulate', 'TRIANGULATE')
-
+    '''
     # add a subsurf modifier
     subsurf = core.modifiers.new('MT Subsurf', 'SUBSURF')
     subsurf.subdivision_type = 'SIMPLE'

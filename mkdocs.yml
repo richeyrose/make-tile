@@ -1,6 +1,7 @@
 site_name: MakeTile Docs
 nav:
   - Home: index.md
+  - Release Notes: release_notes.md
   - FAQ: faq.md
   - Licensing and Copyright: licensing.md
 theme: readthedocs

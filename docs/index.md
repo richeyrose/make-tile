@@ -6,6 +6,8 @@ After running a succesful [Kickstarter](https://www.kickstarter.com/projects/mod
 
 Check out my [YouTube](https://www.youtube.com/channel/UC7TUNzEtli-sQRj5anS7DFA) channel for more hints and tips.
 
+Check out the latest [Release Notes](release_notes/) to see what's changed.
+
 ## Installing MakeTile
 1. MakeTile is an add-on for Blender. First [download](https://www.blender.org/download/) the latest build of Blender and install it. If you've not used Blender before I *strongly* advise that you first take a look at the first five Blender fundamentals [videos](https://www.youtube.com/playlist?list=PLa1F2ddGya_-UvuAqHAksYnB0qL9yWDO6) on the official Blender YouTube channel. These will teach you the basics of viewport navigation, the Blender interface and how to add and delete objects. It should take you no more than 30 minutes.
 2. Download the latest build of MakeTile from [Gumroad](https://gumroad.com/). If you have backed MakeTile on Kickstarter you will have received a discount code letting you download it for free. Login to your account, go to your library, hover over the MakeTile thumbnail, click on "View content" and download the ZIP file. **Do not unzip this file!!!** Blender uses the .zip file directly to install add-ons and if you unzip it the installation will silently fail.
@@ -147,7 +149,7 @@ If you have imported an object that you know is the correct size in a slicer, yo
 ## Using MakeTile's material system with imported objects
 You can use MakeTile's material system with an imported object by selecting it and clicking on the **Convert to MakeTile Object** button in the **Object Converter** panel in the MakeTile menu. For a guide on how to convert a blank tile template for use with MakeTile that will take you through the whole process see this video.
 
-[![Covert a Tile for use with MakeTile](images/ConvertTileVideo.png)](https://www.youtube.com/watch?v=h-Ayb_r4dls)
+[![Convert a Tile for use with MakeTile](images/ConvertTileVideo.png)](https://www.youtube.com/watch?v=h-Ayb_r4dls)
 
 ## Adding props to your tiles
 If you want to add a prop to your tile, import and rescale your prop. Position it where you would like it to be on your tile. Select the prop and then select the tile. In the **Object Converter** panel click the **Add Selected to Tile** button. If you generate several variants on export the prop will appear on each tile. If you have **Voxelise** selected on export the prop will be merged with your tile on export.

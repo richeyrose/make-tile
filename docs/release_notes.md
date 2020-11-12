@@ -43,6 +43,7 @@ Here you can individually control the offset of the different beams, have more c
 
 ### Bug fixes
 A major bug that caused serious lagging when moving tiles with booleans on them was fixed. In one of the previous updates I added a triangulate modifier to the modifier stack in order to get rid of the graphical glitch below on difference booleans:
+
 ![Subdiv modifier graphical glitch](images/SubdivisionGlitch.PNG)
 
 Unfortunately this utterly kills performance on the current release builds of Blender so I have removed it. This glitch doesn't effect the tile sonce they have been made 3d and exported but it doesn't look great and I'm hoping to fix it in another way in future.

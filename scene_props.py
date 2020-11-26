@@ -111,7 +111,11 @@ def update_UV_island_margin(self, context):
                     'selected_objects': [obj],
                     'selected_editable_objects': [obj]}
 
-                bpy.ops.uv.smart_project(ctx, island_margin=UV_island_margin)
+                bpy.ops.object.editmode_toggle(ctx)
+                bpy.ops.mesh.select_all(action='SELECT')
+                bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
+                bpy.ops.mesh.select_all(action='DESELECT')
+                bpy.ops.object.editmode_toggle(ctx)
 
 
 def update_disp_strength(self, context):

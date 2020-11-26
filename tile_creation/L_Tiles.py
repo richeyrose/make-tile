@@ -494,7 +494,12 @@ def spawn_floor_core(tile_props):
         'selected_objects': [core],
         'selected_editable_objects': [core]}
 
+    bpy.ops.object.editmode_toggle(ctx)
+    bpy.ops.mesh.select_all(action='SELECT')
     bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
+    bpy.ops.mesh.select_all(action='DESELECT')
+    bpy.ops.object.editmode_toggle(ctx)
+
     bpy.context.scene.cursor.location = (0, 0, 0)
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
     return core
@@ -830,7 +835,12 @@ def spawn_wall_core(tile_props):
         'selected_editable_objects': [core]
     }
 
+    bpy.ops.object.editmode_toggle(ctx)
+    bpy.ops.mesh.select_all(action='SELECT')
     bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
+    bpy.ops.mesh.select_all(action='DESELECT')
+    bpy.ops.object.editmode_toggle(ctx)
+
     bpy.context.scene.cursor.location = (0, 0, 0)
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
 

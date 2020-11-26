@@ -72,7 +72,12 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
             'object': obj,
             'active_object': obj
         }
-        bpy.ops.uv.smart_project(ctx, island_margin=0.01)
+
+        bpy.ops.object.editmode_toggle(ctx)
+        bpy.ops.mesh.select_all(action='SELECT')
+        bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
+        bpy.ops.mesh.select_all(action='DESELECT')
+        bpy.ops.object.editmode_toggle(ctx)
 
         # set object props
         obj_props = obj.mt_object_props

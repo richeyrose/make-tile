@@ -305,7 +305,12 @@ def spawn_floor_core(tile_props):
     }
 
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+
+    bpy.ops.object.editmode_toggle(ctx)
+    bpy.ops.mesh.select_all(action='SELECT')
     bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
+    bpy.ops.mesh.select_all(action='DESELECT')
+    bpy.ops.object.editmode_toggle(ctx)
 
     obj_props = core.mt_object_props
     obj_props.is_mt_object = True

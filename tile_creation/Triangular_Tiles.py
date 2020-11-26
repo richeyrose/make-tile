@@ -570,6 +570,7 @@ def spawn_floor_core(tile_props):
 
     core.location[2] = core.location[2] + tile_props.base_size[2]
 
+    #TODO Factor the below out as duplicated in each tile generator
     ctx = {
         'object': core,
         'active_object': core,
@@ -578,7 +579,13 @@ def spawn_floor_core(tile_props):
     }
 
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+
+    bpy.ops.object.editmode_toggle(ctx)
+    bpy.ops.mesh.select_all(action='SELECT')
     bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
+    bpy.ops.mesh.select_all(action='DESELECT')
+    bpy.ops.object.editmode_toggle(ctx)
+
     obj_props = core.mt_object_props
     obj_props.is_mt_object = True
     obj_props.tile_name = tile_props.tile_name

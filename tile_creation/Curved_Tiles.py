@@ -491,7 +491,7 @@ def spawn_openlock_top_pegs(base, tile_props):
         'object': peg,
         'active_object': peg,
         'selected_objects': [peg],
-        'selected_editable_objects':[peg]
+        'selected_editable_objects': [peg]
     }
 
     bpy.ops.transform.rotate(
@@ -499,6 +499,8 @@ def spawn_openlock_top_pegs(base, tile_props):
         value=radians(tile_props.degrees_of_arc / 2),
         orient_axis='Z',
         orient_type='GLOBAL',
+        orient_matrix_type='GLOBAL',
+        orient_matrix=((1, 0, 0), (0, 1, 0), (0, 0, 1)),
         center_override=base_location)
 
     return peg
@@ -865,7 +867,12 @@ def spawn_floor_core(tile_props):
     }
 
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+
+    bpy.ops.object.editmode_toggle(ctx)
+    bpy.ops.mesh.select_all(action='SELECT')
     bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
+    bpy.ops.mesh.select_all(action='DESELECT')
+    bpy.ops.object.editmode_toggle(ctx)
 
     tile_props.tile_size[0] = floor_length
 
@@ -932,7 +939,11 @@ def spawn_wall_core(tile_props):
     }
 
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+    bpy.ops.object.editmode_toggle(ctx)
+    bpy.ops.mesh.select_all(action='SELECT')
     bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
+    bpy.ops.mesh.select_all(action='DESELECT')
+    bpy.ops.object.editmode_toggle(ctx)
 
     tile_props.tile_size[0] = wall_length
 

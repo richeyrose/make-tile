@@ -307,7 +307,7 @@ def set_bool_obj_props(bool_obj, parent_obj, tile_props):
     bool_obj.mt_object_props.tile_name = tile_props.tile_name
 
 
-def set_bool_props(bool_obj, target_obj, bool_type):
+def set_bool_props(bool_obj, target_obj, bool_type, solver='FAST'):
     """Set Properties for boolean and add bool to target_object's cutters collection.
 
     This allows boolean to be toggled on and off in MakeTile menu
@@ -316,8 +316,10 @@ def set_bool_props(bool_obj, target_obj, bool_type):
         bool_obj (bpy.types.Object): boolean object
         target_obj (bpy.types.Object): target object
         bool_type (enum): enum in {'DIFFERENCE', 'UNION', 'INTERSECT'}
+        solver (enum in {'FAST', 'EXACT'}): Whether to use new exact solver
     """
     boolean = target_obj.modifiers.new(bool_obj.name + '.bool', 'BOOLEAN')
+    boolean.solver = solver
     boolean.operation = bool_type
     boolean.object = bool_obj
     boolean.show_render = False

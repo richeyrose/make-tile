@@ -627,6 +627,7 @@ def spawn_openlock_top_pegs(core, tile_props):
             array_mod = peg_2.modifiers.new('Array', 'ARRAY')
             array_mod.use_relative_offset = False
             array_mod.use_constant_offset = True
+            array_mod.constant_offset_displace[0] = 0
             array_mod.constant_offset_displace[1] = 0.505
             array_mod.fit_type = 'FIXED_COUNT'
             array_mod.count = 2
@@ -635,6 +636,7 @@ def spawn_openlock_top_pegs(core, tile_props):
             array_mod = peg_2.modifiers.new('Array', 'ARRAY')
             array_mod.use_relative_offset = False
             array_mod.use_constant_offset = True
+            array_mod.constant_offset_displace[0] = 0
             array_mod.constant_offset_displace[1] = 2.017
             array_mod.fit_type = 'FIT_LENGTH'
             array_mod.fit_length = leg_2_len - 1.3

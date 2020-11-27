@@ -1,5 +1,10 @@
 # Release Notes
 
+## 0.0.19
+This is purely a bug fix release to handle some of the more egregious bugs caused by Blender being updated to 2.91.
+
+2.91 has a huge bug in it that causes rotations to be inverted when they are triggered by a script or if you enter a numeric value to get a precise rotation. As such several of MakeTile's tile generators are pretty much broken and I've had to temporarily invert a bunch of rotations, which once the Blender bug is fixed, I'll have to invert again. Fun!
+
 ## 0.0.18
 This release adds a new option to the Exporter **Export Active Object**, changes the behaviour of the object converter slightly, adds two new procedural materials **Wooden Planks** and **Wooden Framework** and a couple of bug fixes.
 

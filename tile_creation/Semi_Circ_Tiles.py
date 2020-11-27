@@ -512,7 +512,7 @@ def create_openlock_base_clip_cutters(tile_props):
         select(clip_cutter_1.name)
 
         bpy.ops.transform.rotate(
-            value=(radians(angle - 90)),
+            value=(radians(angle - 90) * -1),
             orient_axis='Z',
             orient_type='GLOBAL',
             center_override=cursor_orig_loc)
@@ -558,7 +558,7 @@ def create_openlock_base_clip_cutters(tile_props):
         clip_cutter_3.rotation_euler = (0, 0, radians(180))
         clip_cutter_3.location[1] = cursor_orig_loc[1] + radius - 0.25
         bpy.ops.transform.rotate(
-            value=(radians(angle / 2)),
+            value=radians(angle / 2) * -1,
             orient_axis='Z',
             orient_type='GLOBAL',
             center_override=cursor_orig_loc)

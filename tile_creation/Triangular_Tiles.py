@@ -429,7 +429,7 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
 
             bpy.ops.transform.rotate(
                 ctx,
-                value=(radians(A - 90)),
+                value=radians(A - 90) * -1,
                 orient_axis='Z',
                 orient_type='GLOBAL',
                 center_override=loc_A)
@@ -508,7 +508,7 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
 
             bpy.ops.transform.rotate(
                 ctx,
-                value=(radians(-90 - B)),
+                value=radians(-90 - B) * -1,
                 orient_axis='Z',
                 orient_type='GLOBAL',
                 center_override=loc_C)

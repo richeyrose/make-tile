@@ -5,8 +5,10 @@ from ..tile_creation.create_tile import (
     create_helper_object,
     create_common_tile_props,
     spawn_empty_base)
+from ..lib.utils.utils import mode
 from .. lib.utils.selection import (
     deselect_all,
+    select_all,
     select,
     activate)
 from .. lib.utils.collections import (
@@ -30,6 +32,7 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
         return obj is not None and obj.mode == 'OBJECT' and obj.type in {'MESH'}
 
     def execute(self, context):
+        #TODO rewrite this to get rid of all the changes between edit and object mode
         prefs = get_prefs()
         obj = context.object
         scene = context.scene
@@ -73,11 +76,13 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
             'active_object': obj
         }
 
-        bpy.ops.object.editmode_toggle(ctx)
-        bpy.ops.mesh.select_all(action='SELECT')
-        bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
-        bpy.ops.mesh.select_all(action='DESELECT')
-        bpy.ops.object.editmode_toggle(ctx)
+        select(obj.name)
+        activate(obj.name)
+        bpy.ops.object.mode_set(mode='EDIT')
+        select_all()
+        bpy.ops.uv.smart_project(island_margin=tile_props.UV_island_margin)
+        deselect_all()
+        bpy.ops.object.mode_set(mode='OBJECT')
 
         # set object props
         obj_props = obj.mt_object_props

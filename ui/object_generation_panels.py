@@ -1,7 +1,8 @@
 import bpy
 from bpy.types import Panel
 
-
+# TODO create a Layout Mode, Preview Mode switch. Add in a triangulate modifier that can be switched on and off for layout mode.
+# Layout mode should also switch everything to 0 subdivision layers and to solid shading
 class MT_PT_Tile_Generator_Panel(Panel):
     """The main tile generation panel.
 

@@ -51,6 +51,7 @@ class MT_PT_Material_Options_Panel(Panel):
 
     @classmethod
     def poll(cls, context):
+        # TODO only show in preview mode
         obj = context.object
         if obj is not None:
             mat = obj.active_material

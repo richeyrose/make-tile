@@ -2,7 +2,6 @@ import bpy
 from ..tile_creation.create_tile import (
     convert_to_displacement_core,
     lock_all_transforms,
-    create_helper_object,
     create_common_tile_props,
     spawn_empty_base)
 from ..lib.utils.utils import mode
@@ -15,7 +14,7 @@ from .. lib.utils.collections import (
     create_collection,
     add_object_to_collection,
     activate_collection)
-
+from .assign_reference_object import create_helper_object
 
 from ..utils.registration import get_prefs
 

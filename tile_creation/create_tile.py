@@ -7,7 +7,7 @@ from .. lib.utils.collections import add_object_to_collection, create_collection
 from .. lib.utils.selection import select, deselect_all, activate
 from .. materials.materials import (
     assign_mat_to_vert_group)
-
+from ..operators.assign_reference_object import create_helper_object
 
 class MT_Tile_Generator:
     """Subclass this to create your tile operator."""
@@ -18,18 +18,6 @@ class MT_Tile_Generator:
             return context.object.mode == 'OBJECT'
         else:
             return True
-
-# TODO Investigate why material helper object isn't being linked to helper collection.
-def create_helper_object(context):
-    # Helper object collection
-    helper_collection = create_collection('MT Helpers', context.scene.collection)
-
-    # Add an empty used as a reference object for material projection
-    if 'material_helper_empty' not in bpy.data.objects:
-        material_helper = bpy.data.objects.new('material_helper_empty', None)
-        material_helper.hide_viewport = True
-        add_object_to_collection(material_helper, helper_collection.name)
-        assign_obj_to_obj_texture_coords(material_helper)
 
 
 def initialise_tile_creator(context):

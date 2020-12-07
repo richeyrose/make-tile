@@ -19,7 +19,8 @@ class MT_OT_Return_To_Preview(bpy.types.Operator):
     def execute(self, context):
         for obj in context.selected_editable_objects:
             if obj.type == 'MESH' and hasattr(obj, 'mt_object_props'):
-                if obj.mt_object_props.geometry_type == 'DISPLACEMENT':
+                # if obj.mt_object_props.geometry_type == 'DISPLACEMENT':
+                if obj.mt_object_props.is_displacement and obj.mt_object_props.is_displaced is True:
                     set_to_preview(obj)
 
         return {'FINISHED'}
@@ -65,4 +66,5 @@ def set_to_preview(obj):
         bpy.ops.object.modifier_move_to_index(ctx, modifier=props.subsurf_mod_name, index=new_index)
         obj.cycles.use_adaptive_subdivision = True
 
-    obj.mt_object_props.geometry_type = 'PREVIEW'
+    obj.mt_object_props.is_displaced = False
+    #obj.mt_object_props.geometry_type = 'PREVIEW'

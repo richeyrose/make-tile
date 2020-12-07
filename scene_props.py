@@ -96,7 +96,8 @@ def update_UV_island_margin(self, context):
         obj = bpy.context.object
         if obj.type == 'MESH':
             obj_props = obj.mt_object_props
-            if obj_props.geometry_type in ('DISPLACEMENT', 'PREVIEW'):
+            # if obj_props.geometry_type in ('DISPLACEMENT', 'PREVIEW'):
+            if obj_props.is_displacement:
 
                 tile = bpy.data.collections[obj_props.tile_name]
                 tile_props = tile.mt_tile_props
@@ -128,21 +129,33 @@ def update_disp_strength(self, context):
     obj_props = obj.mt_object_props
     tile = bpy.data.collections[obj_props.tile_name]
     tile.mt_tile_props.displacement_strength = context.scene.mt_scene_props.displacement_strength
+    try:
+        obj.modifiers[obj_props.disp_mod_name].strength = context.scene.mt_scene_props.displacement_strength
+    except KeyError:
+        pass
+    '''
     if obj_props.geometry_type == 'DISPLACEMENT':
         if obj_props.disp_mod_name in obj.modifiers:
             mod = obj.modifiers[obj_props.disp_mod_name]
             mod.strength = context.scene.mt_scene_props.displacement_strength
+    '''
 
 
 def update_disp_subdivisions(self, context):
     '''Updates the number of subdivisions used by the displacement material modifier'''
     obj = bpy.context.object
     obj_props = obj.mt_object_props
+    try:
+        obj.modifiers[obj_props.subsurf_mod_name].levels = context.scene.mt_scene_props.subdivisions
+    except KeyError:
+        pass
+    '''
     if obj_props.geometry_type == 'DISPLACEMENT':
         subsurf_mod = obj_props.subsurf_mod_name
         if subsurf_mod in obj.modifiers:
             modifier = obj.modifiers[subsurf_mod]
             modifier.levels = context.scene.mt_scene_props.subdivisions
+    '''
 
 
 def update_material_mapping(self, context):

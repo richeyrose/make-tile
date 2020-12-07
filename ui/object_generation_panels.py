@@ -37,9 +37,10 @@ class MT_PT_Tile_Generator_Panel(Panel):
                 layout.operator(default['bl_idname'], text="MakeTile")
 
         if obj is not None and obj.type == 'MESH':
-            if obj.mt_object_props.geometry_type == 'PREVIEW':
+            #if obj.mt_object_props.geometry_type == 'PREVIEW':
+            if obj.mt_object_props.is_displacement and obj.mt_object_props.is_displaced is False:
                 layout.operator('scene.mt_make_3d', text='Make 3D')
-            if obj.mt_object_props.geometry_type == 'DISPLACEMENT':
+            if obj.mt_object_props.is_displacement and obj.mt_object_props.is_displaced:
                 layout.operator(
                     'scene.mt_return_to_preview',
                     text='Return to Preview')

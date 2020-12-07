@@ -265,8 +265,11 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
             # we will generate variants of displacement obs equal to num_variants
             displacement_obs = []
             for obj in visible_objects:
-                if obj.mt_object_props.geometry_type in ('PREVIEW', 'DISPLACEMENT'):
-                    displacement_obs.append((obj, obj.mt_object_props.geometry_type))
+                # if obj.mt_object_props.geometry_type in ('PREVIEW', 'DISPLACEMENT'):
+                    # displacement_obs.append((obj, obj.mt_object_props.geometry_type))
+                if obj.mt_object_props.is_displacement:
+                    displacement_obs.append((obj, obj.mt_object_props.is_displaced))
+
 
             i = 0
             while i < num_variants:
@@ -281,7 +284,8 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
 
                     # check if displacement modifier exists. If it doesn't user has removed it.
                     if obj_props.disp_mod_name in obj.modifiers:
-                        if obj_props.geometry_type == 'DISPLACEMENT':
+                        #if obj_props.geometry_type == 'DISPLACEMENT':
+                        if obj_props.is_displacement and obj_props.is_displaced:
                             set_to_preview(obj)
 
                         ctx = {
@@ -323,7 +327,8 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                         subsurf_mod = obj.modifiers[obj_props.subsurf_mod_name]
                         subsurf_mod.levels = scene_props.subdivisions
                         bpy.ops.object.modifier_move_to_index(ctx, modifier=subsurf_mod.name, index=0)
-                        obj_props.geometry_type = 'DISPLACEMENT'
+                        obj_props.is_displaced = True
+                        #obj_props.geometry_type = 'DISPLACEMENT'
 
                 depsgraph = context.evaluated_depsgraph_get()
                 dupes = []
@@ -381,8 +386,10 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
 
             # reset displacement obs
             for ob in displacement_obs:
-                obj, orig_geom_type = ob
-                if orig_geom_type == 'PREVIEW':
+                # obj, orig_geom_type = ob
+                # if orig_geom_type == 'PREVIEW':
+                obj, is_displaced = ob
+                if is_displaced is False:
                     set_to_preview(obj)
 
         reset_renderer_from_bake(orig_settings)

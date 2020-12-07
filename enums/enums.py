@@ -55,8 +55,8 @@ geometry_types = [
     ("DIFFERENCE", "Difference", ""), # object intended to be used as operand in difference boolean op
     ("UNION", "Union", ""), # object intended to be used as operand in union boolean op
     ("INTERSECT", "Intersect", ""), #object intended to be used as operand in intersect boolean op
-    ("PREVIEW", "Preview", ""),
-    ("DISPLACEMENT", "Displacement", ""),
+    # ("PREVIEW", "Preview", ""),
+    # ("DISPLACEMENT", "Displacement", ""),
     ("PROP", "Prop", ""),
     ("GREEBLE", "Greeble", ""),
     ("TRIMMER", "Trimmer", ""),

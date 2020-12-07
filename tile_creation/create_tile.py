@@ -133,7 +133,9 @@ def convert_to_displacement_core(core, textured_vertex_groups):
     for group in textured_vertex_groups:
         assign_mat_to_vert_group(group, core, primary_material)
 
-    core.mt_object_props.geometry_type = 'PREVIEW'
+    # flag core as a displacement object
+    core.mt_object_props.is_displacement = True
+    core.mt_object_props.geometry_type = 'CORE'
 
 
 def finalise_core(core, tile_props):
@@ -286,7 +288,10 @@ def set_bool_obj_props(bool_obj, parent_obj, tile_props, bool_type):
         MakeTile.properties.MT_Tile_Properties: tile properties
         bool_type (enum): enum in {'DIFFERENCE', 'UNION', 'INTERSECT'}
     """
+    bpy.context.view_layer.update()
     bool_obj.parent = parent_obj
+    bool_obj.matrix_parent_inverse = parent_obj.matrix_world.inverted()
+
     bool_obj.display_type = 'BOUNDS'
     bool_obj.hide_viewport = True
     bool_obj.hide_render = True
@@ -318,4 +323,5 @@ def set_bool_props(bool_obj, target_obj, bool_type, solver='FAST'):
     cutter_coll_item = target_obj.mt_object_props.cutters_collection.add()
     cutter_coll_item.name = bool_obj.name
     cutter_coll_item.value = True
+    bpy.context.view_layer.update()
     cutter_coll_item.parent = target_obj.name

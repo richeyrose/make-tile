@@ -123,7 +123,8 @@ class MT_OT_Make_3D(bpy.types.Operator):
         for obj in selected_objects:
             obj_props = obj.mt_object_props
 
-            if obj_props.geometry_type == 'PREVIEW':
+            #if obj_props.geometry_type == 'PREVIEW':
+            if obj_props.is_displacement and not obj_props.is_displaced:
                 tile = bpy.data.collections[obj_props.tile_name]
                 disp_strength = tile.mt_tile_props.displacement_strength
 
@@ -145,7 +146,9 @@ class MT_OT_Make_3D(bpy.types.Operator):
                     'object': obj}
                 bpy.ops.object.modifier_move_to_index(ctx, modifier=subsurf_mod.name, index=0)
 
-                obj_props.geometry_type = 'DISPLACEMENT'
+                # obj_props.geometry_type = 'DISPLACEMENT'
+                obj_props.is_displaced = True
+
         reset_renderer_from_bake(orig_render_settings)
         return {'FINISHED'}
 

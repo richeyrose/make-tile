@@ -98,7 +98,7 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
         # append secondary material
         obj.data.materials.append(bpy.data.materials[prefs.secondary_material])
 
-        # create an all vertex group and ensuire it is at index 0 as otherwise
+        # create an all vertex group and ensure it is at index 0 as otherwise
         # the return to preview feature doesn't work properly
         group = obj.vertex_groups.new(name="All")
         verts = []

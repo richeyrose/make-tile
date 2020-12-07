@@ -359,13 +359,13 @@ def spawn_openlock_base(tile_props):
 
     if slot_cutter:
         slot_cutter.name = 'Slot.cutter.' + base.name
-        set_bool_obj_props(slot_cutter, base, tile_props)
+        set_bool_obj_props(slot_cutter, base, tile_props, 'DIFFERENCE')
         set_bool_props(slot_cutter, base, 'DIFFERENCE')
 
     cutters = create_openlock_base_clip_cutters(tile_props)
 
     for clip_cutter in cutters:
-        set_bool_obj_props(clip_cutter, base, tile_props)
+        set_bool_obj_props(clip_cutter, base, tile_props, 'DIFFERENCE')
         set_bool_props(clip_cutter, base, 'DIFFERENCE')
 
     bpy.context.view_layer.objects.active = base
@@ -569,7 +569,6 @@ def create_openlock_base_clip_cutters(tile_props):
         props = cutter.mt_object_props
         props.is_mt_object = True
         props.tile_name = tile_props.tile_name
-        props.geometry_type = 'CUTTER'
 
     return cutters
 

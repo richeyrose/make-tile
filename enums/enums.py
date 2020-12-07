@@ -44,19 +44,21 @@ tile_types = [
 ]
 
 geometry_types = [
-    ("NONE", "None", "", 1),
-    ("BASE", "Base", "", 2),
-    ("CORE", "Core", "", 3),
-    ("CUTTER", "Cutter", "", 4),
-    ("PREVIEW", "Preview", "", 5),
-    ("DISPLACEMENT", "Displacement", "", 6),
-    ("PROP", "Prop", "", 7),
-    ("GREEBLE", "Greeble", "", 8),
-    ("TRIMMER", "Trimmer", "", 9),
-    ("EMPTY", "Empty", "", 10),
-    ("VOXELISED", "Voxelised", "", 11),
-    ("FLATTENED", "Flattened", "", 12),
-    ("ADDITIONAL", "Additional", "", 13)
+    ("NONE", "None", ""),
+    ("BASE", "Base", ""),
+    ("CORE", "Core", ""),
+    ("DIFFERENCE", "Difference", ""), # object intended to be used as operand in difference boolean op
+    ("UNION", "Union", ""), # object intended to be used as operand in union boolean op
+    ("INTERSECT", "Intersect", ""), #object intended to be used as operand in intersect boolean op
+    ("PREVIEW", "Preview", ""),
+    ("DISPLACEMENT", "Displacement", ""),
+    ("PROP", "Prop", ""),
+    ("GREEBLE", "Greeble", ""),
+    ("TRIMMER", "Trimmer", ""),
+    ("EMPTY", "Empty", ""),
+    ("VOXELISED", "Voxelised", ""),
+    ("FLATTENED", "Flattened", ""),
+    ("ADDITIONAL", "Additional", "")
 ]
 
 base_socket_side = [

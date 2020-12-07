@@ -264,7 +264,7 @@ def spawn_openlock_wall_cores(base, tile_props):
     cutters = spawn_openlock_wall_cutters(base, tile_props)
 
     for cutter in cutters:
-        set_bool_obj_props(cutter, base, tile_props)
+        set_bool_obj_props(cutter, base, tile_props, 'DIFFERENCE')
 
         set_bool_props(cutter, core, 'DIFFERENCE')
 
@@ -272,7 +272,7 @@ def spawn_openlock_wall_cores(base, tile_props):
         pegs = spawn_openlock_top_pegs(core, tile_props)
 
         for peg in pegs:
-            set_bool_obj_props(peg, base, tile_props)
+            set_bool_obj_props(peg, base, tile_props, 'UNION')
 
             set_bool_props(peg, core, 'UNION')
 
@@ -705,7 +705,7 @@ def spawn_openlock_base(tile_props):
 
     # create base slot cutter
     slot_cutter = spawn_openlock_base_slot_cutter(tile_props)
-    set_bool_obj_props(slot_cutter, base, tile_props)
+    set_bool_obj_props(slot_cutter, base, tile_props, 'DIFFERENCE')
     set_bool_props(slot_cutter, base, 'DIFFERENCE')
 
     # clip cutters
@@ -722,7 +722,7 @@ def spawn_openlock_base(tile_props):
 
     for cutter in cutters:
         add_object_to_collection(cutter, tile_props.tile_name)
-        set_bool_obj_props(cutter, base, tile_props)
+        set_bool_obj_props(cutter, base, tile_props, 'DIFFERENCE')
         set_bool_props(cutter, base, 'DIFFERENCE')
 
     if base_socket_side == 'INNER':

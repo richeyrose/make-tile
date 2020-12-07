@@ -416,10 +416,10 @@ def spawn_openlock_connecting_column_core(base, tile_props):
         buffers = spawn_socket_buffers(cutters)
 
     for buffer in buffers:
-        set_bool_obj_props(buffer, base, tile_props)
+        set_bool_obj_props(buffer, base, tile_props, 'UNION')
         set_bool_props(buffer, core, 'UNION')
     for cutter in cutters:
-        set_bool_obj_props(cutter, base, tile_props)
+        set_bool_obj_props(cutter, base, tile_props, 'DIFFERENCE')
         set_bool_props(cutter, core, 'DIFFERENCE')
 
     convert_to_displacement_core(

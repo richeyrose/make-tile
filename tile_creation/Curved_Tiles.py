@@ -434,11 +434,11 @@ def spawn_openlock_wall_cores(base, tile_props):
         base,
         tile_props)
 
-    set_bool_obj_props(top_peg, base, tile_props)
+    set_bool_obj_props(top_peg, base, tile_props, 'UNION')
     set_bool_props(top_peg, core, 'UNION')
 
     for cutter in cutters:
-        set_bool_obj_props(cutter, base, tile_props)
+        set_bool_obj_props(cutter, base, tile_props, 'DIFFERENCE')
         set_bool_props(cutter, core, 'DIFFERENCE')
 
     textured_vertex_groups = ['Front', 'Back']
@@ -711,7 +711,7 @@ def spawn_openlock_base(tile_props):
         width)
 
     slot_cutter = spawn_openlock_base_slot_cutter(base, tile_props)
-    set_bool_obj_props(slot_cutter, base, tile_props)
+    set_bool_obj_props(slot_cutter, base, tile_props, 'DIFFERENCE')
     set_bool_props(slot_cutter, base, 'DIFFERENCE')
 
     base.name = tile_props.tile_name + '.base'
@@ -796,7 +796,7 @@ def spawn_openlock_base_clip_cutter(base, tile_props):
 
     empty.hide_viewport = True
     clip_cutter.name = 'Clip.' + base.name
-    set_bool_obj_props(clip_cutter, base, tile_props)
+    set_bool_obj_props(clip_cutter, base, tile_props, 'DIFFERENCE')
     set_bool_props(clip_cutter, base, 'DIFFERENCE')
 
     return clip_cutter

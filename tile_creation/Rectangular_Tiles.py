@@ -366,13 +366,13 @@ def spawn_openlock_base(tile_props):
     base = spawn_plain_base(tile_props)
 
     slot_cutter = spawn_openlock_base_slot_cutter(base, tile_props)
-    set_bool_obj_props(slot_cutter, base, tile_props)
+    set_bool_obj_props(slot_cutter, base, tile_props, 'DIFFERENCE')
     set_bool_props(slot_cutter, base, 'DIFFERENCE')
 
     clip_cutters = spawn_openlock_base_clip_cutters(base, tile_props)
 
     for clip_cutter in clip_cutters:
-        set_bool_obj_props(clip_cutter, base, tile_props)
+        set_bool_obj_props(clip_cutter, base, tile_props, 'DIFFERENCE')
         set_bool_props(clip_cutter, base, 'DIFFERENCE')
 
     mode('OBJECT')

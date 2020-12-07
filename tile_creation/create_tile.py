@@ -277,13 +277,14 @@ def load_openlock_top_peg(tile_props):
     return peg
 
 
-def set_bool_obj_props(bool_obj, parent_obj, tile_props):
+def set_bool_obj_props(bool_obj, parent_obj, tile_props, bool_type):
     """Set properties for boolean object used for e.g. clip cutters.
 
     Args:
         bool_obj (bpy.types.Object): Boolean Object
         parent_obj (bpy.types.Object): Object to parent boolean object to
         MakeTile.properties.MT_Tile_Properties: tile properties
+        bool_type (enum): enum in {'DIFFERENCE', 'UNION', 'INTERSECT'}
     """
     bool_obj.parent = parent_obj
     bool_obj.display_type = 'BOUNDS'
@@ -291,7 +292,7 @@ def set_bool_obj_props(bool_obj, parent_obj, tile_props):
     bool_obj.hide_render = True
 
     bool_obj.mt_object_props.is_mt_object = True
-    bool_obj.mt_object_props.geometry_type = 'CUTTER'
+    bool_obj.mt_object_props.geometry_type = bool_type
     bool_obj.mt_object_props.tile_name = tile_props.tile_name
 
 

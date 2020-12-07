@@ -526,11 +526,11 @@ def spawn_openlock_wall_cores(base, tile_props):
             tile_props)
 
         for pegs in top_pegs:
-            set_bool_obj_props(pegs, base, tile_props)
+            set_bool_obj_props(pegs, base, tile_props, 'UNION')
             set_bool_props(pegs, core, 'UNION')
 
     for cutter in cutters:
-        set_bool_obj_props(cutter, base, tile_props)
+        set_bool_obj_props(cutter, base, tile_props, 'DIFFERENCE')
         set_bool_props(cutter, core, 'DIFFERENCE')
 
     textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner']
@@ -910,7 +910,7 @@ def spawn_openlock_base(tile_props):
         angle)
 
     slot_cutter = create_openlock_base_slot_cutter(tile_props)
-    set_bool_obj_props(slot_cutter, base, tile_props)
+    set_bool_obj_props(slot_cutter, base, tile_props, 'DIFFERENCE')
     set_bool_props(slot_cutter, base, 'DIFFERENCE')
 
     # clip cutters - leg 1
@@ -966,7 +966,7 @@ def spawn_openlock_base(tile_props):
 
     cutters = [clip_cutter_1, clip_cutter_2]
     for cutter in cutters:
-        set_bool_obj_props(cutter, base, tile_props)
+        set_bool_obj_props(cutter, base, tile_props, 'DIFFERENCE')
         set_bool_props(cutter, base, 'DIFFERENCE')
 
     bpy.context.scene.cursor.location = (0, 0, 0)

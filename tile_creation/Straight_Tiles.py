@@ -479,13 +479,13 @@ def spawn_openlock_base(tile_props):
 
     # create the slot cutter in the bottom of the base used for stacking tiles
     slot_cutter = spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236)
-    set_bool_obj_props(slot_cutter, base, tile_props)
+    set_bool_obj_props(slot_cutter, base, tile_props, 'DIFFERENCE')
     set_bool_props(slot_cutter, base, 'DIFFERENCE')
 
     # create the clip cutters used for attaching walls to bases
     if base.dimensions[0] >= 1:
         clip_cutter = spawn_openlock_base_clip_cutter(base, tile_props)
-        set_bool_obj_props(clip_cutter, base, tile_props)
+        set_bool_obj_props(clip_cutter, base, tile_props, 'DIFFERENCE')
         set_bool_props(clip_cutter, base, 'DIFFERENCE')
 
     bpy.context.view_layer.objects.active = base
@@ -626,11 +626,11 @@ def spawn_openlock_wall_cores(base, tile_props):
             core,
             tile_props)
 
-        set_bool_obj_props(top_pegs, base, tile_props)
+        set_bool_obj_props(top_pegs, base, tile_props, 'UNION')
         set_bool_props(top_pegs, core, 'UNION')
 
     for wall_cutter in wall_cutters:
-        set_bool_obj_props(wall_cutter, base, tile_props)
+        set_bool_obj_props(wall_cutter, base, tile_props, 'DIFFERENCE')
         set_bool_props(wall_cutter, core, 'DIFFERENCE')
 
     textured_vertex_groups = ['Front', 'Back']

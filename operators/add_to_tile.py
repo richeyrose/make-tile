@@ -1,6 +1,15 @@
 import bpy
 from .. lib.utils.collections import get_objects_owning_collections
 
+'''
+class MT_OT_Add_Collection_To_Tile(bpy.types.Operator):
+    bl_idname = "collection.add_to_tile"
+    bl_label = "Add Collection To Tile"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+'''
+
 class MT_OT_Add_Object_To_Tile(bpy.types.Operator):
     """Adds the selected object to the active object's tile collection,
     changes the selected object's type to ADDITIONAL and optionally parents selected

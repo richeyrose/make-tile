@@ -53,6 +53,18 @@ class MT_Object_Properties(PropertyGroup):
         default=False
     )
 
+    is_displacement: bpy.props.BoolProperty(
+        name="Is displacement",
+        default=False,
+        description="Whether this object is a displacement object that can be made3d"
+    )
+
+    is_displaced: bpy.props.BoolProperty(
+        name="Is Displaced",
+        default=False,
+        description="Whether this displacement object is currently displaced."
+    )
+
     tile_name: bpy.props.StringProperty(
         name="Tile Name"
     )

@@ -42,7 +42,14 @@ def activate_collection(collection_name):
 
 
 def get_objects_owning_collections(object_name):
-    '''returns a list of collections the object is a member of'''
+    """Return a list of collections the object is a member of.
+
+    Args:
+        object_name (str): object_name
+
+    Returns:
+        list(bpy.types.Collection): list of collections
+    """
     collections = []
 
     for coll in bpy.data.collections:

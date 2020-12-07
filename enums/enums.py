@@ -1,5 +1,10 @@
 # Menus for EnumProperty's
 
+collection_types = [
+    ("TILE", "Tile", ""),
+    ("ARCH_ELEMENT", "Architectural Element", ""),  # e.g. a doorway or window that should be added to a tile rather than printed on its own
+    ("BUILDING", "Building", "")  # a building type prefab consisting of multiple tiles to be printed separately
+]
 
 units = [
     ("INCHES", "Inches", "", 1),

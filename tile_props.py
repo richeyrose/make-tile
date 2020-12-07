@@ -6,12 +6,14 @@ from . enums.enums import (
     base_socket_side,
     units,
     openlock_column_types,
-    column_socket_style)
+    column_socket_style,
+    collection_types)
 from .properties import (
     create_main_part_blueprint_enums,
     create_tile_type_enums,
     create_base_blueprint_enums)
 
+#TODO rename to mt_collection_props
 
 class MT_Tile_Properties(PropertyGroup):
     is_mt_collection: bpy.props.BoolProperty(
@@ -20,6 +22,12 @@ class MT_Tile_Properties(PropertyGroup):
 
     tile_name: bpy.props.StringProperty(
         name="Tile Name"
+    )
+
+    collection_type: bpy.props.EnumProperty(
+        items=collection_types,
+        name="Collection Types",
+        description="Easy way of distinguishing whether we are dealing with a tile, an architectural element or a larger prefab such as a builing or dungeon."
     )
 
     # Tile type #

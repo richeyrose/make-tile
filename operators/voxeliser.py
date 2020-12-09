@@ -93,8 +93,8 @@ class MT_OT_Object_Voxeliser(bpy.types.Operator):
         selected_objects = [obj for obj in context.selected_editable_objects if obj.type == 'MESH']
 
         for obj in selected_objects:
-            voxelise(obj)
-            if scene_props.fix_non_manifold:
+            voxelise(context, obj)
+            if context.scene.mt_export_props.fix_non_manifold:
                 make_manifold(context, obj)
 
         for mesh in bpy.data.meshes:
@@ -105,7 +105,7 @@ class MT_OT_Object_Voxeliser(bpy.types.Operator):
         return {'FINISHED'}
 
 
-def voxelise(obj):
+def voxelise(context, obj):
     """Voxelise the passed in object.
 
     Args:

@@ -153,9 +153,9 @@ class MT_OT_Export_Object(bpy.types.Operator, ExportHelper):
             context.view_layer.active_layer_collection.collection.objects.link(dup_obj)
 
             if voxelise_on_export:
-                voxelise(dup_obj)
+                voxelise(context, dup_obj)
             if decimate_on_export:
-                decimate(dup_obj)
+                decimate(context, dup_obj)
             if fix_non_manifold:
                 make_manifold(context, dup_obj)
 
@@ -354,9 +354,9 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                     bpy.ops.object.join(ctx)
 
                 if voxelise_on_export:
-                    voxelise(dupes[0])
+                    voxelise(context, dupes[0])
                 if decimate_on_export:
-                    decimate(dupes[0])
+                    decimate(context, dupes[0])
                 if export_props.fix_non_manifold:
                     make_manifold(context, dupes[0])
 

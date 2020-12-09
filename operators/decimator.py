@@ -48,7 +48,7 @@ class MT_OT_Object_Decimator(Operator):
         selected_objects = [obj for obj in context.selected_editable_objects if obj.type == 'MESH']
 
         for obj in selected_objects:
-            decimate(obj)
+            decimate(context, obj)
 
         ctx = {
             'selected_objects': selected_objects,
@@ -63,13 +63,13 @@ class MT_OT_Object_Decimator(Operator):
         return {'FINISHED'}
 
 
-def decimate(obj):
+def decimate(context, obj):
     """Decimate the passed in object using the setting in mt_scene_props.
 
     Args:
         obj (bpy.types.Object): object
     """
-    props = bpy.context.scene.mt_scene_props
+    props = context.scene.mt_scene_props
 
     if props.decimation_ratio < 1:
         mod = obj.modifiers.new('Decimation 1', 'DECIMATE')
@@ -79,7 +79,7 @@ def decimate(obj):
         mod.decimate_type = 'DISSOLVE'
         mod.angle_limit = radians(props.planar_decimation_angle)
 
-    depsgraph = bpy.context.evaluated_depsgraph_get()
+    depsgraph = context.evaluated_depsgraph_get()
     object_eval = obj.evaluated_get(depsgraph)
     object_eval = obj.evaluated_get(depsgraph)
     mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)

@@ -65,6 +65,18 @@ class MT_Object_Properties(PropertyGroup):
         description="Whether this displacement object is currently displaced."
     )
 
+    boolean_order: bpy.props.IntProperty(
+        name="Boolean Order",
+        default=0,
+        description="Order from first to last object should be used as a boolean if it is part of a collection that is added to a tile."
+    )
+
+    affects_base: bpy.props.BoolProperty(
+        name="Affects Base",
+        default=False,
+        description="Used for objects that are added to tiles as part of architectural element collection. Useful for e.g. making pin holes for hinges for doors"
+    )
+
     tile_name: bpy.props.StringProperty(
         name="Tile Name"
     )

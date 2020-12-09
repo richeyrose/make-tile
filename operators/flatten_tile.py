@@ -83,3 +83,15 @@ def flatten_tile(context, collection):
         if mesh is not None:
             if mesh.users == 0:
                 bpy.data.meshes.remove(mesh)
+
+    # Rename duplicate object to collection name
+    if len(visible_mesh_objects) > 0:
+        obj = visible_mesh_objects[0]
+        obj.name = collection.name
+
+        obj.mt_object_props.geometry_type = 'FLATTENED'
+        obj.mt_object_props.is_displacement = False
+
+        return obj
+
+    return None

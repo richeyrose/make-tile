@@ -31,7 +31,7 @@ class MT_OT_Flatten_Tile(bpy.types.Operator):
             flatten_tile(context, collection)
         return {'FINISHED'}
 
-
+# TODO get rid of bpy.ops.object.parent_clear
 def flatten_tile(context, collection):
     ctx = {
         'selected_objects': collection.all_objects,
@@ -49,7 +49,7 @@ def flatten_tile(context, collection):
 
     # get all visible mesh objects
     visible_mesh_objects = [obj for obj in collection.all_objects if obj.type == 'MESH' and obj.visible_get() is True]
-    
+
     # apply all modifiers
     depsgraph = context.evaluated_depsgraph_get()
 
@@ -68,10 +68,6 @@ def flatten_tile(context, collection):
             'selected_editable_objects': visible_mesh_objects
         }
         bpy.ops.object.join(ctx)
-
-    # Rename duplicate object to collection name
-    if len(visible_mesh_objects) > 0:
-        visible_mesh_objects[0].name = collection.name
 
     # Delete all other objects in collection
     for obj in collection.all_objects:

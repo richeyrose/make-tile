@@ -189,6 +189,8 @@ def reset_renderer_from_bake(orig_settings):
 
 
 def bake_displacement_map(obj):
+    hide_render = obj.hide_render
+    obj.hide_render = False
     context = bpy.context
     prefs = get_prefs()
     image_resolution = context.scene.mt_scene_props.tile_resolution
@@ -273,4 +275,5 @@ def bake_displacement_map(obj):
     for poly in obj.data.polygons:
         poly.material_index = sec_mat_index
 
+    obj.hide_render = hide_render
     return disp_image, obj

@@ -1,11 +1,24 @@
 import bpy
+import addon_utils
 from .. lib.utils.collections import get_objects_owning_collections
 from ..tile_creation.create_tile import (
     set_bool_props,
     set_bool_obj_props)
+from .flatten_tile import flatten_tile
+from .voxeliser import voxelise, make_manifold
+from .decimator import decimate
+from ..lib.utils.selection import deselect_all, select, activate
 
 
 class MT_OT_Add_Architectural_Element_To_Tile(bpy.types.Operator):
+    """
+    Add architectural elements contained in a collection to a tile so they are exported with the tile.
+
+    Adds objects from all collections the second to last selected object belongs to, to the active_object's
+    tile collection. Objects with geometry_type 'DIFFERENCE' are added as booleans to all objects in the
+    tile collection with the geometry_type 'CORE'. The operands are also parented to the tile collection base.
+    """
+
     bl_idname = "collection.add_arch_elem_to_tile"
     bl_label = "Add Architectural Element To Tile"
     bl_options = {'REGISTER', 'UNDO'}
@@ -20,83 +33,67 @@ class MT_OT_Add_Architectural_Element_To_Tile(bpy.types.Operator):
 
             # check that the active object belongs to a tile collection
             tile_collections = get_objects_owning_collections(active_object.name)
-            tile_collection = None
 
             for collection in tile_collections:
                 if collection.mt_tile_props.collection_type == 'TILE':
-                    tile_collection = collection
-                    break
-
-            # check that the last but one selected object belongs to a collection of type "ARCH_ELEM"
-            operand = selected_objects[-2]
-            operand_collections = get_objects_owning_collections(operand.name)
-            operand_collection = None
-
-            for coll in operand_collections:
-                if coll.mt_tile_props.collection_type == 'ARCH_ELEMENT':
-                    operand_collection = coll
-                    break
-
-            if tile_collection and operand_collection:
-                return True
+                    return True
 
         return False
 
+
     def execute(self, context):
+        """Execute the operator.
+
+        Adds objects from all collections the second to last selected object belongs to, to the active_object's
+        tile collection. Objects with geometry_type 'DIFFERENCE' are added as booleans to all objects in the
+        tile collection with the geometry_type 'CORE'. The operands are also parented to the tile collection base.
+        """
         selected_objects = context.selected_objects
         active_object = context.active_object
 
-        # check that the active object belongs to a tile collection
         tile_collections = get_objects_owning_collections(active_object.name)
-        tile_collection = None
 
         for collection in tile_collections:
             if collection.mt_tile_props.collection_type == 'TILE':
                 tile_collection = collection
                 break
 
-        tile_props = tile_collection.mt_tile_props
+        base = None
+        cores = set([obj for obj in tile_collection.objects if obj.mt_object_props.geometry_type == 'CORE'])
 
-        # check that the last but one selected object belongs to a collection of type "ARCH_ELEM"
-        operand = selected_objects[-2]
-        operand_collections = get_objects_owning_collections(operand.name)
-        operand_collection = None
-
-        for coll in operand_collections:
-            if coll.mt_tile_props.collection_type == 'ARCH_ELEMENT':
-                operand_collection = coll
-                break
-
-        # get root object for parenting operands to
-        root = None
         for obj in tile_collection.objects:
             if obj.mt_object_props.geometry_type == 'BASE':
-                root = obj
+                base = obj
                 break
 
-        # get tile core which is what we'll boolean
-        core = None
-        for obj in tile_collection.objects:
-            if obj.mt_object_props.geometry_type in ['CORE']:
-                core = obj
-                break
+        # get all mesh objects to be added to tile collection
+        operand_collections = get_objects_owning_collections(selected_objects[-2].name)
+        operands = set()
+        for coll in operand_collections:
+            operands.update(coll.objects.values())
 
-        # boolean objects from operand collection with tile core
-        intersect_objects = [obj for obj in operand_collection.objects if obj.mt_object_props.geometry_type == 'INTERSECT']
-        union_objects = [obj for obj in operand_collection.objects if obj.mt_object_props.geometry_type == 'UNION']
-        diff_objects = [obj for obj in operand_collection.objects if obj.mt_object_props.geometry_type == 'DIFFERENCE']
+        mesh_operands = sorted([obj for obj in operands if obj.type == 'MESH'], key=lambda obj: obj.mt_object_props.boolean_order)
 
-        for obj in intersect_objects:
-            set_bool_obj_props(obj, root, tile_props, 'INTERSECT')
-            set_bool_props(obj, core, 'INTERSECT')
+        for obj in mesh_operands:
+            # add booleans for all operand objects of 'DIFFERENCE' geometry type.
+            if obj.mt_object_props.geometry_type == 'DIFFERENCE':
+                for core in cores:
+                    set_bool_props(obj, core, obj.mt_object_props.geometry_type, solver='FAST')
+                if base.type == 'MESH' and obj.mt_object_props.affects_base is True:
+                    set_bool_props(obj, base, obj.mt_object_props.geometry_type, solver='FAST')
 
-        for obj in diff_objects:
-            set_bool_obj_props(obj, root, tile_props, 'DIFFERENCE')
-            set_bool_props(obj, core, 'DIFFERENCE')
+                obj.hide_render = True
+                obj.hide_viewport = True
 
-        for obj in union_objects:
-            set_bool_obj_props(obj, root, tile_props, 'UNION')
-            set_bool_props(obj, core, 'UNION')
+        # other operands we just add to tile collection because boolean system is
+        # unreliable and/or slow currently. Instead we deal with boolean unions by voxelisation on export
+        for obj in operands:
+            tile_collection.objects.link(obj)
+            # we now parent any 'BASE' operands to tile collection 'BASE' so our architectural
+            # element will move with the tile
+            if obj.mt_object_props.geometry_type == 'BASE':
+                obj.parent = base
+                obj.matrix_parent_inverse = base.matrix_world.inverted()
 
         return {'FINISHED'}
 

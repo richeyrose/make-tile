@@ -15,36 +15,8 @@ class MT_OT_Create_Lighting_Setup(bpy.types.Operator):
     bl_label = "Create Lighting"
     bl_options = {'REGISTER', 'UNDO'}
 
-    @classmethod
-    def poll(cls, context):
-        if context.object is not None:
-            return context.object.mode == 'OBJECT'
-
-        return True
-
     def execute(self, context):
-        deselect_all()
-         # Get 3d view
-        region, rv3d, v3d, area = view3d_find(True)
-
-        if context.scene.mt_view_mode == 'CYCLES':
-            v3d.shading.type = 'RENDERED'
-            context.scene.render.engine = 'CYCLES'
-            context.space_data.shading.use_scene_world_render = False
-            context.space_data.shading.studio_light = 'city.exr'
-            context.scene.cycles.feature_set = 'EXPERIMENTAL'
-            if context.scene.mt_use_gpu is True:
-                context.scene.cycles.device = 'GPU'
-
-        if context.scene.mt_view_mode == 'EEVEE':
-            v3d.shading.type = 'RENDERED'
-            context.scene.render.engine = 'BLENDER_EEVEE'
-            context.space_data.shading.use_scene_world_render = False
-            context.space_data.shading.studio_light = 'city.exr'
-
-        if context.scene.mt_view_mode == 'PREVIEW':
-            v3d.shading.type = 'MATERIAL'
-
+        update_view_mode(self, context)
         return {'FINISHED'}
 
     @classmethod
@@ -89,11 +61,40 @@ def update_view_mode(self, context):
         if context.scene.mt_use_gpu is True:
             context.scene.cycles.device = 'GPU'
 
+        # if we're in Cycles mode we want to preview displacement objects
+        # with subdivisions turned on
+        obs = context.scene.objects
+        for obj in obs:
+            props = obj.mt_object_props
+            if props.is_displacement and not props.is_displaced:
+                try:
+                    obj.modifiers[props.subsurf_mod_name].show_viewport = True
+                except KeyError:
+                    pass
+
     if context.scene.mt_view_mode == 'EEVEE':
         v3d.shading.type = 'RENDERED'
         context.scene.render.engine = 'BLENDER_EEVEE'
         context.space_data.shading.use_scene_world_render = False
         context.space_data.shading.studio_light = 'city.exr'
+        # if we're in Eevee mode we don't want our preview objects to be
+        # subdivided
+        obs = context.scene.objects
+        for obj in obs:
+            props = obj.mt_object_props
+            if props.is_displacement and not props.is_displaced:
+                try:
+                    obj.modifiers[props.subsurf_mod_name].show_viewport = False
+                except KeyError:
+                    pass
 
-    if context.scene.mt_view_mode == 'PREVIEW':
+    if context.scene.mt_view_mode == 'SOLID':
         v3d.shading.type = 'MATERIAL'
+        obs = context.scene.objects
+        for obj in obs:
+            props = obj.mt_object_props
+            if props.is_displacement and not props.is_displaced:
+                try:
+                    obj.modifiers[props.subsurf_mod_name].show_viewport = False
+                except KeyError:
+                    pass

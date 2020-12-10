@@ -138,6 +138,7 @@ class MT_OT_Make_3D(bpy.types.Operator):
                 disp_mod.strength = disp_strength
                 subsurf_mod = obj.modifiers[obj_props.subsurf_mod_name]
                 subsurf_mod.levels = bpy.context.scene.mt_scene_props.subdivisions
+                subsurf_mod.show_viewport = True
 
                 ctx = {
                     'selected_objects': [obj],

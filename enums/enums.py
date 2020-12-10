@@ -72,8 +72,9 @@ base_socket_side = [
 ]
 
 view_mode = [
-    ("CYCLES", "Cycles", "", 1),
-    ("EEVEE", "Eevee", "", 2),
+    ("CYCLES", "Cycles", ""),
+    ("EEVEE", "Eevee", ""),
+    ("SOLID", "Solid", "")
 ]
 
 material_mapping = [

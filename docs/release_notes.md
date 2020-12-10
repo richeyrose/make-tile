@@ -1,5 +1,14 @@
 # Release Notes
 
+## 0.0.20
+
+### Display Settings Changes
+When you change between Cycles, Eevee or Solid view using the **Render Engine** drop down in the **Display Settings** submenu MakeTile will now automatically adjust the level of subdivisions on MakeTile displacement objects (objects that you can Make3D) to the most appropriate level for that object and render engine to improve performance.
+
+If an object has been Made3D then nothing will happen when you switch render modes. If an object is in preview mode then if you switch to Eevee or the Solid renderer, then MakeTile will turn off the subdivision modifier as it isn't needed in these modes. If you switch to Cycles mode then MakeTile will switch the modifier back on so you can preview a material in 3D.
+
+This only works if you use the **Render Engine** drop down in the MakeTile menu, not if you switch modes in the normal fashion.
+
 ## 0.0.19
 This is purely a bug fix release to handle some of the more egregious bugs caused by Blender being updated to 2.91.
 

@@ -211,6 +211,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
         prefs = get_prefs()
         scene_props = context.scene.mt_scene_props
         export_props = context.scene.mt_export_props
+
         # number of variants we will generate
         if export_props.randomise_on_export:
             num_variants = export_props.num_variants
@@ -265,11 +266,8 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
             # we will generate variants of displacement obs equal to num_variants
             displacement_obs = []
             for obj in visible_objects:
-                # if obj.mt_object_props.geometry_type in ('PREVIEW', 'DISPLACEMENT'):
-                    # displacement_obs.append((obj, obj.mt_object_props.geometry_type))
                 if obj.mt_object_props.is_displacement:
                     displacement_obs.append((obj, obj.mt_object_props.is_displaced))
-
 
             i = 0
             while i < num_variants:
@@ -284,51 +282,52 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
 
                     # check if displacement modifier exists. If it doesn't user has removed it.
                     if obj_props.disp_mod_name in obj.modifiers:
-                        #if obj_props.geometry_type == 'DISPLACEMENT':
-                        if obj_props.is_displacement and obj_props.is_displaced:
+
+                        if obj_props.is_displacement and obj_props.is_displaced and export_props.randomise_on_export:
                             set_to_preview(obj)
 
-                        ctx = {
-                            'selected_objects': [obj],
-                            'selected_editable_objects': [obj],
-                            'active_object': obj,
-                            'object': obj}
+                        if obj_props.is_displacement and not obj_props.is_displaced:
+                            ctx = {
+                                'selected_objects': [obj],
+                                'selected_editable_objects': [obj],
+                                'active_object': obj,
+                                'object': obj}
 
-                        for item in obj.material_slots.items():
-                            if item[0]:
-                                material = bpy.data.materials[item[0]]
-                                tree = material.node_tree
+                            for item in obj.material_slots.items():
+                                if item[0]:
+                                    material = bpy.data.materials[item[0]]
+                                    tree = material.node_tree
 
-                                # generate a random variant for each displacement object
-                                if export_props.randomise_on_export:
-                                    if num_variants == 1:
-                                        if 'Seed' in tree.nodes:
-                                            rand = random()
-                                            seed_node = tree.nodes['Seed']
-                                            seed_node.outputs[0].default_value = rand * 1000
-                                    else:
-                                        # only generate a random variant on second iteration
-                                        if i > 0:
+                                    # generate a random variant for each displacement object
+                                    if export_props.randomise_on_export:
+                                        if num_variants == 1:
                                             if 'Seed' in tree.nodes:
                                                 rand = random()
                                                 seed_node = tree.nodes['Seed']
                                                 seed_node.outputs[0].default_value = rand * 1000
+                                        else:
+                                            # only generate a random variant on second iteration
+                                            if i > 0:
+                                                if 'Seed' in tree.nodes:
+                                                    rand = random()
+                                                    seed_node = tree.nodes['Seed']
+                                                    seed_node.outputs[0].default_value = rand * 1000
 
-                        disp_image, obj = bake_displacement_map(obj)
-                        tile_props = collection.mt_tile_props
-                        disp_strength = tile_props.displacement_strength
-                        disp_texture = obj_props.disp_texture
+                            disp_image, obj = bake_displacement_map(obj)
+                            tile_props = collection.mt_tile_props
+                            disp_strength = tile_props.displacement_strength
+                            disp_texture = obj_props.disp_texture
 
-                        disp_texture.image = disp_image
-                        disp_mod = obj.modifiers[obj_props.disp_mod_name]
-                        disp_mod.texture = disp_texture
-                        disp_mod.mid_level = 0
-                        disp_mod.strength = disp_strength
-                        subsurf_mod = obj.modifiers[obj_props.subsurf_mod_name]
-                        subsurf_mod.levels = scene_props.subdivisions
-                        bpy.ops.object.modifier_move_to_index(ctx, modifier=subsurf_mod.name, index=0)
-                        obj_props.is_displaced = True
-                        #obj_props.geometry_type = 'DISPLACEMENT'
+                            disp_texture.image = disp_image
+                            disp_mod = obj.modifiers[obj_props.disp_mod_name]
+                            disp_mod.texture = disp_texture
+                            disp_mod.mid_level = 0
+                            disp_mod.strength = disp_strength
+                            subsurf_mod = obj.modifiers[obj_props.subsurf_mod_name]
+                            subsurf_mod.levels = scene_props.subdivisions
+                            subsurf_mod.show_viewport = True
+                            bpy.ops.object.modifier_move_to_index(ctx, modifier=subsurf_mod.name, index=0)
+                            obj_props.is_displaced = True
 
                 depsgraph = context.evaluated_depsgraph_get()
                 dupes = []
@@ -386,8 +385,6 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
 
             # reset displacement obs
             for ob in displacement_obs:
-                # obj, orig_geom_type = ob
-                # if orig_geom_type == 'PREVIEW':
                 obj, is_displaced = ob
                 if is_displaced is False:
                     set_to_preview(obj)

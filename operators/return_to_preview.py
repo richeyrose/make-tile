@@ -52,6 +52,7 @@ def set_to_preview(obj):
                 if mat.material is not None:
                     assign_mat_to_vert_group(mat.vertex_group, obj, mat.material)
 
+    '''
     # check if subsurf modifier exists. If it doesn't user has removed it.
     if props.subsurf_mod_name in obj.modifiers:
         ctx = {
@@ -65,6 +66,13 @@ def set_to_preview(obj):
 
         bpy.ops.object.modifier_move_to_index(ctx, modifier=props.subsurf_mod_name, index=new_index)
         obj.cycles.use_adaptive_subdivision = True
+    '''
+
+    # turn off subsurf modifier
+    try:
+        obj.modifiers[props.subsurf_mod_name].show_viewport = False
+    except KeyError:
+        pass
 
     obj.mt_object_props.is_displaced = False
     #obj.mt_object_props.geometry_type = 'PREVIEW'

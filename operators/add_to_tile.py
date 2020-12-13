@@ -75,12 +75,12 @@ class MT_OT_Add_Architectural_Element_To_Tile(bpy.types.Operator):
         mesh_operands = sorted([obj for obj in operands if obj.type == 'MESH'], key=lambda obj: obj.mt_object_props.boolean_order)
 
         for obj in mesh_operands:
-            # add booleans for all operand objects of 'DIFFERENCE' geometry type.
-            if obj.mt_object_props.geometry_type == 'DIFFERENCE':
+            # add booleans for all operand objects of 'DIFFERENCE' boolean type.
+            if obj.mt_object_props.boolean_type == 'DIFFERENCE':
                 for core in cores:
-                    set_bool_props(obj, core, obj.mt_object_props.geometry_type, solver='FAST')
+                    set_bool_props(obj, core, obj.mt_object_props.boolean_type, solver='FAST')
                 if base.type == 'MESH' and obj.mt_object_props.affects_base is True:
-                    set_bool_props(obj, base, obj.mt_object_props.geometry_type, solver='FAST')
+                    set_bool_props(obj, base, obj.mt_object_props.boolean_type, solver='FAST')
 
                 obj.hide_render = True
                 obj.hide_viewport = True

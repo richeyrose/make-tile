@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import PropertyGroup
-from .enums.enums import geometry_types
+from .enums.enums import geometry_types, boolean_types
 # A cutter item used by cutters_collection
 
 
@@ -63,6 +63,12 @@ class MT_Object_Properties(PropertyGroup):
         name="Is Displaced",
         default=False,
         description="Whether this displacement object is currently displaced."
+    )
+
+    boolean_type: bpy.props.EnumProperty(
+        name="Boolean Type",
+        items=boolean_types,
+        description="How this object should act when added to a collection."
     )
 
     boolean_order: bpy.props.IntProperty(

@@ -3,8 +3,8 @@
 collection_types = [
     ("TILE", "Tile", ""),
     ("ARCH_ELEMENT", "Architectural Element", ""),  # e.g. a doorway or window that should be added to a tile rather than printed on its own
-    ("BUILDING", "Building", "")  # a building type prefab consisting of multiple tiles to be printed separately
-]
+    ("BUILDING", "Building", ""),  # a building type prefab consisting of multiple tiles to be printed separately
+    ("OTHER", "Other", "")]
 
 units = [
     ("INCHES", "Inches", "", 1),
@@ -48,15 +48,15 @@ tile_types = [
     #("CONNECTING_COLUMN", "Connecting Column", "", 11)
 ]
 
+# TODO: Get rid of difference etc. from here and always use boolean_types
 geometry_types = [
     ("NONE", "None", ""),
     ("BASE", "Base", ""),
     ("CORE", "Core", ""),
-    ("DIFFERENCE", "Difference", ""), # object intended to be used as operand in difference boolean op
-    ("UNION", "Union", ""), # object intended to be used as operand in union boolean op
-    ("INTERSECT", "Intersect", ""), #object intended to be used as operand in intersect boolean op
     # ("PREVIEW", "Preview", ""),
     # ("DISPLACEMENT", "Displacement", ""),
+    ("DIFFERENCE", "Difference", ""),
+    ("UNION", "Union", ""),
     ("PROP", "Prop", ""),
     ("GREEBLE", "Greeble", ""),
     ("TRIMMER", "Trimmer", ""),
@@ -65,6 +65,11 @@ geometry_types = [
     ("FLATTENED", "Flattened", ""),
     ("ADDITIONAL", "Additional", "")
 ]
+
+boolean_types = [
+    ("UNION", "Union", ""),
+    ("DIFFERENCE", "Difference", ""),
+    ("INTERSECT", "Intersect", "")]
 
 base_socket_side = [
     ("INNER", "Inner", "", 1),

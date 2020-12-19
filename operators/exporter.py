@@ -17,6 +17,7 @@ from . bakedisplacement import (
 from . return_to_preview import set_to_preview
 from ..enums.enums import units
 
+# TODO: Currently if you select an architectural element rather than a tile the exporter fails.
 class MT_PT_Export_Panel(Panel):
     bl_order = 50
     bl_space_type = "VIEW_3D"
@@ -39,7 +40,7 @@ class MT_PT_Export_Panel(Panel):
         prefs = get_prefs()
 
         char_width = 9  # TODO find a way of actually getting this rather than guessing
-        print_tools_txt = "For more options please enable the 3D print Tools addon included with blender"
+        print_tools_txt = "For more options please enable the 3D print Tools addon included with blender."
 
         # get panel width so we can line wrap print_tools_txt
         tool_shelf = None
@@ -352,36 +353,36 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                         'selected_editable_objects': dupes}
                     bpy.ops.object.join(ctx)
 
-                if voxelise_on_export:
-                    voxelise(context, dupes[0])
-                if decimate_on_export:
-                    decimate(context, dupes[0])
-                if export_props.fix_non_manifold:
-                    make_manifold(context, dupes[0])
+                    if voxelise_on_export:
+                        voxelise(context, dupes[0])
+                    if decimate_on_export:
+                        decimate(context, dupes[0])
+                    if export_props.fix_non_manifold:
+                        make_manifold(context, dupes[0])
 
-                ctx = {
-                    'object': dupes[0],
-                    'active_object': dupes[0],
-                    'selected_objects': [dupes[0]],
-                    'selected_editable_objects': [dupes[0]]}
+                    ctx = {
+                        'object': dupes[0],
+                        'active_object': dupes[0],
+                        'selected_objects': [dupes[0]],
+                        'selected_editable_objects': [dupes[0]]}
 
-                # export our object
-                bpy.ops.export_mesh.stl(
-                    ctx,
-                    filepath=file_path,
-                    check_existing=True,
-                    filter_glob="*.stl",
-                    use_selection=True,
-                    global_scale=unit_multiplier,
-                    use_mesh_modifiers=True)
+                    # export our object
+                    bpy.ops.export_mesh.stl(
+                        ctx,
+                        filepath=file_path,
+                        check_existing=True,
+                        filter_glob="*.stl",
+                        use_selection=True,
+                        global_scale=unit_multiplier,
+                        use_mesh_modifiers=True)
 
-                objects.remove(dupes[0], do_unlink=True)
+                    objects.remove(dupes[0], do_unlink=True)
 
-                # clean up orphaned meshes
-                for mesh in bpy.data.meshes:
-                    if mesh.users == 0:
-                        bpy.data.meshes.remove(mesh)
-                i += 1
+                    # clean up orphaned meshes
+                    for mesh in bpy.data.meshes:
+                        if mesh.users == 0:
+                            bpy.data.meshes.remove(mesh)
+                    i += 1
 
             # reset displacement obs
             for ob in displacement_obs:

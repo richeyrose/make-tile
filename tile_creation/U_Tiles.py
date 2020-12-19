@@ -265,7 +265,6 @@ def spawn_openlock_wall_cores(base, tile_props):
 
     for cutter in cutters:
         set_bool_obj_props(cutter, base, tile_props, 'DIFFERENCE')
-
         set_bool_props(cutter, core, 'DIFFERENCE')
 
     if tile_props.tile_size[0] >= 1:
@@ -273,7 +272,6 @@ def spawn_openlock_wall_cores(base, tile_props):
 
         for peg in pegs:
             set_bool_obj_props(peg, base, tile_props, 'UNION')
-
             set_bool_props(peg, core, 'UNION')
 
     textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'End Wall Inner', 'End Wall Outer', 'Leg 2 Inner', 'Leg 2 Outer']

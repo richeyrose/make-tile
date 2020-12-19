@@ -79,12 +79,11 @@ def lock_all_transforms(obj):
 
 
 def convert_to_displacement_core(core, textured_vertex_groups):
-    """Convert the core part of a tile so it can be used by the maketile dispacement system.
+    """Convert the core part of an object so it can be used by the MakeTile dispacement system.
 
     Args:
-        core (bpy.types.Object): object
-        textured_vertex_groups (list[str]): \
-        list of vertex group names that should have a texture applied
+        core (bpy.types.Object): object to convert
+        textured_vertex_groups (list[str]): list of vertex group names that should have a texture applied
     """
     scene = bpy.context.scene
     preferences = get_prefs()
@@ -118,10 +117,24 @@ def convert_to_displacement_core(core, textured_vertex_groups):
     # add a subsurf modifier
     subsurf = core.modifiers.new('MT Subsurf', 'SUBSURF')
     subsurf.subdivision_type = 'SIMPLE'
-    subsurf.levels = 3
     props.subsurf_mod_name = subsurf.name
-    # core['subsurf_mod_name'] = subsurf.name
     core.cycles.use_adaptive_subdivision = True
+
+    # move subsurf modifier to top of stack
+    ctx = {
+        'object': core,
+        'active_object': core,
+        'selected_objects': [core],
+        'selected_editable_objects': [core]
+    }
+
+    bpy.ops.object.modifier_move_to_index(ctx, modifier=subsurf.name, index=0)
+
+    subsurf.levels = 3
+
+    # switch off subsurf modifier if we are not in cycles mode
+    if bpy.context.scene.render.engine != 'CYCLES':
+        subsurf.show_viewport = False
 
     # assign materials
     if secondary_material.name not in core.data.materials:
@@ -297,7 +310,7 @@ def set_bool_obj_props(bool_obj, parent_obj, tile_props, bool_type):
     bool_obj.hide_render = True
 
     bool_obj.mt_object_props.is_mt_object = True
-    bool_obj.mt_object_props.geometry_type = bool_type
+    bool_obj.mt_object_props.boolean_type = bool_type
     bool_obj.mt_object_props.tile_name = tile_props.tile_name
 
 

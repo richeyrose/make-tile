@@ -68,11 +68,12 @@ def set_to_preview(obj):
         obj.cycles.use_adaptive_subdivision = True
     '''
 
-    # turn off subsurf modifier
+    # turn off subsurf modifier if we're not in Cycles mode.
     try:
-        obj.modifiers[props.subsurf_mod_name].show_viewport = False
+        if bpy.context.scene.render.engine != 'CYCLES':
+            obj.modifiers[props.subsurf_mod_name].show_viewport = False
+            obj.cycles.use_adaptive_subdivision = True
     except KeyError:
         pass
 
     obj.mt_object_props.is_displaced = False
-    #obj.mt_object_props.geometry_type = 'PREVIEW'

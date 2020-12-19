@@ -15,7 +15,7 @@ class MT_OT_Add_Architectural_Element_To_Tile(bpy.types.Operator):
     Add architectural elements contained in a collection to a tile so they are exported with the tile.
 
     Adds objects from all collections the second to last selected object belongs to, to the active_object's
-    tile collection. Objects with geometry_type 'DIFFERENCE' are added as booleans to all objects in the
+    tile collection. Objects with boolean_type 'DIFFERENCE' are added as booleans to all objects in the
     tile collection with the geometry_type 'CORE'. The operands are also parented to the tile collection base.
     """
 
@@ -45,7 +45,7 @@ class MT_OT_Add_Architectural_Element_To_Tile(bpy.types.Operator):
         """Execute the operator.
 
         Adds objects from all collections the second to last selected object belongs to, to the active_object's
-        tile collection. Objects with geometry_type 'DIFFERENCE' are added as booleans to all objects in the
+        tile collection. Objects with boolean_type 'DIFFERENCE' are added as booleans to all objects in the
         tile collection with the geometry_type 'CORE'. The operands are also parented to the tile collection base.
         """
         selected_objects = context.selected_objects

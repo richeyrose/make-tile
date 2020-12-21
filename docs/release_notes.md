@@ -1,6 +1,9 @@
 # Release Notes
 
-## 0.0.20
+## 0.0.19 Hotfix 1
+
+Fixed a couple of bugs in the object converter and one where the material helper object wasn't being added corectly.
+
 
 ### Display Settings Changes
 When you change between Cycles, Eevee or Solid view using the **Render Engine** drop down in the **Display Settings** submenu MakeTile will now automatically adjust the level of subdivisions on MakeTile displacement objects (objects that you can Make3D) to the most appropriate level for that object and render engine to improve performance.

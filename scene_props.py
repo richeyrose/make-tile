@@ -1,5 +1,12 @@
 import bpy
 from bpy.types import PropertyGroup
+from bpy.props import (
+    StringProperty,
+    EnumProperty,
+    BoolProperty,
+    FloatProperty,
+    IntProperty,
+    PointerProperty)
 from .enums.enums import (
     tile_blueprints,
     curve_types,
@@ -13,6 +20,7 @@ from .properties import (
     create_tile_type_enums,
     create_base_blueprint_enums)
 from .app_handlers import create_properties_on_load
+
 
 def load_material_enums(self, context):
     """Create a list of enum items of materials compatible with the MakeTile material system.
@@ -248,52 +256,52 @@ class MT_Scene_Properties(PropertyGroup):
         PropertyGroup (bpy.types.PropertyGroup): Group of ID properties
     """
 
-    mt_is_just_activated: bpy.props.BoolProperty(
+    mt_is_just_activated: BoolProperty(
         description="Has the add-on just been activated. Used to populate materials list first time round",
         default=False
     )
 
-    mt_last_selected: bpy.props.PointerProperty(
+    mt_last_selected: PointerProperty(
         name="Last Selected Object",
         type=bpy.types.Object
     )
 
-    tile_name: bpy.props.StringProperty(
+    tile_name: StringProperty(
         name="Tile Name",
         default="Tile"
     )
 
-    tile_units: bpy.props.EnumProperty(
+    tile_units: EnumProperty(
         items=units,
         name="Units",
         default='INCHES'
     )
 
-    tile_blueprint: bpy.props.EnumProperty(
+    tile_blueprint: EnumProperty(
         items=tile_blueprints,
         name="Blueprint",
         default="CUSTOM"
     )
 
-    main_part_blueprint: bpy.props.EnumProperty(
+    main_part_blueprint: EnumProperty(
         items=create_main_part_blueprint_enums,
         update=update_main_part_defaults,
         name="Core"
     )
 
-    base_blueprint: bpy.props.EnumProperty(
+    base_blueprint: EnumProperty(
         items=create_base_blueprint_enums,
         update=update_base_defaults,
         name="Base"
     )
 
-    tile_type: bpy.props.EnumProperty(
+    tile_type: EnumProperty(
         items=create_tile_type_enums,
         name="Tile Type",
         update=update_scene_defaults
     )
 
-    UV_island_margin: bpy.props.FloatProperty(
+    UV_island_margin: FloatProperty(
         name="UV Margin",
         default=0.01,
         precision=4,
@@ -304,55 +312,55 @@ class MT_Scene_Properties(PropertyGroup):
     )
 
     # Native Subdivisions #
-    x_native_subdivisions: bpy.props.IntProperty(
+    x_native_subdivisions: IntProperty(
         name="X",
         description="The number of times to subdivide the X axis on creation",
         default=15
     )
 
-    y_native_subdivisions: bpy.props.IntProperty(
+    y_native_subdivisions: IntProperty(
         name="Y",
         description="The number of times to subdivide the Y axis on creation",
         default=3
     )
 
-    z_native_subdivisions: bpy.props.IntProperty(
+    z_native_subdivisions: IntProperty(
         name="Z",
         description="The number of times to subdivide the Z axis on creation",
         default=15
     )
 
-    opposite_native_subdivisions: bpy.props.IntProperty(
+    opposite_native_subdivisions: IntProperty(
         name="Opposite Side",
         description="The number of times to subdivide the edge opposite the root angle on triangular tile creation",
         default=15
     )
 
-    curve_native_subdivisions: bpy.props.IntProperty(
+    curve_native_subdivisions: IntProperty(
         name="Curved Side",
         description="The number of times to subdivide the curved side of a tile",
         default=15
     )
 
-    leg_1_native_subdivisions: bpy.props.IntProperty(
+    leg_1_native_subdivisions: IntProperty(
         name="Leg 1",
         description="The number of times to subdivide the length of leg 1 of the tile",
         default=15
     )
 
-    leg_2_native_subdivisions: bpy.props.IntProperty(
+    leg_2_native_subdivisions: IntProperty(
         name="Leg 2",
         description="The number of times to subdivide the length of leg 2 of the tile",
         default=15
     )
 
-    width_native_subdivisions: bpy.props.IntProperty(
+    width_native_subdivisions: IntProperty(
         name="Width",
         description="The number of times to subdivide each leg along its width",
         default=3
     )
 
-    material_mapping_method: bpy.props.EnumProperty(
+    material_mapping_method: EnumProperty(
         items=material_mapping,
         description="How to map the active material onto an object",
         name="Material Mapping Method",
@@ -360,7 +368,7 @@ class MT_Scene_Properties(PropertyGroup):
         default='OBJECT'
     )
 
-    displacement_strength: bpy.props.FloatProperty(
+    displacement_strength: FloatProperty(
         name="Displacement Strength",
         description="Overall Displacement Strength",
         default=0.1,
@@ -369,12 +377,12 @@ class MT_Scene_Properties(PropertyGroup):
         update=update_disp_strength
     )
 
-    tile_material_1: bpy.props.EnumProperty(
+    tile_material_1: EnumProperty(
         items=load_material_enums,
         name="Material"
     )
 
-    tile_resolution: bpy.props.IntProperty(
+    tile_resolution: IntProperty(
         name="Resolution",
         description="Bake resolution of displacement maps. Higher = better quality but slower. Also images are 32 bit so 4K and 8K images can be gigabytes in size",
         default=1024,
@@ -383,7 +391,7 @@ class MT_Scene_Properties(PropertyGroup):
         step=1024,
     )
 
-    subdivisions: bpy.props.IntProperty(
+    subdivisions: IntProperty(
         name="Subdivisions",
         description="How many times to subdivide the displacement mesh with a subsurf modifier. Higher = better but slower.",
         default=3,
@@ -391,7 +399,7 @@ class MT_Scene_Properties(PropertyGroup):
         update=update_disp_subdivisions
     )
 
-    texture_margin: bpy.props.FloatProperty(
+    texture_margin: FloatProperty(
         name="Texture Margin",
         description="Margin around displacement texture. Used for correcting distortion",
         default=0.001,
@@ -402,7 +410,7 @@ class MT_Scene_Properties(PropertyGroup):
 
     # used for where it makes sense to set displacement thickness directly rather than
     # as an offset between base and core. e.g. connecting columns
-    displacement_thickness: bpy.props.FloatProperty(
+    displacement_thickness: FloatProperty(
         name="Displacement Thickness",
         description="Thickness of displacement texture.",
         default=0.05
@@ -413,23 +421,23 @@ class MT_Scene_Properties(PropertyGroup):
     # in a vector and passed on as tile_size and base_size
 
     # Scale base proportionate to tile
-    x_proportionate_scale: bpy.props.BoolProperty(
+    x_proportionate_scale: BoolProperty(
         name="X",
         default=True
     )
 
-    y_proportionate_scale: bpy.props.BoolProperty(
+    y_proportionate_scale: BoolProperty(
         name="Y",
         default=False
     )
 
-    z_proportionate_scale: bpy.props.BoolProperty(
+    z_proportionate_scale: BoolProperty(
         name="Z",
         default=False
     )
 
     # Tile size
-    tile_x: bpy.props.FloatProperty(
+    tile_x: FloatProperty(
         name="X",
         default=2.0,
         step=50,
@@ -438,7 +446,7 @@ class MT_Scene_Properties(PropertyGroup):
         min=0
     )
 
-    tile_y: bpy.props.FloatProperty(
+    tile_y: FloatProperty(
         name="Y",
         default=2,
         step=50,
@@ -447,7 +455,7 @@ class MT_Scene_Properties(PropertyGroup):
         min=0
     )
 
-    tile_z: bpy.props.FloatProperty(
+    tile_z: FloatProperty(
         name="Z",
         default=2.0,
         step=50,
@@ -457,7 +465,7 @@ class MT_Scene_Properties(PropertyGroup):
     )
 
     # Base size
-    base_x: bpy.props.FloatProperty(
+    base_x: FloatProperty(
         name="X",
         default=2.0,
         step=50,
@@ -465,7 +473,7 @@ class MT_Scene_Properties(PropertyGroup):
         min=0
     )
 
-    base_y: bpy.props.FloatProperty(
+    base_y: FloatProperty(
         name="Y",
         default=0.5,
         step=50,
@@ -473,7 +481,7 @@ class MT_Scene_Properties(PropertyGroup):
         min=0
     )
 
-    base_z: bpy.props.FloatProperty(
+    base_z: FloatProperty(
         name="Z",
         default=0.3,
         step=50,
@@ -482,14 +490,14 @@ class MT_Scene_Properties(PropertyGroup):
     )
 
     # Corner wall and triangular base specific
-    angle: bpy.props.FloatProperty(
+    angle: FloatProperty(
         name="Base Angle",
         default=90,
         step=5,
         precision=1
     )
 
-    leg_1_len: bpy.props.FloatProperty(
+    leg_1_len: FloatProperty(
         name="Leg 1 Length",
         description="Length of leg",
         default=2,
@@ -497,7 +505,7 @@ class MT_Scene_Properties(PropertyGroup):
         precision=1
     )
 
-    leg_2_len: bpy.props.FloatProperty(
+    leg_2_len: FloatProperty(
         name="Leg 2 Length",
         description="Length of leg",
         default=2,
@@ -506,14 +514,14 @@ class MT_Scene_Properties(PropertyGroup):
     )
 
     # Openlock curved wall specific
-    base_socket_side: bpy.props.EnumProperty(
+    base_socket_side: EnumProperty(
         items=base_socket_side,
         name="Socket Side",
         default="INNER",
     )
 
     # Used for curved wall tiles
-    base_radius: bpy.props.FloatProperty(
+    base_radius: FloatProperty(
         name="Base inner radius",
         default=2.0,
         step=50,
@@ -521,7 +529,7 @@ class MT_Scene_Properties(PropertyGroup):
         min=0,
     )
 
-    wall_radius: bpy.props.FloatProperty(
+    wall_radius: FloatProperty(
         name="Wall inner radius",
         default=2.0,
         step=50,
@@ -530,7 +538,7 @@ class MT_Scene_Properties(PropertyGroup):
     )
 
     # used for curved floors
-    curve_type: bpy.props.EnumProperty(
+    curve_type: EnumProperty(
         items=curve_types,
         name="Curve type",
         default="POS",
@@ -538,13 +546,13 @@ class MT_Scene_Properties(PropertyGroup):
     )
 
     # Connecting column specific
-    column_type: bpy.props.EnumProperty(
+    column_type: EnumProperty(
         items=openlock_column_types,
         name="Column type",
         default="O"
     )
 
-    column_socket_style: bpy.props.EnumProperty(
+    column_socket_style: EnumProperty(
         name="Socket Style",
         items=column_socket_style,
         default="TEXTURED",
@@ -552,7 +560,7 @@ class MT_Scene_Properties(PropertyGroup):
     )
 
     # TODO: Fix hack to make 360 curved wall work. Ideally this should merge everything
-    degrees_of_arc: bpy.props.FloatProperty(
+    degrees_of_arc: FloatProperty(
         name="Degrees of arc",
         default=90,
         step=45,
@@ -562,18 +570,18 @@ class MT_Scene_Properties(PropertyGroup):
     )
 
     # used for rescaling objects
-    base_unit: bpy.props.EnumProperty(
+    base_unit: EnumProperty(
         name="Base Unit",
         items=units
     )
 
-    target_unit: bpy.props.EnumProperty(
+    target_unit: EnumProperty(
         name="Target Unit",
         items=units
     )
 
     # voxel properties
-    voxel_size: bpy.props.FloatProperty(
+    voxel_size: FloatProperty(
         name="Voxel Size",
         description="Quality of the voxelisation. Smaller = Better",
         soft_min=0.005,
@@ -581,21 +589,21 @@ class MT_Scene_Properties(PropertyGroup):
         precision=3,
     )
 
-    voxel_adaptivity: bpy.props.FloatProperty(
+    voxel_adaptivity: FloatProperty(
         name="Adaptivity",
         description="Amount by which to simplify mesh",
         default=0.25,
         precision=3,
     )
 
-    voxel_merge: bpy.props.BoolProperty(
+    voxel_merge: BoolProperty(
         name="Merge",
         description="Merge objects on voxelisation? Creates a single mesh.",
         default=True
     )
 
     # decimator properties
-    decimation_ratio: bpy.props.FloatProperty(
+    decimation_ratio: FloatProperty(
         name="Decimation Ratio",
         description="Amount to decimate by. Smaller = more simplification",
         min=0.0,
@@ -605,19 +613,19 @@ class MT_Scene_Properties(PropertyGroup):
         default=0.25
     )
 
-    decimation_merge: bpy.props.BoolProperty(
+    decimation_merge: BoolProperty(
         name="Merge",
         description="Merge selected before decimation",
         default=True
     )
 
-    planar_decimation: bpy.props.BoolProperty(
+    planar_decimation: BoolProperty(
         name="Planar Decimation",
         description="Further simplify the planar (flat) parts of the mesh",
         default=False
     )
 
-    planar_decimation_angle: bpy.props.FloatProperty(
+    planar_decimation_angle: FloatProperty(
         name="Decimation Angle",
         description="Angle below which to simplify",
         default=5,
@@ -626,10 +634,25 @@ class MT_Scene_Properties(PropertyGroup):
         step=5
     )
 
+    # Add to tile properties
+    apply_modifiers: BoolProperty(
+        name="Apply Modifiers",
+        description="Apply all modifiers to object before adding it?",
+        default=True)
+
+    boolean_type: EnumProperty(
+        name="Boolean Type",
+        items=[
+            ("UNION", "Union", ""),
+            ("DIFFERENCE", "Difference", "")
+        ],
+        default="UNION",
+        description="Whether to add (Union) or subtract (Difference) object from tile.")
+
 
 def register():
     # Property group that contains properties set in UI
-    bpy.types.Scene.mt_scene_props = bpy.props.PointerProperty(
+    bpy.types.Scene.mt_scene_props = PointerProperty(
         type=MT_Scene_Properties
     )
 

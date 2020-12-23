@@ -337,13 +337,11 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                     object_eval = obj.evaluated_get(depsgraph)
                     mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
                     dup_obj = bpy.data.objects.new('dupe', mesh_from_eval)
-                    dup_obj.location = obj.location
-                    dup_obj.rotation_euler = obj.rotation_euler
-                    dup_obj.scale = obj.scale
-                    dup_obj.parent = obj.parent
+                    dup_obj.data.transform(obj.matrix_world)
                     collection.objects.link(dup_obj)
                     dupes.append(dup_obj)
 
+                context.view_layer.update()
                 # join dupes together
                 if len(dupes) > 0:
                     ctx = {

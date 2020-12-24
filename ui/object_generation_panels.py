@@ -109,6 +109,5 @@ class MT_PT_Converter_Panel(Panel):
         layout.operator('object.flatten_tiles', text="Flatten Selected Tiles")
 
         layout.label(text="Add selected to Tile")
-        layout.operator('object.add_to_tile', text="Add Selected to Tile")
-        layout.prop(scene_props, 'apply_modifiers')
-        layout.prop(scene_props, 'boolean_type')
+        layout.operator('object.add_to_tile', text="Add Object to Tile")
+        layout.operator('collection.add_collection_to_tile', text="Add Collection to Tile")

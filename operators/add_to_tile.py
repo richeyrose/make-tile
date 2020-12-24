@@ -1,9 +1,10 @@
 import bpy
+from bpy.props import BoolProperty, EnumProperty
 from .. lib.utils.collections import get_objects_owning_collections
 from ..tile_creation.create_tile import (
     set_bool_props)
 
-#TODO add both operators to right click menu
+
 class MT_OT_Add_Collection_To_Tile(bpy.types.Operator):
     """
     Add objects contained in a collection to a tile so they are exported with the tile.
@@ -15,6 +16,7 @@ class MT_OT_Add_Collection_To_Tile(bpy.types.Operator):
 
     bl_idname = "collection.add_collection_to_tile"
     bl_label = "Add collection To Tile"
+    bl_description = "Adds objects from all collections the second to last selected object belongs to, to the active_object's tile collection."
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -99,8 +101,24 @@ class MT_OT_Add_Object_To_Tile(bpy.types.Operator):
     """
 
     bl_idname = "object.add_to_tile"
-    bl_label = "Add to Tile"
+    bl_label = "Add object to Tile"
     bl_options = {'REGISTER', 'UNDO'}
+
+    apply_modifiers: BoolProperty(
+        name="Apply Modifiers",
+        description="Apply all modifiers to object before adding it to tile?",
+        default=True
+    )
+
+    boolean_type: EnumProperty(
+        name="Boolean Type",
+        items=[
+            ("UNION", "Union", ""),
+            ("DIFFERENCE", "Difference", "")
+        ],
+        default="UNION",
+        description="Whether to add (Union) or subtract (Difference) object from tile."
+    )
 
     @classmethod
     def poll(cls, context):
@@ -108,6 +126,8 @@ class MT_OT_Add_Object_To_Tile(bpy.types.Operator):
         return obj is not None and obj.mode == 'OBJECT' and obj.type == 'MESH'
 
     def execute(self, context):
+        """Add the selected object(s) to the active object's tile collection."""
+
         objects_to_add = []
         tile_collection = bpy.data.collections[context.active_object.mt_object_props.tile_name]
         base = None
@@ -126,7 +146,7 @@ class MT_OT_Add_Object_To_Tile(bpy.types.Operator):
                 # change geometry type and tile name props
                 obj.mt_object_props.geometry_type = 'ADDITIONAL'
                 obj.mt_object_props.tile_name = tile_collection.name
-                obj.mt_object_props.boolean_type = context.scene.mt_scene_props.boolean_type
+                obj.mt_object_props.boolean_type = self.boolean_type
 
                 # unlink from current collections
                 current_collections = get_objects_owning_collections(obj.name)
@@ -137,13 +157,14 @@ class MT_OT_Add_Object_To_Tile(bpy.types.Operator):
                 tile_collection.objects.link(obj)
 
         # apply modifiers if necessary
-        if context.scene.mt_scene_props.apply_modifiers is True:
+        if self.apply_modifiers is True:
             depsgraph = context.evaluated_depsgraph_get()
             for obj in objects_to_add:
-                object_eval = obj.evaluated_get(depsgraph)
-                mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
-                obj.modifiers.clear()
-                obj.data = mesh_from_eval
+                if len(obj.modifiers) > 0:
+                    object_eval = obj.evaluated_get(depsgraph)
+                    mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
+                    obj.modifiers.clear()
+                    obj.data = mesh_from_eval
 
         # parent objects to base
         for obj in objects_to_add:
@@ -165,3 +186,33 @@ class MT_OT_Add_Object_To_Tile(bpy.types.Operator):
                 obj.display_type = 'BOUNDS'
 
         return {'FINISHED'}
+
+    def invoke(self, context, event):
+        """Call when operator invoked from UI."""
+        return context.window_manager.invoke_props_dialog(self)
+
+    def draw(self, context)        :
+        """Draw popup property menu."""
+        layout = self.layout
+        layout.prop(self, 'apply_modifiers')
+        layout.prop(self, 'boolean_type')
+
+
+def add_to_tile_object_context_menu_items(self, context):
+    """Add options to object context (right click) menu."""
+    layout = self.layout
+    if context.active_object.type in ['MESH']:
+        layout.separator()
+        layout.operator_context = 'INVOKE_DEFAULT'
+        layout.operator("object.add_to_tile", text="Add / Subtract object from Tile")
+        layout.operator("collection.add_collection_to_tile")
+
+
+def register():
+    """Register aditional options in object context (right click) menu."""
+    bpy.types.VIEW3D_MT_object_context_menu.append(add_to_tile_object_context_menu_items)
+
+
+def unregister():
+    """Unregister aditional options in object context (right click) menu."""
+    bpy.types.VIEW3D_MT_object_context_menu.remove(add_to_tile_object_context_menu_items)

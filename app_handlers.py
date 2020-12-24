@@ -31,7 +31,7 @@ def load_material_libraries():
     blend_filenames = get_blend_filenames(user_materials_path)
     materials.extend(load_materials(user_materials_path, blend_filenames))
 
-    scene_props['mt_materials'] = [mat for mat in materials if mat['mt_material']]
+    scene_props['mt_materials'] = [mat for mat in materials if hasattr(mat, 'mt_material') and mat['mt_material']]
 
 
 def get_tile_type(tile_type):

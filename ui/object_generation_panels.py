@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import Panel
-
+from bpy.props import BoolProperty, EnumProperty
 # TODO create a Layout Mode, Preview Mode switch. Add in a triangulate modifier that can be switched on and off for layout mode.
 # Layout mode should also switch everything to 0 subdivision layers and to solid shading
 class MT_PT_Tile_Generator_Panel(Panel):
@@ -110,4 +110,5 @@ class MT_PT_Converter_Panel(Panel):
 
         layout.label(text="Add selected to Tile")
         layout.operator('object.add_to_tile', text="Add Selected to Tile")
-        layout.prop(scene, "mt_apply_modifiers")
+        layout.prop(scene_props, 'apply_modifiers')
+        layout.prop(scene_props, 'boolean_type')

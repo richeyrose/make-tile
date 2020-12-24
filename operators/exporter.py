@@ -256,15 +256,15 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                 if collection.mt_tile_props.is_mt_collection is True:
                     tile_collections.add(collection)
 
-        # If a collection is a tile collection we generate variants
+
         for collection in tile_collections:
             visible_objects = []
 
             for obj in collection.objects:
-                if obj.type == 'MESH' and obj.visible_get() is True:
+                if obj.type == 'MESH' and obj.visible_get() is True and obj.display_type in ['SOLID', 'TEXTURED']:
                     visible_objects.append(obj)
 
-            # we will generate variants of displacement obs equal to num_variants
+            #generate variants of displacement obs equal to num_variants
             displacement_obs = []
             for obj in visible_objects:
                 if obj.mt_object_props.is_displacement:

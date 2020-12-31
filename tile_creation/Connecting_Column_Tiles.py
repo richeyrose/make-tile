@@ -413,7 +413,7 @@ def spawn_openlock_connecting_column_core(base, tile_props):
 
     if socket_style == 'TEXTURED':
         textured_vertex_groups = ['Front', 'Back', 'Left', 'Right']
-        buffers = spawn_socket_buffers(cutters)
+        buffers = spawn_socket_buffers(cutters, tile_props)
 
     for buffer in buffers:
         set_bool_obj_props(buffer, base, tile_props, 'UNION')
@@ -789,7 +789,7 @@ def spawn_openlock_X_cutters(core, tile_props):
     return cutters
 
 
-def spawn_socket_buffers(cutters):
+def spawn_socket_buffers(cutters, tile_props):
     """Spawn buffer objects (basically flat plates so tiles sit flush) \
     to use for boolean union on columns with wrap around textures.
 
@@ -818,6 +818,7 @@ def spawn_socket_buffers(cutters):
         buffer = cutter.copy()
         buffer.data = data_to.meshes[0].copy()
         buffer.name = 'Buffer ' + cutter.name
+        add_object_to_collection(buffer, tile_props.tile_name)
         buffers.append(buffer)
 
     return buffers

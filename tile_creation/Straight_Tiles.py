@@ -567,8 +567,8 @@ def spawn_openlock_base_clip_cutter(base, tile_props):
     cutter_start_cap = data_to.objects[1]
     cutter_end_cap = data_to.objects[2]
 
-    cutter_start_cap.hide_viewport = True
-    cutter_end_cap.hide_viewport = True
+    cutter_start_cap.hide_set(True)
+    cutter_end_cap.hide_set(True)
 
     clip_cutter.location = Vector((
         base_location[0] + 0.5,

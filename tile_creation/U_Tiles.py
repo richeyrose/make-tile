@@ -786,7 +786,7 @@ def spawn_openlock_base_slot_cutter(tile_props):
 
     for obj in data_to.objects:
         add_object_to_collection(obj, tile_props.tile_name)
-        obj.hide_viewport = True
+        obj.hide_set(True)
 
     # The slot cutter is a 0.1 wide rectangle with an array modifier
     slot_cutter = data_to.objects[0]
@@ -833,7 +833,7 @@ def spawn_openlock_base_slot_cutter(tile_props):
         array_mod = cutter_end_cap.modifiers['Array']
         array_mod.fit_length = leg_2_outer_len - slot_end_gap - 0.1529
 
-        slot_cutter.hide_viewport = True
+        slot_cutter.hide_set(True)
     return slot_cutter
 
 
@@ -867,8 +867,8 @@ def spawn_openlock_base_clip_cutter(tile_props):
     cutter_start_cap = data_to.objects[1]
     cutter_end_cap = data_to.objects[2]
 
-    cutter_start_cap.hide_viewport = True
-    cutter_end_cap.hide_viewport = True
+    cutter_start_cap.hide_set(True)
+    cutter_end_cap.hide_set(True)
 
     array_mod = clip_cutter.modifiers.new('Array', 'ARRAY')
     array_mod.start_cap = cutter_start_cap
@@ -876,7 +876,7 @@ def spawn_openlock_base_clip_cutter(tile_props):
     array_mod.use_merge_vertices = True
     array_mod.fit_type = 'FIT_LENGTH'
 
-    clip_cutter.hide_viewport = True
+    clip_cutter.hide_set(True)
 
     return clip_cutter
 

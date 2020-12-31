@@ -1,9 +1,19 @@
 # Release Notes
 
+## 0.0.20 ##
+
+### Hidden Objects ###
+Objects used for Booleans are now hidden rather than disabled in viewport.
+
+In Blender there are broadly two ways of hiding an object. The first is to hide it using the **H** key or by clicking on the eye icon in the outliner and the second is to disable it in viewport which does much the same thing, but also means that pressing **Alt + H** won't make it visible. In previous versions of MakeTile objects used as Booleans to create sockets, pegs etc. have been disabled in viewport as I've found there's rarely a need to unhide them and you can still make them visible through the outliner if necessary.
+
+Unfortunately I've discovered what I consider to be a bug in the way collections are linked into scenes, which is how the new Blender internal asset manager deals with collections. Basically if an object in a collection is disabled rather than hidden then when you link or instance a collection into a scene the objects aren't linked in properly. This means that if you want to edit your instance by making it real that when you do this objects that were disabled aren't made real and so transformations etc. are broken.
+
+I've reported this as a bug, but for now I've changed the way MakeTile works to compensate for this as I want it to be as compatible as possible with the new asset manager.
+
 ## 0.0.19 Hotfix 1
 
 Fixed a couple of bugs in the object converter and one where the material helper object wasn't being added corectly.
-
 
 ### Display Settings Changes
 When you change between Cycles, Eevee or Solid view using the **Render Engine** drop down in the **Display Settings** submenu MakeTile will now automatically adjust the level of subdivisions on MakeTile displacement objects (objects that you can Make3D) to the most appropriate level for that object and render engine to improve performance.

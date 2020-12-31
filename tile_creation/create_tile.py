@@ -302,11 +302,17 @@ def set_bool_obj_props(bool_obj, parent_obj, tile_props, bool_type):
         bool_type (enum): enum in {'DIFFERENCE', 'UNION', 'INTERSECT'}
     """
     bpy.context.view_layer.update()
+
+    if bool_obj.parent:
+        matrix_copy = bool_obj.matrix_world.copy()
+        bool_obj.parent = None
+        bool_obj.matrix_world = matrix_copy
+
     bool_obj.parent = parent_obj
     bool_obj.matrix_parent_inverse = parent_obj.matrix_world.inverted()
 
     bool_obj.display_type = 'BOUNDS'
-    bool_obj.hide_viewport = True
+    bool_obj.hide_set(True)
     bool_obj.hide_render = True
 
     bool_obj.mt_object_props.is_mt_object = True

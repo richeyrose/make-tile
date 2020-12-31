@@ -794,7 +794,7 @@ def spawn_openlock_base_clip_cutter(base, tile_props):
 
     empty.parent = base
 
-    empty.hide_viewport = True
+    empty.hide_set(True)
     clip_cutter.name = 'Clip.' + base.name
     set_bool_obj_props(clip_cutter, base, tile_props, 'DIFFERENCE')
     set_bool_props(clip_cutter, base, 'DIFFERENCE')

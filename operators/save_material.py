@@ -1,5 +1,6 @@
 import os
 import bpy
+import addon_utils
 from .. utils.registration import get_prefs
 
 
@@ -16,21 +17,26 @@ class MT_OT_Export_Material(bpy.types.Operator):
 
     def execute(self, context):
         prefs = get_prefs()
-        materials_path = os.path.join(prefs.user_assets_path, "materials")
 
-        if not os.path.exists(materials_path):
-            os.makedirs(materials_path)
-
-        filepath = os.path.join(materials_path, 'user_material_library.blend')
-
-        if os.path.isfile(filepath) is True:
-            with bpy.data.libraries.load(filepath) as (data_from, data_to):
-                data_to.materials = data_from.materials
-            data_to.materials.append(context.object.active_material)
-            data_blocks = {*data_to.materials}
+        # check if MT asset manager is installed
+        if addon_utils.check("MTAssetManager") == (True, True):
+            bpy.ops.material.mt_ot_am_add_material_to_library('INVOKE_DEFAULT')
         else:
-            data_blocks = {context.object.active_material}
+            materials_path = os.path.join(prefs.user_assets_path, "materials")
 
-        bpy.data.libraries.write(filepath, data_blocks, fake_user=True)
+            if not os.path.exists(materials_path):
+                os.makedirs(materials_path)
+
+            filepath = os.path.join(materials_path, 'user_material_library.blend')
+
+            if os.path.isfile(filepath) is True:
+                with bpy.data.libraries.load(filepath) as (data_from, data_to):
+                    data_to.materials = data_from.materials
+                data_to.materials.append(context.object.active_material)
+                data_blocks = {*data_to.materials}
+            else:
+                data_blocks = {context.object.active_material}
+
+            bpy.data.libraries.write(filepath, data_blocks, fake_user=True)
 
         return {'FINISHED'}

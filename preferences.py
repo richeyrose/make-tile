@@ -17,41 +17,13 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
     path = get_path()
     user_path = os.path.expanduser('~')
     export_path = os.path.join(user_path, 'MakeTile')
-    user_assets_path = os.path.join(user_path, 'MakeTile', 'UserAssets')
-
-    # asset libraries
-    def update_assetspath(self, context):
-        '''method to update the asset path'''
-        ''''Based on DECALMachine'''
-
-        new_path = makedir(abspath(self.assets_path))
-        old_path = abspath(self.old_path)
-
-        if new_path != old_path:
-            print(" » Copying asset libraries from %s to %s" % (old_path, new_path))
-
-            libs = sorted([f for f in os.listdir(old_path) if os.path.isdir(os.path.join(old_path, f))])
-
-            for lib in libs:
-                src = os.path.join(old_path, lib)
-                dest = os.path.join(new_path, lib)
-
-                if not os.path.exists(dest):
-                    print(" » %s" % (lib))
-                    shutil.copytree(src, dest)
-
-            # set the new old_path
-            self.old_path = new_path
-
-            # reload assets
-            reload_asset_libraries()
+    user_assets_path = os.path.join(user_path, 'MakeTile')
 
     assets_path: StringProperty(
         name="Default Asset Libraries",
         description="Path to Default Asset Libraries",
         subtype='DIR_PATH',
-        default=os.path.join(path, "assets"),
-        update=update_assetspath
+        default=os.path.join(path, "assets")
     )
 
     user_assets_path: StringProperty(
@@ -112,15 +84,9 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
 
     def draw(self, context):
         layout = self.layout
-        layout.prop(self, 'assets_path')
         layout.prop(self, 'user_assets_path')
         layout.prop(self, 'default_export_path')
         layout.prop(self, 'default_units')
-        layout.prop(self, 'default_tile_blueprint')
-        layout.prop(self, 'default_tile_main_system')
-        layout.prop(self, 'default_base_system')
-        layout.prop(self, 'secondary_material')
-
 
 # TODO: Stub - reload_asset_libraries
 def reload_asset_libraries():

@@ -279,6 +279,12 @@ def bake_displacement_map(obj):
 
     # assign secondary material to entire mesh
     # We do this because when the mesh is being displaced we want to see what the actual geometry is without any texture
+    try:
+        sec_mat_index = get_material_index(obj, bpy.data.materials[prefs.secondary_material])
+    except ValueError:
+    # we may need to add in ther secondary material if the user has used Blender's internal
+    # asset browser or linked the collection in manually
+        obj.data.materials.append(bpy.data.materials[prefs.secondary_material])
     sec_mat_index = get_material_index(obj, bpy.data.materials[prefs.secondary_material])
 
     for poly in obj.data.polygons:

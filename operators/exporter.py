@@ -34,7 +34,6 @@ class MT_PT_Export_Panel(Panel):
 
     def draw(self, context):
         scene = context.scene
-        scene_props = scene.mt_scene_props
         export_props = scene.mt_export_props
         obj = context.object
         prefs = get_prefs()
@@ -195,12 +194,15 @@ class MT_OT_Export_Object(bpy.types.Operator, ExportHelper):
                 global_scale=unit_multiplier,
                 use_mesh_modifiers=True)
 
+        self.report({'INFO'}, f'{obj.name} exported to {self.filepath}')
+
         return {'FINISHED'}
 
 class MT_OT_Export_Tile_Variants(bpy.types.Operator):
     bl_idname = "scene.mt_export_tile"
     bl_label = "Export multiple tile variants"
     bl_options = {'REGISTER'}
+    bl_description = "Exports all selected tiles."
 
     @classmethod
     def poll(cls, context):
@@ -255,7 +257,6 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
             for collection in obj_collections:
                 if collection.mt_tile_props.is_mt_collection is True:
                     tile_collections.add(collection)
-
 
         for collection in tile_collections:
             visible_objects = []
@@ -389,6 +390,8 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                     set_to_preview(obj)
 
         reset_renderer_from_bake(orig_settings)
+
+        self.report({'INFO'}, f'{num_variants * len(tile_collections)} tiles exported to {prefs.default_export_path}.')
 
         return {'FINISHED'}
 

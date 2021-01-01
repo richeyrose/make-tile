@@ -190,6 +190,14 @@ def reset_renderer_from_bake(orig_settings):
 
 
 def bake_displacement_map(obj):
+    """Bake a displacement map for an object with MakeTile displacement materials.
+
+    Args:
+        obj (bpy.types.Object): object
+
+    Returns:
+        bpy.types.image: Displacement Map
+    """
     hide_render = obj.hide_render
     obj.hide_render = False
     context = bpy.context
@@ -200,10 +208,10 @@ def bake_displacement_map(obj):
         width=image_resolution,
         height=image_resolution,
         alpha=True,
-        float_buffer=True,
+        float_buffer=False,
         is_data=True
     )
-    disp_image.file_format = 'OPEN_EXR'
+    disp_image.file_format = 'PNG'
 
     disp_materials = []
     mat_set = set()

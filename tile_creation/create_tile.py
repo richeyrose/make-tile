@@ -335,7 +335,7 @@ def set_bool_props(bool_obj, target_obj, bool_type, solver='FAST'):
     boolean.solver = solver
     boolean.operation = bool_type
     boolean.object = bool_obj
-    boolean.show_render = False
+    boolean.show_render = True
 
     # add cutters to object's cutters_collection
     # so we can activate and deactivate them when necessary

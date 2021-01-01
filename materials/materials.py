@@ -168,7 +168,6 @@ def assign_texture_to_areas(obj, primary_material, secondary_material):
     secondary_material - bpy.types.Material
     '''
     material_slots = obj.material_slots
-    all_vert_groups = obj.vertex_groups
     textured_vert_groups = obj.mt_textured_areas_coll
 
     if secondary_material not in material_slots:

@@ -2,6 +2,9 @@
 
 ## 0.0.20 ##
 
+### Save Material ###
+If you also have the MakeTile asset manager add-on installed then saving a material from the MakeTile menu will save the material as a MakeTile asset. If you are using Blender version 2.92 or above this will also mark the material as an asset for Blender's new internal asset browser. This means it will be available in both the MakeTile asset browser and the Blender internal asset browser.
+
 ### Hidden Objects ###
 Objects used for Booleans are now hidden rather than disabled in viewport.
 
@@ -10,6 +13,9 @@ In Blender there are broadly two ways of hiding an object. The first is to hide 
 Unfortunately I've discovered what I consider to be a bug in the way collections are linked into scenes, which is how the new Blender internal asset manager deals with collections. Basically if an object in a collection is disabled rather than hidden then when you link or instance a collection into a scene the objects aren't linked in properly. This means that if you want to edit your instance by making it real that when you do this objects that were disabled aren't made real and so transformations etc. are broken.
 
 I've reported this as a bug, but for now I've changed the way MakeTile works to compensate for this as I want it to be as compatible as possible with the new asset manager.
+
+### Displacement Image Format ###
+Displacement images are now saved in .png format rather than open exr. This saves substantially on space and makes sense given the lack of need for super high quality displacement maps in MakeTile.
 
 ## 0.0.19 Hotfix 1
 

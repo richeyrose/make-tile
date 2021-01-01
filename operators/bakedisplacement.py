@@ -128,7 +128,7 @@ class MT_OT_Make_3D(bpy.types.Operator):
                 tile = bpy.data.collections[obj_props.tile_name]
                 disp_strength = tile.mt_tile_props.displacement_strength
 
-                disp_image, obj = bake_displacement_map(obj)
+                disp_image = bake_displacement_map(obj)
 
                 disp_texture = obj_props.disp_texture
                 disp_texture.image = disp_image
@@ -285,10 +285,10 @@ def bake_displacement_map(obj):
     # we may need to add in ther secondary material if the user has used Blender's internal
     # asset browser or linked the collection in manually
         obj.data.materials.append(bpy.data.materials[prefs.secondary_material])
-    sec_mat_index = get_material_index(obj, bpy.data.materials[prefs.secondary_material])
+        sec_mat_index = get_material_index(obj, bpy.data.materials[prefs.secondary_material])
 
     for poly in obj.data.polygons:
         poly.material_index = sec_mat_index
 
     obj.hide_render = hide_render
-    return disp_image, obj
+    return disp_image

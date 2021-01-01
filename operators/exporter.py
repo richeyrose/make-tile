@@ -34,7 +34,7 @@ class MT_PT_Export_Panel(Panel):
 
     def draw(self, context):
         scene = context.scene
-        export_props = scene.mt_export_props
+        scene_props = scene.mt_scene_props
         obj = context.object
         prefs = get_prefs()
 
@@ -56,25 +56,25 @@ class MT_PT_Export_Panel(Panel):
 
         layout.operator('scene.mt_export_tile', text='Export Tile')
         op = layout.operator('scene.mt_export_object', text='Export Active Object')
-        op.voxelise = export_props.voxelise_on_export
-        op.decimate = export_props.decimate_on_export
-        op.make_manifold = export_props.fix_non_manifold
-        op.export_units = export_props.export_units
+        op.voxelise = scene_props.voxelise_on_export
+        op.decimate = scene_props.decimate_on_export
+        op.make_manifold = scene_props.fix_non_manifold
+        op.export_units = scene_props.export_units
         op.filepath = os.path.join(
             prefs.default_export_path,
             obj.name + '.stl')
 
         layout.prop(prefs, 'default_export_path')
-        layout.prop(export_props, 'export_units')
-        layout.prop(export_props, 'voxelise_on_export')
-        layout.prop(export_props, 'randomise_on_export')
-        layout.prop(export_props, 'decimate_on_export')
+        layout.prop(scene_props, 'export_units')
+        layout.prop(scene_props, 'voxelise_on_export')
+        layout.prop(scene_props, 'randomise_on_export')
+        layout.prop(scene_props, 'decimate_on_export')
 
-        if export_props.randomise_on_export is True:
-            layout.prop(export_props, 'num_variants')
+        if scene_props.randomise_on_export is True:
+            layout.prop(scene_props, 'num_variants')
 
         if addon_utils.check("object_print3d_utils") == (True, True):
-            layout.prop(export_props, 'fix_non_manifold')
+            layout.prop(scene_props, 'fix_non_manifold')
         else:
             for line in wrapped:
                 row = layout.row()
@@ -213,11 +213,10 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
         # set up exporter options
         prefs = get_prefs()
         scene_props = context.scene.mt_scene_props
-        export_props = context.scene.mt_export_props
 
         # number of variants we will generate
-        if export_props.randomise_on_export:
-            num_variants = export_props.num_variants
+        if scene_props.randomise_on_export:
+            num_variants = scene_props.num_variants
         else:
             num_variants = 1
 
@@ -225,10 +224,10 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
         orig_settings = set_cycles_to_bake_mode()
 
         # voxelise options
-        voxelise_on_export = export_props.voxelise_on_export
+        voxelise_on_export = scene_props.voxelise_on_export
 
         # decimate options
-        decimate_on_export = export_props.decimate_on_export
+        decimate_on_export = scene_props.decimate_on_export
 
         # ensure export path exists
         export_path = prefs.default_export_path
@@ -236,7 +235,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
             os.mkdir(export_path)
 
         # Controls if we rescale on export
-        blend_units = export_props.export_units
+        blend_units = scene_props.export_units
         if blend_units == 'CM':
             unit_multiplier = 10
         elif blend_units == 'INCHES':
@@ -285,7 +284,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                     # check if displacement modifier exists. If it doesn't user has removed it.
                     if obj_props.disp_mod_name in obj.modifiers:
 
-                        if obj_props.is_displacement and obj_props.is_displaced and export_props.randomise_on_export:
+                        if obj_props.is_displacement and obj_props.is_displaced and scene_props.randomise_on_export:
                             set_to_preview(obj)
 
                         if obj_props.is_displacement and not obj_props.is_displaced:
@@ -301,7 +300,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                                     tree = material.node_tree
 
                                     # generate a random variant for each displacement object
-                                    if export_props.randomise_on_export:
+                                    if scene_props.randomise_on_export:
                                         if num_variants == 1:
                                             if 'Seed' in tree.nodes:
                                                 rand = random()
@@ -356,7 +355,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                         voxelise(context, dupes[0])
                     if decimate_on_export:
                         decimate(context, dupes[0])
-                    if export_props.fix_non_manifold:
+                    if scene_props.fix_non_manifold:
                         make_manifold(context, dupes[0])
 
                     ctx = {
@@ -394,57 +393,3 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
         self.report({'INFO'}, f'{num_variants * len(tile_collections)} tiles exported to {prefs.default_export_path}.')
 
         return {'FINISHED'}
-
-
-class MT_Export_Props(PropertyGroup):
-    # exporter properties
-    num_variants: bpy.props.IntProperty(
-        name="Variants",
-        description="Number of variants of tile to export",
-        default=1
-    )
-
-    randomise_on_export: bpy.props.BoolProperty(
-        name="Randomise",
-        description="Create random variant on export?",
-        default=True
-    )
-
-    voxelise_on_export: bpy.props.BoolProperty(
-        name="Voxelise",
-        default=True
-    )
-
-    decimate_on_export: bpy.props.BoolProperty(
-        name="Decimate",
-        default=False
-    )
-
-    export_units: bpy.props.EnumProperty(
-        name="Units",
-        items=units,
-        description="Export units",
-        default='INCHES'
-    )
-
-    fix_non_manifold: bpy.props.BoolProperty(
-        name="Fix non-manifold",
-        description="Attempt to fix geometry errors",
-        default=True
-    )
-
-    export_subdivs: bpy.props.IntProperty(
-        name="Export Subdivisions",
-        description="Subdivision levels of exported tile",
-        default=3
-    )
-
-
-def register():
-    bpy.types.Scene.mt_export_props = bpy.props.PointerProperty(
-        type=MT_Export_Props
-    )
-
-
-def unregister():
-    del bpy.types.Scene.mt_export_props

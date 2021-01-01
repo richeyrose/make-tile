@@ -649,6 +649,47 @@ class MT_Scene_Properties(PropertyGroup):
         default="UNION",
         description="Whether to add (Union) or subtract (Difference) object from tile.")
 
+    # Exporter properties
+    num_variants: bpy.props.IntProperty(
+        name="Variants",
+        description="Number of variants of tile to export",
+        default=1
+    )
+
+    randomise_on_export: bpy.props.BoolProperty(
+        name="Randomise",
+        description="Create random variant on export?",
+        default=True
+    )
+
+    voxelise_on_export: bpy.props.BoolProperty(
+        name="Voxelise",
+        default=True
+    )
+
+    decimate_on_export: bpy.props.BoolProperty(
+        name="Decimate",
+        default=False
+    )
+
+    export_units: bpy.props.EnumProperty(
+        name="Units",
+        items=units,
+        description="Export units",
+        default='INCHES'
+    )
+
+    fix_non_manifold: bpy.props.BoolProperty(
+        name="Fix non-manifold",
+        description="Attempt to fix geometry errors",
+        default=True
+    )
+
+    export_subdivs: bpy.props.IntProperty(
+        name="Export Subdivisions",
+        description="Subdivision levels of exported tile",
+        default=3
+    )
 
 def register():
     # Property group that contains properties set in UI

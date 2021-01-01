@@ -44,7 +44,7 @@ class MT_PT_Voxelise_Panel(Panel):
         layout.prop(scene_props, 'voxel_merge')
 
         if addon_utils.check("object_print3d_utils") == (True, True):
-            layout.prop(scene.mt_export_props, 'fix_non_manifold')
+            layout.prop(scene_props, 'fix_non_manifold')
         else:
             for line in wrapped:
                 row = layout.row()
@@ -94,7 +94,7 @@ class MT_OT_Object_Voxeliser(bpy.types.Operator):
 
         for obj in selected_objects:
             voxelise(context, obj)
-            if context.scene.mt_export_props.fix_non_manifold:
+            if scene_props.fix_non_manifold:
                 make_manifold(context, obj)
 
         for mesh in bpy.data.meshes:

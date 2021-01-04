@@ -61,6 +61,7 @@ class MT_PT_Material_Options_Panel(Panel):
     def draw(self, context):
         scene_props = context.scene.mt_scene_props
         layout = self.layout
+        # TODO check that changing tile resolution in menu actuallly changes it.
         layout.prop(scene_props, 'tile_resolution')
         layout.prop(scene_props, 'displacement_strength')
         obj = context.object

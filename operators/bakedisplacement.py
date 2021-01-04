@@ -125,8 +125,9 @@ class MT_OT_Make_3D(bpy.types.Operator):
 
             #if obj_props.geometry_type == 'PREVIEW':
             if obj_props.is_displacement and not obj_props.is_displaced:
-                tile = bpy.data.collections[obj_props.tile_name]
-                disp_strength = tile.mt_tile_props.displacement_strength
+                # tile = bpy.data.collections[obj_props.tile_name]
+                # disp_strength = tile.mt_tile_props.displacement_strength
+                disp_strength = context.scene.mt_scene_props.displacement_strength
 
                 disp_image = bake_displacement_map(obj)
 

@@ -12,8 +12,8 @@ from .properties import (
     create_main_part_blueprint_enums,
     create_tile_type_enums,
     create_base_blueprint_enums)
-
-#TODO rename to mt_collection_props
+# TODO Decide how many of these properties we actually need to be storing.
+# TODO rename to mt_collection_props
 
 class MT_Tile_Properties(PropertyGroup):
     is_mt_collection: bpy.props.BoolProperty(
@@ -192,10 +192,6 @@ class MT_Tile_Properties(PropertyGroup):
     tile_units: bpy.props.EnumProperty(
         name="Tile Units",
         items=units
-    )
-
-    displacement_strength: bpy.props.FloatProperty(
-        name="Displacement Strength"
     )
 
     tile_resolution: bpy.props.IntProperty(

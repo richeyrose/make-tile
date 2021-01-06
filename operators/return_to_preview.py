@@ -1,7 +1,7 @@
 import bpy
 from ..materials.materials import assign_mat_to_vert_group
 from ..utils.registration import get_prefs
-
+from .. lib.utils.utils import view3d_find
 
 class MT_OT_Return_To_Preview(bpy.types.Operator):
     """Return the maketile object to its preview state"""
@@ -69,8 +69,10 @@ def set_to_preview(obj):
     '''
 
     # turn off subsurf modifier if we're not in Cycles mode.
+    region, rv3d, v3d, area = view3d_find(True)
+
     try:
-        if bpy.context.scene.render.engine != 'CYCLES':
+        if bpy.context.scene.render.engine != 'CYCLES' or v3d.shading.type != 'RENDERED':
             obj.modifiers[props.subsurf_mod_name].show_viewport = False
             obj.cycles.use_adaptive_subdivision = True
     except KeyError:

@@ -133,24 +133,18 @@ def update_disp_strength(self, context):
     Args:
         context (bpy.context): context
     """
-    obj = bpy.context.object
-    obj_props = obj.mt_object_props
-    tile = bpy.data.collections[obj_props.tile_name]
-    tile.mt_tile_props.displacement_strength = context.scene.mt_scene_props.displacement_strength
-    try:
-        obj.modifiers[obj_props.disp_mod_name].strength = context.scene.mt_scene_props.displacement_strength
-    except KeyError:
-        pass
-    '''
-    if obj_props.geometry_type == 'DISPLACEMENT':
-        if obj_props.disp_mod_name in obj.modifiers:
-            mod = obj.modifiers[obj_props.disp_mod_name]
-            mod.strength = context.scene.mt_scene_props.displacement_strength
-    '''
+    obj = bpy.context.active_object
+    if context.active_object.select_get():
+        obj_props = obj.mt_object_props
+        obj_props.displacement_strength = context.scene.mt_scene_props.displacement_strength
+        try:
+            obj.modifiers[obj_props.disp_mod_name].strength = context.scene.mt_scene_props.displacement_strength
+        except KeyError:
+            pass
 
 
 def update_disp_subdivisions(self, context):
-    '''Updates the number of subdivisions used by the displacement material modifier'''
+    """Update the number of subdivisions used by the displacement material modifier."""
     obj = bpy.context.object
     obj_props = obj.mt_object_props
     try:

@@ -62,7 +62,7 @@ class MT_PT_Material_Options_Panel(Panel):
         scene_props = context.scene.mt_scene_props
         layout = self.layout
         # TODO check that changing tile resolution in menu actuallly changes it.
-        layout.prop(scene_props, 'tile_resolution')
+        # layout.prop(scene_props, 'tile_resolution')
         layout.prop(scene_props, 'displacement_strength')
         obj = context.object
         material = obj.active_material
@@ -124,21 +124,21 @@ class MT_PT_Material_Mapping_Options_Panel(Panel):
         scene_props = context.scene.mt_scene_props
         layout = self.layout
         obj = context.object
-        material = obj.active_material
-        tree = material.node_tree
 
         layout.prop(scene_props, 'material_mapping_method')
         if scene_props.material_mapping_method == 'WRAP_AROUND':
             layout.prop(context.window_manager.mt_radio_buttons, 'mapping_axis', expand=True)
 
-        if hasattr(tree, 'nodes'):
+        try:
+            material = obj.active_material
+            tree = material.node_tree
             text_coord_nodes = [node for node in tree.nodes if node.type == 'TEX_COORD']
             for node in text_coord_nodes:
-                if hasattr(node.parent, 'name'):
-                    if node.parent.name == 'Root Nodes':
-                        layout.label(text='Reference Object')
-                        layout.prop(node, "object", text="")
-
+                if node.parent.name == 'Root Nodes':
+                    layout.label(text='Reference Object')
+                    layout.prop(node, "object", text="")
+        except AttributeError:
+            pass
 
 
 class MT_PT_Vertex_Groups_Panel(bpy.types.Panel):

@@ -62,33 +62,37 @@ class MT_OT_Add_Collection_To_Tile(bpy.types.Operator):
                 break
 
         # get all mesh objects to be added to tile collection
-        operand_collections = get_objects_owning_collections(selected_objects[-2].name)
+        filtered_obs = [obj for obj in selected_objects if obj is not active_object]
         operands = set()
-        for coll in operand_collections:
-            operands.update(coll.objects.values())
+        for obj in filtered_obs:
+            operand_collections = get_objects_owning_collections(obj.name)
+            for coll in operand_collections:
+                if coll is not tile_collection:
+                    operands.update(coll.objects.values())
 
         mesh_operands = sorted([obj for obj in operands if obj.type == 'MESH'], key=lambda obj: obj.mt_object_props.boolean_order)
 
         for obj in mesh_operands:
-            # add booleans for all operand objects of 'DIFFERENCE' boolean type.
-            if obj.mt_object_props.boolean_type == 'DIFFERENCE':
-                for core in cores:
-                    set_bool_props(obj, core, obj.mt_object_props.boolean_type, solver='FAST')
-                if base.type == 'MESH' and obj.mt_object_props.affects_base is True:
-                    set_bool_props(obj, base, obj.mt_object_props.boolean_type, solver='FAST')
-
-                obj.hide_render = True
-                obj.display_type = 'BOUNDS'
+            if obj.name not in tile_collection.objects:
+                # add booleans for all operand objects of 'DIFFERENCE' boolean type.
+                if obj.mt_object_props.boolean_type == 'DIFFERENCE':
+                    for core in cores:
+                        set_bool_props(obj, core, obj.mt_object_props.boolean_type, solver='FAST')
+                    if base.type == 'MESH' and obj.mt_object_props.affects_base is True:
+                        set_bool_props(obj, base, obj.mt_object_props.boolean_type, solver='FAST')
+                    obj.hide_render = True
+                    obj.display_type = 'BOUNDS'
 
         # other operands we just add to tile collection because boolean system is
         # unreliable and/or slow currently. Instead we deal with boolean unions by voxelisation on export
         for obj in operands:
-            tile_collection.objects.link(obj)
-            # we now parent any 'BASE' operands to tile collection 'BASE' so our architectural
-            # element will move with the tile
-            if obj.mt_object_props.geometry_type == 'BASE':
-                obj.parent = base
-                obj.matrix_parent_inverse = base.matrix_world.inverted()
+            if obj.name not in tile_collection.objects:
+                tile_collection.objects.link(obj)
+                # we now parent any 'BASE' operands to tile collection 'BASE' so our architectural
+                # element will move with the tile
+                if obj.mt_object_props.geometry_type == 'BASE':
+                    obj.parent = base
+                    obj.matrix_parent_inverse = base.matrix_world.inverted()
 
         return {'FINISHED'}
 

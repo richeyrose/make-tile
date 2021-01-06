@@ -315,8 +315,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                                                     seed_node.outputs[0].default_value = rand * 1000
 
                             disp_image = bake_displacement_map(obj)
-                            tile_props = collection.mt_tile_props
-                            disp_strength = tile_props.displacement_strength
+                            disp_strength = obj_props.displacement_strength
                             disp_texture = obj_props.disp_texture
 
                             disp_texture.image = disp_image

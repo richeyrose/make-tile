@@ -103,6 +103,12 @@ class MT_Object_Properties(PropertyGroup):
         default='MT Displacement'
     )
 
+    displacement_strength: bpy.props.FloatProperty(
+        name="Displacement Strength",
+        default=0.1,
+        step=0.001
+    )
+
     subsurf_mod_name: bpy.props.StringProperty(
         name="Subsurf Modifier Name",
         default="MT Subsurf"

@@ -55,7 +55,6 @@ def create_common_tile_props(scene_props, tile_props, tile_collection):
     tile_props.base_blueprint = scene_props.base_blueprint
     tile_props.UV_island_margin = scene_props.UV_island_margin
     tile_props.tile_units = scene_props.tile_units
-    tile_props.displacement_strength = scene_props.displacement_strength
     tile_props.tile_resolution = scene_props.tile_resolution
     tile_props.texture_margin = scene_props.texture_margin
     tile_props.collection_type = "TILE"
@@ -88,13 +87,13 @@ def convert_to_displacement_core(core, textured_vertex_groups):
     scene = bpy.context.scene
     preferences = get_prefs()
     props = core.mt_object_props
-
-    primary_material = bpy.data.materials[scene.mt_scene_props.tile_material_1]
+    scene_props = scene.mt_scene_props
+    primary_material = bpy.data.materials[scene_props.tile_material_1]
     secondary_material = bpy.data.materials[preferences.secondary_material]
 
     # create new displacement modifier
     disp_mod = core.modifiers.new('MT Displacement', 'DISPLACE')
-    disp_mod.strength = 0
+    disp_mod.strength = scene_props.displacement_strength
     disp_mod.texture_coords = 'UV'
     disp_mod.direction = 'NORMAL'
     disp_mod.mid_level = 0
@@ -102,6 +101,7 @@ def convert_to_displacement_core(core, textured_vertex_groups):
 
     # save modifier name as custom property for use my maketile
     props.disp_mod_name = disp_mod.name
+    props.displacement_strength = scene_props.displacement_strength
     # core['disp_mod_name'] = disp_mod.name
 
     # create a vertex group for the displacement modifier

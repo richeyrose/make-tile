@@ -123,11 +123,11 @@ class MT_OT_Make_3D(bpy.types.Operator):
         for obj in selected_objects:
             obj_props = obj.mt_object_props
 
-            #if obj_props.geometry_type == 'PREVIEW':
+            # if obj_props.geometry_type == 'PREVIEW':
             if obj_props.is_displacement and not obj_props.is_displaced:
                 # tile = bpy.data.collections[obj_props.tile_name]
-                # disp_strength = tile.mt_tile_props.displacement_strength
-                disp_strength = context.scene.mt_scene_props.displacement_strength
+                disp_strength = obj_props.displacement_strength
+                # disp_strength = context.scene.mt_scene_props.displacement_strength
 
                 disp_image = bake_displacement_map(obj)
 
@@ -135,7 +135,6 @@ class MT_OT_Make_3D(bpy.types.Operator):
                 disp_texture.image = disp_image
                 disp_mod = obj.modifiers[obj_props.disp_mod_name]
                 disp_mod.texture = disp_texture
-                disp_mod.mid_level = 0
                 disp_mod.strength = disp_strength
                 subsurf_mod = obj.modifiers[obj_props.subsurf_mod_name]
                 subsurf_mod.levels = bpy.context.scene.mt_scene_props.subdivisions

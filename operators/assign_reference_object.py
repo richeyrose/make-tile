@@ -22,7 +22,8 @@ def create_helper_object(context):
 
     add_object_to_collection(material_helper, helper_collection.name)
     assign_obj_to_obj_texture_coords(material_helper)
-    material_helper.hide_set(True)
+    # material_helper.hide_set(True)
+    material_helper.hide_viewport = True
 
 def assign_obj_to_obj_texture_coords(obj):
     """Use to fix error in wrap around material projection when objects are rotated.

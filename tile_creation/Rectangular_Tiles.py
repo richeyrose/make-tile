@@ -421,7 +421,8 @@ def spawn_openlock_base_slot_cutter(base, tile_props):
         add_object_to_collection(obj, tile_props.tile_name)
 
     for obj in data_to.objects:
-        obj.hide_set(True)
+        # obj.hide_set(True)
+        obj.hide_viewport = True
 
     cutter_a = data_to.objects[4]
     cutter_b = data_to.objects[5]
@@ -485,8 +486,10 @@ def spawn_openlock_base_clip_cutters(base, tile_props):
     cutter_start_cap = data_to.objects[1]
     cutter_end_cap = data_to.objects[2]
 
-    cutter_start_cap.hide_set(True)
-    cutter_end_cap.hide_set(True)
+    # cutter_start_cap.hide_set(True)
+    # cutter_end_cap.hide_set(True)
+    cutter_start_cap.hide_viewport = True
+    cutter_end_cap.hide_viewport = True
 
     # get location of bottom front left corner of tile
     front_left = (

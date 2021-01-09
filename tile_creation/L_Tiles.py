@@ -1017,8 +1017,10 @@ def create_openlock_base_clip_cutter(
     cutter_start_cap = data_to.objects[1]
     cutter_end_cap = data_to.objects[2]
 
-    cutter_start_cap.hide_set(True)
-    cutter_end_cap.hide_set(True)
+    # cutter_start_cap.hide_set(True)
+    # cutter_end_cap.hide_set(True)
+    cutter_start_cap.hide_viewport = True
+    cutter_end_cap.hide_viewport = True
 
     clip_cutter.location = Vector((
         corner_loc[0] + 0.5,

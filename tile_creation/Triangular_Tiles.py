@@ -385,8 +385,10 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
         cutter_start_cap = data_to.objects[1]
         cutter_end_cap = data_to.objects[2]
 
-        cutter_start_cap.hide_set(True)
-        cutter_end_cap.hide_set(True)
+        # cutter_start_cap.hide_set(True)
+        # cutter_end_cap.hide_set(True)
+        cutter_start_cap.hide_viewport = True
+        cutter_end_cap.hide_viewport = True
 
         array_mod = b_cutter.modifiers.new('Array', 'ARRAY')
         array_mod.start_cap = cutter_start_cap

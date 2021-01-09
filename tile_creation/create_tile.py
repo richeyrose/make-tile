@@ -93,7 +93,7 @@ def convert_to_displacement_core(core, textured_vertex_groups):
 
     # create new displacement modifier
     disp_mod = core.modifiers.new('MT Displacement', 'DISPLACE')
-    disp_mod.strength = scene_props.displacement_strength
+    disp_mod.strength = 0
     disp_mod.texture_coords = 'UV'
     disp_mod.direction = 'NORMAL'
     disp_mod.mid_level = 0

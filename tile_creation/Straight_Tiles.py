@@ -570,7 +570,7 @@ def spawn_openlock_base_clip_cutter(base, tile_props):
     # cutter_start_cap.hide_set(True)
     # cutter_end_cap.hide_set(True)
     cutter_start_cap.hide_viewport = True
-    cutter_end_cap.hife_viewport = True
+    cutter_end_cap.hide_viewport = True
 
     clip_cutter.location = Vector((
         base_location[0] + 0.5,

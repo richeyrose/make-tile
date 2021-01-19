@@ -31,7 +31,7 @@ from .create_tile import (
     initialise_tile_creator,
     create_common_tile_props)
 
-
+# TODO #2 Fix bug where base sockets are not displaying correctly on bases more than 0.5 inches wide
 class MT_PT_Curved_Wall_Tile_Panel(Panel):
     """Draw a tile options panel in the UI."""
 

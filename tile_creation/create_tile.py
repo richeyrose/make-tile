@@ -192,6 +192,7 @@ def finalise_tile(base, core, cursor_orig_loc, cursor_orig_rot):
         cursor_orig_loc (Vector(3)): original cursor location
         cursor_orig_rot (Vector(3)): original cursor rotation
     """
+    context = bpy.context
     # Assign secondary material to our base if its a mesh
     if base.type == 'MESH':
         prefs = get_prefs()
@@ -199,7 +200,7 @@ def finalise_tile(base, core, cursor_orig_loc, cursor_orig_rot):
 
     # Reset location
     base.location = cursor_orig_loc
-    cursor = bpy.context.scene.cursor
+    cursor = context.scene.cursor
     cursor.location = cursor_orig_loc
     cursor.rotation_euler = cursor_orig_rot
 
@@ -210,9 +211,12 @@ def finalise_tile(base, core, cursor_orig_loc, cursor_orig_rot):
         # lock all transforms so we can only translate base
         lock_all_transforms(core)
 
-    deselect_all()
-    select(base.name)
-    activate(base.name)
+    # deselect any currently selected objects
+    for obj in context.selected_objects:
+        obj.select_set(False)
+
+    base.select_set(True)
+    context.view_layer.objects.active = base
 
 
 def spawn_empty_base(tile_props):
@@ -291,7 +295,7 @@ def load_openlock_top_peg(tile_props):
 
     return peg
 
-
+# TODO: #3 Fix bug where toggling booleans in UI doesn't work if core or base have been renamed
 def set_bool_obj_props(bool_obj, parent_obj, tile_props, bool_type):
     """Set properties for boolean object used for e.g. clip cutters.
 

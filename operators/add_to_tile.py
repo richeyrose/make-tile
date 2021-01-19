@@ -133,7 +133,15 @@ class MT_OT_Add_Object_To_Tile(bpy.types.Operator):
         """Add the selected object(s) to the active object's tile collection."""
 
         objects_to_add = []
-        tile_collection = bpy.data.collections[context.active_object.mt_object_props.tile_name]
+
+        active_object = context.active_object
+        tile_collections = get_objects_owning_collections(active_object.name)
+
+        for collection in tile_collections:
+            if collection.mt_tile_props.collection_type == 'TILE':
+                tile_collection = collection
+                break
+
         base = None
 
         for obj in tile_collection.objects:
@@ -205,11 +213,14 @@ class MT_OT_Add_Object_To_Tile(bpy.types.Operator):
 def add_to_tile_object_context_menu_items(self, context):
     """Add options to object context (right click) menu."""
     layout = self.layout
-    if context.active_object.type in ['MESH']:
-        layout.separator()
-        layout.operator_context = 'INVOKE_DEFAULT'
-        layout.operator("object.add_to_tile", text="Add / Subtract object from Tile")
-        layout.operator("collection.add_collection_to_tile")
+    try:
+        if context.active_object.type in ['MESH']:
+            layout.separator()
+            layout.operator_context = 'INVOKE_DEFAULT'
+            layout.operator("object.add_to_tile", text="Add / Subtract object from Tile")
+            layout.operator("collection.add_collection_to_tile")
+    except AttributeError:
+        pass
 
 
 def register():

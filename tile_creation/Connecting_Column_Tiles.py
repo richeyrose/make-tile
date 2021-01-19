@@ -40,7 +40,7 @@ from ..lib.bmturtle.helpers import (
     assign_verts_to_group,
     select_verts_in_bounds)
 
-#TODO ensure top buffers and sockets only created on tall columns not short
+#TODO #1 Ensure sockets and buffers only added to tall columns
 class MT_PT_Connecting_Column_Panel(Panel):
     """Draw a tile options panel in UI."""
 

@@ -2,6 +2,7 @@ import os
 from math import radians, pi, modf, degrees
 from mathutils import Vector
 import bpy
+from bpy import context
 from bpy.types import Operator, Panel
 from .. lib.utils.collections import (
     add_object_to_collection,
@@ -48,7 +49,7 @@ class MT_PT_Curved_Wall_Tile_Panel(Panel):
         """Check tile_type."""
         if hasattr(context.scene, 'mt_scene_props'):
             return context.scene.mt_scene_props.tile_type in [
-                "CURVED_WALL", "CURVED_FLOOR"]
+                "CURVED_WALL"]
         return False
 
     def draw(self, context):
@@ -67,6 +68,65 @@ class MT_PT_Curved_Wall_Tile_Panel(Panel):
         layout.prop(scene_props, 'base_radius', text="Radius")
         layout.prop(scene_props, 'degrees_of_arc')
         layout.prop(scene_props, 'base_socket_side', text="Socket Side")
+        layout.prop(scene_props, 'curve_texture', text="Curve Texture")
+
+        layout.label(text="Core Properties")
+        layout.prop(scene_props, 'tile_y', text="Width")
+
+        layout.label(text="Sync Proportions")
+        row = layout.row()
+        row.prop(scene_props, 'y_proportionate_scale', text="Width")
+        row.prop(scene_props, 'z_proportionate_scale', text="Height")
+
+        layout.label(text="Base Properties")
+        layout.prop(scene_props, 'base_y', text="Width")
+        layout.prop(scene_props, 'base_z', text="Height")
+
+        layout.label(text="Native Subdivisions")
+        row = layout.row()
+        row.prop(scene_props, 'curve_native_subdivisions')
+        row.prop(scene_props, 'y_native_subdivisions')
+        row.prop(scene_props, 'z_native_subdivisions')
+
+        layout.operator('scene.reset_tile_defaults')
+
+
+class MT_PT_Curved_Floor_Tile_Panel(Panel):
+    """Draw a tile options panel in the UI."""
+
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "Make Tile"
+    bl_label = "Tile Options"
+    bl_order = 1
+    bl_idname = "MT_PT_Curved_Floor_Tile_Panel"
+    bl_description = "Options to configure the dimensions of a tile"
+
+    @classmethod
+    def poll(cls, context):
+        """Check tile_type."""
+        if hasattr(context.scene, 'mt_scene_props'):
+            return context.scene.mt_scene_props.tile_type in [
+                "CURVED_FLOOR"]
+        return False
+
+    def draw(self, context):
+        """Draw the Panel."""
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        layout = self.layout
+
+        layout.label(text="Blueprints")
+        layout.prop(scene_props, 'base_blueprint')
+        layout.prop(scene_props, 'main_part_blueprint')
+
+        layout.label(text="Tile Properties")
+
+        layout.prop(scene_props, 'tile_z', text="Height")
+        layout.prop(scene_props, 'base_radius', text="Radius")
+        layout.prop(scene_props, 'degrees_of_arc')
+        layout.prop(scene_props, 'base_socket_side', text="Socket Side")
+        layout.prop(scene_props, 'curve_texture', text="Curve Texture")
 
         layout.label(text="Core Properties")
         layout.prop(scene_props, 'tile_y', text="Width")
@@ -886,7 +946,14 @@ def spawn_floor_core(tile_props):
     mod.deform_method = 'BEND'
     mod.deform_axis = 'Z'
     mod.angle = radians(-angle)
-    mod.show_render = False
+
+    scene_props = bpy.context.scene.mt_scene_props
+
+    # this controls whether the texture follows the curvature of the tile on render.
+    # Useful for decorative elements.
+    if scene_props.curve_texture:
+        mod.show_render = False
+
     core.name = tile_props.tile_name + '.core'
 
     obj_props = core.mt_object_props

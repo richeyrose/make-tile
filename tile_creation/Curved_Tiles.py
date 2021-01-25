@@ -712,13 +712,12 @@ def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
     cutter_h = 0.24
 
     if clip_side == 'INNER':
-        cutter_radius_offset = 0.25  # amount to offset cutter from base inner radius
+        cutter_radius = base_radius + 0.25
     else:
-        cutter_radius_offset = 0.08
+        cutter_radius = base_radius + tile_props.base_size[1] - 0.18 - 0.25
 
     bool_overlap = 0.001  # overlap amount to prevent errors
 
-    cutter_radius = base_radius + cutter_radius_offset
     cutter_inner_arc_len = (2 * pi * cutter_radius) / (360 / base_degrees) - (offset * 2)
     central_angle = degrees(cutter_inner_arc_len / cutter_radius)
 
@@ -814,12 +813,16 @@ def spawn_openlock_base_clip_cutter(base, tile_props):
 
     clip_cutter = data_to.objects[0]
     add_object_to_collection(clip_cutter, tile_props.tile_name)
-
     deselect_all()
     select(clip_cutter.name)
-    radius = tile_props.base_radius + (tile_props.base_size[1] / 2)
+
+    if clip_side == 'INNER':
+        radius = tile_props.base_radius + 0.25
+    else:
+        radius = tile_props.base_radius + tile_props.base_size[1] - 0.25
 
     clip_cutter.location[1] = radius
+
 
     if clip_side == 'OUTER':
         clip_cutter.rotation_euler[2] = radians(180)

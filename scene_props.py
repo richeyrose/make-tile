@@ -243,6 +243,20 @@ def update_base_z(self, context):
         scene_props.base_z = base_z + (tile_z - base_z)
 
 
+def update_curve_texture(self, context):
+    """Change whether the texture on a curved floor tile follows the curve or not."""
+    obj = context.active_object
+
+    try:
+        mod = obj.modifiers['Simple_Deform']
+        if mod.show_render == True:
+            mod.show_render = False
+        else:
+            mod.show_render = True
+    except KeyError:
+        pass
+
+
 class MT_Scene_Properties(PropertyGroup):
     """Contains MakeTile scene properties.
     Used to store properties that can be set by user for tile generation etc.
@@ -547,6 +561,13 @@ class MT_Scene_Properties(PropertyGroup):
         name="Curve type",
         default="POS",
         description="Whether the tile has a positive or negative curvature"
+    )
+
+    curve_texture: BoolProperty(
+        name="Curve Texture",
+        description="Setting this to true will make the texture follow the curve of the tile. Useful for decorative elements, borders etc.",
+        default=True,
+        update=update_curve_texture
     )
 
     # Connecting column specific

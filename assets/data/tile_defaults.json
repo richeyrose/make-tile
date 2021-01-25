@@ -725,5 +725,52 @@
                 }
             }
         }
+    },
+    {
+        "bl_idname": "object.make_roof",
+        "bl_label": "Roof",
+        "blueprint":"CUSTOM",
+        "type": "ROOF",
+        "base_blueprints": {
+            "OPENLOCK": "OpenLOCK",
+            "PLAIN": "Plain",
+            "NONE": "None"
+        },
+        "main_part_blueprints": {
+            "OPENLOCK": "OpenLOCK",
+            "PLAIN": "Plain",
+            "NONE": "None"
+        },
+        "roof_type": {
+            "APEX": "Apex",
+            "NADIR": "Nadir",
+            "SIDE": "Side"
+        },
+        "defaults":{
+            "base_blueprint": "OPENLOCK",
+            "main_part_blueprint": "OPENLOCK",
+            "roof_type": "APEX",
+            "subdivision_density": "MEDIUM",
+            "end_eaves_pos": 0,
+            "end_eaves_neg": 0,
+            "side_eaves": 0.2,
+            "x_proportionate_scale": true,
+            "y_proportionate_scale": true,
+            "displacement_thickness": 0.05,
+            "base_defaults":{
+                "OPENLOCK":{
+                    "base_x": 4,
+                    "base_y": 8,
+                    "base_z": 0.2755
+                }
+            },
+            "tile_defaults":{
+                "OPENLOCK": {
+                    "tile_x": 4,
+                    "tile_y": 8,
+                    "tile_z": 4
+                }
+            }
+        }
     }
 ]

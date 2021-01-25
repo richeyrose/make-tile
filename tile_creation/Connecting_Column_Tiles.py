@@ -247,7 +247,6 @@ def initialise_column_creator(context, scene_props):
         scene_props (MakeTile.properties.MT_Scene_Properties): maketile scene properties
 
     Returns:
-        enum: enum in {'BLENDER_EEVEE', 'CYCLES', 'WORKBENCH'}
         list[3]: cursor original location
         list[3]: cursor original rotation
 

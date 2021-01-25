@@ -1,5 +1,13 @@
 import bpy
 from bpy.types import PropertyGroup
+from bpy.props import (
+    FloatVectorProperty, StringProperty,
+    EnumProperty,
+    BoolProperty,
+    FloatProperty,
+    IntProperty,
+    PointerProperty)
+
 from . enums.enums import (
     tile_blueprints,
     curve_types,
@@ -7,7 +15,9 @@ from . enums.enums import (
     units,
     openlock_column_types,
     column_socket_style,
-    collection_types)
+    collection_types,
+    roof_types)
+
 from .properties import (
     create_main_part_blueprint_enums,
     create_tile_type_enums,
@@ -16,100 +26,109 @@ from .properties import (
 # TODO rename to mt_collection_props
 
 class MT_Tile_Properties(PropertyGroup):
-    is_mt_collection: bpy.props.BoolProperty(
+    is_mt_collection: BoolProperty(
         name="Is MakeTile collection",
         default=False)
 
-    tile_name: bpy.props.StringProperty(
+    tile_name: StringProperty(
         name="Tile Name"
     )
 
-    collection_type: bpy.props.EnumProperty(
+    collection_type: EnumProperty(
         items=collection_types,
         name="Collection Types",
         description="Easy way of distinguishing whether we are dealing with a tile, an architectural element or a larger prefab such as a builing or dungeon."
     )
 
     # Tile type #
-    tile_blueprint: bpy.props.EnumProperty(
+    tile_blueprint: EnumProperty(
         items=tile_blueprints,
         name="Blueprint",
         description="Blueprint for entire tile - e.g. openLOCK or Plain")
 
-    main_part_blueprint: bpy.props.EnumProperty(
+    main_part_blueprint: EnumProperty(
         items=create_main_part_blueprint_enums,
         name="Core"
     )
 
-    base_blueprint: bpy.props.EnumProperty(
+    base_blueprint: EnumProperty(
         items=create_base_blueprint_enums,
         name="Base"
     )
 
-    tile_type: bpy.props.EnumProperty(
+    tile_type: EnumProperty(
         items=create_tile_type_enums,
         name="Type",
         description="The type of tile e.g. Straight Wall, Curved Floor"
     )
 
     # Native Subdivisions #
-    x_native_subdivisions: bpy.props.IntProperty(
+    subdivision_density: EnumProperty(
+        items=[
+            ("V_HIGH", "Very High", "", 1),
+            ("HIGH", "High", "", 2),
+            ("MEDIUM", "Medium", "", 3),
+            ("LOW", "Low", "", 4)],
+        default="MEDIUM",
+        name="Subdivision Density")
+
+    x_native_subdivisions: IntProperty(
         name="X",
         description="The number of times to subdivide the X axis on creation",
         default=15
     )
 
-    y_native_subdivisions: bpy.props.IntProperty(
+    y_native_subdivisions: IntProperty(
         name="Y",
         description="The number of times to subdivide the Y axis on creation",
         default=3
     )
 
-    z_native_subdivisions: bpy.props.IntProperty(
+    z_native_subdivisions: IntProperty(
         name="Z",
         description="The number of times to subdivide the Z axis on creation",
         default=15
     )
 
-    opposite_native_subdivisions: bpy.props.IntProperty(
+    opposite_native_subdivisions: IntProperty(
         name="Opposite Side",
         description="The number of times to subdivide the edge opposite the root angle on triangular tile creation",
         default=15
     )
 
-    curve_native_subdivisions: bpy.props.IntProperty(
+    curve_native_subdivisions: IntProperty(
         name="Curved Side",
         description="The number of times to subdivide the curved side of a tile",
         default=15
     )
 
-    leg_1_native_subdivisions: bpy.props.IntProperty(
+    leg_1_native_subdivisions: IntProperty(
         name="Leg 1",
         description="The number of times to subdivide the length of leg 1 of the tile",
         default=15
     )
 
-    leg_2_native_subdivisions: bpy.props.IntProperty(
+    leg_2_native_subdivisions: IntProperty(
         name="Leg 2",
         description="The number of times to subdivide the length of leg 2 of the tile",
         default=15
     )
 
-    width_native_subdivisions: bpy.props.IntProperty(
+    width_native_subdivisions: IntProperty(
         name="Width",
         description="The number of times to subdivide each leg along its width",
         default=3
     )
 
     # Subsurf modifier subdivisions #
-    subdivisions: bpy.props.IntProperty(
+    subdivisions: IntProperty(
         name="Subdivisions",
         description="Subsurf modifier subdivision levels",
         default=3
     )
 
     # UV smart projection correction
-    UV_island_margin: bpy.props.FloatProperty(
+    UV_island_margin: FloatProperty(
         name="UV Margin",
         default=0.012,
         min=0,
@@ -118,7 +137,7 @@ class MT_Tile_Properties(PropertyGroup):
     )
 
     # stops texture projecting beyond bounds of vert group
-    texture_margin: bpy.props.FloatProperty(
+    texture_margin: FloatProperty(
         name="Texture Margin",
         description="Margin around displacement texture. Used for correcting distortion",
         default=0.001,
@@ -129,79 +148,106 @@ class MT_Tile_Properties(PropertyGroup):
 
     # used for where it makes sense to set displacement thickness directly rather than
     # as an offset between base and core. e.g. connecting columns
-    displacement_thickness: bpy.props.FloatProperty(
+    displacement_thickness: FloatProperty(
         name="Displacement Thickness",
         description="Thickness of displacement texture.",
         default=0.05
     )
 
     # Dimensions #
-    tile_size: bpy.props.FloatVectorProperty(
+    tile_size: FloatVectorProperty(
         name="Tile Size"
     )
 
-    base_size: bpy.props.FloatVectorProperty(
+    base_size: FloatVectorProperty(
         name="Base size"
     )
 
-    base_radius: bpy.props.FloatProperty(
+    base_radius: FloatProperty(
         name="Base Radius"
     )
 
-    wall_radius: bpy.props.FloatProperty(
+    wall_radius: FloatProperty(
         name="Wall Radius"
     )
 
-    base_socket_side: bpy.props.EnumProperty(
+    base_socket_side: EnumProperty(
         name="Socket Side",
         items=base_socket_side
     )
 
-    degrees_of_arc: bpy.props.FloatProperty(
+    degrees_of_arc: FloatProperty(
         name="Degrees of Arc"
     )
 
-    angle: bpy.props.FloatProperty(
+    angle: FloatProperty(
         name="Angle"
     )
 
-    leg_1_len: bpy.props.FloatProperty(
+    leg_1_len: FloatProperty(
         name="Leg 1 Length"
     )
 
-    leg_2_len: bpy.props.FloatProperty(
+    leg_2_len: FloatProperty(
         name="Leg 2 Length"
     )
 
-    curve_type: bpy.props.EnumProperty(
+    curve_type: EnumProperty(
         name="Curve Type",
         items=curve_types
     )
 
-    column_type: bpy.props.EnumProperty(
+    column_type: EnumProperty(
         items=openlock_column_types,
         name="Column type"
     )
 
-    column_socket_style: bpy.props.EnumProperty(
+    column_socket_style: EnumProperty(
         name="Socket Style",
         items=column_socket_style,
         default="TEXTURED"
     )
 
-    tile_units: bpy.props.EnumProperty(
+    tile_units: EnumProperty(
         name="Tile Units",
         items=units
     )
 
-    tile_resolution: bpy.props.IntProperty(
+    tile_resolution: IntProperty(
         name="Tile Resolution"
     )
 
+    # Roof Specific
+    roof_type: EnumProperty(
+        name="Roof Type",
+        items=roof_types,
+        default="APEX"
+    )
+
+    end_eaves_pos: FloatProperty(
+        name="End Eaves Positive",
+        default=0,
+        step=0.1,
+        min=0
+    )
+
+    end_eaves_neg: FloatProperty(
+        name="End Eaves Negative",
+        default=0,
+        step=0.1,
+        min=0
+    )
+
+    side_eaves: FloatProperty(
+        name="Side Eaves",
+        default=0.2,
+        step=0.1,
+        min=0
+    )
 
 def register():
     # Property group that contains properties relating to a tile stored on the tile collection
-    bpy.types.Collection.mt_tile_props = bpy.props.PointerProperty(
+    bpy.types.Collection.mt_tile_props = PointerProperty(
         type=MT_Tile_Properties
     )
 

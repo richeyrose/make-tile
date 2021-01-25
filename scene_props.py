@@ -14,7 +14,8 @@ from .enums.enums import (
     units,
     material_mapping,
     openlock_column_types,
-    column_socket_style)
+    column_socket_style,
+    roof_types)
 from .properties import (
     create_main_part_blueprint_enums,
     create_tile_type_enums,
@@ -306,6 +307,15 @@ class MT_Scene_Properties(PropertyGroup):
     )
 
     # Native Subdivisions #
+    subdivision_density: EnumProperty(
+        items=[
+            ("V_HIGH", "Very High", "", 1),
+            ("HIGH", "High", "", 2),
+            ("MEDIUM", "Medium", "", 3),
+            ("LOW", "Low", "", 4)],
+        default="MEDIUM",
+        name="Subdivision Density")
+
     x_native_subdivisions: IntProperty(
         name="X",
         description="The number of times to subdivide the X axis on creation",
@@ -553,6 +563,34 @@ class MT_Scene_Properties(PropertyGroup):
         description="Whether to have texture on the sides with sockets."
     )
 
+    # Roof specific
+    roof_type: EnumProperty(
+        name="Roof Type",
+        items=roof_types,
+        default="APEX"
+    )
+
+    end_eaves_pos: FloatProperty(
+        name="End Eaves Positive",
+        default=0,
+        step=0.1,
+        min=0
+    )
+
+    end_eaves_neg: FloatProperty(
+        name="End Eaves Negative",
+        default=0,
+        step=0.1,
+        min=0
+    )
+
+    side_eaves: FloatProperty(
+        name="Side Eaves",
+        default=0.1,
+        step=0.1,
+        min=0
+    )
+
     # TODO: Fix hack to make 360 curved wall work. Ideally this should merge everything
     degrees_of_arc: FloatProperty(
         name="Degrees of arc",
@@ -644,42 +682,42 @@ class MT_Scene_Properties(PropertyGroup):
         description="Whether to add (Union) or subtract (Difference) object from tile.")
 
     # Exporter properties
-    num_variants: bpy.props.IntProperty(
+    num_variants: IntProperty(
         name="Variants",
         description="Number of variants of tile to export",
         default=1
     )
 
-    randomise_on_export: bpy.props.BoolProperty(
+    randomise_on_export: BoolProperty(
         name="Randomise",
         description="Create random variant on export?",
         default=True
     )
 
-    voxelise_on_export: bpy.props.BoolProperty(
+    voxelise_on_export: BoolProperty(
         name="Voxelise",
         default=True
     )
 
-    decimate_on_export: bpy.props.BoolProperty(
+    decimate_on_export: BoolProperty(
         name="Decimate",
         default=False
     )
 
-    export_units: bpy.props.EnumProperty(
+    export_units: EnumProperty(
         name="Units",
         items=units,
         description="Export units",
         default='INCHES'
     )
 
-    fix_non_manifold: bpy.props.BoolProperty(
+    fix_non_manifold: BoolProperty(
         name="Fix non-manifold",
         description="Attempt to fix geometry errors",
         default=True
     )
 
-    export_subdivs: bpy.props.IntProperty(
+    export_subdivs: IntProperty(
         name="Export Subdivisions",
         description="Subdivision levels of exported tile",
         default=3

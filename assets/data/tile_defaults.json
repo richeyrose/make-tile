@@ -751,24 +751,22 @@
             "main_part_blueprint": "OPENLOCK",
             "roof_type": "APEX",
             "subdivision_density": "MEDIUM",
-            "end_eaves_pos": 0,
-            "end_eaves_neg": 0,
+            "end_eaves_pos": 0.1,
+            "end_eaves_neg": 0.1,
             "side_eaves": 0.2,
-            "x_proportionate_scale": true,
-            "y_proportionate_scale": true,
             "displacement_thickness": 0.05,
             "base_defaults":{
                 "OPENLOCK":{
-                    "base_x": 4,
-                    "base_y": 8,
+                    "base_x": 4.0,
+                    "base_y": 8.0,
                     "base_z": 0.2755
                 }
             },
             "tile_defaults":{
                 "OPENLOCK": {
-                    "tile_x": 4,
-                    "tile_y": 8,
-                    "tile_z": 4
+                    "tile_x": 0.32,
+                    "tile_y": 0.32,
+                    "tile_z": 4.0
                 }
             }
         }

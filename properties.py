@@ -56,6 +56,14 @@ def create_tile_type_enums(self, context):
 
 
 def create_main_part_blueprint_enums(self, context):
+    """Dynamically creates a list of enum items depending on what is set in the tile_type defaults.
+
+    Args:
+        context (bpy.Context): scene context
+
+    Returns:
+        list[enum_item]: list of enum items
+    """
     enum_items = []
     scene = context.scene
     scene_props = scene.mt_scene_props

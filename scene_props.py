@@ -566,7 +566,7 @@ class MT_Scene_Properties(PropertyGroup):
     curve_texture: BoolProperty(
         name="Curve Texture",
         description="Setting this to true will make the texture follow the curve of the tile. Useful for decorative elements, borders etc.",
-        default=True,
+        default=False,
         update=update_curve_texture
     )
 
@@ -591,6 +591,13 @@ class MT_Scene_Properties(PropertyGroup):
         default="APEX"
     )
 
+    roof_pitch: FloatProperty(
+        name="Roof Pitch",
+        default=45,
+        step=1,
+        min=0
+    )
+
     end_eaves_pos: FloatProperty(
         name="End Eaves Positive",
         default=0,
@@ -611,6 +618,36 @@ class MT_Scene_Properties(PropertyGroup):
         step=0.1,
         min=0
     )
+
+    roof_thickness: FloatProperty(
+        name="Roof Thickness",
+        default=0.1,
+        step=0.05,
+        min=0
+    )
+
+    inset_dist: FloatProperty(
+        name="Inset Distance",
+        description="Distance core is usually inset from the base of a wall",
+        default=0.09,
+        min=0
+    )
+
+    inset_x_neg: BoolProperty(
+        name="Inset X Neg",
+        default=True)
+
+    inset_x_pos: BoolProperty(
+        name="Inset X Pos",
+        default=True)
+
+    inset_y_neg: BoolProperty(
+        name="Inset Y Neg",
+        default=True)
+
+    inset_y_pos: BoolProperty(
+        name="Inset Y Pos",
+        default=True)
 
     # TODO: Fix hack to make 360 curved wall work. Ideally this should merge everything
     degrees_of_arc: FloatProperty(

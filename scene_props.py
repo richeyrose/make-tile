@@ -249,7 +249,7 @@ def update_curve_texture(self, context):
 
     try:
         mod = obj.modifiers['Simple_Deform']
-        if mod.show_render == True:
+        if mod.show_render:
             mod.show_render = False
         else:
             mod.show_render = True

@@ -1,5 +1,10 @@
 # Release Notes
 
+## 0.0.21 ###
+
+**Curve Texture** option on curved floor tiles is now set to False by default so when you make a curved floor tile 3D the texture will be the same as the preview.
+
+
 ## 0.0.20 Hotfix 1 ##
 Fixed a bug in curved tile base creation where OpenLOCK sockets weren't appearing in the right place for tile wider than 0.5 inches
 

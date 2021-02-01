@@ -1,7 +1,8 @@
-from math import inf, tan, radians
+from math import inf, tan, radians, acos, pi
 import bmesh
 import bpy
 from mathutils import Vector, geometry
+from mathutils.bvhtree import BVHTree
 from ..utils.selection import in_bbox
 
 
@@ -46,6 +47,33 @@ def select_verts_in_bounds(lbound, ubound, buffer, bm):
         vert.select = select
 
     return [v for v in bm.verts if v.select]
+
+
+def points_are_inside_bmesh(coords, bm, margin=0.0001, tolerance=0.02):
+    """Test whether points are inside an arbitrary manifold bmesh.
+
+    Args:
+        coords list[Vector / tuples /list]: a list of vectors (can also be tuples/lists)
+        bm (bMesh): a manifold bmesh with verts and (edge/faces) for which the normals are calculated already. (add bm.normal_update() otherwise)
+    Returns:
+        list[bool]: a mask list with True if the point is inside the bmesh, False otherwise
+    """
+    coord_mask = []
+    addp = coord_mask.append
+    bvh = BVHTree.FromBMesh(bm, epsilon=0.001)
+
+    # return points on polygons
+    for co in coords:
+        fco, normal, _, _ = bvh.find_nearest(co)
+        p2 = fco - Vector(co)
+        v = p2.dot(normal)
+        # angle = acos(min(max(v, -1), 1)) * 180 / pi
+        # addp(angle > 90 + tolerance)
+        # addp(not v < 0.0)  # addp(v >= 0.0) ?
+        # addp(v >= 0.0)
+        addp(v >= 0.0)
+
+    return coord_mask
 
 
 def assign_verts_to_group(verts, obj, deform_groups, group_name):

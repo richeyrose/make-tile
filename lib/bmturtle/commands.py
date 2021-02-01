@@ -155,6 +155,52 @@ def lf(bm, distance, del_original=True):
     extrude_translate(bm, (-distance, 0.0, 0.0), del_original)
 
 
+def ylf(degrees):
+    """Yaw Left.
+    Rotates the turtlke around the y axis.
+
+    Args:
+        degrees ([type]): [description]
+    """
+    yri(-degrees)
+
+
+def yri(degrees):
+    """Yaw Right.
+    Rotates the turtle around the y axis.
+
+    Args:
+        degrees ([type]): [description]
+    """
+    turtle = bpy.context.scene.cursor
+    turtle.rotation_euler = (
+        turtle.rotation_euler[0],
+        turtle.rotation_euler[1] + radians(degrees),
+        turtle.rotation_euler[2])
+
+
+def ptu(degrees):
+    """Pitch Up.
+    Rotates the turtle around the X axis.
+
+    Args:
+        degrees (float): degrees
+    """
+    turtle = bpy.context.scene.cursor
+    turtle.rotation_euler = (
+        turtle.rotation_euler[0] + radians(degrees),
+        turtle.rotation_euler[1],
+        turtle.rotation_euler[2])
+
+def ptd(degrees):
+    """Pitch Up.
+    Rotates the turtle around the Y axis.
+
+    Args:
+        degrees (float): degrees
+    """
+    ptu(-degrees)
+
 def lt(degrees):
     """Left turn.
     Rotates the turtle left around its Z axis
@@ -171,7 +217,7 @@ def lt(degrees):
 
 def rt(degrees):
     """Right turn.
-    Rotates the tortle right around its Z axis
+    Rotates the turtle right around its Z axis
 
     Args:
         degrees (float): degrees

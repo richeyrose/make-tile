@@ -1,5 +1,10 @@
 # Release Notes
 
+## 0.0.21 ##
+
+### Gridify Material ###
+You can now take any MakeTile material and overlay a grid onto it. Simply select an object with a MakeTile material on it, select the material in the **Materials** sub panel of the MakeTile menu and then at the bottom of the **Material Options** sub panel you will find a new **Gridify** button. CLick this and a grid will be overlaid on your material. By default this is a 1 x 1 grid, but the scale, rotation and location can be adjusted in the **Material Options** sub panel. To remove the grid simply click the **Ungridify** button.
+
 ## 0.0.20 Hotfix 1 ##
 Fixed a bug in curved tile base creation where OpenLOCK sockets weren't appearing in the right place for tile wider than 0.5 inches
 

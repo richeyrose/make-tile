@@ -125,7 +125,7 @@ class MT_OT_Gridify(bpy.types.Operator):
         # create input nodes to control grid properties
         input_nodes = []
         i = 0
-        while i < 10:
+        while i < 11:
             input_nodes.append(tree.nodes.new('ShaderNodeValue'))
             i += 1
 
@@ -171,11 +171,12 @@ class MT_OT_Gridify(bpy.types.Operator):
             j += 1
 
         # scale
-        node_names = ['scale_x', 'scale_y', 'scale_z']
+        node_labels = ['Scale', 'X', 'Y', 'Z']
+        node_names = ['scale', 'scale_x', 'scale_y', 'scale_z']
 
         i = 7
         j = 0
-        while i < 10:
+        while i < 11:
             node = input_nodes[i]
             node.name = node_names[j]
             node.label = node_labels[j]

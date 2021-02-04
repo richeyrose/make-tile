@@ -61,24 +61,20 @@ def recreate_properties_on_undo(dummy):
 
 @persistent
 def update_mt_scene_props_handler(dummy):
+    """Updates mt_scene_props based on mt_tile_props of selected object.
+
+    This means that when the user selects an existing tile they can easily
+    create one with the same properties.
+    """
     context = bpy.context
-    scene = context.scene
-    if not hasattr(scene, 'mt_scene_props'):
-        return
-    scene_props = scene.mt_scene_props
-    if not hasattr(context, 'object'):
-        return
     obj = context.object
-    if not hasattr(obj, 'mt_object_props'):
-        return
+    scene_props = context.scene.mt_scene_props
+
+    try:
     obj_props = obj.mt_object_props
+        tile_props = bpy.data.collections[obj.mt_object_props.tile_name].mt_tile_props
 
-    if obj in context.selected_objects:
         if obj != scene_props.mt_last_selected and not obj_props.is_converted and obj_props.is_mt_object:
-            tile_name = obj_props.tile_name
-            try:
-                tile_props = bpy.data.collections[tile_name].mt_tile_props
-
                 scene_props.mt_last_selected = obj
 
                 scene_props.tile_x = tile_props.tile_size[0]
@@ -95,6 +91,8 @@ def update_mt_scene_props_handler(dummy):
                             scene_props[k] = value
             except KeyError:
                 pass
+    except AttributeError:
+        pass
 
 
 def create_properties():

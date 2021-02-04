@@ -71,26 +71,26 @@ def update_mt_scene_props_handler(dummy):
     scene_props = context.scene.mt_scene_props
 
     try:
-    obj_props = obj.mt_object_props
+        obj_props = obj.mt_object_props
         tile_props = bpy.data.collections[obj.mt_object_props.tile_name].mt_tile_props
 
         if obj != scene_props.mt_last_selected and not obj_props.is_converted and obj_props.is_mt_object:
-                scene_props.mt_last_selected = obj
+            scene_props.mt_last_selected = obj
 
-                scene_props.tile_x = tile_props.tile_size[0]
-                scene_props.tile_y = tile_props.tile_size[1]
-                scene_props.tile_z = tile_props.tile_size[2]
+            scene_props.tile_x = tile_props.tile_size[0]
+            scene_props.tile_y = tile_props.tile_size[1]
+            scene_props.tile_z = tile_props.tile_size[2]
 
-                scene_props.base_x = tile_props.base_size[0]
-                scene_props.base_y = tile_props.base_size[1]
-                scene_props.base_z = tile_props.base_size[2]
+            scene_props.base_x = tile_props.base_size[0]
+            scene_props.base_y = tile_props.base_size[1]
+            scene_props.base_z = tile_props.base_size[2]
 
-                for key, value in tile_props.items():
-                    for k in scene_props.keys():
-                        if k == key:
-                            scene_props[k] = value
-            except KeyError:
-                pass
+            for key, value in tile_props.items():
+                for k in scene_props.keys():
+                    if k == key:
+                        scene_props[k] = value
+    except KeyError:
+        pass
     except AttributeError:
         pass
 

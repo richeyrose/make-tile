@@ -103,6 +103,8 @@ class MT_PT_Material_Options_Panel(Panel):
                     node = nodes[name]
                     layout.prop(node.outputs['Value'], 'default_value', text=node.label)
 
+        layout.operator('material.gridify')
+        layout.operator('material.ungridify')
 
 class MT_PT_Material_Mapping_Options_Panel(Panel):
     bl_order = 8

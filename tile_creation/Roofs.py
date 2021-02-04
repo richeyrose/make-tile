@@ -649,6 +649,10 @@ def draw_apex_base(context, margin=0.001):
 
     base_dims = [s for s in tile_props.base_size]
 
+    # Roof generator breaks if base height is less than this.
+
+    if base_dims[2] < 0.002:
+        base_dims[2] = 0.002
     # correct for inset (difference between standard base width and wall width) to take into account
     # displacement materials
     if roof_tile_props.inset_x_neg:
@@ -689,6 +693,10 @@ def draw_apex_base(context, margin=0.001):
         z = floor(base_dims[2] * 32)
 
     subdivs = [x, y, z]
+
+    for index, value in enumerate(subdivs):
+        if value == 0:
+            subdivs[index] = 1
 
     vert_groups = ['Base Left', 'Base Right', 'Gable Front', 'Gable Back', 'Bottom', 'Top']
     bm, obj = create_turtle('Base', vert_groups)
@@ -733,6 +741,7 @@ def draw_apex_base(context, margin=0.001):
     up(bm, margin)
 
     bm_deselect_all(bm)
+
     bm.select_mode = {'VERT'}
 
     pd(bm)
@@ -781,7 +790,10 @@ def draw_apex_base(context, margin=0.001):
     bm_deselect_all(bm)
     home(obj)
 
+    # slice mesh to create margins
     turtle.location = draw_origin
+
+    # base left
     plane = (
         turtle.location[0] + margin,
         turtle.location[1],
@@ -789,6 +801,7 @@ def draw_apex_base(context, margin=0.001):
 
     bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=margin / 4, plane_co=plane, plane_no=(1, 0, 0))
 
+    # base right
     plane = (
         turtle.location[0] + base_dims[0] - margin,
         turtle.location[1],
@@ -796,6 +809,7 @@ def draw_apex_base(context, margin=0.001):
 
     bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=margin / 4, plane_co=plane, plane_no=(1, 0, 0))
 
+    # roof left
     v1 = (
         turtle.location[0],
         turtle.location[1],
@@ -818,6 +832,7 @@ def draw_apex_base(context, margin=0.001):
 
     bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=margin / 4, plane_co=plane, plane_no=norm)
 
+    # roof right
     v1 = (
         turtle.location[0] + base_dims[0],
         turtle.location[1],

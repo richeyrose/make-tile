@@ -5,6 +5,8 @@ import bmesh
 from mathutils import Vector, kdtree, geometry
 import bpy
 
+from bpy.app.handlers import persistent
+
 from bpy.types import Operator, Panel
 from .. utils.registration import get_prefs
 from .. lib.utils.collections import (
@@ -66,6 +68,7 @@ from bpy.props import (
 
 from ..enums.enums import (
     roof_types)
+
 
 class MT_PT_Roof_Panel(Panel):
     """Draw a tile options panel in UI."""
@@ -140,6 +143,7 @@ def initialise_roof_creator(context):
 
     create_common_tile_props(scene_props, tile_props, tile_collection)
 
+    roof_tile_props.is_roof = True
     roof_tile_props.roof_type = roof_scene_props.roof_type
     roof_tile_props.roof_pitch = roof_scene_props.roof_pitch
     roof_tile_props.end_eaves_pos = roof_scene_props.end_eaves_pos
@@ -1023,6 +1027,11 @@ class MT_OT_Make_Empty_Roof_Top(MT_Tile_Generator, Operator):
 
 class MT_Roof_Scene_Properties(PropertyGroup):
     # Roof specific
+    last_selected: PointerProperty(
+        name="Last Selected Object",
+        type=bpy.types.Object
+    )
+
     roof_type: EnumProperty(
         name="Roof Type",
         items=roof_types,
@@ -1089,6 +1098,10 @@ class MT_Roof_Scene_Properties(PropertyGroup):
 
 class MT_Roof_Tile_Properties(PropertyGroup):
     # Roof specific
+    is_roof: BoolProperty(
+        default=False
+    )
+
     roof_type: EnumProperty(
         name="Roof Type",
         items=roof_types,
@@ -1152,6 +1165,31 @@ class MT_Roof_Tile_Properties(PropertyGroup):
     inset_y_pos: BoolProperty(
         name="Inset Y Pos",
         default=True)
+
+@persistent
+def update_mt_roof_scene_props_handler(dummy):
+    """Check to see if we have a MakeTile roof object selected and updates mt_roof_scene_props based on its mt_roof_tile_props."""
+    context = bpy.context
+    obj = context.object
+
+    roof_scene_props = context.scene.mt_roof_scene_props
+
+    try:
+        roof_tile_props = bpy.data.collections[obj.mt_object_props.tile_name].mt_roof_tile_props
+
+        if obj != roof_scene_props.last_selected and roof_tile_props.is_roof:
+            roof_scene_props.last_selected = obj
+
+            for key, value in roof_tile_props.items():
+                for k in roof_scene_props.keys():
+                    if k == key:
+                        roof_scene_props[k] = value
+    except KeyError:
+        pass
+    except AttributeError:
+        pass
+
+bpy.app.handlers.depsgraph_update_post.append(update_mt_roof_scene_props_handler)
 
 def register():
     # Property group that contains properties set in UI

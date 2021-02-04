@@ -54,6 +54,19 @@ from ..lib.bmturtle.helpers import (
     select_verts_in_bounds,
     points_are_inside_bmesh)
 
+from bpy.types import PropertyGroup
+
+from bpy.props import (
+    StringProperty,
+    EnumProperty,
+    BoolProperty,
+    FloatProperty,
+    IntProperty,
+    PointerProperty)
+
+from ..enums.enums import (
+    roof_types)
+
 class MT_PT_Roof_Panel(Panel):
     """Draw a tile options panel in UI."""
 
@@ -76,13 +89,18 @@ class MT_PT_Roof_Panel(Panel):
         """Draw the Panel."""
         scene = context.scene
         scene_props = scene.mt_scene_props
+        roof_props = scene.mt_roof_scene_props
+
         layout = self.layout
 
         layout.label(text="Blueprints")
 
-        layout.prop(scene_props, 'roof_type', text="Roof Type")
+        layout.prop(roof_props, 'roof_type', text="Roof Type")
+
+        layout.label(text="Socket Types")
         layout.prop(scene_props, 'base_blueprint')
         layout.prop(scene_props, 'main_part_blueprint', text="Gable")
+
 
         layout.label(text="Roof Footprint")
         row = layout.row()
@@ -91,23 +109,26 @@ class MT_PT_Roof_Panel(Panel):
 
         layout.label(text="Roof Properties")
         layout.prop(scene_props, 'base_z', text="Base Height")
-        layout.prop(scene_props, 'roof_pitch', text="Roof Pitch")
-        layout.prop(scene_props, 'end_eaves_pos', text="Positive End Eaves")
-        layout.prop(scene_props, 'end_eaves_neg', text="Negative End Eaves")
-        layout.prop(scene_props, 'side_eaves', text="Side Eaves")
+        layout.prop(roof_props, 'roof_pitch', text="Roof Pitch")
+        layout.prop(roof_props, 'end_eaves_pos', text="Positive End Eaves")
+        layout.prop(roof_props, 'end_eaves_neg', text="Negative End Eaves")
+        layout.prop(roof_props, 'side_eaves', text="Side Eaves")
         layout.prop(scene_props, 'subdivision_density', text="Subdivision Density")
 
         layout.label(text="Wall Inset Correction")
-        layout.prop(scene_props, 'inset_dist', text="Inset Distance")
+        layout.prop(roof_props, 'inset_dist', text="Inset Distance")
         row = layout.row()
-        row.prop(scene_props, 'inset_x_neg', text="X Neg")
-        row.prop(scene_props, 'inset_x_pos', text="X Pos")
-        row.prop(scene_props, 'inset_y_neg', text="Y Neg")
-        row.prop(scene_props, 'inset_y_pos', text="Y Pos")
+        row.prop(roof_props, 'inset_x_neg', text="X Neg")
+        row.prop(roof_props, 'inset_x_pos', text="X Pos")
+        row.prop(roof_props, 'inset_y_neg', text="Y Neg")
+        row.prop(roof_props, 'inset_y_pos', text="Y Pos")
 
         layout.operator('scene.reset_tile_defaults')
 
-def initialise_roof_creator(context, scene_props):
+def initialise_roof_creator(context):
+    scene_props = context.scene.mt_scene_props
+    roof_scene_props = context.scene.mt_roof_scene_props
+
     tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator(context)
     create_collection('Roofs', tiles_collection)
     tile_collection = bpy.data.collections.new(tile_name)
@@ -115,19 +136,21 @@ def initialise_roof_creator(context, scene_props):
     activate_collection(tile_collection.name)
 
     tile_props = tile_collection.mt_tile_props
+    roof_tile_props = tile_collection.mt_roof_tile_props
+
     create_common_tile_props(scene_props, tile_props, tile_collection)
 
-    tile_props.roof_type = scene_props.roof_type
-    tile_props.roof_pitch = scene_props.roof_pitch
-    tile_props.end_eaves_pos = scene_props.end_eaves_pos
-    tile_props.end_eaves_neg = scene_props.end_eaves_neg
-    tile_props.side_eaves = scene_props.side_eaves
-    tile_props.roof_thickness = scene_props.roof_thickness
-    tile_props.inset_dist = scene_props.inset_dist
-    tile_props.inset_x_neg = scene_props.inset_x_neg
-    tile_props.inset_x_pos = scene_props.inset_x_pos
-    tile_props.inset_y_neg = scene_props.inset_y_neg
-    tile_props.inset_y_pos = scene_props.inset_y_pos
+    roof_tile_props.roof_type = roof_scene_props.roof_type
+    roof_tile_props.roof_pitch = roof_scene_props.roof_pitch
+    roof_tile_props.end_eaves_pos = roof_scene_props.end_eaves_pos
+    roof_tile_props.end_eaves_neg = roof_scene_props.end_eaves_neg
+    roof_tile_props.side_eaves = roof_scene_props.side_eaves
+    roof_tile_props.roof_thickness = roof_scene_props.roof_thickness
+    roof_tile_props.inset_dist = roof_scene_props.inset_dist
+    roof_tile_props.inset_x_neg = roof_scene_props.inset_x_neg
+    roof_tile_props.inset_x_pos = roof_scene_props.inset_x_pos
+    roof_tile_props.inset_y_neg = roof_scene_props.inset_y_neg
+    roof_tile_props.inset_y_pos = roof_scene_props.inset_y_pos
 
     tile_props.tile_type = 'ROOF'
 
@@ -156,8 +179,7 @@ class MT_OT_Make_Roof(MT_Tile_Generator, Operator):
         gable_blueprint = scene_props.main_part_blueprint
 
         cursor_orig_loc, cursor_orig_rot = initialise_roof_creator(
-            context,
-            scene_props)
+            context)
 
         subclasses = get_all_subclasses(MT_Tile_Generator)
 
@@ -291,23 +313,24 @@ def draw_apex_roof_top(context, margin=0.001):
     turtle = context.scene.cursor
     tile = context.collection
     tile_props = tile.mt_tile_props
+    roof_tile_props = tile.mt_roof_tile_props
 
     base_dims = [s for s in tile_props.base_size]
 
     # correct for inset (difference between standard base width and wall width) to take into account
     # displacement materials
-    if tile_props.inset_x_neg:
-        base_dims[0] = base_dims[0] - tile_props.inset_dist
-    if tile_props.inset_x_pos:
-        base_dims[0] = base_dims[0] - tile_props.inset_dist
-    if tile_props.inset_y_neg:
-        base_dims[1] = base_dims[1] - tile_props.inset_dist
-    if tile_props.inset_y_pos:
-        base_dims[1] = base_dims[1] - tile_props.inset_dist
+    if roof_tile_props.inset_x_neg:
+        base_dims[0] = base_dims[0] - roof_tile_props.inset_dist
+    if roof_tile_props.inset_x_pos:
+        base_dims[0] = base_dims[0] - roof_tile_props.inset_dist
+    if roof_tile_props.inset_y_neg:
+        base_dims[1] = base_dims[1] - roof_tile_props.inset_dist
+    if roof_tile_props.inset_y_pos:
+        base_dims[1] = base_dims[1] - roof_tile_props.inset_dist
 
     # calculate triangle
     C = 90
-    A = tile_props.roof_pitch
+    A = roof_tile_props.roof_pitch
     B = 180 - C - A
     b = base_dims[0] / 2
     a = tan(radians(A)) * b
@@ -329,9 +352,9 @@ def draw_apex_roof_top(context, margin=0.001):
     #       |_|_\A
     #      C  b
 
-    a = base_tri['a'] + tile_props.side_eaves
+    a = base_tri['a'] + roof_tile_props.side_eaves
     C = 90
-    A = tile_props.roof_pitch
+    A = roof_tile_props.roof_pitch
     B = 180 - 90 - A
     b = a / tan(radians(A))
     c = sqrt(a**2 + b**2)
@@ -352,9 +375,9 @@ def draw_apex_roof_top(context, margin=0.001):
     #    /___|
     #   A  b  C
     C = 90
-    B = tile_props.roof_pitch / 2
+    B = roof_tile_props.roof_pitch / 2
     A = 180 - 90 - B
-    b = tile_props.roof_thickness
+    b = roof_tile_props.roof_thickness
     a = tan(radians(A)) * b
     c = sqrt(a**2 + b**2)
 
@@ -368,9 +391,9 @@ def draw_apex_roof_top(context, margin=0.001):
 
     # calculate size of eave end triangle based on roof thickness
     C = 90
-    A = tile_props.roof_pitch
+    A = roof_tile_props.roof_pitch
     B = 180 - C - A
-    a = tile_props.roof_thickness
+    a = roof_tile_props.roof_thickness
     b = a / tan(radians(A))
     c = sqrt(a**2 + b**2)
 
@@ -391,7 +414,7 @@ def draw_apex_roof_top(context, margin=0.001):
     #      C  b
 
     C = 90
-    A = tile_props.roof_pitch
+    A = roof_tile_props.roof_pitch
     B = 180 - A - C
     b = inner_tri['b'] + eave_end_tri['c']
     a = tan(radians(A)) * b
@@ -437,18 +460,18 @@ def draw_apex_roof_top(context, margin=0.001):
 
     # start
     # check to see if we're correcting for wall thickness
-    if tile_props.inset_x_neg:
-        ri(bm, tile_props.inset_dist)
-    if tile_props.inset_y_pos:
-        fd(bm, tile_props.inset_dist)
+    if roof_tile_props.inset_x_neg:
+        ri(bm, roof_tile_props.inset_dist)
+    if roof_tile_props.inset_y_pos:
+        fd(bm, roof_tile_props.inset_dist)
 
     # draw gable end edges
     draw_origin = turtle.location.copy()
 
-    bk(bm, tile_props.end_eaves_neg)
+    bk(bm, roof_tile_props.end_eaves_neg)
     ri(bm, base_dims[0] / 2)
     lf(bm, inner_tri['b'])
-    up(bm, base_dims[2] - tile_props.side_eaves)
+    up(bm, base_dims[2] - roof_tile_props.side_eaves)
 
     draw_origin = turtle.location.copy()
 
@@ -524,7 +547,7 @@ def draw_apex_roof_top(context, margin=0.001):
     bm_select_all(bm)
 
     fd(bm, margin, del_original=False)
-    subdiv_y_dist = (base_dims[1] - (margin * 2) + tile_props.end_eaves_neg + tile_props.end_eaves_pos) / (subdivs[1] - 1)
+    subdiv_y_dist = (base_dims[1] - (margin * 2) + roof_tile_props.end_eaves_neg + roof_tile_props.end_eaves_pos) / (subdivs[1] - 1)
 
     i = 1
     while i < subdivs[1]:
@@ -552,7 +575,7 @@ def draw_apex_roof_top(context, margin=0.001):
     left_bm.select_mode = {'FACE'}
     turtle.rotation_euler = (0, 0, 0)
     bm_select_all(left_bm)
-    fd(left_bm, base_dims[1] + tile_props.end_eaves_neg + tile_props.end_eaves_pos + margin * 4, False)
+    fd(left_bm, base_dims[1] + roof_tile_props.end_eaves_neg + roof_tile_props.end_eaves_pos + margin * 4, False)
     bmesh.ops.recalc_face_normals(left_bm, faces=left_bm.faces)
 
     # select all points inside left_bm
@@ -563,7 +586,7 @@ def draw_apex_roof_top(context, margin=0.001):
         if vert.co[0] < apex_loc[0] + margin and \
             vert.co[2] > draw_origin[2] + margin / 4 and \
                 vert.co[1] > draw_origin[1] + margin / 4 and \
-                    vert.co[1] < draw_origin[1] + base_dims[1] + tile_props.end_eaves_neg + tile_props.end_eaves_pos - (margin / 4):
+                    vert.co[1] < draw_origin[1] + base_dims[1] + roof_tile_props.end_eaves_neg + roof_tile_props.end_eaves_pos - (margin / 4):
                     vert.select = select
 
     left_verts = [v for v in bm.verts if v.select]
@@ -596,7 +619,7 @@ def draw_apex_roof_top(context, margin=0.001):
         if vert.co[0] > apex_loc[0] - margin and \
             vert.co[2] > draw_origin[2] + margin / 4 and \
                 vert.co[1] > draw_origin[1] + margin / 4 and \
-                    vert.co[1] < draw_origin[1] + base_dims[1] + tile_props.end_eaves_neg + tile_props.end_eaves_pos - (margin / 4):
+                    vert.co[1] < draw_origin[1] + base_dims[1] + roof_tile_props.end_eaves_neg + roof_tile_props.end_eaves_pos - (margin / 4):
                     vert.select = select
 
     right_verts = [v for v in bm.verts if v.select]
@@ -622,23 +645,24 @@ def draw_apex_base(context, margin=0.001):
     turtle = context.scene.cursor
     tile = context.collection
     tile_props = tile.mt_tile_props
+    roof_tile_props = tile.mt_roof_tile_props
 
     base_dims = [s for s in tile_props.base_size]
 
     # correct for inset (difference between standard base width and wall width) to take into account
     # displacement materials
-    if tile_props.inset_x_neg:
-        base_dims[0] = base_dims[0] - tile_props.inset_dist
-    if tile_props.inset_x_pos:
-        base_dims[0] = base_dims[0] - tile_props.inset_dist
-    if tile_props.inset_y_neg:
-        base_dims[1] = base_dims[1] - tile_props.inset_dist
-    if tile_props.inset_y_pos:
-        base_dims[1] = base_dims[1] - tile_props.inset_dist
+    if roof_tile_props.inset_x_neg:
+        base_dims[0] = base_dims[0] - roof_tile_props.inset_dist
+    if roof_tile_props.inset_x_pos:
+        base_dims[0] = base_dims[0] - roof_tile_props.inset_dist
+    if roof_tile_props.inset_y_neg:
+        base_dims[1] = base_dims[1] - roof_tile_props.inset_dist
+    if roof_tile_props.inset_y_pos:
+        base_dims[1] = base_dims[1] - roof_tile_props.inset_dist
 
     # Calculate triangle
     C = 90
-    A = tile_props.roof_pitch
+    A = roof_tile_props.roof_pitch
     B = 180 - C - A
     b = base_dims[0] / 2
     a = tan(radians(A)) * b
@@ -677,10 +701,10 @@ def draw_apex_base(context, margin=0.001):
     # start
 
     # check to see if we're correcting for wall thickness
-    if tile_props.inset_x_neg:
-        ri(bm, tile_props.inset_dist)
-    if tile_props.inset_y_pos:
-        fd(bm, tile_props.inset_dist)
+    if roof_tile_props.inset_x_neg:
+        ri(bm, roof_tile_props.inset_dist)
+    if roof_tile_props.inset_y_pos:
+        fd(bm, roof_tile_props.inset_dist)
 
     draw_origin = turtle.location.copy()
 
@@ -982,3 +1006,146 @@ class MT_OT_Make_Empty_Roof_Top(MT_Tile_Generator, Operator):
         """Execute the operator."""
         return{'PASS_THROUGH'}
 
+class MT_Roof_Scene_Properties(PropertyGroup):
+    # Roof specific
+    roof_type: EnumProperty(
+        name="Roof Type",
+        items=roof_types,
+        default="APEX"
+    )
+
+    roof_pitch: FloatProperty(
+        name="Roof Pitch",
+        default=45,
+        step=1,
+        min=0
+    )
+
+    end_eaves_pos: FloatProperty(
+        name="End Eaves Positive",
+        default=0.1,
+        step=0.1,
+        min=0
+    )
+
+    end_eaves_neg: FloatProperty(
+        name="End Eaves Negative",
+        default=0.1,
+        step=0.1,
+        min=0
+    )
+
+    side_eaves: FloatProperty(
+        name="Side Eaves",
+        default=0.2,
+        step=0.1,
+        min=0
+    )
+
+    roof_thickness: FloatProperty(
+        name="Roof Thickness",
+        default=0.1,
+        step=0.05,
+        min=0
+    )
+
+    inset_dist: FloatProperty(
+        name="Inset Distance",
+        description="Distance core is usually inset from the base of a wall",
+        default=0.09,
+        min=0
+    )
+
+    inset_x_neg: BoolProperty(
+        name="Inset X Neg",
+        default=True)
+
+    inset_x_pos: BoolProperty(
+        name="Inset X Pos",
+        default=True)
+
+    inset_y_neg: BoolProperty(
+        name="Inset Y Neg",
+        default=True)
+
+    inset_y_pos: BoolProperty(
+        name="Inset Y Pos",
+        default=True)
+
+class MT_Roof_Tile_Properties(PropertyGroup):
+    # Roof specific
+    roof_type: EnumProperty(
+        name="Roof Type",
+        items=roof_types,
+        default="APEX"
+    )
+
+    roof_pitch: FloatProperty(
+        name="Roof Pitch",
+        default=45,
+        step=1,
+        min=0
+    )
+
+    end_eaves_pos: FloatProperty(
+        name="End Eaves Positive",
+        default=0.1,
+        step=0.1,
+        min=0
+    )
+
+    end_eaves_neg: FloatProperty(
+        name="End Eaves Negative",
+        default=0.1,
+        step=0.1,
+        min=0
+    )
+
+    side_eaves: FloatProperty(
+        name="Side Eaves",
+        default=0.1,
+        step=0.1,
+        min=0
+    )
+
+    roof_thickness: FloatProperty(
+        name="Roof Thickness",
+        default=0.1,
+        step=0.05,
+        min=0
+    )
+
+    inset_dist: FloatProperty(
+        name="Inset Distance",
+        description="Distance core is usually inset from the base of a wall",
+        default=0.09,
+        min=0
+    )
+
+    inset_x_neg: BoolProperty(
+        name="Inset X Neg",
+        default=True)
+
+    inset_x_pos: BoolProperty(
+        name="Inset X Pos",
+        default=True)
+
+    inset_y_neg: BoolProperty(
+        name="Inset Y Neg",
+        default=True)
+
+    inset_y_pos: BoolProperty(
+        name="Inset Y Pos",
+        default=True)
+
+def register():
+    # Property group that contains properties set in UI
+    bpy.types.Scene.mt_roof_scene_props = PointerProperty(
+        type=MT_Roof_Scene_Properties)
+    bpy.types.Collection.mt_roof_tile_props = PointerProperty(
+        type=MT_Roof_Tile_Properties)
+
+
+def unregister():
+    del bpy.types.Collection.mt_roof_tile_props
+    del bpy.types.Scene.mt_roof_scene_props

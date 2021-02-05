@@ -1,3 +1,4 @@
+
 import os
 import copy
 from math import radians, degrees, tan, sqrt, sin, cos, floor
@@ -15,7 +16,7 @@ from .. lib.utils.collections import (
     activate_collection)
 
 from .. lib.utils.utils import mode, get_all_subclasses
-
+from ..lib.utils.selection import activate
 from .create_tile import (
     finalise_tile,
     spawn_empty_base,
@@ -56,19 +57,7 @@ from ..lib.bmturtle.helpers import (
     select_verts_in_bounds,
     points_are_inside_bmesh)
 
-from bpy.types import PropertyGroup
-
-from bpy.props import (
-    StringProperty,
-    EnumProperty,
-    BoolProperty,
-    FloatProperty,
-    IntProperty,
-    PointerProperty)
-
-from ..enums.enums import (
-    roof_types)
-
+from ..lib.bmturtle.scripts import draw_cuboid
 
 class MT_PT_Roof_Panel(Panel):
     """Draw a tile options panel in UI."""
@@ -100,10 +89,14 @@ class MT_PT_Roof_Panel(Panel):
 
         layout.prop(roof_props, 'roof_type', text="Roof Type")
 
-        layout.label(text="Socket Types")
-        layout.prop(scene_props, 'base_blueprint')
-        layout.prop(scene_props, 'main_part_blueprint', text="Gable")
+        row = layout.row()
+        row.prop(roof_props, 'draw_rooftop')
+        row.prop(roof_props, 'draw_gables')
 
+        layout.label(text="Socket Types")
+        layout.prop(roof_props, 'base_bottom_socket_type')
+        layout.prop(roof_props, 'base_side_socket_type')
+        layout.prop(roof_props, 'gable_socket_type')
 
         layout.label(text="Roof Footprint")
         row = layout.row()
@@ -117,6 +110,7 @@ class MT_PT_Roof_Panel(Panel):
         layout.prop(roof_props, 'end_eaves_neg', text="Negative End Eaves")
         layout.prop(roof_props, 'side_eaves', text="Side Eaves")
         layout.prop(scene_props, 'subdivision_density', text="Subdivision Density")
+        layout.prop(roof_props, 'roof_thickness')
 
         layout.label(text="Wall Inset Correction")
         layout.prop(roof_props, 'inset_dist', text="Inset Distance")
@@ -134,6 +128,7 @@ def initialise_roof_creator(context):
 
     tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator(context)
     create_collection('Roofs', tiles_collection)
+
     tile_collection = bpy.data.collections.new(tile_name)
     bpy.data.collections['Roofs'].children.link(tile_collection)
     activate_collection(tile_collection.name)
@@ -143,18 +138,12 @@ def initialise_roof_creator(context):
 
     create_common_tile_props(scene_props, tile_props, tile_collection)
 
+    for key in roof_scene_props.__annotations__.keys():
+        for k in roof_tile_props.__annotations__.keys():
+            if k == key:
+                setattr(roof_tile_props, str(k), getattr(roof_scene_props, str(k)))
+
     roof_tile_props.is_roof = True
-    roof_tile_props.roof_type = roof_scene_props.roof_type
-    roof_tile_props.roof_pitch = roof_scene_props.roof_pitch
-    roof_tile_props.end_eaves_pos = roof_scene_props.end_eaves_pos
-    roof_tile_props.end_eaves_neg = roof_scene_props.end_eaves_neg
-    roof_tile_props.side_eaves = roof_scene_props.side_eaves
-    roof_tile_props.roof_thickness = roof_scene_props.roof_thickness
-    roof_tile_props.inset_dist = roof_scene_props.inset_dist
-    roof_tile_props.inset_x_neg = roof_scene_props.inset_x_neg
-    roof_tile_props.inset_x_pos = roof_scene_props.inset_x_pos
-    roof_tile_props.inset_y_neg = roof_scene_props.inset_y_neg
-    roof_tile_props.inset_y_pos = roof_scene_props.inset_y_pos
 
     tile_props.tile_type = 'ROOF'
 
@@ -178,50 +167,65 @@ class MT_OT_Make_Roof(MT_Tile_Generator, Operator):
     def execute(self, context):
         """Execute the Operator."""
         scene = context.scene
-        scene_props = scene.mt_scene_props
-        base_blueprint = scene_props.base_blueprint
-        gable_blueprint = scene_props.main_part_blueprint
-
+        roof_scene_props = scene.mt_roof_scene_props
         cursor_orig_loc, cursor_orig_rot = initialise_roof_creator(
             context)
-
         subclasses = get_all_subclasses(MT_Tile_Generator)
 
-        base = spawn_prefab(context, subclasses, base_blueprint, 'ROOF_BASE')
-        roof = spawn_prefab(context, subclasses, base_blueprint, 'ROOF_TOP')
+        if roof_scene_props.draw_gables:
+            gable_type = 'PLAIN'
+        else:
+            gable_type = 'NONE'
 
-        finalise_tile(base, roof, cursor_orig_loc, cursor_orig_rot)
+        if roof_scene_props.draw_rooftop:
+            rooftop_type = 'PLAIN'
+            rooftop = spawn_prefab(context, subclasses, rooftop_type, 'ROOF_TOP')
+        else:
+            rooftop = None
+
+        gables = spawn_prefab(context, subclasses, gable_type, 'ROOF_BASE')
+
+        finalise_tile(gables, rooftop, cursor_orig_loc, cursor_orig_rot)
 
         return {'FINISHED'}
 
-
-class MT_OT_Make_Openlock_Roof_Base(MT_Tile_Generator, Operator):
+class MT_OT_Make_Roof_Base(MT_Tile_Generator, Operator):
     """Internal Operator. Generate a Roof Base."""
 
-    bl_idname = "object.make_openlock_roof_base"
+    bl_idname = "object.make_plain_roof_base"
     bl_label = "Roof Base"
     bl_options = {'INTERNAL'}
-    mt_blueprint = "OPENLOCK"
+    mt_blueprint = "PLAIN"
     mt_type = "ROOF_BASE"
 
     def execute(self, context):
         """Execute the operator."""
+        roof_props = context.collection.mt_roof_tile_props
+        tile_props = context.collection.mt_tile_props
+
         base = spawn_base(context)
+
+        if roof_props.base_bottom_socket_type == 'OPENLOCK':
+            slot_cutter = spawn_openlock_base_slot_cutter(base, tile_props, roof_props)
+            set_bool_obj_props(slot_cutter, base, tile_props, 'DIFFERENCE')
+            set_bool_props(slot_cutter, base, 'DIFFERENCE')
+
         textured_vertex_groups = ['Base Left', 'Base Right', 'Gable Front', 'Gable Back']
         convert_to_displacement_core(
             base,
             textured_vertex_groups)
 
+        activate(base.name)
         return{'FINISHED'}
 
 
-class MT_OT_Make_Openlock_Roof_Top(MT_Tile_Generator, Operator):
+class MT_OT_Make_Roof_Top(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an openlock Roof Top."""
 
     bl_idname = "object.make_openlock_roof_top"
     bl_label = "Roof Top"
     bl_options = {'INTERNAL'}
-    mt_blueprint = "OPENLOCK"
+    mt_blueprint = "PLAIN"
     mt_type = "ROOF_TOP"
 
     def execute(self, context):
@@ -232,6 +236,35 @@ class MT_OT_Make_Openlock_Roof_Top(MT_Tile_Generator, Operator):
             roof,
             textured_vertex_groups)
         return{'FINISHED'}
+
+class MT_OT_Make_Empty_Roof_Base(MT_Tile_Generator, Operator):
+    """Internal Operator. Generate an empty roof base."""
+
+    bl_idname = "object.make_empty_roof_base"
+    bl_label = "Roof Base"
+    bl_options = {'INTERNAL'}
+    mt_blueprint = "NONE"
+    mt_type = "ROOF_BASE"
+
+    def execute(self, context):
+        """Execute the operator."""
+        tile = context.collection
+        tile_props = tile.mt_tile_props
+        spawn_empty_base(tile_props)
+        return{'FINISHED'}
+
+class MT_OT_Make_Empty_Roof_Top(MT_Tile_Generator, Operator):
+    """Internal Operator. Generate an empty roof top."""
+
+    bl_idname = "object.make_empty_roof_top"
+    bl_label = "Roof Gable"
+    bl_options = {'INTERNAL'}
+    mt_blueprint = "NONE"
+    mt_type = "ROOF_TOP"
+
+    def execute(self, context):
+        """Execute the operator."""
+        return{'PASS_THROUGH'}
 
 def spawn_roof(context):
     tile = context.collection
@@ -259,23 +292,6 @@ def spawn_roof(context):
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
     return roof
 
-class MT_OT_Make_Plain_Roof_Base(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate a Roof Base."""
-
-    bl_idname = "object.make_plain_roof_base"
-    bl_label = "Roof Base"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "PLAIN"
-    mt_type = "ROOF_BASE"
-
-    def execute(self, context):
-        """Execute the operator."""
-        base = spawn_base(context)
-        textured_vertex_groups = ['Base Left', 'Base Right', 'Gable Front', 'Gable Back']
-        convert_to_displacement_core(
-            base,
-            textured_vertex_groups)
-        return{'FINISHED'}
 
 def spawn_base(context):
     tile = context.collection
@@ -301,6 +317,7 @@ def spawn_base(context):
 
     bpy.context.scene.cursor.location = (0, 0, 0)
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+
     return base
 
 
@@ -980,225 +997,186 @@ def draw_apex_base(context, margin=0.001):
     finalise_turtle(bm, obj)
 
     return obj
+'''
+def spawn_openlock_base_slot_cutter(base, tile_props, roof_props):
+    """Spawn an openlock base slot cutter into scene and positions it correctly.
 
+    Args:
+        base (bpy.types.Object): base
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
 
-class MT_OT_Make_Plain_Roof_Top(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate a Roof Top."""
+    Returns:
+        bpy.type.Object: slot cutter
+    """
+    mode('OBJECT')
 
-    bl_idname = "object.make_plain_roof_top"
-    bl_label = "Roof Top"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "PLAIN"
-    mt_type = "ROOF_TOP"
+    base_location = base.location.copy()
+    base_dims = base.dimensions.copy()
 
-    def execute(self, context):
-        """Execute the operator."""
-        return{'FINISHED'}
+    preferences = get_prefs()
+    booleans_path = os.path.join(
+        preferences.assets_path,
+        "meshes",
+        "booleans",
+        "rect_floor_slot_cutter.blend")
 
+    with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
+        data_to.objects = [
+            'corner_xneg_yneg',
+            'corner_xneg_ypos',
+            'corner_xpos_yneg',
+            'corner_xpos_ypos',
+            'slot_cutter_a',
+            'slot_cutter_b',
+            'slot_cutter_c',
+            'base_slot_cutter_final']
 
-class MT_OT_Make_Empty_Roof_Base(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate an empty roof base."""
+    for obj in data_to.objects:
+        add_object_to_collection(obj, tile_props.tile_name)
 
-    bl_idname = "object.make_empty_roof_base"
-    bl_label = "Roof Base"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "NONE"
-    mt_type = "ROOF_BASE"
+    for obj in data_to.objects:
+        # obj.hide_set(True)
+        obj.hide_viewport = True
 
-    def execute(self, context):
-        """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
-        spawn_empty_base(tile_props)
-        return{'FINISHED'}
+    cutter_a = data_to.objects[4]
+    cutter_b = data_to.objects[5]
+    cutter_c = data_to.objects[6]
+    cutter_d = data_to.objects[7]
 
-class MT_OT_Make_Empty_Roof_Top(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate an empty roof top."""
+    cutter_d.name = 'Base Slot Cutter.' + tile_props.tile_name
 
-    bl_idname = "object.make_empty_roof_top"
-    bl_label = "Roof Gable"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "NONE"
-    mt_type = "ROOF_TOP"
+    # correct for wall inset distance
+    if roof_props.inset_x_neg:
+        base_dims[0] = base_dims[0] + roof_props.inset_dist
+    if roof_props.inset_x_pos:
+        base_dims[0] = base_dims[0] + roof_props.inset_dist
+    if roof_props.inset_y_neg:
+        base_dims[1] = base_dims[1] + roof_props.inset_dist
+    if roof_props.inset_y_pos:
+        base_dims[1] = base_dims[1] + roof_props.inset_dist
 
-    def execute(self, context):
-        """Execute the operator."""
-        return{'PASS_THROUGH'}
+    a_array = cutter_a.modifiers['Array']
+    a_array.fit_length = base_dims[1] - 1.014
 
-class MT_Roof_Scene_Properties(PropertyGroup):
-    # Roof specific
-    last_selected: PointerProperty(
-        name="Last Selected Object",
-        type=bpy.types.Object
-    )
+    b_array = cutter_b.modifiers['Array']
+    b_array.fit_length = base_dims[0] - 1.014
 
-    roof_type: EnumProperty(
-        name="Roof Type",
-        items=roof_types,
-        default="APEX"
-    )
+    c_array = cutter_c.modifiers['Array']
+    c_array.fit_length = base_dims[0] - 1.014
 
-    roof_pitch: FloatProperty(
-        name="Roof Pitch",
-        default=45,
-        step=1,
-        min=0
-    )
+    d_array = cutter_d.modifiers['Array']
+    d_array.fit_length = base_dims[1] - 1.014
 
-    end_eaves_pos: FloatProperty(
-        name="End Eaves Positive",
-        default=0.1,
-        step=0.1,
-        min=0
-    )
+    cutter_d.location = (
+        base_location[0] + 0.24,
+        base_location[1] + 0.24,
+        base_location[2] + 0.24)
 
-    end_eaves_neg: FloatProperty(
-        name="End Eaves Negative",
-        default=0.1,
-        step=0.1,
-        min=0
-    )
+    return cutter_d
+'''
 
-    side_eaves: FloatProperty(
-        name="Side Eaves",
-        default=0.2,
-        step=0.1,
-        min=0
-    )
+def spawn_openlock_base_slot_cutter(base, tile_props, roof_props, offset=0.236):
+    """Spawn an openlock base slot cutter into scene and positions it correctly.
 
-    roof_thickness: FloatProperty(
-        name="Roof Thickness",
-        default=0.1,
-        step=0.05,
-        min=0
-    )
+    Args:
+        base (bpy.types.Object): base
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
 
-    inset_dist: FloatProperty(
-        name="Inset Distance",
-        description="Distance core is usually inset from the base of a wall",
-        default=0.09,
-        min=0
-    )
+    Returns:
+        bpy.type.Object: slot cutter
+    """
+    mode('OBJECT')
 
-    inset_x_neg: BoolProperty(
-        name="Inset X Neg",
-        default=True)
+    base_location = base.location.copy()
+    base_dims = base.dimensions.copy()
 
-    inset_x_pos: BoolProperty(
-        name="Inset X Pos",
-        default=True)
+    # correct for wall inset distance
+    if roof_props.inset_x_neg:
+        base_dims[0] = base_dims[0] + roof_props.inset_dist
+    if roof_props.inset_x_pos:
+        base_dims[0] = base_dims[0] + roof_props.inset_dist
+    if roof_props.inset_y_neg:
+        base_dims[1] = base_dims[1] + roof_props.inset_dist
+    if roof_props.inset_y_pos:
+        base_dims[1] = base_dims[1] + roof_props.inset_dist
 
-    inset_y_neg: BoolProperty(
-        name="Inset Y Neg",
-        default=True)
+    # one sided base socket
+    if base_dims[0] <= 1 or base_dims[1] <= 1:
+        # work out bool size X from base size, y and z are constants.
+        bool_size = [
+            base_dims[0] - (offset * 2),
+            0.197,
+            0.25]
 
-    inset_y_pos: BoolProperty(
-        name="Inset Y Pos",
-        default=True)
+        cutter = draw_cuboid(bool_size)
+        cutter.name = 'Base Slot.' + tile_props.tile_name + ".slot_cutter"
 
-class MT_Roof_Tile_Properties(PropertyGroup):
-    # Roof specific
-    is_roof: BoolProperty(
-        default=False
-    )
+        diff = base_dims[0] - bool_size[0]
 
-    roof_type: EnumProperty(
-        name="Roof Type",
-        items=roof_types,
-        default="APEX"
-    )
+        cutter.location = (
+            base_location[0] + diff / 2,
+            base_location[1] + offset,
+            base_location[2] - 0.001)
 
-    roof_pitch: FloatProperty(
-        name="Roof Pitch",
-        default=45,
-        step=1,
-        min=0
-    )
+        ctx = {
+            'object': cutter,
+            'active_object': cutter,
+            'selected_objects': [cutter]
+        }
 
-    end_eaves_pos: FloatProperty(
-        name="End Eaves Positive",
-        default=0.1,
-        step=0.1,
-        min=0
-    )
+        bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
 
-    end_eaves_neg: FloatProperty(
-        name="End Eaves Negative",
-        default=0.1,
-        step=0.1,
-        min=0
-    )
+        return cutter
 
-    side_eaves: FloatProperty(
-        name="Side Eaves",
-        default=0.1,
-        step=0.1,
-        min=0
-    )
+    # 4 sided base socket
+    else:
+        preferences = get_prefs()
+        booleans_path = os.path.join(
+            preferences.assets_path,
+            "meshes",
+            "booleans",
+            "rect_floor_slot_cutter.blend")
 
-    roof_thickness: FloatProperty(
-        name="Roof Thickness",
-        default=0.1,
-        step=0.05,
-        min=0
-    )
+        with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
+            data_to.objects = [
+                'corner_xneg_yneg',
+                'corner_xneg_ypos',
+                'corner_xpos_yneg',
+                'corner_xpos_ypos',
+                'slot_cutter_a',
+                'slot_cutter_b',
+                'slot_cutter_c',
+                'base_slot_cutter_final']
 
-    inset_dist: FloatProperty(
-        name="Inset Distance",
-        description="Distance core is usually inset from the base of a wall",
-        default=0.09,
-        min=0
-    )
+        for obj in data_to.objects:
+            add_object_to_collection(obj, tile_props.tile_name)
 
-    inset_x_neg: BoolProperty(
-        name="Inset X Neg",
-        default=True)
+        for obj in data_to.objects:
+            # obj.hide_set(True)
+            obj.hide_viewport = True
 
-    inset_x_pos: BoolProperty(
-        name="Inset X Pos",
-        default=True)
+        cutter_a = data_to.objects[4]
+        cutter_b = data_to.objects[5]
+        cutter_c = data_to.objects[6]
+        cutter_d = data_to.objects[7]
 
-    inset_y_neg: BoolProperty(
-        name="Inset Y Neg",
-        default=True)
+        cutter_d.name = 'Base Slot Cutter.' + tile_props.tile_name
 
-    inset_y_pos: BoolProperty(
-        name="Inset Y Pos",
-        default=True)
+        a_array = cutter_a.modifiers['Array']
+        a_array.fit_length = base_dims[1] - 1.014
 
-@persistent
-def update_mt_roof_scene_props_handler(dummy):
-    """Check to see if we have a MakeTile roof object selected and updates mt_roof_scene_props based on its mt_roof_tile_props."""
-    context = bpy.context
-    obj = context.object
+        b_array = cutter_b.modifiers['Array']
+        b_array.fit_length = base_dims[0] - 1.014
 
-    roof_scene_props = context.scene.mt_roof_scene_props
+        c_array = cutter_c.modifiers['Array']
+        c_array.fit_length = base_dims[0] - 1.014
 
-    try:
-        roof_tile_props = bpy.data.collections[obj.mt_object_props.tile_name].mt_roof_tile_props
+        d_array = cutter_d.modifiers['Array']
+        d_array.fit_length = base_dims[1] - 1.014
 
-        if obj != roof_scene_props.last_selected and roof_tile_props.is_roof:
-            roof_scene_props.last_selected = obj
+        cutter_d.location = (
+            base_location[0] + 0.24,
+            base_location[1] + 0.24,
+            base_location[2] + 0.24)
 
-            for key, value in roof_tile_props.items():
-                for k in roof_scene_props.keys():
-                    if k == key:
-                        roof_scene_props[k] = value
-    except KeyError:
-        pass
-    except AttributeError:
-        pass
-
-bpy.app.handlers.depsgraph_update_post.append(update_mt_roof_scene_props_handler)
-
-def register():
-    # Property group that contains properties set in UI
-    bpy.types.Scene.mt_roof_scene_props = PointerProperty(
-        type=MT_Roof_Scene_Properties)
-    bpy.types.Collection.mt_roof_tile_props = PointerProperty(
-        type=MT_Roof_Tile_Properties)
-
-
-def unregister():
-    del bpy.types.Collection.mt_roof_tile_props
-    del bpy.types.Scene.mt_roof_scene_props
+        return cutter_d

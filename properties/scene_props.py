@@ -14,8 +14,7 @@ from ..enums.enums import (
     units,
     material_mapping,
     openlock_column_types,
-    column_socket_style,
-    roof_types)
+    column_socket_style)
 from .properties import (
     create_main_part_blueprint_enums,
     create_tile_type_enums,

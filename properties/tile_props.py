@@ -15,8 +15,7 @@ from ..enums.enums import (
     units,
     openlock_column_types,
     column_socket_style,
-    collection_types,
-    roof_types)
+    collection_types)
 
 from .properties import (
     create_main_part_blueprint_enums,

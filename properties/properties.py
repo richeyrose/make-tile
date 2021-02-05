@@ -1,7 +1,7 @@
 import bpy
 from bpy.types import PropertyGroup
-from .tile_creation.create_tile import MT_Tile_Generator
-from .lib.utils.utils import get_all_subclasses
+from ..tile_creation.create_tile import MT_Tile_Generator
+from ..lib.utils.utils import get_all_subclasses
 
 
 # Radio buttons used in menus

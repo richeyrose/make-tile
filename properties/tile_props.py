@@ -8,7 +8,7 @@ from bpy.props import (
     IntProperty,
     PointerProperty)
 
-from . enums.enums import (
+from ..enums.enums import (
     tile_blueprints,
     curve_types,
     base_socket_side,

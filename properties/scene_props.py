@@ -7,7 +7,7 @@ from bpy.props import (
     FloatProperty,
     IntProperty,
     PointerProperty)
-from .enums.enums import (
+from ..enums.enums import (
     tile_blueprints,
     curve_types,
     base_socket_side,
@@ -20,7 +20,7 @@ from .properties import (
     create_main_part_blueprint_enums,
     create_tile_type_enums,
     create_base_blueprint_enums)
-from .app_handlers import create_properties_on_load
+from ..app_handlers import create_properties_on_load
 
 
 def load_material_enums(self, context):

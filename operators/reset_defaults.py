@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import Operator
-from ..scene_props import update_scene_defaults
+from ..properties.scene_props import update_scene_defaults
 
 
 class MT_OT_Reset_Tile_Defaults(Operator):

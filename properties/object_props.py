@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import PropertyGroup
-from .enums.enums import geometry_types, boolean_types
+from ..enums.enums import geometry_types, boolean_types
 # A cutter item used by cutters_collection
 
 

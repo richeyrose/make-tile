@@ -74,13 +74,19 @@ def decimate(context, obj):
     if props.decimation_ratio < 1:
         mod = obj.modifiers.new('Decimation 1', 'DECIMATE')
         mod.ratio = props.decimation_ratio
+
+    depsgraph = context.evaluated_depsgraph_get()
+    object_eval = obj.evaluated_get(depsgraph)
+    mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
+    obj.modifiers.clear()
+
+    obj.data = mesh_from_eval
     if props.planar_decimation:
         mod = obj.modifiers.new('Decimation 2', 'DECIMATE')
         mod.decimate_type = 'DISSOLVE'
         mod.angle_limit = radians(props.planar_decimation_angle)
 
     depsgraph = context.evaluated_depsgraph_get()
-    object_eval = obj.evaluated_get(depsgraph)
     object_eval = obj.evaluated_get(depsgraph)
     mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
     obj.modifiers.clear()

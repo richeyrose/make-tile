@@ -59,6 +59,7 @@ from ..lib.bmturtle.helpers import (
 
 from ..lib.bmturtle.scripts import draw_cuboid
 
+
 class MT_PT_Roof_Panel(Panel):
     """Draw a tile options panel in UI."""
 
@@ -85,18 +86,18 @@ class MT_PT_Roof_Panel(Panel):
 
         layout = self.layout
 
-        layout.label(text="Blueprints")
+        # layout.label(text="Blueprints")
 
-        layout.prop(roof_props, 'roof_type', text="Roof Type")
+        # layout.prop(roof_props, 'roof_type', text="Roof Type")
 
         row = layout.row()
-        row.prop(roof_props, 'draw_rooftop')
         row.prop(roof_props, 'draw_gables')
+        row.prop(roof_props, 'draw_rooftop')
 
-        layout.label(text="Socket Types")
+        # layout.label(text="Socket Types")
         layout.prop(roof_props, 'base_bottom_socket_type')
-        layout.prop(roof_props, 'base_side_socket_type')
-        layout.prop(roof_props, 'gable_socket_type')
+        # layout.prop(roof_props, 'base_side_socket_type')
+        # layout.prop(roof_props, 'gable_socket_type')
 
         layout.label(text="Roof Footprint")
         row = layout.row()
@@ -104,13 +105,17 @@ class MT_PT_Roof_Panel(Panel):
         row.prop(scene_props, 'base_y')
 
         layout.label(text="Roof Properties")
-        layout.prop(scene_props, 'base_z', text="Base Height")
+
         layout.prop(roof_props, 'roof_pitch', text="Roof Pitch")
         layout.prop(roof_props, 'end_eaves_pos', text="Positive End Eaves")
         layout.prop(roof_props, 'end_eaves_neg', text="Negative End Eaves")
-        layout.prop(roof_props, 'side_eaves', text="Side Eaves")
-        layout.prop(scene_props, 'subdivision_density', text="Subdivision Density")
         layout.prop(roof_props, 'roof_thickness')
+
+        layout.prop(roof_props, 'side_eaves', text="Side Eaves")
+        layout.prop(scene_props, 'base_z', text="Base Height")
+
+        layout.label(text="Subdivision Density")
+        layout.prop(scene_props, 'subdivision_density', text="")
 
         layout.label(text="Wall Inset Correction")
         layout.prop(roof_props, 'inset_dist', text="Inset Distance")
@@ -120,7 +125,7 @@ class MT_PT_Roof_Panel(Panel):
         row.prop(roof_props, 'inset_y_neg', text="Y Neg")
         row.prop(roof_props, 'inset_y_pos', text="Y Pos")
 
-        layout.operator('scene.reset_tile_defaults')
+        layout.operator('scene.reset_roof_defaults')
 
 def initialise_roof_creator(context):
     scene_props = context.scene.mt_scene_props
@@ -997,83 +1002,7 @@ def draw_apex_base(context, margin=0.001):
     finalise_turtle(bm, obj)
 
     return obj
-'''
-def spawn_openlock_base_slot_cutter(base, tile_props, roof_props):
-    """Spawn an openlock base slot cutter into scene and positions it correctly.
 
-    Args:
-        base (bpy.types.Object): base
-        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
-
-    Returns:
-        bpy.type.Object: slot cutter
-    """
-    mode('OBJECT')
-
-    base_location = base.location.copy()
-    base_dims = base.dimensions.copy()
-
-    preferences = get_prefs()
-    booleans_path = os.path.join(
-        preferences.assets_path,
-        "meshes",
-        "booleans",
-        "rect_floor_slot_cutter.blend")
-
-    with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
-        data_to.objects = [
-            'corner_xneg_yneg',
-            'corner_xneg_ypos',
-            'corner_xpos_yneg',
-            'corner_xpos_ypos',
-            'slot_cutter_a',
-            'slot_cutter_b',
-            'slot_cutter_c',
-            'base_slot_cutter_final']
-
-    for obj in data_to.objects:
-        add_object_to_collection(obj, tile_props.tile_name)
-
-    for obj in data_to.objects:
-        # obj.hide_set(True)
-        obj.hide_viewport = True
-
-    cutter_a = data_to.objects[4]
-    cutter_b = data_to.objects[5]
-    cutter_c = data_to.objects[6]
-    cutter_d = data_to.objects[7]
-
-    cutter_d.name = 'Base Slot Cutter.' + tile_props.tile_name
-
-    # correct for wall inset distance
-    if roof_props.inset_x_neg:
-        base_dims[0] = base_dims[0] + roof_props.inset_dist
-    if roof_props.inset_x_pos:
-        base_dims[0] = base_dims[0] + roof_props.inset_dist
-    if roof_props.inset_y_neg:
-        base_dims[1] = base_dims[1] + roof_props.inset_dist
-    if roof_props.inset_y_pos:
-        base_dims[1] = base_dims[1] + roof_props.inset_dist
-
-    a_array = cutter_a.modifiers['Array']
-    a_array.fit_length = base_dims[1] - 1.014
-
-    b_array = cutter_b.modifiers['Array']
-    b_array.fit_length = base_dims[0] - 1.014
-
-    c_array = cutter_c.modifiers['Array']
-    c_array.fit_length = base_dims[0] - 1.014
-
-    d_array = cutter_d.modifiers['Array']
-    d_array.fit_length = base_dims[1] - 1.014
-
-    cutter_d.location = (
-        base_location[0] + 0.24,
-        base_location[1] + 0.24,
-        base_location[2] + 0.24)
-
-    return cutter_d
-'''
 
 def spawn_openlock_base_slot_cutter(base, tile_props, roof_props, offset=0.236):
     """Spawn an openlock base slot cutter into scene and positions it correctly.
@@ -1105,7 +1034,7 @@ def spawn_openlock_base_slot_cutter(base, tile_props, roof_props, offset=0.236):
         # work out bool size X from base size, y and z are constants.
         bool_size = [
             base_dims[0] - (offset * 2),
-            0.197,
+            0.155,
             0.25]
 
         cutter = draw_cuboid(bool_size)

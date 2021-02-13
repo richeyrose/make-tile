@@ -13,6 +13,7 @@ def create_properties_on_activation(dummy):
     create_properties()
     load_material_libraries()
 
+
 @persistent
 def create_properties_on_load(dummy):
     create_properties()
@@ -75,8 +76,6 @@ def update_mt_scene_props_handler(dummy):
         tile_props = bpy.data.collections[obj.mt_object_props.tile_name].mt_tile_props
 
         if obj != scene_props.mt_last_selected and not obj_props.is_converted and obj_props.is_mt_object:
-            scene_props.mt_last_selected = obj
-
             scene_props.tile_x = tile_props.tile_size[0]
             scene_props.tile_y = tile_props.tile_size[1]
             scene_props.tile_z = tile_props.tile_size[2]
@@ -89,6 +88,8 @@ def update_mt_scene_props_handler(dummy):
                 for k in scene_props.keys():
                     if k == key:
                         scene_props[k] = value
+            scene_props.mt_last_selected = obj
+
     except KeyError:
         pass
     except AttributeError:

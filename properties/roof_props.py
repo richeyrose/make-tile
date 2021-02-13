@@ -1,11 +1,40 @@
 import bpy
 from bpy.app.handlers import persistent
-from bpy.types import PropertyGroup
+from bpy.types import PropertyGroup, Operator
 from bpy.props import (
     EnumProperty,
     BoolProperty,
     FloatProperty,
     PointerProperty)
+from .scene_props import update_main_part_defaults, update_base_defaults
+
+
+class MT_OT_Reset_Roof_Defaults(Operator):
+    """Reset mt_scene_props and mt_roof_scene_props."""
+
+    bl_idname = "scene.reset_roof_defaults"
+    bl_label = "Reset Defaults"
+    bl_options = {'UNDO'}
+
+    def execute(self, context):
+        """Execute the operator.
+
+        Args:
+            context (bpy.context): Blender context
+        """
+        scene_props = context.scene.mt_scene_props
+        roof_scene_props = context.scene.mt_roof_scene_props
+        tile_defaults = scene_props['tile_defaults']
+        for tile in tile_defaults:
+            if tile['type'] == 'ROOF':
+                defaults = tile['defaults']
+                for key, value in defaults.items():
+                    setattr(scene_props, key, value)
+                    setattr(roof_scene_props, key, value)
+                break
+        update_main_part_defaults(self, context)
+        update_base_defaults(self, context)
+        return {'FINISHED'}
 
 
 class MT_Roof_Properties(PropertyGroup):
@@ -46,7 +75,7 @@ class MT_Roof_Properties(PropertyGroup):
 
     side_eaves: FloatProperty(
         name="Side Eaves",
-        default=0.2,
+        default=0.2755,
         step=0.1,
         min=0
     )
@@ -117,7 +146,6 @@ class MT_Roof_Properties(PropertyGroup):
     is_roof: BoolProperty(
         default=False
     )
-
 
 @persistent
 def update_mt_roof_scene_props_handler(dummy):

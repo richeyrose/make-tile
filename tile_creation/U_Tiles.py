@@ -318,7 +318,7 @@ def spawn_openlock_wall_cutters(base, tile_props):
     tile_size = tile_props.tile_size
     leg_1_inner_len = tile_props.leg_1_len
     leg_2_inner_len = tile_props.leg_2_len
-    x_inner_len = tile_props.base_size[0]
+    x_inner_len = tile_props.tile_size[0]
     thickness = tile_props.base_size[1]
 
     leg_1_outer_len = leg_1_inner_len + thickness

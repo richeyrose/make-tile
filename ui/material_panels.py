@@ -76,6 +76,11 @@ class MT_PT_Material_Options_Panel(Panel):
             layout.template_ID(image_node, "image", new="image.new", open="image.open")
             layout.prop(image_node, "extension", text="Tiling")
 
+        # search for surface shader node and add colour picker
+        if 'surface_shader' in nodes:
+            ss_node = nodes['surface_shader']
+            color_input = ss_node.inputs[0]
+            layout.template_node_view(tree, ss_node, color_input)
 
         # get all frame nodes in material that are within the 'editable_inputs' frame
         frame_names = []
@@ -105,6 +110,7 @@ class MT_PT_Material_Options_Panel(Panel):
 
         layout.operator('material.gridify')
         layout.operator('material.ungridify')
+
 
 class MT_PT_Material_Mapping_Options_Panel(Panel):
     bl_order = 8

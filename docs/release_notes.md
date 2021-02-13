@@ -2,6 +2,9 @@
 
 ## 0.0.22 ##
 
+### Color Picker ###
+Added a basic color picker to all MakeTile materials.
+
 ### U-Tiles ###
 Fixed a bug in U-Tiles where wall sockets weren't appearing correctly if there was no base.
 

@@ -193,9 +193,10 @@ def finalise_tile(base, core, cursor_orig_loc, cursor_orig_rot):
         cursor_orig_rot (Vector(3)): original cursor rotation
     """
     context = bpy.context
+
     # Assign secondary material to our base if its a mesh
-    if base.type == 'MESH':
-        prefs = get_prefs()
+    prefs = get_prefs()
+    if base.type == 'MESH' and prefs.secondary_material not in base.material_slots:
         base.data.materials.append(bpy.data.materials[prefs.secondary_material])
 
     # Reset location

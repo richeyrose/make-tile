@@ -24,6 +24,8 @@ from .create_tile import (
     create_common_tile_props)
 
 
+
+
 class MT_PT_Rect_Floor_Panel(Panel):
     """Draw a tile options panel in UI."""
 
@@ -386,7 +388,7 @@ def spawn_openlock_base(tile_props):
     return base
 
 
-def spawn_openlock_base_slot_cutter(base, tile_props):
+def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
     """Spawn an openlock base slot cutter into scene and positions it correctly.
 
     Args:
@@ -399,56 +401,86 @@ def spawn_openlock_base_slot_cutter(base, tile_props):
     mode('OBJECT')
 
     base_location = base.location.copy()
-    preferences = get_prefs()
-    booleans_path = os.path.join(
-        preferences.assets_path,
-        "meshes",
-        "booleans",
-        "rect_floor_slot_cutter.blend")
+    base_dims = base.dimensions.copy()
 
-    with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
-        data_to.objects = [
-            'corner_xneg_yneg',
-            'corner_xneg_ypos',
-            'corner_xpos_yneg',
-            'corner_xpos_ypos',
-            'slot_cutter_a',
-            'slot_cutter_b',
-            'slot_cutter_c',
-            'base_slot_cutter_final']
+    if base_dims[0] < 1 or base_dims[1] < 1:
+        # work out bool size X from base size, y and z are constants.
+        bool_size = [
+            base_dims[0] - (offset * 2),
+            0.197,
+            0.25]
 
-    for obj in data_to.objects:
-        add_object_to_collection(obj, tile_props.tile_name)
+        cutter = draw_cuboid(bool_size)
+        cutter.name = 'Base Slot.' + tile_props.tile_name + ".slot_cutter"
 
-    for obj in data_to.objects:
-        # obj.hide_set(True)
-        obj.hide_viewport = True
+        diff = base_dims[0] - bool_size[0]
 
-    cutter_a = data_to.objects[4]
-    cutter_b = data_to.objects[5]
-    cutter_c = data_to.objects[6]
-    cutter_d = data_to.objects[7]
+        cutter.location = (
+            base_location[0] + diff / 2,
+            base_location[1] + offset,
+            base_location[2] - 0.001)
 
-    cutter_d.name = 'Base Slot Cutter.' + tile_props.tile_name
+        ctx = {
+            'object': cutter,
+            'active_object': cutter,
+            'selected_objects': [cutter]
+        }
 
-    a_array = cutter_a.modifiers['Array']
-    a_array.fit_length = base.dimensions[1] - 1.014
+        bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
 
-    b_array = cutter_b.modifiers['Array']
-    b_array.fit_length = base.dimensions[0] - 1.014
+        return cutter
 
-    c_array = cutter_c.modifiers['Array']
-    c_array.fit_length = base.dimensions[0] - 1.014
+    else:
+        preferences = get_prefs()
+        booleans_path = os.path.join(
+            preferences.assets_path,
+            "meshes",
+            "booleans",
+            "rect_floor_slot_cutter.blend")
 
-    d_array = cutter_d.modifiers['Array']
-    d_array.fit_length = base.dimensions[1] - 1.014
+        with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
+            data_to.objects = [
+                'corner_xneg_yneg',
+                'corner_xneg_ypos',
+                'corner_xpos_yneg',
+                'corner_xpos_ypos',
+                'slot_cutter_a',
+                'slot_cutter_b',
+                'slot_cutter_c',
+                'base_slot_cutter_final']
 
-    cutter_d.location = (
-        base_location[0] + 0.24,
-        base_location[1] + 0.24,
-        base_location[2] + 0.24)
+        for obj in data_to.objects:
+            add_object_to_collection(obj, tile_props.tile_name)
 
-    return cutter_d
+        for obj in data_to.objects:
+            # obj.hide_set(True)
+            obj.hide_viewport = True
+
+        cutter_a = data_to.objects[4]
+        cutter_b = data_to.objects[5]
+        cutter_c = data_to.objects[6]
+        cutter_d = data_to.objects[7]
+
+        cutter_d.name = 'Base Slot Cutter.' + tile_props.tile_name
+
+        a_array = cutter_a.modifiers['Array']
+        a_array.fit_length = base.dimensions[1] - 1.014
+
+        b_array = cutter_b.modifiers['Array']
+        b_array.fit_length = base.dimensions[0] - 1.014
+
+        c_array = cutter_c.modifiers['Array']
+        c_array.fit_length = base.dimensions[0] - 1.014
+
+        d_array = cutter_d.modifiers['Array']
+        d_array.fit_length = base.dimensions[1] - 1.014
+
+        cutter_d.location = (
+            base_location[0] + 0.24,
+            base_location[1] + 0.24,
+            base_location[2] + 0.24)
+
+        return cutter_d
 
 
 def spawn_openlock_base_clip_cutters(base, tile_props):
@@ -462,6 +494,7 @@ def spawn_openlock_base_clip_cutters(base, tile_props):
         list[bpy.types.Object]
 
     """
+
     mode('OBJECT')
 
     base_location = base.location.copy()
@@ -482,15 +515,31 @@ def spawn_openlock_base_clip_cutters(base, tile_props):
         add_object_to_collection(obj, tile_props.tile_name)
 
     clip_cutter = data_to.objects[0]
-    clip_cutter.name = 'Y Neg Clip.' + base.name
     cutter_start_cap = data_to.objects[1]
     cutter_end_cap = data_to.objects[2]
 
-    # cutter_start_cap.hide_set(True)
-    # cutter_end_cap.hide_set(True)
     cutter_start_cap.hide_viewport = True
     cutter_end_cap.hide_viewport = True
 
+    # Special case if base is small
+    if base.dimensions[1] < 1:
+        clip_cutter.location = (
+            base_location[0] + 0.5,
+            base_location[1] + 0.25,
+            base_location[2])
+
+        array_mod = clip_cutter.modifiers.new('Array', 'ARRAY')
+        array_mod.start_cap = cutter_start_cap
+        array_mod.end_cap = cutter_end_cap
+        array_mod.use_merge_vertices = True
+
+        array_mod.fit_type = 'FIT_LENGTH'
+        array_mod.fit_length = tile_props.base_size[0] - 1
+
+        clip_cutter.name = 'Clip Cutter.' + base.name
+        return [clip_cutter]
+
+    clip_cutter.name = 'Y Neg Clip.' + base.name
     # get location of bottom front left corner of tile
     front_left = (
         base_location[0],

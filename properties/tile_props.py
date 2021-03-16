@@ -8,15 +8,14 @@ from bpy.props import (
     IntProperty,
     PointerProperty)
 
-from . enums.enums import (
+from ..enums.enums import (
     tile_blueprints,
     curve_types,
     base_socket_side,
     units,
     openlock_column_types,
     column_socket_style,
-    collection_types,
-    roof_types)
+    collection_types)
 
 from .properties import (
     create_main_part_blueprint_enums,
@@ -216,71 +215,6 @@ class MT_Tile_Properties(PropertyGroup):
     tile_resolution: IntProperty(
         name="Tile Resolution"
     )
-
-    # Roof Specific
-    roof_type: EnumProperty(
-        name="Roof Type",
-        items=roof_types,
-        default="APEX"
-    )
-
-    roof_pitch: FloatProperty(
-        name="Roof Pitch",
-        default=45,
-        step=1,
-        min=0
-    )
-
-    end_eaves_pos: FloatProperty(
-        name="End Eaves Positive",
-        default=0,
-        step=0.1,
-        min=0
-    )
-
-    end_eaves_neg: FloatProperty(
-        name="End Eaves Negative",
-        default=0,
-        step=0.1,
-        min=0
-    )
-
-    side_eaves: FloatProperty(
-        name="Side Eaves",
-        default=0.1,
-        step=0.1,
-        min=0
-    )
-
-    roof_thickness: FloatProperty(
-        name="Roof Thickness",
-        default=0.1,
-        step=0.05,
-        min=0
-    )
-
-    inset_dist: FloatProperty(
-        name="Inset Distance",
-        description="Distance core is usually inset from the base of a wall",
-        default=0.09,
-        min=0
-    )
-
-    inset_x_neg: BoolProperty(
-        name="Inset X Neg",
-        default=True)
-
-    inset_x_pos: BoolProperty(
-        name="Inset X Pos",
-        default=True)
-
-    inset_y_neg: BoolProperty(
-        name="Inset Y Neg",
-        default=True)
-
-    inset_y_pos: BoolProperty(
-        name="Inset Y Pos",
-        default=True)
 
 def register():
     # Property group that contains properties relating to a tile stored on the tile collection

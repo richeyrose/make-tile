@@ -13,6 +13,7 @@ def create_properties_on_activation(dummy):
     create_properties()
     load_material_libraries()
 
+
 @persistent
 def create_properties_on_load(dummy):
     create_properties()
@@ -61,40 +62,38 @@ def recreate_properties_on_undo(dummy):
 
 @persistent
 def update_mt_scene_props_handler(dummy):
+    """Updates mt_scene_props based on mt_tile_props of selected object.
+
+    This means that when the user selects an existing tile they can easily
+    create one with the same properties.
+    """
     context = bpy.context
-    scene = context.scene
-    if not hasattr(scene, 'mt_scene_props'):
-        return
-    scene_props = scene.mt_scene_props
-    if not hasattr(context, 'object'):
-        return
     obj = context.object
-    if not hasattr(obj, 'mt_object_props'):
-        return
-    obj_props = obj.mt_object_props
+    scene_props = context.scene.mt_scene_props
 
-    if obj in context.selected_objects:
+    try:
+        obj_props = obj.mt_object_props
+        tile_props = bpy.data.collections[obj.mt_object_props.tile_name].mt_tile_props
+
         if obj != scene_props.mt_last_selected and not obj_props.is_converted and obj_props.is_mt_object:
-            tile_name = obj_props.tile_name
-            try:
-                tile_props = bpy.data.collections[tile_name].mt_tile_props
+            scene_props.tile_x = tile_props.tile_size[0]
+            scene_props.tile_y = tile_props.tile_size[1]
+            scene_props.tile_z = tile_props.tile_size[2]
 
-                scene_props.mt_last_selected = obj
+            scene_props.base_x = tile_props.base_size[0]
+            scene_props.base_y = tile_props.base_size[1]
+            scene_props.base_z = tile_props.base_size[2]
 
-                scene_props.tile_x = tile_props.tile_size[0]
-                scene_props.tile_y = tile_props.tile_size[1]
-                scene_props.tile_z = tile_props.tile_size[2]
+            for key, value in tile_props.items():
+                for k in scene_props.keys():
+                    if k == key:
+                        scene_props[k] = value
+            scene_props.mt_last_selected = obj
 
-                scene_props.base_x = tile_props.base_size[0]
-                scene_props.base_y = tile_props.base_size[1]
-                scene_props.base_z = tile_props.base_size[2]
-
-                for key, value in tile_props.items():
-                    for k in scene_props.keys():
-                        if k == key:
-                            scene_props[k] = value
-            except KeyError:
-                pass
+    except KeyError:
+        pass
+    except AttributeError:
+        pass
 
 
 def create_properties():

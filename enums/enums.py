@@ -102,9 +102,3 @@ column_socket_style = [
     ("FLAT", "Flat", "", 1),
     ("TEXTURED", "Textured", "", 2)
 ]
-
-roof_types = [
-    ("APEX", "Apex", ""),
-    ("NADIR", "Nadir", ""),
-    ("SIDE", "Side", "")
-]

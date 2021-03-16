@@ -7,20 +7,19 @@ from bpy.props import (
     FloatProperty,
     IntProperty,
     PointerProperty)
-from .enums.enums import (
+from ..enums.enums import (
     tile_blueprints,
     curve_types,
     base_socket_side,
     units,
     material_mapping,
     openlock_column_types,
-    column_socket_style,
-    roof_types)
+    column_socket_style)
 from .properties import (
     create_main_part_blueprint_enums,
     create_tile_type_enums,
     create_base_blueprint_enums)
-from .app_handlers import create_properties_on_load
+from ..app_handlers import create_properties_on_load
 
 
 def load_material_enums(self, context):
@@ -503,7 +502,7 @@ class MT_Scene_Properties(PropertyGroup):
         name="Z",
         default=0.3,
         step=50,
-        precision=1,
+        precision=2,
         min=0
     )
 
@@ -583,71 +582,6 @@ class MT_Scene_Properties(PropertyGroup):
         default="TEXTURED",
         description="Whether to have texture on the sides with sockets."
     )
-
-    # Roof specific
-    roof_type: EnumProperty(
-        name="Roof Type",
-        items=roof_types,
-        default="APEX"
-    )
-
-    roof_pitch: FloatProperty(
-        name="Roof Pitch",
-        default=45,
-        step=1,
-        min=0
-    )
-
-    end_eaves_pos: FloatProperty(
-        name="End Eaves Positive",
-        default=0,
-        step=0.1,
-        min=0
-    )
-
-    end_eaves_neg: FloatProperty(
-        name="End Eaves Negative",
-        default=0,
-        step=0.1,
-        min=0
-    )
-
-    side_eaves: FloatProperty(
-        name="Side Eaves",
-        default=0.1,
-        step=0.1,
-        min=0
-    )
-
-    roof_thickness: FloatProperty(
-        name="Roof Thickness",
-        default=0.1,
-        step=0.05,
-        min=0
-    )
-
-    inset_dist: FloatProperty(
-        name="Inset Distance",
-        description="Distance core is usually inset from the base of a wall",
-        default=0.09,
-        min=0
-    )
-
-    inset_x_neg: BoolProperty(
-        name="Inset X Neg",
-        default=True)
-
-    inset_x_pos: BoolProperty(
-        name="Inset X Pos",
-        default=True)
-
-    inset_y_neg: BoolProperty(
-        name="Inset Y Neg",
-        default=True)
-
-    inset_y_pos: BoolProperty(
-        name="Inset Y Pos",
-        default=True)
 
     # TODO: Fix hack to make 360 curved wall work. Ideally this should merge everything
     degrees_of_arc: FloatProperty(

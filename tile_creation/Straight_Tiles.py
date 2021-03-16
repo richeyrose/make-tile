@@ -502,16 +502,10 @@ def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
     base_size = tile_props.base_size
 
     # work out bool size X from base size, y and z are constants.
-    if base_size[0] > 0:
-        bool_size = [
-            base_size[0] - (0.236 * 2),
-            0.197,
-            0.25]
-    else:
-        bool_size = [
-            base_size[0] + (0.236 * 2),
-            0.197,
-            0.25]
+    bool_size = [
+        base_size[0] - (offset * 2),
+        0.197,
+        0.25]
 
     cutter = draw_cuboid(bool_size)
     cutter.name = 'Base Slot.' + tile_props.tile_name + ".slot_cutter"

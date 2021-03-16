@@ -87,15 +87,16 @@ class MT_PT_Roof_Panel(Panel):
         layout = self.layout
 
         # layout.label(text="Blueprints")
-
-        # layout.prop(roof_props, 'roof_type', text="Roof Type")
+        layout.label(text="Roof Type")
+        layout.prop(roof_props, 'roof_type', text="")
 
         row = layout.row()
         row.prop(roof_props, 'draw_gables')
         row.prop(roof_props, 'draw_rooftop')
 
         # layout.label(text="Socket Types")
-        layout.prop(roof_props, 'base_bottom_socket_type')
+        layout.label(text="Bottom Socket")
+        layout.prop(roof_props, 'base_bottom_socket_type', text="")
         # layout.prop(roof_props, 'base_side_socket_type')
         # layout.prop(roof_props, 'gable_socket_type')
 
@@ -128,12 +129,9 @@ class MT_PT_Roof_Panel(Panel):
         layout.operator('scene.reset_roof_defaults')
 
 def initialise_roof_creator(context):
-    scene_props = context.scene.mt_scene_props
-    roof_scene_props = context.scene.mt_roof_scene_props
-
+    """Initialise the roof creator and set common properties."""
     tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator(context)
     create_collection('Roofs', tiles_collection)
-
     tile_collection = bpy.data.collections.new(tile_name)
     bpy.data.collections['Roofs'].children.link(tile_collection)
     activate_collection(tile_collection.name)
@@ -141,24 +139,30 @@ def initialise_roof_creator(context):
     tile_props = tile_collection.mt_tile_props
     roof_tile_props = tile_collection.mt_roof_tile_props
 
+    scene_props = context.scene.mt_scene_props
+    roof_scene_props = context.scene.mt_roof_scene_props
     create_common_tile_props(scene_props, tile_props, tile_collection)
+    create_roof_tile_props(roof_scene_props, roof_tile_props)
 
+    roof_tile_props.is_roof = True
+
+    tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
+    tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
+    tile_props.tile_type = 'ROOF'
+
+    return cursor_orig_loc, cursor_orig_rot
+
+def create_roof_tile_props(roof_scene_props, roof_tile_props):
+    """Create roof tile properties.
+
+    Args:
+        roof_scene_props (MakeTile.properties.MT_Roof_Properties): scene props
+        roof_tile_props (MakeTile.properties.MT_Roof_Properties): tile props
+    """
     for key in roof_scene_props.__annotations__.keys():
         for k in roof_tile_props.__annotations__.keys():
             if k == key:
                 setattr(roof_tile_props, str(k), getattr(roof_scene_props, str(k)))
-
-    roof_tile_props.is_roof = True
-
-    tile_props.tile_type = 'ROOF'
-
-    tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
-    tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
-
-    tile_props.subdivision_density = scene_props.subdivision_density
-    tile_props.displacement_thickness = scene_props.displacement_thickness
-
-    return cursor_orig_loc, cursor_orig_rot
 
 class MT_OT_Make_Roof(MT_Tile_Generator, Operator):
     """Operator. Generates a roof tile."""
@@ -301,8 +305,13 @@ def spawn_roof(context):
 def spawn_base(context):
     tile = context.collection
     tile_props = tile.mt_tile_props
+    roof_props = tile.mt_roof_tile_props
 
-    base = draw_apex_base(context, margin=0.001)
+    if roof_props.roof_type == 'APEX':
+        base = draw_apex_base(context)
+    elif roof_props.roof_type == 'SHED':
+        base = draw_shed_base(context)
+
     base.name = tile_props.tile_name + '.base'
     obj_props = base.mt_object_props
     obj_props.is_mt_object = True
@@ -457,24 +466,7 @@ def draw_apex_roof_top(context, margin=0.001):
     # subdivisions
     density = tile_props.subdivision_density
 
-    if density == 'LOW':
-        x = floor(base_dims[0] * 4)
-        y = floor(base_dims[1] * 4)
-        z = floor(base_dims[2] * 4)
-    elif density == 'MEDIUM':
-        x = floor(base_dims[0] * 8)
-        y = floor(base_dims[1] * 8)
-        z = floor(base_dims[2] * 8)
-    elif density == 'HIGH':
-        x = floor(base_dims[0] * 16)
-        y = floor(base_dims[1] * 16)
-        z = floor(base_dims[2] * 16)
-    else:
-        x = floor(base_dims[0] * 32)
-        y = floor(base_dims[1] * 32)
-        z = floor(base_dims[2] * 32)
-
-    subdivs = [x, y, z]
+    subdivs = get_subdivs(density, base_dims)
 
     vert_groups = ['Left', 'Right']
     bm, obj = create_turtle('Roof', vert_groups)
@@ -658,16 +650,14 @@ def draw_apex_roof_top(context, margin=0.001):
     return obj
 
 
-def draw_apex_base(context, margin=0.001):
-    """Draw an apex style roof base."""
-    #      B
-    #     /|\
-    #    / | \c
-    #   / a|  \
-    #  /___|___\A
-    #  |   C b |
-    #  |_______|
-    #     base
+def draw_shed_base(context, margin=0.001):
+    """Draw a sloping style roof base."""
+    #  B
+    #  |\
+    # a| \c
+    #  |__\A
+    #  C b |
+    #  |___|
     turtle = context.scene.cursor
     tile = context.collection
     tile_props = tile.mt_tile_props
@@ -676,9 +666,9 @@ def draw_apex_base(context, margin=0.001):
     base_dims = [s for s in tile_props.base_size]
 
     # Roof generator breaks if base height is less than this.
-
     if base_dims[2] < 0.002:
         base_dims[2] = 0.002
+
     # correct for inset (difference between standard base width and wall width) to take into account
     # displacement materials
     if roof_tile_props.inset_x_neg:
@@ -694,36 +684,18 @@ def draw_apex_base(context, margin=0.001):
     C = 90
     A = roof_tile_props.roof_pitch
     B = 180 - C - A
-    b = base_dims[0] / 2
+    b = base_dims[0]
     a = tan(radians(A)) * b
     c = sqrt(a**2 + b**2)
 
     # subdivisions
-    density = tile_props.subdivision_density
-
-    if density == 'LOW':
-        x = floor(base_dims[0] * 4)
-        y = floor(base_dims[1] * 4)
-        z = floor(base_dims[2] * 4)
-    elif density == 'MEDIUM':
-        x = floor(base_dims[0] * 8)
-        y = floor(base_dims[1] * 8)
-        z = floor(base_dims[2] * 8)
-    elif density == 'HIGH':
-        x = floor(base_dims[0] * 16)
-        y = floor(base_dims[1] * 16)
-        z = floor(base_dims[2] * 16)
-    else:
-        x = floor(base_dims[0] * 32)
-        y = floor(base_dims[1] * 32)
-        z = floor(base_dims[2] * 32)
-
-    subdivs = [x, y, z]
+    subdivs = get_subdivs(tile_props.subdivision_density, base_dims)
 
     for index, value in enumerate(subdivs):
         if value == 0:
             subdivs[index] = 1
 
+    # Create bmesh and object
     vert_groups = ['Base Left', 'Base Right', 'Gable Front', 'Gable Back', 'Bottom', 'Top']
     bm, obj = create_turtle('Base', vert_groups)
 
@@ -732,8 +704,7 @@ def draw_apex_base(context, margin=0.001):
     deform_groups = bm.verts.layers.deform.active
     bm.select_mode = {'VERT'}
 
-    # start
-
+    # start drawing
     # check to see if we're correcting for wall thickness
     if roof_tile_props.inset_x_neg:
         ri(bm, roof_tile_props.inset_dist)
@@ -768,8 +739,170 @@ def draw_apex_base(context, margin=0.001):
 
     bm_deselect_all(bm)
 
+    # draw peak
+    bm.select_mode = {'VERT'}
+    pd(bm)
+    add_vert(bm)
+    bm.verts.ensure_lookup_table()
+    ptu(90)
+    ylf(90 - A)
+    fd(bm, c)
+    yri(B + 180)
+    fd(bm, a)
+
+    # select last three verts
+    bm.verts.ensure_lookup_table()
+    tri_verts = bm.verts[-3:]
+    for v in tri_verts:
+        v.select_set(True)
+
+    # create triangle and grid fill
+    bmesh.ops.contextual_create(bm, geom=tri_verts, mat_nr=0, use_smooth=False)
+    bm.select_mode = {'EDGE'}
+    tri_edges = [e for e in bm.edges if e.select]
+    bmesh.ops.subdivide_edges(bm, edges=tri_edges, cuts=subdivs[0] - 1, use_grid_fill=True)
+
+    # clean up and merge with base bit
+    bm.select_mode = {'VERT'}
+    bm_select_all(bm)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=margin / 2)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+
+    bm_deselect_all(bm)
+    home(obj)
+
+    bm.select_mode = {'FACE'}
+    bm_select_all(bm)
+
+    # extrude along y
+    fd(bm, margin, del_original=False)
+    subdiv_y_dist = (base_dims[1] - (margin * 2)) / (subdivs[1] - 1)
+
+    i = 1
+    while i < subdivs[1]:
+        fd(bm, subdiv_y_dist, del_original=True)
+        i += 1
+    fd(bm, margin, del_original=True)
+
+    bm_deselect_all(bm)
+    home(obj)
+
+    # slice mesh to create margins
+    turtle.location = draw_origin
+
+    # base left
+    plane = (
+        turtle.location[0] + margin,
+        turtle.location[1],
+        turtle.location[2])
+
+    bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=margin / 4, plane_co=plane, plane_no=(1, 0, 0))
+
+    # base right
+    plane = (
+        turtle.location[0] + base_dims[0] - margin,
+        turtle.location[1],
+        turtle.location[2])
+
+    bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=margin / 4, plane_co=plane, plane_no=(1, 0, 0))
+    # finalise turtle and release bmesh
+    turtle.location = (0, 0, 0)
+    finalise_turtle(bm, obj)
+
+    return obj
+def draw_apex_base(context, margin=0.001):
+    """Draw an apex style roof base."""
+    #      B
+    #     /|\
+    #    / | \c
+    #   / a|  \
+    #  /___|___\A
+    #  |   C b |
+    #  |_______|
+    #     base
+    turtle = context.scene.cursor
+    tile = context.collection
+    tile_props = tile.mt_tile_props
+    roof_tile_props = tile.mt_roof_tile_props
+
+    base_dims = [s for s in tile_props.base_size]
+
+    # Roof generator breaks if base height is less than this.
+    if base_dims[2] < 0.002:
+        base_dims[2] = 0.002
+
+    # correct for inset (difference between standard base width and wall width) to take into account
+    # displacement materials
+    if roof_tile_props.inset_x_neg:
+        base_dims[0] = base_dims[0] - roof_tile_props.inset_dist
+    if roof_tile_props.inset_x_pos:
+        base_dims[0] = base_dims[0] - roof_tile_props.inset_dist
+    if roof_tile_props.inset_y_neg:
+        base_dims[1] = base_dims[1] - roof_tile_props.inset_dist
+    if roof_tile_props.inset_y_pos:
+        base_dims[1] = base_dims[1] - roof_tile_props.inset_dist
+
+    # Calculate triangle
+    C = 90
+    A = roof_tile_props.roof_pitch
+    B = 180 - C - A
+    b = base_dims[0] / 2
+    a = tan(radians(A)) * b
+    c = sqrt(a**2 + b**2)
+
+    # subdivisions
+    subdivs = get_subdivs(tile_props.subdivision_density, base_dims)
+
+    for index, value in enumerate(subdivs):
+        if value == 0:
+            subdivs[index] = 1
+
+    # Create bmesh and object
+    vert_groups = ['Base Left', 'Base Right', 'Gable Front', 'Gable Back', 'Bottom', 'Top']
+    bm, obj = create_turtle('Base', vert_groups)
+
+    # create vertex group layer
+    bm.verts.layers.deform.verify()
+    deform_groups = bm.verts.layers.deform.active
     bm.select_mode = {'VERT'}
 
+    # start drawing
+    # check to see if we're correcting for wall thickness
+    if roof_tile_props.inset_x_neg:
+        ri(bm, roof_tile_props.inset_dist)
+    if roof_tile_props.inset_y_pos:
+        fd(bm, roof_tile_props.inset_dist)
+
+    draw_origin = turtle.location.copy()
+
+    pd(bm)
+    add_vert(bm)
+
+    # Draw front bottom edge of base
+    i = 0
+    while i < subdivs[0]:
+        ri(bm, base_dims[0] / subdivs[0])
+        i += 1
+
+    # Select edge and extrude up
+    bm.select_mode = {'EDGE'}
+    bm_select_all(bm)
+
+    subdiv_z_dist = (base_dims[2] - (margin * 2)) / subdivs[2]
+
+    up(bm, margin)
+
+    i = 0
+    while i < subdivs[2]:
+        up(bm, subdiv_z_dist)
+        i += 1
+
+    up(bm, margin)
+
+    bm_deselect_all(bm)
+
+    # draw peak
+    bm.select_mode = {'VERT'}
     pd(bm)
     add_vert(bm)
     bm.verts.ensure_lookup_table()
@@ -1002,6 +1135,30 @@ def draw_apex_base(context, margin=0.001):
     finalise_turtle(bm, obj)
 
     return obj
+
+def get_subdivs(density, base_dims):
+    """Get the number of times to subdivide each side when drawing.
+
+    Args:
+        density (ENUM in {'LOW', 'MEDIUM', 'HIGH'}): Density of subdivision
+        base_dims (list(float, float, float)): Base dimensions
+
+    Returns:
+        [list(int, int, int)]: subdivisions
+    """
+    if density == 'LOW':
+        x = floor(base_dims[0] * 4)
+        y = floor(base_dims[1] * 4)
+        z = floor(base_dims[2] * 4)
+    elif density == 'MEDIUM':
+        x = floor(base_dims[0] * 8)
+        y = floor(base_dims[1] * 8)
+        z = floor(base_dims[2] * 8)
+    elif density == 'HIGH':
+        x = floor(base_dims[0] * 16)
+        y = floor(base_dims[1] * 16)
+        z = floor(base_dims[2] * 16)
+    return [x, y, z]
 
 
 def spawn_openlock_base_slot_cutter(base, tile_props, roof_props, offset=0.236):

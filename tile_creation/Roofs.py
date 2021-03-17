@@ -59,7 +59,7 @@ from ..lib.bmturtle.helpers import (
 
 from ..lib.bmturtle.scripts import draw_cuboid
 
-
+#TODO Ensure UI updates to show roof options when roof is selected
 class MT_PT_Roof_Panel(Panel):
     """Draw a tile options panel in UI."""
 
@@ -651,7 +651,7 @@ def draw_apex_roof_top(context, margin=0.001):
 
 
 def draw_shed_base(context, margin=0.001):
-    """Draw a sloping style roof base."""
+    """Draw a shed style roof base (Not sure why this style is called "shed" but hey ho)."""
     #  B
     #  |\
     # a| \c
@@ -747,6 +747,8 @@ def draw_shed_base(context, margin=0.001):
     ptu(90)
     ylf(90 - A)
     fd(bm, c)
+    # save location of peak
+    peak_loc = turtle.location.copy()
     yri(B + 180)
     fd(bm, a)
 
@@ -805,11 +807,160 @@ def draw_shed_base(context, margin=0.001):
         turtle.location[2])
 
     bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=margin / 4, plane_co=plane, plane_no=(1, 0, 0))
+
+    # roof right
+    v1 = (
+        turtle.location[0] + base_dims[0],
+        turtle.location[1],
+        turtle.location[2] + base_dims[2])
+    v2 = (
+        turtle.location[0],
+        turtle.location[1],
+        turtle.location[2] + base_dims[2] + a)
+    v3 = (
+        turtle.location[0],
+        turtle.location[1] + base_dims[1],
+        turtle.location[2] + base_dims[2] + a)
+
+    norm = geometry.normal((v1, v2, v3))
+
+    plane = (
+        turtle.location[0] + base_dims[0] - margin,
+        turtle.location[1],
+        turtle.location[2] + base_dims[2])
+
+    bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=margin / 4, plane_co=plane, plane_no=norm)
+
+    # create a temporary bmesh for gable ends to select verts inside and create vert groups
+    gable_bm = bmesh.new()
+    gable_base_dims = base_dims
+    gable_base_dims[0] = base_dims[0] - margin
+    gable_base_dims[2] = base_dims[2] - margin / 2
+    gable_b = gable_base_dims[0]
+    gable_a = tan(radians(A)) * gable_b
+    gable_c = sqrt(gable_a**2 + gable_b**2)
+
+    gable_bm.select_mode = {'VERT'}
+    bk(gable_bm, margin)
+    ri(gable_bm, margin / 2)
+    up(gable_bm, margin / 2)
+
+    pd(gable_bm)
+    add_vert(gable_bm)
+    ri(gable_bm, gable_base_dims[0])
+    up(gable_bm, gable_base_dims[2])
+
+    ptu(90)
+    ylf(90 - A)
+    fd(gable_bm, gable_c)
+    yri(B * 2 + 180)
+    fd(gable_bm, gable_c)
+
+    turtle.rotation_euler = (0, 0, 0)
+    bm_select_all(gable_bm)
+    bmesh.ops.contextual_create(gable_bm, geom=gable_bm.verts, mat_nr=0, use_smooth=False)
+
+    gable_bm.select_mode = {'FACE'}
+    bm_select_all(gable_bm)
+    fd(gable_bm, margin * 2, False)
+    bmesh.ops.recalc_face_normals(gable_bm, faces=gable_bm.faces)
+
+    # select all points in roof mesh that are inside gable mesh
+    bm_coords = [v.co.to_tuple() for v in bm.verts]
+    to_select = points_are_inside_bmesh(bm_coords, gable_bm, margin / 2, 0.001)
+
+    # points_are_inside isn't perfect on low poly meshes so filter out false positives here
+    for vert, select in zip(bm.verts, to_select):
+        if vert.co[1] < draw_origin[1] + margin / 2:
+            vert.select = select
+    front_verts = [v for v in bm.verts if v.select]
+    # assign_verts_to_group(front_verts, obj, deform_groups, "Gable Front")
+
+    bm_deselect_all(bm)
+
+    # Gable Back
+    # move gable mesh to other end
+    for v in gable_bm.verts:
+        v.co[1] = v.co[1] + base_dims[1]
+
+    to_select = points_are_inside_bmesh(bm_coords, gable_bm, margin / 2, 0.001)
+    for vert, select in zip(bm.verts, to_select):
+        if vert.co[1] > base_dims[1] - margin / 2:
+            vert.select = select
+
+    back_verts = [v for v in bm.verts if v.select]
+    # Free gable bmesh as we don't need it any more
+    gable_bm.free()
+    #assign_verts_to_group(back_verts, obj, deform_groups, "Gable Back")
+
+    bm_deselect_all(bm)
+    turtle.location = draw_origin
+
+    # Left side
+    left_verts = select_verts_in_bounds(
+        lbound=(
+            turtle.location[0] - margin,
+            turtle.location[1],
+            turtle.location[2] + margin),
+        ubound=(
+            peak_loc[0],
+            peak_loc[1] + base_dims[1],
+            peak_loc[2] - margin),
+        buffer=margin / 2,
+        bm=bm)
+
+    assign_verts_to_group(left_verts, obj, deform_groups, "Base Left")
+    bm_deselect_all(bm)
+
+    # Base Right
+    right_verts = select_verts_in_bounds(
+        lbound=(
+            turtle.location[0] + base_dims[0] + margin / 2,
+            turtle.location[1],
+            turtle.location[2] + margin),
+        ubound=(
+            turtle.location[0] + base_dims[0] + margin,
+            turtle.location[1] + base_dims[1],
+            turtle.location[2] + base_dims[2] - margin / 2),
+        buffer=margin / 3,
+        bm=bm)
+
+    assign_verts_to_group(right_verts, obj, deform_groups, "Base Right")
+    bm_deselect_all(bm)
+
+    # Base bottom
+    bottom_verts = select_verts_in_bounds(
+        lbound=(
+            turtle.location[0],
+            turtle.location[1],
+            turtle.location[2]),
+        ubound=(
+            turtle.location[0] + base_dims[0] + margin,
+            turtle.location[1] + base_dims[1],
+            turtle.location[2]),
+        buffer=margin / 3,
+        bm=bm)
+    assign_verts_to_group(bottom_verts, obj, deform_groups, "Bottom")
+    bm_deselect_all(bm)
+
+    verts = bottom_verts + left_verts + right_verts + front_verts + back_verts
+    top_verts = [v for v in bm.verts if v not in verts]
+    assign_verts_to_group(top_verts, obj, deform_groups, "Top")
+
+    # Additional filter for gables
+    verts = left_verts + right_verts + bottom_verts
+    front_verts = [v for v in bm.verts if v in front_verts and v not in verts]
+    assign_verts_to_group(front_verts, obj, deform_groups, "Gable Front")
+    back_verts = [v for v in bm.verts if v in back_verts and v not in verts]
+    assign_verts_to_group(back_verts, obj, deform_groups, "Gable Back")
+
     # finalise turtle and release bmesh
     turtle.location = (0, 0, 0)
     finalise_turtle(bm, obj)
 
     return obj
+
+
 def draw_apex_base(context, margin=0.001):
     """Draw an apex style roof base."""
     #      B
@@ -1057,13 +1208,12 @@ def draw_apex_base(context, margin=0.001):
         if vert.co[1] < draw_origin[1] + margin / 2:
             vert.select = select
     front_verts = [v for v in bm.verts if v.select]
-    assign_verts_to_group(front_verts, obj, deform_groups, "Gable Front")
+    #assign_verts_to_group(front_verts, obj, deform_groups, "Gable Front")
 
     bm_deselect_all(bm)
 
     # Gable Back
     # move gable mesh to other end
-
     for v in gable_bm.verts:
         v.co[1] = v.co[1] + base_dims[1]
 
@@ -1073,9 +1223,9 @@ def draw_apex_base(context, margin=0.001):
             vert.select = select
 
     back_verts = [v for v in bm.verts if v.select]
-    # Free gable bmesh as we don;t need it any more
+    # Free gable bmesh as we don't need it any more
     gable_bm.free()
-    assign_verts_to_group(back_verts, obj, deform_groups, "Gable Back")
+    #assign_verts_to_group(back_verts, obj, deform_groups, "Gable Back")
     bm_deselect_all(bm)
     turtle.location = draw_origin
 
@@ -1130,7 +1280,15 @@ def draw_apex_base(context, margin=0.001):
     top_verts = [v for v in bm.verts if v not in verts]
     assign_verts_to_group(top_verts, obj, deform_groups, "Top")
 
+    # Additional filter for gables
+    verts = left_verts + right_verts + bottom_verts
+    front_verts = [v for v in bm.verts if v in front_verts and v not in verts]
+    assign_verts_to_group(front_verts, obj, deform_groups, "Gable Front")
+    back_verts = [v for v in bm.verts if v in back_verts and v not in verts]
+    assign_verts_to_group(back_verts, obj, deform_groups, "Gable Back")
+
     turtle.location = (0, 0, 0)
+
     # finalise turtle and release bmesh
     finalise_turtle(bm, obj)
 

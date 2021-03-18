@@ -278,8 +278,13 @@ class MT_OT_Make_Empty_Roof_Top(MT_Tile_Generator, Operator):
 def spawn_roof(context):
     tile = context.collection
     tile_props = tile.mt_tile_props
+    roof_props = tile.mt_roof_tile_props
 
-    roof = draw_apex_roof_top(context)
+    if roof_props.roof_type == 'APEX':
+        roof = draw_apex_roof_top(context)
+    elif roof_props.roof_type == 'SHED':
+        roof = draw_shed_roof_top(context)
+
     roof.name = tile_props.tile_name + '.roof'
     obj_props = roof.mt_object_props
     obj_props.is_mt_object = True
@@ -335,7 +340,288 @@ def spawn_base(context):
     return base
 
 
+def draw_shed_roof_top(context, margin=0.001):
+    """Draw a shed type roof top.
+
+    Args:
+        context (bpy.context): context
+        margin (float, optional): Margin around textured area. Defaults to 0.001.
+    """
+    #  B
+    #  |\
+    # a| \c
+    #  |__\A
+    #  C b |
+    #  |___|
+
+    turtle = context.scene.cursor
+    tile = context.collection
+    tile_props = tile.mt_tile_props
+    roof_tile_props = tile.mt_roof_tile_props
+
+    base_dims = [s for s in tile_props.base_size]
+
+    # correct for inset (difference between standard base width and wall width) to take into account
+    # displacement materials
+    '''
+    if roof_tile_props.inset_x_neg:
+        base_dims[0] = base_dims[0] - roof_tile_props.inset_dist
+    '''
+    if roof_tile_props.inset_x_pos:
+        base_dims[0] = base_dims[0] - roof_tile_props.inset_dist
+    if roof_tile_props.inset_y_neg:
+        base_dims[1] = base_dims[1] - roof_tile_props.inset_dist
+    if roof_tile_props.inset_y_pos:
+        base_dims[1] = base_dims[1] - roof_tile_props.inset_dist
+
+    # calculate triangle
+    C = 90
+    A = roof_tile_props.roof_pitch
+    B = 180 - C - A
+    b = base_dims[0]
+    a = tan(radians(A)) * b
+    c = sqrt(a**2 + b**2)
+
+    base_tri = {
+        'a': a,
+        'b': b,
+        'c': c,
+        'A': A,
+        'B': B,
+        'C': C}
+
+    # side eaves distance is vertical distance down from C
+    # recalculate triangle to take this into account
+    #  B
+    #  |\
+    # a| \c
+    #  |__\A
+    #  C b | ▲ side eaves distance
+    #  |___| ▼
+
+    a = base_tri['a'] + roof_tile_props.side_eaves
+    C = 90
+    A = roof_tile_props.roof_pitch
+    B = 180 - 90 - A
+    b = a / tan(radians(A))
+    c = sqrt(a**2 + b**2)
+
+    inner_tri = {
+        'a': a,
+        'b': b,
+        'c': c,
+        'A': A,
+        'B': B,
+        'C': C}
+
+    # calculate size of peak triangle based on roof thickness
+    #        B
+    #       /|
+    #    c / |
+    #     /  |a
+    #    /___|
+    #   A  b  C
+    C = 90
+    B = roof_tile_props.roof_pitch / 2
+    A = 180 - 90 - B
+    b = roof_tile_props.roof_thickness
+    a = tan(radians(A)) * b
+    c = sqrt(a**2 + b**2)
+
+    peak_tri = {
+        'a': a,
+        'b': b,
+        'c': c,
+        'A': A,
+        'B': B,
+        'C': C}
+
+    # calculate size of eave end triangle based on roof thickness
+    C = 90
+    A = roof_tile_props.roof_pitch
+    B = 180 - C - A
+    a = roof_tile_props.roof_thickness
+    b = a / tan(radians(A))
+    c = sqrt(a**2 + b**2)
+
+    eave_end_tri = {
+        'a': a,
+        'b': b,
+        'c': c,
+        'A': A,
+        'B': B,
+        'C': C}
+
+    # calculate size of outer roof triangle
+    #       B
+    #       |\
+    #     a | \c
+    #       |_ \
+    #       |_|_\A
+    #      C  b
+
+    C = 90
+    A = roof_tile_props.roof_pitch
+    B = 180 - A - C
+    b = inner_tri['b'] + eave_end_tri['c']
+    a = tan(radians(A)) * b
+    c = sqrt(a**2 + b**2)
+
+    outer_tri = {
+        'A': A,
+        'B': B,
+        'C': C,
+        'a': a,
+        'b': b,
+        'c': c}
+
+    # subdivisions
+    density = tile_props.subdivision_density
+    subdivs = get_subdivs(density, base_dims)
+
+    vert_groups = ['Left', 'Right']
+    bm, obj = create_turtle('Roof', vert_groups)
+
+    # create vertex group layer
+    bm.verts.layers.deform.verify()
+    deform_groups = bm.verts.layers.deform.active
+    bm.select_mode = {'VERT'}
+
+    # start
+    # check to see if we're correcting for wall thickness
+    '''
+    if roof_tile_props.inset_x_neg:
+        ri(bm, roof_tile_props.inset_dist)
+    '''
+    if roof_tile_props.inset_y_pos:
+        fd(bm, roof_tile_props.inset_dist)
+
+    # draw gable end edges
+    draw_origin = turtle.location.copy()
+    bk(bm, roof_tile_props.end_eaves_neg)
+    ri(bm, inner_tri['b'])
+    up(bm, base_dims[2] - roof_tile_props.side_eaves)
+
+    draw_origin = turtle.location.copy()
+    pd(bm)
+
+    # vert 0
+    add_vert(bm)
+    ri(bm, eave_end_tri['c'])
+    # vert 1
+    ptu(90)
+    ylf(90 - outer_tri['A'])
+    fd(bm, outer_tri['c'])
+    apex_loc = turtle.location.copy()
+    # vert 2
+    pu(bm)
+    # vert 3
+    turtle.location=draw_origin
+    fd(bm, inner_tri['c'])
+    pd(bm)
+    add_vert(bm)
+    # vert 4
+    turtle.location=(0, 0, 0)
+    turtle.rotation_euler=(0, 0, 0)
+
+    # create gable end face
+    bmesh.ops.contextual_create(bm, geom=bm.verts, mat_nr=0, use_smooth=False)
+
+    # loopcut edges
+    edges = [e for e in bm.edges if e.index in [1, 3]]
+    bmesh.ops.subdivide_edges(
+        bm,
+        edges=edges,
+        cuts=subdivs[0] - 1,
+        smooth_falloff='INVERSE_SQUARE',
+        use_grid_fill=True)
+
+    # margin cut for bottom of roof
+    plane = (
+        draw_origin[0],
+        draw_origin[1],
+        draw_origin[2] + margin)
+
+    bmesh.ops.bisect_plane(
+        bm,
+        geom=bm.verts[:] + bm.edges[:] + bm.faces[:],
+        dist = margin / 4,
+        plane_co=plane,
+        plane_no = (0, 0, 1))
+
+    # extrude along y
+    bm.select_mode = {'FACE'}
+    bm_select_all(bm)
+
+    fd(bm, margin, del_original=False)
+    subdiv_y_dist = (base_dims[1] - (margin * 2) + roof_tile_props.end_eaves_neg + roof_tile_props.end_eaves_pos) / (subdivs[1] - 1)
+
+    i = 1
+    while i < subdivs[1]:
+        fd(bm, subdiv_y_dist, del_original=True)
+        i += 1
+    fd(bm, margin, del_original=True)
+    bm_deselect_all(bm)
+
+    # create bmesh for selecting top of roof
+    top_bm = bmesh.new()
+    turtle.location = draw_origin
+    top_bm.select_mode = {'VERT'}
+    ri(top_bm, eave_end_tri['c'])
+    dn(top_bm, margin)
+    bk(top_bm, margin)
+    ptu(90)
+    ylf(90 - outer_tri['A'])
+    pd(top_bm)
+    add_vert(top_bm)
+    fd(top_bm, outer_tri['c'] + margin * 4)
+    yri(90)
+    top_bm.select_mode = {'EDGE'}
+    bm_select_all(top_bm)
+    fd(top_bm, margin * 4)
+    top_bm.select_mode = {'FACE'}
+    turtle.rotation_euler = (0, 0, 0)
+    bm_select_all(top_bm)
+    fd(top_bm, base_dims[1] + roof_tile_props.end_eaves_neg + roof_tile_props.end_eaves_pos + margin * 4, False)
+    bmesh.ops.recalc_face_normals(top_bm, faces=top_bm.faces)
+
+    # select all points inside top_bm
+    bm_coords = [v.co.to_tuple() for v in bm.verts]
+    to_select = points_are_inside_bmesh(bm_coords, top_bm, margin / 2, 0.001)
+
+    for vert, select in zip(bm.verts, to_select):
+
+        if vert.co[2] > draw_origin[2] + margin / 4 and \
+            vert.co[1] > draw_origin[1] + margin / 4 and \
+                vert.co[1] < draw_origin[1] + base_dims[1] + roof_tile_props.end_eaves_neg + roof_tile_props.end_eaves_pos - (margin / 4):
+                vert.select = select
+        '''
+        if vert.co[0] > base_dims[0] - margin and \
+            vert.co[2] > draw_origin[2] + margin / 4 and \
+                vert.co[1] > draw_origin[1] + margin / 4 and \
+                    vert.co[1] < draw_origin[1] + base_dims[1] + roof_tile_props.end_eaves_neg + roof_tile_props.end_eaves_pos - (margin / 4):
+                    vert.select = select
+        '''
+
+    right_verts = [v for v in bm.verts if v.select]
+    assign_verts_to_group(right_verts, obj, deform_groups, 'Right')
+    bm_deselect_all(bm)
+
+    # free selection bmesh
+    top_bm.free()
+
+    # finalise turtle and release bmesh
+    finalise_turtle(bm, obj)
+
+    return obj
+
 def draw_apex_roof_top(context, margin=0.001):
+    """Draw an apex type roof top.
+
+    Args:
+        context (bpy.context): context
+        margin (float, optional): Margin around textured area. Defaults to 0.001.
+    """
     #      B
     #     /|\
     #    / | \c
@@ -465,7 +751,6 @@ def draw_apex_roof_top(context, margin=0.001):
 
     # subdivisions
     density = tile_props.subdivision_density
-
     subdivs = get_subdivs(density, base_dims)
 
     vert_groups = ['Left', 'Right']
@@ -629,7 +914,7 @@ def draw_apex_roof_top(context, margin=0.001):
         v.co[0] = v.co[0] + tile_props.base_size[0]
     bmesh.ops.recalc_face_normals(left_bm, faces=left_bm.faces)
 
-    # select all points inside left_bm
+    # select all points inside right_bm
     bm_coords = [v.co.to_tuple() for v in bm.verts]
     to_select = points_are_inside_bmesh(bm_coords, left_bm, margin / 2, 0.001)
 

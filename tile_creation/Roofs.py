@@ -1350,8 +1350,10 @@ def draw_butterfly_base(context, margin=0.001):
     add_vert(bm)
     ptu(90)
     fd(bm, a)
+    right_peak_loc = turtle.location.copy()
     yri(B + 180)
     fd(bm, c)
+    right_nadir_loc = turtle.location.copy()
     pu(bm)
 
     # select last three verts
@@ -1370,8 +1372,6 @@ def draw_butterfly_base(context, margin=0.001):
     bm_deselect_all(bm)
 
     # slice margin
-
-
     # draw left peak
     bm.select_mode = {'VERT'}
     turtle.location = draw_origin
@@ -1382,9 +1382,10 @@ def draw_butterfly_base(context, margin=0.001):
     add_vert(bm)
     ptu(90)
     fd(bm, a)
+    left_peak_loc = turtle.location.copy()
     ylf(B + 180)
     fd(bm, c)
-
+    left_nadir_loc = turtle.location.copy()
     # select last three verts
     bm.verts.ensure_lookup_table()
     tri_verts = bm.verts[-3:]
@@ -1393,15 +1394,7 @@ def draw_butterfly_base(context, margin=0.001):
 
     # create triangle and grid fill
     bmesh.ops.contextual_create(bm, geom=tri_verts, mat_nr=0, use_smooth=False)
-    '''
-    bm.select_mode = {'EDGE'}
-    tri_edges = [e for e in bm.edges if e.select]
-    bmesh.ops.subdivide_edges(
-        bm,
-        edges=tri_edges,
-        cuts=subdivs[0] / 2 - 1,
-        use_grid_fill=True)
-    '''
+
     # clean up and merge with base bit
     bm.select_mode = {'VERT'}
     bm_select_all(bm)
@@ -1448,11 +1441,124 @@ def draw_butterfly_base(context, margin=0.001):
 
     bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=margin / 4, plane_co=plane, plane_no=(1, 0, 0))
 
-    # select left hand of mesh
-    # slice left roof margin
+    bm_deselect_all(bm)
 
-    #select right hand of mesh
-    # slice right roof margin
+    # select left hand verts
+    left_verts = select_verts_in_bounds(
+        lbound=(
+            turtle.location),
+        ubound=(
+            turtle.location[0] + base_dims[0] / 2,
+            turtle.location[1] + base_dims[1],
+            left_peak_loc[2]),
+        buffer=margin,
+        bm=bm)
+
+    # calculate tri for left margin slice
+    v1 = left_peak_loc
+    v2 = left_nadir_loc
+    v3 = (
+        left_nadir_loc[0],
+        left_nadir_loc[1] + base_dims[1],
+        left_nadir_loc[2])
+
+    # normal
+    norm = geometry.normal((v1, v2, v3))
+
+    # point on plane
+    plane = (
+        turtle.location[0] + base_dims[0] / 2 - margin,
+        turtle.location[1],
+        turtle.location[2] + base_dims[2])
+
+    # ensure faces and edges are selected
+    bm.select_mode = {'FACE'}
+    bm.select_flush(True)
+    left_edges = [e for e in bm.edges if e.select]
+    left_faces = [f for f in bm.faces if f.select]
+
+    # slice left roof margin
+    bmesh.ops.bisect_plane(
+        bm,
+        geom=left_verts[:] + left_edges[:] + left_faces[:],
+        dist=margin / 4,
+        plane_co=plane,
+        plane_no=norm)
+
+    bm_deselect_all(bm)
+
+    # select right hand verts
+    bm.select_mode = {'VERT'}
+    right_verts = select_verts_in_bounds(
+        lbound=(
+            turtle.location[0] + base_dims[0] / 2,
+            turtle.location[1],
+            turtle.location[2]),
+        ubound=(
+            turtle.location[0] + base_dims[0],
+            turtle.location[1] + base_dims[1],
+            right_peak_loc[2]),
+        buffer=margin,
+        bm=bm)
+
+    # calculate trie for right margin slice
+    v1 = right_peak_loc
+    v2 = right_nadir_loc
+    v3 = (
+        right_nadir_loc[0],
+        right_nadir_loc[1] + base_dims[1],
+        right_nadir_loc[2])
+
+    # normal
+    norm = geometry.normal((v1, v2, v3))
+
+    # point on plane
+    plane = (
+        turtle.location[0] + base_dims[0] / 2 + margin,
+        turtle.location[1],
+        turtle.location[2] + base_dims[2])
+
+    # ensure faces and edges are selected
+    bm.select_mode = {'FACE'}
+    bm.select_flush(True)
+
+    right_edges = [e for e in bm.edges if e.select]
+    right_faces = [f for f in bm.faces if f.select]
+
+    # slice left roof margin
+    bmesh.ops.bisect_plane(
+        bm,
+        geom=right_verts[:] + right_edges[:] + right_faces[:],
+        dist=margin / 4,
+        plane_co=plane,
+        plane_no=norm)
+
+    bm_deselect_all(bm)
+
+    # subdivide vertically
+    norm = (1, 0, 0)
+
+    subdiv_x_dist = (base_dims[0] - (margin * 2)) / subdivs[0]
+
+    turtle.location = draw_origin
+    pu(bm)
+    ri(bm, margin)
+    i = 0
+    while i < subdivs[0]:
+        ri(bm, subdiv_x_dist)
+        bmesh.ops.bisect_plane(
+            bm,
+            geom=bm.verts[:] + bm.edges[:] + bm.faces[:],
+            dist=margin / 4,
+            plane_co=turtle.location,
+            plane_no=norm)
+        i += 1
+    home(obj)
+
+    # subdivide horizontally
+
+
+
     # finalise turtle and release bmesh
     finalise_turtle(bm, obj)
 

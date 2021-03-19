@@ -284,6 +284,8 @@ def spawn_roof(context):
         roof = draw_apex_roof_top(context)
     elif roof_props.roof_type == 'SHED':
         roof = draw_shed_roof_top(context)
+    elif roof_props.roof_type == 'BUTTERFLY':
+        roof = draw_apex_roof_top(context)
 
     roof.name = tile_props.tile_name + '.roof'
     obj_props = roof.mt_object_props
@@ -316,6 +318,8 @@ def spawn_base(context):
         base = draw_apex_base(context)
     elif roof_props.roof_type == 'SHED':
         base = draw_shed_base(context)
+    elif roof_props.roof_type == 'BUTTERFLY':
+        base = draw_butterfly_base(context)
 
     base.name = tile_props.tile_name + '.base'
     obj_props = base.mt_object_props
@@ -1245,6 +1249,214 @@ def draw_shed_base(context, margin=0.001):
 
     return obj
 
+
+def draw_butterfly_base(context, margin=0.001):
+    """Draw a butterfly style roof base.
+
+    Args:
+        context (bpy.Context): context
+        margin (float, optional): Texture margin. Defaults to 0.001.
+    """
+    #
+    #   |\      /|
+    #   |B\c   / |
+    #  a|  \  /  |
+    #   |C_A\/___|
+    #   | b      |
+    #   |________|
+
+    turtle = context.scene.cursor
+    tile = context.collection
+    tile_props = tile.mt_tile_props
+    roof_tile_props = tile.mt_roof_tile_props
+
+    base_dims = [s for s in tile_props.base_size]
+
+    # Roof generator breaks if base height is less than this.
+    if base_dims[2] < 0.002:
+        base_dims[2] = 0.002
+
+    # correct for inset (difference between standard base width and wall width) to take into account
+    # displacement materials
+    if roof_tile_props.inset_x_neg:
+        base_dims[0] = base_dims[0] - roof_tile_props.inset_dist
+    if roof_tile_props.inset_x_pos:
+        base_dims[0] = base_dims[0] - roof_tile_props.inset_dist
+    if roof_tile_props.inset_y_neg:
+        base_dims[1] = base_dims[1] - roof_tile_props.inset_dist
+    if roof_tile_props.inset_y_pos:
+        base_dims[1] = base_dims[1] - roof_tile_props.inset_dist
+
+    # Calculate triangle
+    C = 90
+    A = roof_tile_props.roof_pitch
+    B = 180 - C - A
+    b = base_dims[0] / 2
+    a = tan(radians(A)) * b
+    c = sqrt(a**2 + b**2)
+
+    # subdivisions
+    subdivs = get_subdivs(tile_props.subdivision_density, base_dims)
+
+    for index, value in enumerate(subdivs):
+        if value == 0:
+            subdivs[index] = 1
+
+    # Create bmesh and object
+    vert_groups = ['Base Left', 'Base Right', 'Gable Front', 'Gable Back', 'Bottom', 'Top']
+    bm, obj = create_turtle('Base', vert_groups)
+
+    # create vertex group layer
+    bm.verts.layers.deform.verify()
+    deform_groups = bm.verts.layers.deform.active
+    bm.select_mode = {'VERT'}
+
+    # start drawing
+    # check to see if we're correcting for wall thickness
+    if roof_tile_props.inset_x_neg:
+        ri(bm, roof_tile_props.inset_dist)
+    if roof_tile_props.inset_y_pos:
+        fd(bm, roof_tile_props.inset_dist)
+
+    draw_origin = turtle.location.copy()
+
+    pd(bm)
+    add_vert(bm)
+
+    # Draw front bottom edge of base
+    i = 0
+    while i < 2:
+        ri(bm, base_dims[0] / 2)
+        i += 1
+
+    # Select edge and extrude up
+    bm.select_mode = {'EDGE'}
+    bm_select_all(bm)
+
+    subdiv_z_dist = (base_dims[2] - (margin)) / subdivs[2]
+
+    up(bm, margin)
+
+    i = 0
+    while i < subdivs[2]:
+        up(bm, subdiv_z_dist)
+        i += 1
+
+    bm_deselect_all(bm)
+
+    # draw right peak
+    bm.select_mode = {'VERT'}
+    pd(bm)
+    add_vert(bm)
+    ptu(90)
+    fd(bm, a)
+    yri(B + 180)
+    fd(bm, c)
+    pu(bm)
+
+    # select last three verts
+    bm.verts.ensure_lookup_table()
+    tri_verts = bm.verts[-3:]
+    for v in tri_verts:
+        v.select_set(True)
+
+    # create triangle and grid fill
+    bmesh.ops.contextual_create(bm, geom=tri_verts, mat_nr=0, use_smooth=False)
+    '''
+    bm.select_mode = {'EDGE'}
+    tri_edges = [e for e in bm.edges if e.select]
+    bmesh.ops.subdivide_edges(bm, edges=tri_edges, cuts=subdivs[0] / 2 - 1, use_grid_fill=True)
+    '''
+    bm_deselect_all(bm)
+
+    # slice margin
+
+
+    # draw left peak
+    bm.select_mode = {'VERT'}
+    turtle.location = draw_origin
+    turtle.rotation_euler = (0, 0, 0)
+    pd(bm)
+    up(bm, base_dims[2])
+    pd(bm)
+    add_vert(bm)
+    ptu(90)
+    fd(bm, a)
+    ylf(B + 180)
+    fd(bm, c)
+
+    # select last three verts
+    bm.verts.ensure_lookup_table()
+    tri_verts = bm.verts[-3:]
+    for v in tri_verts:
+        v.select_set(True)
+
+    # create triangle and grid fill
+    bmesh.ops.contextual_create(bm, geom=tri_verts, mat_nr=0, use_smooth=False)
+    '''
+    bm.select_mode = {'EDGE'}
+    tri_edges = [e for e in bm.edges if e.select]
+    bmesh.ops.subdivide_edges(
+        bm,
+        edges=tri_edges,
+        cuts=subdivs[0] / 2 - 1,
+        use_grid_fill=True)
+    '''
+    # clean up and merge with base bit
+    bm.select_mode = {'VERT'}
+    bm_select_all(bm)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=margin / 2)
+    #bmesh.ops.contextual_create(bm, geom=bm.verts, mat_nr=0, use_smooth=False)
+
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+
+    bm_deselect_all(bm)
+    home(obj)
+
+    bm.select_mode = {'FACE'}
+    bm_select_all(bm)
+
+    # extrude along y
+    fd(bm, margin, del_original=False)
+    subdiv_y_dist = (base_dims[1] - (margin * 2)) / (subdivs[1] - 1)
+
+    i = 1
+    while i < subdivs[1]:
+        fd(bm, subdiv_y_dist, del_original=True)
+        i += 1
+    fd(bm, margin, del_original=True)
+
+    bm_deselect_all(bm)
+    home(obj)
+
+    # slice mesh to create margins
+    turtle.location = draw_origin
+
+    # base left
+    plane = (
+        turtle.location[0] + margin,
+        turtle.location[1],
+        turtle.location[2])
+
+    bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=margin / 4, plane_co=plane, plane_no=(1, 0, 0))
+
+    # base right
+    plane = (
+        turtle.location[0] + base_dims[0] - margin,
+        turtle.location[1],
+        turtle.location[2])
+
+    bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=margin / 4, plane_co=plane, plane_no=(1, 0, 0))
+
+    # select left hand of mesh
+    # slice left roof margin
+
+    #select right hand of mesh
+    # slice right roof margin
+    # finalise turtle and release bmesh
+    finalise_turtle(bm, obj)
+
+    return obj
 
 def draw_apex_base(context, margin=0.001):
     """Draw an apex style roof base."""

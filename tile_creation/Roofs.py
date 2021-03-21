@@ -285,7 +285,7 @@ def spawn_roof(context):
     elif roof_props.roof_type == 'SHED':
         roof = draw_shed_roof_top(context)
     elif roof_props.roof_type == 'BUTTERFLY':
-        roof = draw_apex_roof_top(context)
+        roof = draw_butterfly_roof_top(context)
 
     roof.name = tile_props.tile_name + '.roof'
     obj_props = roof.mt_object_props
@@ -342,6 +342,48 @@ def spawn_base(context):
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
 
     return base
+
+
+def draw_butterfly_roof_top(context, margin=0.001):
+    """Draw a butterfly type roof top.
+
+    Args:
+        context (bpy.context): context
+        margin (float, optional): Margin around textured area. Defaults to 0.001.
+    """
+    #
+    #   |\      /|
+    #   |B\c   / |
+    #  a|  \  /  |
+    #   |C_A\/___|
+    #   | b      |
+    #   |________|
+
+    turtle = context.scene.cursor
+    tile = context.collection
+    tile_props = tile.mt_tile_props
+    roof_tile_props = tile.mt_roof_tile_props
+
+    base_dims = [s for s in tile_props.base_size]
+
+    # correct for inset (difference between standard base width and wall width) to take into account
+    # displacement materials
+    if roof_tile_props.inset_x_neg:
+        base_dims[0] = base_dims[0] - roof_tile_props.inset_dist
+    if roof_tile_props.inset_x_pos:
+        base_dims[0] = base_dims[0] - roof_tile_props.inset_dist
+    if roof_tile_props.inset_y_neg:
+        base_dims[1] = base_dims[1] - roof_tile_props.inset_dist
+    if roof_tile_props.inset_y_pos:
+        base_dims[1] = base_dims[1] - roof_tile_props.inset_dist
+
+    # Calculate triangle
+    C = 90
+    A = roof_tile_props.roof_pitch
+    B = 180 - C - A
+    b = base_dims[0] / 2
+    a = tan(radians(A)) * b
+    c = sqrt(a**2 + b**2)
 
 
 def draw_shed_roof_top(context, margin=0.001):
@@ -591,7 +633,7 @@ def draw_shed_roof_top(context, margin=0.001):
 
     # select all points inside top_bm
     bm_coords = [v.co.to_tuple() for v in bm.verts]
-    to_select = points_are_inside_bmesh(bm_coords, top_bm, margin / 2, 0.001)
+    to_select = points_are_inside_bmesh(bm_coords, top_bm)
 
     for vert, select in zip(bm.verts, to_select):
 
@@ -887,7 +929,7 @@ def draw_apex_roof_top(context, margin=0.001):
 
     # select all points inside left_bm
     bm_coords = [v.co.to_tuple() for v in bm.verts]
-    to_select = points_are_inside_bmesh(bm_coords, left_bm, margin / 2, 0.001)
+    to_select = points_are_inside_bmesh(bm_coords, left_bm)
 
     for vert, select in zip(bm.verts, to_select):
         if vert.co[0] < apex_loc[0] + margin and \
@@ -920,7 +962,7 @@ def draw_apex_roof_top(context, margin=0.001):
 
     # select all points inside right_bm
     bm_coords = [v.co.to_tuple() for v in bm.verts]
-    to_select = points_are_inside_bmesh(bm_coords, left_bm, margin / 2, 0.001)
+    to_select = points_are_inside_bmesh(bm_coords, left_bm)
 
     for vert, select in zip(bm.verts, to_select):
         if vert.co[0] > apex_loc[0] - margin and \
@@ -1156,7 +1198,7 @@ def draw_shed_base(context, margin=0.001):
 
     # select all points in roof mesh that are inside gable mesh
     bm_coords = [v.co.to_tuple() for v in bm.verts]
-    to_select = points_are_inside_bmesh(bm_coords, gable_bm, margin / 2, 0.001)
+    to_select = points_are_inside_bmesh(bm_coords, gable_bm)
 
     # points_are_inside isn't perfect on low poly meshes so filter out false positives here
     for vert, select in zip(bm.verts, to_select):
@@ -1172,7 +1214,7 @@ def draw_shed_base(context, margin=0.001):
     for v in gable_bm.verts:
         v.co[1] = v.co[1] + base_dims[1]
 
-    to_select = points_are_inside_bmesh(bm_coords, gable_bm, margin / 2, 0.001)
+    to_select = points_are_inside_bmesh(bm_coords, gable_bm)
     for vert, select in zip(bm.verts, to_select):
         if vert.co[1] > base_dims[1] - margin / 2:
             vert.select = select
@@ -1364,11 +1406,6 @@ def draw_butterfly_base(context, margin=0.001):
 
     # create triangle and grid fill
     bmesh.ops.contextual_create(bm, geom=tri_verts, mat_nr=0, use_smooth=False)
-    '''
-    bm.select_mode = {'EDGE'}
-    tri_edges = [e for e in bm.edges if e.select]
-    bmesh.ops.subdivide_edges(bm, edges=tri_edges, cuts=subdivs[0] / 2 - 1, use_grid_fill=True)
-    '''
     bm_deselect_all(bm)
 
     # slice margin
@@ -1556,12 +1593,155 @@ def draw_butterfly_base(context, margin=0.001):
     home(obj)
 
     # subdivide horizontally
+    norm = (0, 0, 1)
+    roof_height = left_peak_loc[2] - left_nadir_loc[2]
+    subdiv_roof_dist = roof_height / (subdivs[0] / 2)
+    up(bm, base_dims[2])
+    i = 1
+    while i < subdivs[0] / 2:
+        up(bm, subdiv_roof_dist)
+        bmesh.ops.bisect_plane(
+            bm,
+            geom=bm.verts[:] + bm.edges[:] + bm.faces[:],
+            dist=margin,
+            plane_co=turtle.location,
+            plane_no=norm)
+        i += 1
+    home(obj)
 
+    # create a temporary mesh for roof top selection
+    #
+    # _____C__b__A
+    # \    |    /
+    #  \  a|   /c
+    #   \  |  /
+    #    \ | /
+    #     \|/
+    #      B
+    roof_a = a + margin * 2
+    roof_c = (roof_a/sin(radians(A)) * sin(radians(C)))
+    roof_b = (roof_c/sin(radians(C)) * sin(radians(B)))
 
+    roof_bm = bmesh.new()
+    roof_bm.select_mode = {'VERT'}
+
+    turtle.location = draw_origin
+    ri(roof_bm, base_dims[0] / 2)
+    up(roof_bm, base_dims[2] - margin / 2)
+    bk(roof_bm, 0.01)
+    pd(roof_bm)
+    add_vert(roof_bm)
+    ptu(90)
+    yri(B)
+    fd(roof_bm, roof_c)
+    ylf(180-A)
+    fd(roof_bm, roof_b * 2)
+    bm_select_all(roof_bm)
+    bmesh.ops.contextual_create(
+        roof_bm,
+        geom=roof_bm.verts,
+        mat_nr=0,
+        use_smooth=False)
+    turtle.rotation_euler = (0, 0, 0)
+    roof_bm.select_mode = {'FACE'}
+    bm_select_all(roof_bm)
+    fd(roof_bm, base_dims[1] + 0.02, False)
+    bmesh.ops.recalc_face_normals(roof_bm, faces=roof_bm.faces)
+
+    # select all points in roof mesh that are inside gable mesh
+    bm_coords = [v.co.to_tuple() for v in bm.verts]
+    to_select = points_are_inside_bmesh(
+        bm_coords,
+        roof_bm)
+    for vert, select in zip(bm.verts, to_select):
+        vert.select = select
+    top_verts = [v for v in bm.verts if v.select]
+
+    assign_verts_to_group(top_verts, obj, deform_groups, "Top")
+    roof_bm.free()
+
+    turtle.location = draw_origin
+    turtle.rotation_euler = (0, 0, 0)
+
+    # bottom verts
+    bm_deselect_all(bm)
+    bottom_verts = [v for v in bm.verts if v.co[2] == turtle.location[2]]
+    assign_verts_to_group(bottom_verts, obj, deform_groups, "Bottom")
+    bm_deselect_all(bm)
+
+    # left verts
+    left_verts = select_verts_in_bounds(
+        lbound=(turtle.location),
+        ubound=(
+            turtle.location[0],
+            turtle.location[1] + base_dims[1],
+            turtle.location[2] + left_peak_loc[2]),
+        buffer=margin / 2,
+        bm=bm)
+    left_verts = [v for v in bm.verts if v in left_verts and \
+        v not in top_verts and \
+        v not in bottom_verts]
+    assign_verts_to_group(left_verts, obj, deform_groups, "Base Left")
+    bm_deselect_all(bm)
+
+    # right verts
+    right_verts = select_verts_in_bounds(
+        lbound=(
+            turtle.location[0] + base_dims[0],
+            turtle.location[1],
+            turtle.location[2]),
+        ubound=(
+            turtle.location[0] + base_dims[0],
+            turtle.location[1] + base_dims[1],
+            turtle.location[2] + right_peak_loc[2]),
+        buffer=margin / 2,
+        bm=bm)
+    right_verts = [v for v in bm.verts if v in right_verts and \
+        v not in top_verts and \
+            v not in bottom_verts]
+    assign_verts_to_group(right_verts, obj, deform_groups, "Base Right")
+    bm_deselect_all(bm)
+
+    # select front verts
+    front_verts = select_verts_in_bounds(
+        lbound=(
+            turtle.location),
+        ubound=(
+            turtle.location[0] + base_dims[0],
+            turtle.location[1],
+            left_peak_loc[2]),
+        buffer=margin / 2,
+        bm=bm)
+    front_verts = [v for v in bm.verts if v in front_verts and \
+        v not in top_verts and \
+        v not in bottom_verts and \
+        v not in left_verts and \
+        v not in right_verts]
+    assign_verts_to_group(front_verts, obj, deform_groups, "Gable Front")
+    bm_deselect_all(bm)
+
+    # select back verts
+    back_verts = select_verts_in_bounds(
+        lbound=(
+            turtle.location[0],
+            turtle.location[1] + base_dims[1],
+            turtle.location[2]),
+        ubound=(
+            turtle.location[0] + base_dims[0],
+            turtle.location[1] + base_dims[1],
+            left_peak_loc[2]),
+        buffer=margin / 2,
+        bm=bm)
+    back_verts = [v for v in bm.verts if v in back_verts and \
+        v not in top_verts and \
+        v not in bottom_verts and \
+        v not in left_verts and \
+        v not in right_verts]
+    assign_verts_to_group(back_verts, obj, deform_groups, "Gable Back")
+    bm_deselect_all(bm)
 
     # finalise turtle and release bmesh
     finalise_turtle(bm, obj)
-
     return obj
 
 def draw_apex_base(context, margin=0.001):
@@ -1804,7 +1984,7 @@ def draw_apex_base(context, margin=0.001):
 
     # select all points in roof mesh that are inside gable mesh
     bm_coords = [v.co.to_tuple() for v in bm.verts]
-    to_select = points_are_inside_bmesh(bm_coords, gable_bm, margin / 2, 0.001)
+    to_select = points_are_inside_bmesh(bm_coords, gable_bm)
 
     # points_are_inside isn't perfect on low poly meshes so filter out false positives here
     for vert, select in zip(bm.verts, to_select):
@@ -1820,7 +2000,7 @@ def draw_apex_base(context, margin=0.001):
     for v in gable_bm.verts:
         v.co[1] = v.co[1] + base_dims[1]
 
-    to_select = points_are_inside_bmesh(bm_coords, gable_bm, margin / 2, 0.001)
+    to_select = points_are_inside_bmesh(bm_coords, gable_bm)
     for vert, select in zip(bm.verts, to_select):
         if vert.co[1] > base_dims[1] - margin / 2:
             vert.select = select

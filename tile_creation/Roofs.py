@@ -351,13 +351,16 @@ def draw_butterfly_roof_top(context, margin=0.001):
         context (bpy.context): context
         margin (float, optional): Margin around textured area. Defaults to 0.001.
     """
-    #
-    #   |\      /|
-    #   |B\c   / |
-    #  a|  \  /  |
-    #   |C_A\/___|
-    #   | b      |
-    #   |________|
+
+    # Base tri
+    #         C__b__A
+    #   |\    |    /|
+    #   | \  a|   /c|
+    #   |  \  |  /  |
+    #   |   \ | /   |
+    #   |____\|/____|
+    #   |     B     |
+    #   |___________|
 
     turtle = context.scene.cursor
     tile = context.collection
@@ -384,6 +387,77 @@ def draw_butterfly_roof_top(context, margin=0.001):
     b = base_dims[0] / 2
     a = tan(radians(A)) * b
     c = sqrt(a**2 + b**2)
+
+    base_tri = {
+        'a': a,
+        'b': b,
+        'c': c,
+        'A': A,
+        'B': B,
+        'C': C}
+
+    # Side eaves
+    #
+    #
+    #          B
+    #         /|
+    #        / |
+    #     c /  | a
+    #      /   |
+    #     /____|
+    #    A  b = side_eaves
+    #   /|
+    #  / |
+
+    b = side_eaves
+    a = (b/sin(radians(B)) * sin(radians(A)))
+    c = (b/sin(radians(B)) * sin(radians(C)))
+    eaves_tri = {
+        'a': a,
+        'b': b,
+        'c': c}
+
+    # roof_bottom
+    #        C ___b___ A
+    #         |      /
+    #         |     /
+    #   |\    |    /|
+    #   | \  a|   /c|
+    #   |  \  |  /  |
+    #   |   \ | /   |
+    #   |____\|/____|
+    #   |     B     |
+    #   |___________|
+
+    c = eaves_tri['c'] + base_tri['c']
+    a = (c/sin(radians(C)) * sin(radians(A)))
+    b = (c/sin(radians(C)) * sin(radians(B)))
+    roof_bottom = {
+        'a': a,
+        'b': b,
+        'c': c}
+
+    # roof thickness (we want to move up by c)
+    C = 90
+    B = 90 - B
+    A = 180 - C - B
+    b = roof_tile_props.roof_thickness
+    a = tan(radians(A)) * b
+    c = sqrt(a**2 + b**2)
+    peak_tri = {
+        'a': a,
+        'b': b,
+        'c': c,
+        'A': A,
+        'B': B,
+        'C': C}
+
+
+
+
+
+
+
 
 
 def draw_shed_roof_top(context, margin=0.001):

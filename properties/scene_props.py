@@ -502,7 +502,7 @@ class MT_Scene_Properties(PropertyGroup):
         name="Z",
         default=0.3,
         step=50,
-        precision=1,
+        precision=2,
         min=0
     )
 

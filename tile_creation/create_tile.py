@@ -48,16 +48,15 @@ def initialise_tile_creator(context):
 
 def create_common_tile_props(scene_props, tile_props, tile_collection):
     """Create properties common to all tiles."""
+    for key in scene_props.__annotations__.keys():
+        for k in tile_props.__annotations__.keys():
+            if k == key:
+                setattr(tile_props, str(k), getattr(scene_props, str(k)))
+
     tile_props.tile_name = tile_collection.name
     tile_props.is_mt_collection = True
-    tile_props.tile_blueprint = scene_props.tile_blueprint
-    tile_props.main_part_blueprint = scene_props.main_part_blueprint
-    tile_props.base_blueprint = scene_props.base_blueprint
-    tile_props.UV_island_margin = scene_props.UV_island_margin
-    tile_props.tile_units = scene_props.tile_units
-    tile_props.tile_resolution = scene_props.tile_resolution
-    tile_props.texture_margin = scene_props.texture_margin
     tile_props.collection_type = "TILE"
+
 
 def lock_all_transforms(obj):
     """Lock all transforms.

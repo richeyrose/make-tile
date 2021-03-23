@@ -47,8 +47,8 @@ class MT_Roof_Properties(PropertyGroup):
         name="Roof Type",
         items=[
             ("APEX", "Apex", ""),
-            ("NADIR", "Nadir", ""),
-            ("SIDE", "Side", "")],
+            ("BUTTERFLY", "Butterfly", ""),
+            ("SHED", "Shed", "")],
         default="APEX"
     )
 

@@ -49,7 +49,7 @@ def select_verts_in_bounds(lbound, ubound, buffer, bm):
     return [v for v in bm.verts if v.select]
 
 
-def points_are_inside_bmesh(coords, bm, margin=0.0001, tolerance=0.02):
+def points_are_inside_bmesh(coords, bm):
     """Test whether points are inside an arbitrary manifold bmesh.
 
     Args:

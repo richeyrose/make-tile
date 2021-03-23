@@ -2,3 +2,4 @@
 *.blend
 *.blend[0-9]
 *.pyc
+.vscode/settings.json

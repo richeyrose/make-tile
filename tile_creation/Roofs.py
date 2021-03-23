@@ -59,7 +59,7 @@ from ..lib.bmturtle.helpers import (
 
 from ..lib.bmturtle.scripts import draw_cuboid
 
-
+#TODO Ensure UI updates to show roof options when roof is selected
 class MT_PT_Roof_Panel(Panel):
     """Draw a tile options panel in UI."""
 
@@ -87,15 +87,16 @@ class MT_PT_Roof_Panel(Panel):
         layout = self.layout
 
         # layout.label(text="Blueprints")
-
-        # layout.prop(roof_props, 'roof_type', text="Roof Type")
+        layout.label(text="Roof Type")
+        layout.prop(roof_props, 'roof_type', text="")
 
         row = layout.row()
         row.prop(roof_props, 'draw_gables')
         row.prop(roof_props, 'draw_rooftop')
 
         # layout.label(text="Socket Types")
-        layout.prop(roof_props, 'base_bottom_socket_type')
+        layout.label(text="Bottom Socket")
+        layout.prop(roof_props, 'base_bottom_socket_type', text="")
         # layout.prop(roof_props, 'base_side_socket_type')
         # layout.prop(roof_props, 'gable_socket_type')
 
@@ -128,12 +129,9 @@ class MT_PT_Roof_Panel(Panel):
         layout.operator('scene.reset_roof_defaults')
 
 def initialise_roof_creator(context):
-    scene_props = context.scene.mt_scene_props
-    roof_scene_props = context.scene.mt_roof_scene_props
-
+    """Initialise the roof creator and set common properties."""
     tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator(context)
     create_collection('Roofs', tiles_collection)
-
     tile_collection = bpy.data.collections.new(tile_name)
     bpy.data.collections['Roofs'].children.link(tile_collection)
     activate_collection(tile_collection.name)
@@ -141,24 +139,30 @@ def initialise_roof_creator(context):
     tile_props = tile_collection.mt_tile_props
     roof_tile_props = tile_collection.mt_roof_tile_props
 
+    scene_props = context.scene.mt_scene_props
+    roof_scene_props = context.scene.mt_roof_scene_props
     create_common_tile_props(scene_props, tile_props, tile_collection)
+    create_roof_tile_props(roof_scene_props, roof_tile_props)
 
+    roof_tile_props.is_roof = True
+
+    tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
+    tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
+    tile_props.tile_type = 'ROOF'
+
+    return cursor_orig_loc, cursor_orig_rot
+
+def create_roof_tile_props(roof_scene_props, roof_tile_props):
+    """Create roof tile properties.
+
+    Args:
+        roof_scene_props (MakeTile.properties.MT_Roof_Properties): scene props
+        roof_tile_props (MakeTile.properties.MT_Roof_Properties): tile props
+    """
     for key in roof_scene_props.__annotations__.keys():
         for k in roof_tile_props.__annotations__.keys():
             if k == key:
                 setattr(roof_tile_props, str(k), getattr(roof_scene_props, str(k)))
-
-    roof_tile_props.is_roof = True
-
-    tile_props.tile_type = 'ROOF'
-
-    tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
-    tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
-
-    tile_props.subdivision_density = scene_props.subdivision_density
-    tile_props.displacement_thickness = scene_props.displacement_thickness
-
-    return cursor_orig_loc, cursor_orig_rot
 
 class MT_OT_Make_Roof(MT_Tile_Generator, Operator):
     """Operator. Generates a roof tile."""
@@ -274,8 +278,15 @@ class MT_OT_Make_Empty_Roof_Top(MT_Tile_Generator, Operator):
 def spawn_roof(context):
     tile = context.collection
     tile_props = tile.mt_tile_props
+    roof_props = tile.mt_roof_tile_props
 
-    roof = draw_apex_roof_top(context)
+    if roof_props.roof_type == 'APEX':
+        roof = draw_apex_roof_top(context)
+    elif roof_props.roof_type == 'SHED':
+        roof = draw_shed_roof_top(context)
+    elif roof_props.roof_type == 'BUTTERFLY':
+        roof = draw_butterfly_roof_top(context)
+
     roof.name = tile_props.tile_name + '.roof'
     obj_props = roof.mt_object_props
     obj_props.is_mt_object = True
@@ -301,8 +312,15 @@ def spawn_roof(context):
 def spawn_base(context):
     tile = context.collection
     tile_props = tile.mt_tile_props
+    roof_props = tile.mt_roof_tile_props
 
-    base = draw_apex_base(context, margin=0.001)
+    if roof_props.roof_type == 'APEX':
+        base = draw_apex_base(context)
+    elif roof_props.roof_type == 'SHED':
+        base = draw_shed_base(context)
+    elif roof_props.roof_type == 'BUTTERFLY':
+        base = draw_butterfly_base(context)
+
     base.name = tile_props.tile_name + '.base'
     obj_props = base.mt_object_props
     obj_props.is_mt_object = True
@@ -326,7 +344,404 @@ def spawn_base(context):
     return base
 
 
+def draw_butterfly_roof_top(context, margin=0.001):
+    """Draw a butterfly type roof top.
+
+    Args:
+        context (bpy.context): context
+        margin (float, optional): Margin around textured area. Defaults to 0.001.
+    """
+
+    # Base tri
+    #         C__b__A
+    #   |\    |    /|
+    #   | \  a|   /c|
+    #   |  \  |  /  |
+    #   |   \ | /   |
+    #   |____\|/____|
+    #   |     B     |
+    #   |___________|
+
+    turtle = context.scene.cursor
+    tile = context.collection
+    tile_props = tile.mt_tile_props
+    roof_tile_props = tile.mt_roof_tile_props
+
+    base_dims = [s for s in tile_props.base_size]
+
+    # correct for inset (difference between standard base width and wall width) to take into account
+    # displacement materials
+    if roof_tile_props.inset_x_neg:
+        base_dims[0] = base_dims[0] - roof_tile_props.inset_dist
+    if roof_tile_props.inset_x_pos:
+        base_dims[0] = base_dims[0] - roof_tile_props.inset_dist
+    if roof_tile_props.inset_y_neg:
+        base_dims[1] = base_dims[1] - roof_tile_props.inset_dist
+    if roof_tile_props.inset_y_pos:
+        base_dims[1] = base_dims[1] - roof_tile_props.inset_dist
+
+    # Calculate triangle
+    C = 90
+    A = roof_tile_props.roof_pitch
+    B = 180 - C - A
+    b = base_dims[0] / 2
+    a = tan(radians(A)) * b
+    c = sqrt(a**2 + b**2)
+
+    base_tri = {
+        'a': a,
+        'b': b,
+        'c': c,
+        'A': A,
+        'B': B,
+        'C': C}
+
+    # Side eaves
+    #
+    #
+    #          B
+    #         /|
+    #        / |
+    #     c /  | a
+    #      /   |
+    #     /____|
+    #    A  b = side_eaves
+    #   /|
+    #  / |
+
+    b = side_eaves
+    a = (b/sin(radians(B)) * sin(radians(A)))
+    c = (b/sin(radians(B)) * sin(radians(C)))
+    eaves_tri = {
+        'a': a,
+        'b': b,
+        'c': c}
+
+    # roof_bottom
+    #        C ___b___ A
+    #         |      /
+    #         |     /
+    #   |\    |    /|
+    #   | \  a|   /c|
+    #   |  \  |  /  |
+    #   |   \ | /   |
+    #   |____\|/____|
+    #   |     B     |
+    #   |___________|
+
+    c = eaves_tri['c'] + base_tri['c']
+    a = (c/sin(radians(C)) * sin(radians(A)))
+    b = (c/sin(radians(C)) * sin(radians(B)))
+    roof_bottom = {
+        'a': a,
+        'b': b,
+        'c': c}
+
+    # roof thickness (we want to move up by c)
+    C = 90
+    B = 90 - B
+    A = 180 - C - B
+    b = roof_tile_props.roof_thickness
+    a = tan(radians(A)) * b
+    c = sqrt(a**2 + b**2)
+    peak_tri = {
+        'a': a,
+        'b': b,
+        'c': c,
+        'A': A,
+        'B': B,
+        'C': C}
+
+
+
+
+
+
+
+
+
+def draw_shed_roof_top(context, margin=0.001):
+    """Draw a shed type roof top.
+
+    Args:
+        context (bpy.context): context
+        margin (float, optional): Margin around textured area. Defaults to 0.001.
+    """
+    #  B
+    #  |\
+    # a| \c
+    #  |__\A
+    #  C b |
+    #  |___|
+
+    turtle = context.scene.cursor
+    tile = context.collection
+    tile_props = tile.mt_tile_props
+    roof_tile_props = tile.mt_roof_tile_props
+
+    base_dims = [s for s in tile_props.base_size]
+
+    # correct for inset (difference between standard base width and wall width) to take into account
+    # displacement materials
+    '''
+    if roof_tile_props.inset_x_neg:
+        base_dims[0] = base_dims[0] - roof_tile_props.inset_dist
+    '''
+    if roof_tile_props.inset_x_pos:
+        base_dims[0] = base_dims[0] - roof_tile_props.inset_dist
+    if roof_tile_props.inset_y_neg:
+        base_dims[1] = base_dims[1] - roof_tile_props.inset_dist
+    if roof_tile_props.inset_y_pos:
+        base_dims[1] = base_dims[1] - roof_tile_props.inset_dist
+
+    # calculate triangle
+    C = 90
+    A = roof_tile_props.roof_pitch
+    B = 180 - C - A
+    b = base_dims[0]
+    a = tan(radians(A)) * b
+    c = sqrt(a**2 + b**2)
+
+    base_tri = {
+        'a': a,
+        'b': b,
+        'c': c,
+        'A': A,
+        'B': B,
+        'C': C}
+
+    # side eaves distance is vertical distance down from C
+    # recalculate triangle to take this into account
+    #  B
+    #  |\
+    # a| \c
+    #  |__\A
+    #  C b | ▲ side eaves distance
+    #  |___| ▼
+
+    a = base_tri['a'] + roof_tile_props.side_eaves
+    C = 90
+    A = roof_tile_props.roof_pitch
+    B = 180 - 90 - A
+    b = a / tan(radians(A))
+    c = sqrt(a**2 + b**2)
+
+    inner_tri = {
+        'a': a,
+        'b': b,
+        'c': c,
+        'A': A,
+        'B': B,
+        'C': C}
+
+    # calculate size of peak triangle based on roof thickness
+    #        B
+    #       /|
+    #    c / |
+    #     /  |a
+    #    /___|
+    #   A  b  C
+    C = 90
+    B = roof_tile_props.roof_pitch / 2
+    A = 180 - 90 - B
+    b = roof_tile_props.roof_thickness
+    a = tan(radians(A)) * b
+    c = sqrt(a**2 + b**2)
+
+    peak_tri = {
+        'a': a,
+        'b': b,
+        'c': c,
+        'A': A,
+        'B': B,
+        'C': C}
+
+    # calculate size of eave end triangle based on roof thickness
+    C = 90
+    A = roof_tile_props.roof_pitch
+    B = 180 - C - A
+    a = roof_tile_props.roof_thickness
+    b = a / tan(radians(A))
+    c = sqrt(a**2 + b**2)
+
+    eave_end_tri = {
+        'a': a,
+        'b': b,
+        'c': c,
+        'A': A,
+        'B': B,
+        'C': C}
+
+    # calculate size of outer roof triangle
+    #       B
+    #       |\
+    #     a | \c
+    #       |_ \
+    #       |_|_\A
+    #      C  b
+
+    C = 90
+    A = roof_tile_props.roof_pitch
+    B = 180 - A - C
+    b = inner_tri['b'] + eave_end_tri['c']
+    a = tan(radians(A)) * b
+    c = sqrt(a**2 + b**2)
+
+    outer_tri = {
+        'A': A,
+        'B': B,
+        'C': C,
+        'a': a,
+        'b': b,
+        'c': c}
+
+    # subdivisions
+    density = tile_props.subdivision_density
+    subdivs = get_subdivs(density, base_dims)
+
+    vert_groups = ['Left', 'Right']
+    bm, obj = create_turtle('Roof', vert_groups)
+
+    # create vertex group layer
+    bm.verts.layers.deform.verify()
+    deform_groups = bm.verts.layers.deform.active
+    bm.select_mode = {'VERT'}
+
+    # start
+    # check to see if we're correcting for wall thickness
+    '''
+    if roof_tile_props.inset_x_neg:
+        ri(bm, roof_tile_props.inset_dist)
+    '''
+    if roof_tile_props.inset_y_pos:
+        fd(bm, roof_tile_props.inset_dist)
+
+    # draw gable end edges
+    draw_origin = turtle.location.copy()
+    bk(bm, roof_tile_props.end_eaves_neg)
+    ri(bm, inner_tri['b'])
+    up(bm, base_dims[2] - roof_tile_props.side_eaves)
+
+    draw_origin = turtle.location.copy()
+    pd(bm)
+
+    # vert 0
+    add_vert(bm)
+    ri(bm, eave_end_tri['c'])
+    # vert 1
+    ptu(90)
+    ylf(90 - outer_tri['A'])
+    fd(bm, outer_tri['c'])
+    apex_loc = turtle.location.copy()
+    # vert 2
+    pu(bm)
+    # vert 3
+    turtle.location=draw_origin
+    fd(bm, inner_tri['c'])
+    pd(bm)
+    add_vert(bm)
+    # vert 4
+    turtle.location=(0, 0, 0)
+    turtle.rotation_euler=(0, 0, 0)
+
+    # create gable end face
+    bmesh.ops.contextual_create(bm, geom=bm.verts, mat_nr=0, use_smooth=False)
+
+    # loopcut edges
+    edges = [e for e in bm.edges if e.index in [1, 3]]
+    bmesh.ops.subdivide_edges(
+        bm,
+        edges=edges,
+        cuts=subdivs[0] - 1,
+        smooth_falloff='INVERSE_SQUARE',
+        use_grid_fill=True)
+
+    # margin cut for bottom of roof
+    plane = (
+        draw_origin[0],
+        draw_origin[1],
+        draw_origin[2] + margin)
+
+    bmesh.ops.bisect_plane(
+        bm,
+        geom=bm.verts[:] + bm.edges[:] + bm.faces[:],
+        dist = margin / 4,
+        plane_co=plane,
+        plane_no = (0, 0, 1))
+
+    # extrude along y
+    bm.select_mode = {'FACE'}
+    bm_select_all(bm)
+
+    fd(bm, margin, del_original=False)
+    subdiv_y_dist = (base_dims[1] - (margin * 2) + roof_tile_props.end_eaves_neg + roof_tile_props.end_eaves_pos) / (subdivs[1] - 1)
+
+    i = 1
+    while i < subdivs[1]:
+        fd(bm, subdiv_y_dist, del_original=True)
+        i += 1
+    fd(bm, margin, del_original=True)
+    bm_deselect_all(bm)
+
+    # create bmesh for selecting top of roof
+    top_bm = bmesh.new()
+    turtle.location = draw_origin
+    top_bm.select_mode = {'VERT'}
+    ri(top_bm, eave_end_tri['c'])
+    dn(top_bm, margin)
+    bk(top_bm, margin)
+    ptu(90)
+    ylf(90 - outer_tri['A'])
+    pd(top_bm)
+    add_vert(top_bm)
+    fd(top_bm, outer_tri['c'] + margin * 4)
+    yri(90)
+    top_bm.select_mode = {'EDGE'}
+    bm_select_all(top_bm)
+    fd(top_bm, margin * 4)
+    top_bm.select_mode = {'FACE'}
+    turtle.rotation_euler = (0, 0, 0)
+    bm_select_all(top_bm)
+    fd(top_bm, base_dims[1] + roof_tile_props.end_eaves_neg + roof_tile_props.end_eaves_pos + margin * 4, False)
+    bmesh.ops.recalc_face_normals(top_bm, faces=top_bm.faces)
+
+    # select all points inside top_bm
+    bm_coords = [v.co.to_tuple() for v in bm.verts]
+    to_select = points_are_inside_bmesh(bm_coords, top_bm)
+
+    for vert, select in zip(bm.verts, to_select):
+
+        if vert.co[2] > draw_origin[2] + margin / 4 and \
+            vert.co[1] > draw_origin[1] + margin / 4 and \
+                vert.co[1] < draw_origin[1] + base_dims[1] + roof_tile_props.end_eaves_neg + roof_tile_props.end_eaves_pos - (margin / 4):
+                vert.select = select
+        '''
+        if vert.co[0] > base_dims[0] - margin and \
+            vert.co[2] > draw_origin[2] + margin / 4 and \
+                vert.co[1] > draw_origin[1] + margin / 4 and \
+                    vert.co[1] < draw_origin[1] + base_dims[1] + roof_tile_props.end_eaves_neg + roof_tile_props.end_eaves_pos - (margin / 4):
+                    vert.select = select
+        '''
+
+    right_verts = [v for v in bm.verts if v.select]
+    assign_verts_to_group(right_verts, obj, deform_groups, 'Right')
+    bm_deselect_all(bm)
+
+    # free selection bmesh
+    top_bm.free()
+
+    # finalise turtle and release bmesh
+    finalise_turtle(bm, obj)
+
+    return obj
+
 def draw_apex_roof_top(context, margin=0.001):
+    """Draw an apex type roof top.
+
+    Args:
+        context (bpy.context): context
+        margin (float, optional): Margin around textured area. Defaults to 0.001.
+    """
     #      B
     #     /|\
     #    / | \c
@@ -456,25 +871,7 @@ def draw_apex_roof_top(context, margin=0.001):
 
     # subdivisions
     density = tile_props.subdivision_density
-
-    if density == 'LOW':
-        x = floor(base_dims[0] * 4)
-        y = floor(base_dims[1] * 4)
-        z = floor(base_dims[2] * 4)
-    elif density == 'MEDIUM':
-        x = floor(base_dims[0] * 8)
-        y = floor(base_dims[1] * 8)
-        z = floor(base_dims[2] * 8)
-    elif density == 'HIGH':
-        x = floor(base_dims[0] * 16)
-        y = floor(base_dims[1] * 16)
-        z = floor(base_dims[2] * 16)
-    else:
-        x = floor(base_dims[0] * 32)
-        y = floor(base_dims[1] * 32)
-        z = floor(base_dims[2] * 32)
-
-    subdivs = [x, y, z]
+    subdivs = get_subdivs(density, base_dims)
 
     vert_groups = ['Left', 'Right']
     bm, obj = create_turtle('Roof', vert_groups)
@@ -606,7 +1003,7 @@ def draw_apex_roof_top(context, margin=0.001):
 
     # select all points inside left_bm
     bm_coords = [v.co.to_tuple() for v in bm.verts]
-    to_select = points_are_inside_bmesh(bm_coords, left_bm, margin / 2, 0.001)
+    to_select = points_are_inside_bmesh(bm_coords, left_bm)
 
     for vert, select in zip(bm.verts, to_select):
         if vert.co[0] < apex_loc[0] + margin and \
@@ -637,9 +1034,9 @@ def draw_apex_roof_top(context, margin=0.001):
         v.co[0] = v.co[0] + tile_props.base_size[0]
     bmesh.ops.recalc_face_normals(left_bm, faces=left_bm.faces)
 
-    # select all points inside left_bm
+    # select all points inside right_bm
     bm_coords = [v.co.to_tuple() for v in bm.verts]
-    to_select = points_are_inside_bmesh(bm_coords, left_bm, margin / 2, 0.001)
+    to_select = points_are_inside_bmesh(bm_coords, left_bm)
 
     for vert, select in zip(bm.verts, to_select):
         if vert.co[0] > apex_loc[0] - margin and \
@@ -658,16 +1055,14 @@ def draw_apex_roof_top(context, margin=0.001):
     return obj
 
 
-def draw_apex_base(context, margin=0.001):
-    """Draw an apex style roof base."""
-    #      B
-    #     /|\
-    #    / | \c
-    #   / a|  \
-    #  /___|___\A
-    #  |   C b |
-    #  |_______|
-    #     base
+def draw_shed_base(context, margin=0.001):
+    """Draw a shed style roof base (Not sure why this style is called "shed" but hey ho)."""
+    #  B
+    #  |\
+    # a| \c
+    #  |__\A
+    #  C b |
+    #  |___|
     turtle = context.scene.cursor
     tile = context.collection
     tile_props = tile.mt_tile_props
@@ -676,9 +1071,9 @@ def draw_apex_base(context, margin=0.001):
     base_dims = [s for s in tile_props.base_size]
 
     # Roof generator breaks if base height is less than this.
-
     if base_dims[2] < 0.002:
         base_dims[2] = 0.002
+
     # correct for inset (difference between standard base width and wall width) to take into account
     # displacement materials
     if roof_tile_props.inset_x_neg:
@@ -694,36 +1089,18 @@ def draw_apex_base(context, margin=0.001):
     C = 90
     A = roof_tile_props.roof_pitch
     B = 180 - C - A
-    b = base_dims[0] / 2
+    b = base_dims[0]
     a = tan(radians(A)) * b
     c = sqrt(a**2 + b**2)
 
     # subdivisions
-    density = tile_props.subdivision_density
-
-    if density == 'LOW':
-        x = floor(base_dims[0] * 4)
-        y = floor(base_dims[1] * 4)
-        z = floor(base_dims[2] * 4)
-    elif density == 'MEDIUM':
-        x = floor(base_dims[0] * 8)
-        y = floor(base_dims[1] * 8)
-        z = floor(base_dims[2] * 8)
-    elif density == 'HIGH':
-        x = floor(base_dims[0] * 16)
-        y = floor(base_dims[1] * 16)
-        z = floor(base_dims[2] * 16)
-    else:
-        x = floor(base_dims[0] * 32)
-        y = floor(base_dims[1] * 32)
-        z = floor(base_dims[2] * 32)
-
-    subdivs = [x, y, z]
+    subdivs = get_subdivs(tile_props.subdivision_density, base_dims)
 
     for index, value in enumerate(subdivs):
         if value == 0:
             subdivs[index] = 1
 
+    # Create bmesh and object
     vert_groups = ['Base Left', 'Base Right', 'Gable Front', 'Gable Back', 'Bottom', 'Top']
     bm, obj = create_turtle('Base', vert_groups)
 
@@ -732,8 +1109,7 @@ def draw_apex_base(context, margin=0.001):
     deform_groups = bm.verts.layers.deform.active
     bm.select_mode = {'VERT'}
 
-    # start
-
+    # start drawing
     # check to see if we're correcting for wall thickness
     if roof_tile_props.inset_x_neg:
         ri(bm, roof_tile_props.inset_dist)
@@ -768,8 +1144,773 @@ def draw_apex_base(context, margin=0.001):
 
     bm_deselect_all(bm)
 
+    # draw peak
+    bm.select_mode = {'VERT'}
+    pd(bm)
+    add_vert(bm)
+    bm.verts.ensure_lookup_table()
+    ptu(90)
+    ylf(90 - A)
+    fd(bm, c)
+    # save location of peak
+    peak_loc = turtle.location.copy()
+    yri(B + 180)
+    fd(bm, a)
+
+    # select last three verts
+    bm.verts.ensure_lookup_table()
+    tri_verts = bm.verts[-3:]
+    for v in tri_verts:
+        v.select_set(True)
+
+    # create triangle and grid fill
+    bmesh.ops.contextual_create(bm, geom=tri_verts, mat_nr=0, use_smooth=False)
+    bm.select_mode = {'EDGE'}
+    tri_edges = [e for e in bm.edges if e.select]
+    bmesh.ops.subdivide_edges(bm, edges=tri_edges, cuts=subdivs[0] - 1, use_grid_fill=True)
+
+    # clean up and merge with base bit
+    bm.select_mode = {'VERT'}
+    bm_select_all(bm)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=margin / 2)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+
+    bm_deselect_all(bm)
+    home(obj)
+
+    bm.select_mode = {'FACE'}
+    bm_select_all(bm)
+
+    # extrude along y
+    fd(bm, margin, del_original=False)
+    subdiv_y_dist = (base_dims[1] - (margin * 2)) / (subdivs[1] - 1)
+
+    i = 1
+    while i < subdivs[1]:
+        fd(bm, subdiv_y_dist, del_original=True)
+        i += 1
+    fd(bm, margin, del_original=True)
+
+    bm_deselect_all(bm)
+    home(obj)
+
+    # slice mesh to create margins
+    turtle.location = draw_origin
+
+    # base left
+    plane = (
+        turtle.location[0] + margin,
+        turtle.location[1],
+        turtle.location[2])
+
+    bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=margin / 4, plane_co=plane, plane_no=(1, 0, 0))
+
+    # base right
+    plane = (
+        turtle.location[0] + base_dims[0] - margin,
+        turtle.location[1],
+        turtle.location[2])
+
+    bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=margin / 4, plane_co=plane, plane_no=(1, 0, 0))
+
+    # roof right
+    v1 = (
+        turtle.location[0] + base_dims[0],
+        turtle.location[1],
+        turtle.location[2] + base_dims[2])
+    v2 = (
+        turtle.location[0],
+        turtle.location[1],
+        turtle.location[2] + base_dims[2] + a)
+    v3 = (
+        turtle.location[0],
+        turtle.location[1] + base_dims[1],
+        turtle.location[2] + base_dims[2] + a)
+
+    norm = geometry.normal((v1, v2, v3))
+
+    plane = (
+        turtle.location[0] + base_dims[0] - margin,
+        turtle.location[1],
+        turtle.location[2] + base_dims[2])
+
+    bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=margin / 4, plane_co=plane, plane_no=norm)
+
+    # create a temporary bmesh for gable ends to select verts inside and create vert groups
+    gable_bm = bmesh.new()
+    gable_base_dims = base_dims
+    gable_base_dims[0] = base_dims[0] - margin
+    gable_base_dims[2] = base_dims[2] - margin / 2
+    gable_b = gable_base_dims[0]
+    gable_a = tan(radians(A)) * gable_b
+    gable_c = sqrt(gable_a**2 + gable_b**2)
+
+    gable_bm.select_mode = {'VERT'}
+    bk(gable_bm, margin)
+    ri(gable_bm, margin / 2)
+    up(gable_bm, margin / 2)
+
+    pd(gable_bm)
+    add_vert(gable_bm)
+    ri(gable_bm, gable_base_dims[0])
+    up(gable_bm, gable_base_dims[2])
+
+    ptu(90)
+    ylf(90 - A)
+    fd(gable_bm, gable_c)
+    yri(B * 2 + 180)
+    fd(gable_bm, gable_c)
+
+    turtle.rotation_euler = (0, 0, 0)
+    bm_select_all(gable_bm)
+    bmesh.ops.contextual_create(gable_bm, geom=gable_bm.verts, mat_nr=0, use_smooth=False)
+
+    gable_bm.select_mode = {'FACE'}
+    bm_select_all(gable_bm)
+    fd(gable_bm, margin * 2, False)
+    bmesh.ops.recalc_face_normals(gable_bm, faces=gable_bm.faces)
+
+    # select all points in roof mesh that are inside gable mesh
+    bm_coords = [v.co.to_tuple() for v in bm.verts]
+    to_select = points_are_inside_bmesh(bm_coords, gable_bm)
+
+    # points_are_inside isn't perfect on low poly meshes so filter out false positives here
+    for vert, select in zip(bm.verts, to_select):
+        if vert.co[1] < draw_origin[1] + margin / 2:
+            vert.select = select
+    front_verts = [v for v in bm.verts if v.select]
+    # assign_verts_to_group(front_verts, obj, deform_groups, "Gable Front")
+
+    bm_deselect_all(bm)
+
+    # Gable Back
+    # move gable mesh to other end
+    for v in gable_bm.verts:
+        v.co[1] = v.co[1] + base_dims[1]
+
+    to_select = points_are_inside_bmesh(bm_coords, gable_bm)
+    for vert, select in zip(bm.verts, to_select):
+        if vert.co[1] > base_dims[1] - margin / 2:
+            vert.select = select
+
+    back_verts = [v for v in bm.verts if v.select]
+    # Free gable bmesh as we don't need it any more
+    gable_bm.free()
+    #assign_verts_to_group(back_verts, obj, deform_groups, "Gable Back")
+
+    bm_deselect_all(bm)
+    turtle.location = draw_origin
+
+    # Left side
+    left_verts = select_verts_in_bounds(
+        lbound=(
+            turtle.location[0] - margin,
+            turtle.location[1],
+            turtle.location[2] + margin),
+        ubound=(
+            peak_loc[0],
+            peak_loc[1] + base_dims[1],
+            peak_loc[2] - margin),
+        buffer=margin / 2,
+        bm=bm)
+
+    assign_verts_to_group(left_verts, obj, deform_groups, "Base Left")
+    bm_deselect_all(bm)
+
+    # Base Right
+    right_verts = select_verts_in_bounds(
+        lbound=(
+            turtle.location[0] + base_dims[0] + margin / 2,
+            turtle.location[1],
+            turtle.location[2] + margin),
+        ubound=(
+            turtle.location[0] + base_dims[0] + margin,
+            turtle.location[1] + base_dims[1],
+            turtle.location[2] + base_dims[2] - margin / 2),
+        buffer=margin / 3,
+        bm=bm)
+
+    assign_verts_to_group(right_verts, obj, deform_groups, "Base Right")
+    bm_deselect_all(bm)
+
+    # Base bottom
+    bottom_verts = select_verts_in_bounds(
+        lbound=(
+            turtle.location[0],
+            turtle.location[1],
+            turtle.location[2]),
+        ubound=(
+            turtle.location[0] + base_dims[0] + margin,
+            turtle.location[1] + base_dims[1],
+            turtle.location[2]),
+        buffer=margin / 3,
+        bm=bm)
+    assign_verts_to_group(bottom_verts, obj, deform_groups, "Bottom")
+    bm_deselect_all(bm)
+
+    verts = bottom_verts + left_verts + right_verts + front_verts + back_verts
+    top_verts = [v for v in bm.verts if v not in verts]
+    assign_verts_to_group(top_verts, obj, deform_groups, "Top")
+
+    # Additional filter for gables
+    verts = left_verts + right_verts + bottom_verts
+    front_verts = [v for v in bm.verts if v in front_verts and v not in verts]
+    assign_verts_to_group(front_verts, obj, deform_groups, "Gable Front")
+    back_verts = [v for v in bm.verts if v in back_verts and v not in verts]
+    assign_verts_to_group(back_verts, obj, deform_groups, "Gable Back")
+
+    # finalise turtle and release bmesh
+    turtle.location = (0, 0, 0)
+    finalise_turtle(bm, obj)
+
+    return obj
+
+
+def draw_butterfly_base(context, margin=0.001):
+    """Draw a butterfly style roof base.
+
+    Args:
+        context (bpy.Context): context
+        margin (float, optional): Texture margin. Defaults to 0.001.
+    """
+    #
+    #   |\      /|
+    #   |B\c   / |
+    #  a|  \  /  |
+    #   |C_A\/___|
+    #   | b      |
+    #   |________|
+
+    turtle = context.scene.cursor
+    tile = context.collection
+    tile_props = tile.mt_tile_props
+    roof_tile_props = tile.mt_roof_tile_props
+
+    base_dims = [s for s in tile_props.base_size]
+
+    # Roof generator breaks if base height is less than this.
+    if base_dims[2] < 0.002:
+        base_dims[2] = 0.002
+
+    # correct for inset (difference between standard base width and wall width) to take into account
+    # displacement materials
+    if roof_tile_props.inset_x_neg:
+        base_dims[0] = base_dims[0] - roof_tile_props.inset_dist
+    if roof_tile_props.inset_x_pos:
+        base_dims[0] = base_dims[0] - roof_tile_props.inset_dist
+    if roof_tile_props.inset_y_neg:
+        base_dims[1] = base_dims[1] - roof_tile_props.inset_dist
+    if roof_tile_props.inset_y_pos:
+        base_dims[1] = base_dims[1] - roof_tile_props.inset_dist
+
+    # Calculate triangle
+    C = 90
+    A = roof_tile_props.roof_pitch
+    B = 180 - C - A
+    b = base_dims[0] / 2
+    a = tan(radians(A)) * b
+    c = sqrt(a**2 + b**2)
+
+    # subdivisions
+    subdivs = get_subdivs(tile_props.subdivision_density, base_dims)
+
+    for index, value in enumerate(subdivs):
+        if value == 0:
+            subdivs[index] = 1
+
+    # Create bmesh and object
+    vert_groups = ['Base Left', 'Base Right', 'Gable Front', 'Gable Back', 'Bottom', 'Top']
+    bm, obj = create_turtle('Base', vert_groups)
+
+    # create vertex group layer
+    bm.verts.layers.deform.verify()
+    deform_groups = bm.verts.layers.deform.active
     bm.select_mode = {'VERT'}
 
+    # start drawing
+    # check to see if we're correcting for wall thickness
+    if roof_tile_props.inset_x_neg:
+        ri(bm, roof_tile_props.inset_dist)
+    if roof_tile_props.inset_y_pos:
+        fd(bm, roof_tile_props.inset_dist)
+
+    draw_origin = turtle.location.copy()
+
+    pd(bm)
+    add_vert(bm)
+
+    # Draw front bottom edge of base
+    i = 0
+    while i < 2:
+        ri(bm, base_dims[0] / 2)
+        i += 1
+
+    # Select edge and extrude up
+    bm.select_mode = {'EDGE'}
+    bm_select_all(bm)
+
+    subdiv_z_dist = (base_dims[2] - (margin)) / subdivs[2]
+
+    up(bm, margin)
+
+    i = 0
+    while i < subdivs[2]:
+        up(bm, subdiv_z_dist)
+        i += 1
+
+    bm_deselect_all(bm)
+
+    # draw right peak
+    bm.select_mode = {'VERT'}
+    pd(bm)
+    add_vert(bm)
+    ptu(90)
+    fd(bm, a)
+    right_peak_loc = turtle.location.copy()
+    yri(B + 180)
+    fd(bm, c)
+    right_nadir_loc = turtle.location.copy()
+    pu(bm)
+
+    # select last three verts
+    bm.verts.ensure_lookup_table()
+    tri_verts = bm.verts[-3:]
+    for v in tri_verts:
+        v.select_set(True)
+
+    # create triangle and grid fill
+    bmesh.ops.contextual_create(bm, geom=tri_verts, mat_nr=0, use_smooth=False)
+    bm_deselect_all(bm)
+
+    # slice margin
+    # draw left peak
+    bm.select_mode = {'VERT'}
+    turtle.location = draw_origin
+    turtle.rotation_euler = (0, 0, 0)
+    pd(bm)
+    up(bm, base_dims[2])
+    pd(bm)
+    add_vert(bm)
+    ptu(90)
+    fd(bm, a)
+    left_peak_loc = turtle.location.copy()
+    ylf(B + 180)
+    fd(bm, c)
+    left_nadir_loc = turtle.location.copy()
+    # select last three verts
+    bm.verts.ensure_lookup_table()
+    tri_verts = bm.verts[-3:]
+    for v in tri_verts:
+        v.select_set(True)
+
+    # create triangle and grid fill
+    bmesh.ops.contextual_create(bm, geom=tri_verts, mat_nr=0, use_smooth=False)
+
+    # clean up and merge with base bit
+    bm.select_mode = {'VERT'}
+    bm_select_all(bm)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=margin / 2)
+    #bmesh.ops.contextual_create(bm, geom=bm.verts, mat_nr=0, use_smooth=False)
+
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+
+    bm_deselect_all(bm)
+    home(obj)
+
+    bm.select_mode = {'FACE'}
+    bm_select_all(bm)
+
+    # extrude along y
+    fd(bm, margin, del_original=False)
+    subdiv_y_dist = (base_dims[1] - (margin * 2)) / (subdivs[1] - 1)
+
+    i = 1
+    while i < subdivs[1]:
+        fd(bm, subdiv_y_dist, del_original=True)
+        i += 1
+    fd(bm, margin, del_original=True)
+
+    bm_deselect_all(bm)
+    home(obj)
+
+    # slice mesh to create margins
+    turtle.location = draw_origin
+
+    # base left
+    plane = (
+        turtle.location[0] + margin,
+        turtle.location[1],
+        turtle.location[2])
+
+    bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=margin / 4, plane_co=plane, plane_no=(1, 0, 0))
+
+    # base right
+    plane = (
+        turtle.location[0] + base_dims[0] - margin,
+        turtle.location[1],
+        turtle.location[2])
+
+    bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=margin / 4, plane_co=plane, plane_no=(1, 0, 0))
+
+    bm_deselect_all(bm)
+
+    # select left hand verts
+    left_verts = select_verts_in_bounds(
+        lbound=(
+            turtle.location),
+        ubound=(
+            turtle.location[0] + base_dims[0] / 2,
+            turtle.location[1] + base_dims[1],
+            left_peak_loc[2]),
+        buffer=margin,
+        bm=bm)
+
+    # calculate tri for left margin slice
+    v1 = left_peak_loc
+    v2 = left_nadir_loc
+    v3 = (
+        left_nadir_loc[0],
+        left_nadir_loc[1] + base_dims[1],
+        left_nadir_loc[2])
+
+    # normal
+    norm = geometry.normal((v1, v2, v3))
+
+    # point on plane
+    plane = (
+        turtle.location[0] + base_dims[0] / 2 - margin,
+        turtle.location[1],
+        turtle.location[2] + base_dims[2])
+
+    # ensure faces and edges are selected
+    bm.select_mode = {'FACE'}
+    bm.select_flush(True)
+    left_edges = [e for e in bm.edges if e.select]
+    left_faces = [f for f in bm.faces if f.select]
+
+    # slice left roof margin
+    bmesh.ops.bisect_plane(
+        bm,
+        geom=left_verts[:] + left_edges[:] + left_faces[:],
+        dist=margin / 4,
+        plane_co=plane,
+        plane_no=norm)
+
+    bm_deselect_all(bm)
+
+    # select right hand verts
+    bm.select_mode = {'VERT'}
+    right_verts = select_verts_in_bounds(
+        lbound=(
+            turtle.location[0] + base_dims[0] / 2,
+            turtle.location[1],
+            turtle.location[2]),
+        ubound=(
+            turtle.location[0] + base_dims[0],
+            turtle.location[1] + base_dims[1],
+            right_peak_loc[2]),
+        buffer=margin,
+        bm=bm)
+
+    # calculate trie for right margin slice
+    v1 = right_peak_loc
+    v2 = right_nadir_loc
+    v3 = (
+        right_nadir_loc[0],
+        right_nadir_loc[1] + base_dims[1],
+        right_nadir_loc[2])
+
+    # normal
+    norm = geometry.normal((v1, v2, v3))
+
+    # point on plane
+    plane = (
+        turtle.location[0] + base_dims[0] / 2 + margin,
+        turtle.location[1],
+        turtle.location[2] + base_dims[2])
+
+    # ensure faces and edges are selected
+    bm.select_mode = {'FACE'}
+    bm.select_flush(True)
+
+    right_edges = [e for e in bm.edges if e.select]
+    right_faces = [f for f in bm.faces if f.select]
+
+    # slice left roof margin
+    bmesh.ops.bisect_plane(
+        bm,
+        geom=right_verts[:] + right_edges[:] + right_faces[:],
+        dist=margin / 4,
+        plane_co=plane,
+        plane_no=norm)
+
+    bm_deselect_all(bm)
+
+    # subdivide vertically
+    norm = (1, 0, 0)
+
+    subdiv_x_dist = (base_dims[0] - (margin * 2)) / subdivs[0]
+
+    turtle.location = draw_origin
+    pu(bm)
+    ri(bm, margin)
+    i = 0
+    while i < subdivs[0]:
+        ri(bm, subdiv_x_dist)
+        bmesh.ops.bisect_plane(
+            bm,
+            geom=bm.verts[:] + bm.edges[:] + bm.faces[:],
+            dist=margin / 4,
+            plane_co=turtle.location,
+            plane_no=norm)
+        i += 1
+    home(obj)
+
+    # subdivide horizontally
+    norm = (0, 0, 1)
+    roof_height = left_peak_loc[2] - left_nadir_loc[2]
+    subdiv_roof_dist = roof_height / (subdivs[0] / 2)
+    up(bm, base_dims[2])
+    i = 1
+    while i < subdivs[0] / 2:
+        up(bm, subdiv_roof_dist)
+        bmesh.ops.bisect_plane(
+            bm,
+            geom=bm.verts[:] + bm.edges[:] + bm.faces[:],
+            dist=margin,
+            plane_co=turtle.location,
+            plane_no=norm)
+        i += 1
+    home(obj)
+
+    # create a temporary mesh for roof top selection
+    #
+    # _____C__b__A
+    # \    |    /
+    #  \  a|   /c
+    #   \  |  /
+    #    \ | /
+    #     \|/
+    #      B
+    roof_a = a + margin * 2
+    roof_c = (roof_a/sin(radians(A)) * sin(radians(C)))
+    roof_b = (roof_c/sin(radians(C)) * sin(radians(B)))
+
+    roof_bm = bmesh.new()
+    roof_bm.select_mode = {'VERT'}
+
+    turtle.location = draw_origin
+    ri(roof_bm, base_dims[0] / 2)
+    up(roof_bm, base_dims[2] - margin / 2)
+    bk(roof_bm, 0.01)
+    pd(roof_bm)
+    add_vert(roof_bm)
+    ptu(90)
+    yri(B)
+    fd(roof_bm, roof_c)
+    ylf(180-A)
+    fd(roof_bm, roof_b * 2)
+    bm_select_all(roof_bm)
+    bmesh.ops.contextual_create(
+        roof_bm,
+        geom=roof_bm.verts,
+        mat_nr=0,
+        use_smooth=False)
+    turtle.rotation_euler = (0, 0, 0)
+    roof_bm.select_mode = {'FACE'}
+    bm_select_all(roof_bm)
+    fd(roof_bm, base_dims[1] + 0.02, False)
+    bmesh.ops.recalc_face_normals(roof_bm, faces=roof_bm.faces)
+
+    # select all points in roof mesh that are inside gable mesh
+    bm_coords = [v.co.to_tuple() for v in bm.verts]
+    to_select = points_are_inside_bmesh(
+        bm_coords,
+        roof_bm)
+    for vert, select in zip(bm.verts, to_select):
+        vert.select = select
+    top_verts = [v for v in bm.verts if v.select]
+
+    assign_verts_to_group(top_verts, obj, deform_groups, "Top")
+    roof_bm.free()
+
+    turtle.location = draw_origin
+    turtle.rotation_euler = (0, 0, 0)
+
+    # bottom verts
+    bm_deselect_all(bm)
+    bottom_verts = [v for v in bm.verts if v.co[2] == turtle.location[2]]
+    assign_verts_to_group(bottom_verts, obj, deform_groups, "Bottom")
+    bm_deselect_all(bm)
+
+    # left verts
+    left_verts = select_verts_in_bounds(
+        lbound=(turtle.location),
+        ubound=(
+            turtle.location[0],
+            turtle.location[1] + base_dims[1],
+            turtle.location[2] + left_peak_loc[2]),
+        buffer=margin / 2,
+        bm=bm)
+    left_verts = [v for v in bm.verts if v in left_verts and \
+        v not in top_verts and \
+        v not in bottom_verts]
+    assign_verts_to_group(left_verts, obj, deform_groups, "Base Left")
+    bm_deselect_all(bm)
+
+    # right verts
+    right_verts = select_verts_in_bounds(
+        lbound=(
+            turtle.location[0] + base_dims[0],
+            turtle.location[1],
+            turtle.location[2]),
+        ubound=(
+            turtle.location[0] + base_dims[0],
+            turtle.location[1] + base_dims[1],
+            turtle.location[2] + right_peak_loc[2]),
+        buffer=margin / 2,
+        bm=bm)
+    right_verts = [v for v in bm.verts if v in right_verts and \
+        v not in top_verts and \
+            v not in bottom_verts]
+    assign_verts_to_group(right_verts, obj, deform_groups, "Base Right")
+    bm_deselect_all(bm)
+
+    # select front verts
+    front_verts = select_verts_in_bounds(
+        lbound=(
+            turtle.location),
+        ubound=(
+            turtle.location[0] + base_dims[0],
+            turtle.location[1],
+            left_peak_loc[2]),
+        buffer=margin / 2,
+        bm=bm)
+    front_verts = [v for v in bm.verts if v in front_verts and \
+        v not in top_verts and \
+        v not in bottom_verts and \
+        v not in left_verts and \
+        v not in right_verts]
+    assign_verts_to_group(front_verts, obj, deform_groups, "Gable Front")
+    bm_deselect_all(bm)
+
+    # select back verts
+    back_verts = select_verts_in_bounds(
+        lbound=(
+            turtle.location[0],
+            turtle.location[1] + base_dims[1],
+            turtle.location[2]),
+        ubound=(
+            turtle.location[0] + base_dims[0],
+            turtle.location[1] + base_dims[1],
+            left_peak_loc[2]),
+        buffer=margin / 2,
+        bm=bm)
+    back_verts = [v for v in bm.verts if v in back_verts and \
+        v not in top_verts and \
+        v not in bottom_verts and \
+        v not in left_verts and \
+        v not in right_verts]
+    assign_verts_to_group(back_verts, obj, deform_groups, "Gable Back")
+    bm_deselect_all(bm)
+
+    # finalise turtle and release bmesh
+    finalise_turtle(bm, obj)
+    return obj
+
+def draw_apex_base(context, margin=0.001):
+    """Draw an apex style roof base."""
+    #      B
+    #     /|\
+    #    / | \c
+    #   / a|  \
+    #  /___|___\A
+    #  |   C b |
+    #  |_______|
+    #     base
+    turtle = context.scene.cursor
+    tile = context.collection
+    tile_props = tile.mt_tile_props
+    roof_tile_props = tile.mt_roof_tile_props
+
+    base_dims = [s for s in tile_props.base_size]
+
+    # Roof generator breaks if base height is less than this.
+    if base_dims[2] < 0.002:
+        base_dims[2] = 0.002
+
+    # correct for inset (difference between standard base width and wall width) to take into account
+    # displacement materials
+    if roof_tile_props.inset_x_neg:
+        base_dims[0] = base_dims[0] - roof_tile_props.inset_dist
+    if roof_tile_props.inset_x_pos:
+        base_dims[0] = base_dims[0] - roof_tile_props.inset_dist
+    if roof_tile_props.inset_y_neg:
+        base_dims[1] = base_dims[1] - roof_tile_props.inset_dist
+    if roof_tile_props.inset_y_pos:
+        base_dims[1] = base_dims[1] - roof_tile_props.inset_dist
+
+    # Calculate triangle
+    C = 90
+    A = roof_tile_props.roof_pitch
+    B = 180 - C - A
+    b = base_dims[0] / 2
+    a = tan(radians(A)) * b
+    c = sqrt(a**2 + b**2)
+
+    # subdivisions
+    subdivs = get_subdivs(tile_props.subdivision_density, base_dims)
+
+    for index, value in enumerate(subdivs):
+        if value == 0:
+            subdivs[index] = 1
+
+    # Create bmesh and object
+    vert_groups = ['Base Left', 'Base Right', 'Gable Front', 'Gable Back', 'Bottom', 'Top']
+    bm, obj = create_turtle('Base', vert_groups)
+
+    # create vertex group layer
+    bm.verts.layers.deform.verify()
+    deform_groups = bm.verts.layers.deform.active
+    bm.select_mode = {'VERT'}
+
+    # start drawing
+    # check to see if we're correcting for wall thickness
+    if roof_tile_props.inset_x_neg:
+        ri(bm, roof_tile_props.inset_dist)
+    if roof_tile_props.inset_y_pos:
+        fd(bm, roof_tile_props.inset_dist)
+
+    draw_origin = turtle.location.copy()
+
+    pd(bm)
+    add_vert(bm)
+
+    # Draw front bottom edge of base
+    i = 0
+    while i < subdivs[0]:
+        ri(bm, base_dims[0] / subdivs[0])
+        i += 1
+
+    # Select edge and extrude up
+    bm.select_mode = {'EDGE'}
+    bm_select_all(bm)
+
+    subdiv_z_dist = (base_dims[2] - (margin * 2)) / subdivs[2]
+
+    up(bm, margin)
+
+    i = 0
+    while i < subdivs[2]:
+        up(bm, subdiv_z_dist)
+        i += 1
+
+    up(bm, margin)
+
+    bm_deselect_all(bm)
+
+    # draw peak
+    bm.select_mode = {'VERT'}
     pd(bm)
     add_vert(bm)
     bm.verts.ensure_lookup_table()
@@ -917,32 +2058,31 @@ def draw_apex_base(context, margin=0.001):
 
     # select all points in roof mesh that are inside gable mesh
     bm_coords = [v.co.to_tuple() for v in bm.verts]
-    to_select = points_are_inside_bmesh(bm_coords, gable_bm, margin / 2, 0.001)
+    to_select = points_are_inside_bmesh(bm_coords, gable_bm)
 
     # points_are_inside isn't perfect on low poly meshes so filter out false positives here
     for vert, select in zip(bm.verts, to_select):
         if vert.co[1] < draw_origin[1] + margin / 2:
             vert.select = select
     front_verts = [v for v in bm.verts if v.select]
-    assign_verts_to_group(front_verts, obj, deform_groups, "Gable Front")
+    #assign_verts_to_group(front_verts, obj, deform_groups, "Gable Front")
 
     bm_deselect_all(bm)
 
     # Gable Back
     # move gable mesh to other end
-
     for v in gable_bm.verts:
         v.co[1] = v.co[1] + base_dims[1]
 
-    to_select = points_are_inside_bmesh(bm_coords, gable_bm, margin / 2, 0.001)
+    to_select = points_are_inside_bmesh(bm_coords, gable_bm)
     for vert, select in zip(bm.verts, to_select):
         if vert.co[1] > base_dims[1] - margin / 2:
             vert.select = select
 
     back_verts = [v for v in bm.verts if v.select]
-    # Free gable bmesh as we don;t need it any more
+    # Free gable bmesh as we don't need it any more
     gable_bm.free()
-    assign_verts_to_group(back_verts, obj, deform_groups, "Gable Back")
+    #assign_verts_to_group(back_verts, obj, deform_groups, "Gable Back")
     bm_deselect_all(bm)
     turtle.location = draw_origin
 
@@ -997,11 +2137,43 @@ def draw_apex_base(context, margin=0.001):
     top_verts = [v for v in bm.verts if v not in verts]
     assign_verts_to_group(top_verts, obj, deform_groups, "Top")
 
+    # Additional filter for gables
+    verts = left_verts + right_verts + bottom_verts
+    front_verts = [v for v in bm.verts if v in front_verts and v not in verts]
+    assign_verts_to_group(front_verts, obj, deform_groups, "Gable Front")
+    back_verts = [v for v in bm.verts if v in back_verts and v not in verts]
+    assign_verts_to_group(back_verts, obj, deform_groups, "Gable Back")
+
     turtle.location = (0, 0, 0)
+
     # finalise turtle and release bmesh
     finalise_turtle(bm, obj)
 
     return obj
+
+def get_subdivs(density, base_dims):
+    """Get the number of times to subdivide each side when drawing.
+
+    Args:
+        density (ENUM in {'LOW', 'MEDIUM', 'HIGH'}): Density of subdivision
+        base_dims (list(float, float, float)): Base dimensions
+
+    Returns:
+        [list(int, int, int)]: subdivisions
+    """
+    if density == 'LOW':
+        x = floor(base_dims[0] * 4)
+        y = floor(base_dims[1] * 4)
+        z = floor(base_dims[2] * 4)
+    elif density == 'MEDIUM':
+        x = floor(base_dims[0] * 8)
+        y = floor(base_dims[1] * 8)
+        z = floor(base_dims[2] * 8)
+    elif density == 'HIGH':
+        x = floor(base_dims[0] * 16)
+        y = floor(base_dims[1] * 16)
+        z = floor(base_dims[2] * 16)
+    return [x, y, z]
 
 
 def spawn_openlock_base_slot_cutter(base, tile_props, roof_props, offset=0.236):

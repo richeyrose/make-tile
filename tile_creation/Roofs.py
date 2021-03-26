@@ -409,7 +409,7 @@ def draw_butterfly_roof_top(context, margin=0.001):
     #   /|
     #  / |
 
-    b = side_eaves
+    b = roof_tile_props.side_eaves
     a = (b/sin(radians(B)) * sin(radians(A)))
     c = (b/sin(radians(B)) * sin(radians(C)))
     eaves_tri = {
@@ -452,13 +452,150 @@ def draw_butterfly_roof_top(context, margin=0.001):
         'B': B,
         'C': C}
 
+    # subdivisions
+    density = tile_props.subdivision_density
+    subdivs = get_subdivs(density, base_dims)
 
+    for index, value in enumerate(subdivs):
+        if value == 0:
+            subdivs[index] = 1
 
+    subdiv_x_dist = (roof_bottom['c'] - margin) / subdivs[0]
+    subdiv_y_dist = (base_dims[1] - (margin * 2) + roof_tile_props.end_eaves_neg + roof_tile_props.end_eaves_pos) / subdivs[1]
 
+    vert_groups = ['Left', 'Right']
+    bm, obj = create_turtle('Roof Top', vert_groups)
 
+    # create vertex group layer
+    bm.verts.layers.deform.verify()
+    deform_groups = bm.verts.layers.deform.active
+    bm.select_mode = {'VERT'}
 
+    # start
+    # check to see if we're correcting for wall thickness
+    if roof_tile_props.inset_y_pos:
+        fd(bm, roof_tile_props.inset_dist)
 
+    # draw gable end edges
+    bk(bm, roof_tile_props.end_eaves_neg)
+    up(bm, base_dims[2])
+    ri(bm, base_dims[0] / 2 + roof_tile_props.inset_dist)
 
+    draw_origin = turtle.location.copy()
+    pd(bm)
+
+    add_vert(bm)
+    ptu(90)
+    yri(base_tri['B'])
+    i = 0
+    while i < subdivs[0]:
+        fd(bm, subdiv_x_dist)
+        i += 1
+    right_peak_loc = turtle.location.copy()
+    right_peak_loc[1] = right_peak_loc[1] + margin
+    right_peak_loc[2] = right_peak_loc[2] + peak_tri['c']
+    fd(bm, margin)
+    turtle.location = draw_origin
+    turtle.rotation_euler = (0, 0, 0)
+    bm_deselect_all(bm)
+    bm.verts.ensure_lookup_table()
+    bm.verts[0].select = True
+    ptu(90)
+    ylf(base_tri['B'])
+    i = 0
+    while i < subdivs[0]:
+        fd(bm, subdiv_x_dist)
+        i += 1
+    left_peak_loc = turtle.location.copy()
+    left_peak_loc[1] = left_peak_loc[1] + margin
+    left_peak_loc[2] = left_peak_loc[2] + peak_tri['c']
+    fd(bm, margin)
+    turtle.rotation_euler = (0, 0, 0)
+    bm.select_mode = {'EDGE'}
+    bm_select_all(bm)
+    up(bm, peak_tri['c'])
+    bm.select_mode = {'FACE'}
+    bm_select_all(bm)
+    fd(bm, margin, False)
+    i = 0
+    while i < subdivs[1]:
+        fd(bm, subdiv_y_dist)
+        i += 1
+    fd(bm, margin)
+    bm_deselect_all(bm)
+    home(obj)
+
+    # create temporary bmesh to create verts groups
+    left_bm = bmesh.new()
+    left_bm.select_mode = {'VERT'}
+    select_origin = (
+        draw_origin[0] + margin / 4,
+        draw_origin[1] + margin / 4,
+        draw_origin[2] + peak_tri['c'] - margin / 2)
+    turtle.location = select_origin
+    pd(left_bm)
+    add_vert(left_bm)
+    ptu(90)
+    ylf(base_tri['B'])
+    fd(left_bm, roof_bottom['c'])
+    left_bm.select_mode = {'EDGE'}
+    bm_select_all(left_bm)
+    turtle.rotation_euler = (0, 0, 0)
+    up(left_bm, 0.1)
+    left_bm.select_mode = {'FACE'}
+    bm_select_all(left_bm)
+    fd(left_bm, (base_dims[1] - (margin) + roof_tile_props.end_eaves_neg + roof_tile_props.end_eaves_pos), False)
+    bmesh.ops.recalc_face_normals(left_bm, faces=left_bm.faces)
+
+    # select all points inside left_bm
+    bm_coords = [v.co.to_tuple() for v in bm.verts]
+    to_select = points_are_inside_bmesh(bm_coords, left_bm)
+    # filter
+    for vert, select in zip(bm.verts, to_select):
+        if vert.co[0] <= select_origin[0] + margin and \
+            vert.co[2] >= select_origin[2] - margin:
+            vert.select = select
+
+    left_verts = [v for v in bm.verts if v.select]
+    assign_verts_to_group(left_verts, obj, deform_groups, 'Left')
+
+    # mirror selector mesh
+    ret = bmesh.ops.mirror(
+        left_bm,
+        geom= left_bm.verts[:] + left_bm.edges[:] + left_bm.faces[:],
+        merge_dist=0,
+        axis='X')
+
+    verts = [v for v in ret['geom'] if isinstance(v, bmesh.types.BMVert)]
+
+    for v in left_bm.verts:
+        if v not in verts:
+            left_bm.verts.remove(v)
+
+    for v in left_bm.verts:
+        v.co[0] = v.co[0] + tile_props.base_size[0]
+
+    bmesh.ops.recalc_face_normals(left_bm, faces=left_bm.faces)
+
+    # select all points inside right_bm
+    bm_coords = [v.co.to_tuple() for v in bm.verts]
+    to_select = points_are_inside_bmesh(bm_coords, left_bm)
+
+    bm_deselect_all(bm)
+    # filter
+    for vert, select in zip(bm.verts, to_select):
+        if vert.co[0] >= select_origin[0] - margin and \
+            vert.co[2] >= select_origin[2] - margin:
+            vert.select = select
+
+    right_verts = [v for v in bm.verts if v.select]
+    assign_verts_to_group(right_verts, obj, deform_groups, "Right")
+    bm_deselect_all(bm)
+
+    # finalise turtle and release bmesh
+    left_bm.free()
+    finalise_turtle(bm, obj)
+    return obj
 
 def draw_shed_roof_top(context, margin=0.001):
     """Draw a shed type roof top.
@@ -617,7 +754,6 @@ def draw_shed_roof_top(context, margin=0.001):
         fd(bm, roof_tile_props.inset_dist)
 
     # draw gable end edges
-    draw_origin = turtle.location.copy()
     bk(bm, roof_tile_props.end_eaves_neg)
     ri(bm, inner_tri['b'])
     up(bm, base_dims[2] - roof_tile_props.side_eaves)
@@ -1050,6 +1186,7 @@ def draw_apex_roof_top(context, margin=0.001):
     bm_deselect_all(bm)
 
     # finalise turtle and release bmesh
+    left_bm.free()
     finalise_turtle(bm, obj)
 
     return obj
@@ -1612,7 +1749,7 @@ def draw_butterfly_base(context, margin=0.001):
         buffer=margin,
         bm=bm)
 
-    # calculate trie for right margin slice
+    # calculate tri for right margin slice
     v1 = right_peak_loc
     v2 = right_nadir_loc
     v3 = (

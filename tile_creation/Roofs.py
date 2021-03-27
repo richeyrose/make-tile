@@ -59,7 +59,8 @@ from ..lib.bmturtle.helpers import (
 
 from ..lib.bmturtle.scripts import draw_cuboid
 
-#TODO Ensure UI updates to show roof options when roof is selected
+# TODO Make side eaves seperately customisable in same way as end eaves
+# TODO Ensure UI updates to show roof options when roof is selected
 class MT_PT_Roof_Panel(Panel):
     """Draw a tile options panel in UI."""
 

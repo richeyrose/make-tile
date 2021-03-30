@@ -743,8 +743,8 @@
         },
         "roof_type": {
             "APEX": "Apex",
-            "NADIR": "Nadir",
-            "SIDE": "Side"
+            "BUTTERFLY": "Butterfly",
+            "SHED": "Shed"
         },
         "defaults":{
             "base_blueprint": "OPENLOCK",
@@ -764,7 +764,7 @@
             "base_defaults":{
                 "OPENLOCK":{
                     "base_x": 4.0,
-                    "base_y": 8.0,
+                    "base_y": 6.0,
                     "base_z": 0.2755
                 }
             },

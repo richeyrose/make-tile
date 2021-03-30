@@ -61,13 +61,12 @@ class MT_Tile_Properties(PropertyGroup):
         description="The type of tile e.g. Straight Wall, Curved Floor"
     )
 
-    # Native Subdivisions #
+    # Native Subdivisions
     subdivision_density: EnumProperty(
         items=[
-            ("V_HIGH", "Very High", "", 1),
-            ("HIGH", "High", "", 2),
-            ("MEDIUM", "Medium", "", 3),
-            ("LOW", "Low", "", 4)],
+            ("HIGH", "High", "", 1),
+            ("MEDIUM", "Medium", "", 2),
+            ("LOW", "Low", "", 3)],
         default="MEDIUM",
         name="Subdivision Density")
 

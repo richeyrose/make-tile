@@ -147,10 +147,13 @@ class MT_Roof_Properties(PropertyGroup):
         default=False
     )
 
+
 @persistent
 def update_mt_roof_scene_props_handler(dummy):
-    """Check to see if we have a MakeTile roof object selected and updates mt_roof_scene_props based on its mt_roof_tile_props."""
+    """Check to see if we have a MakeTile roof object selected.
 
+    Updates mt_roof_scene_props based on its mt_roof_tile_props.
+    """
     context = bpy.context
     obj = context.object
     roof_scene_props = context.scene.mt_roof_scene_props
@@ -170,7 +173,9 @@ def update_mt_roof_scene_props_handler(dummy):
     except AttributeError:
         pass
 
+
 bpy.app.handlers.depsgraph_update_post.append(update_mt_roof_scene_props_handler)
+
 
 def register():
     # Property group that contains properties set in UI

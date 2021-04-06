@@ -24,6 +24,7 @@ from .properties import (
 # TODO Decide how many of these properties we actually need to be storing.
 # TODO rename to mt_collection_props
 
+
 class MT_Tile_Properties(PropertyGroup):
     is_mt_collection: BoolProperty(
         name="Is MakeTile collection",
@@ -36,7 +37,8 @@ class MT_Tile_Properties(PropertyGroup):
     collection_type: EnumProperty(
         items=collection_types,
         name="Collection Types",
-        description="Easy way of distinguishing whether we are dealing with a tile, an architectural element or a larger prefab such as a builing or dungeon."
+        description="Easy way of distinguishing whether we are dealing with a tile, \
+            an architectural element or a larger prefab such as a building or dungeon."
     )
 
     # Tile type #
@@ -214,6 +216,7 @@ class MT_Tile_Properties(PropertyGroup):
     tile_resolution: IntProperty(
         name="Tile Resolution"
     )
+
 
 def register():
     # Property group that contains properties relating to a tile stored on the tile collection

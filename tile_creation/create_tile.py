@@ -1,4 +1,5 @@
 import os
+from math import floor
 import bpy
 from ..operators.assign_reference_object import assign_obj_to_obj_texture_coords
 from .. utils.registration import get_prefs
@@ -18,6 +19,31 @@ class MT_Tile_Generator:
             return context.object.mode == 'OBJECT'
         else:
             return True
+
+
+    def get_subdivs(self, density, base_dims):
+        """Get the number of times to subdivide each side when drawing.
+
+        Args:
+            density (ENUM in {'LOW', 'MEDIUM', 'HIGH'}): Density of subdivision
+            base_dims (list(float, float, float)): Base dimensions
+
+        Returns:
+            [list(int, int, int)]: subdivisions
+        """
+        if density == 'LOW':
+            x = floor(base_dims[0] * 4)
+            y = floor(base_dims[1] * 4)
+            z = floor(base_dims[2] * 4)
+        elif density == 'MEDIUM':
+            x = floor(base_dims[0] * 8)
+            y = floor(base_dims[1] * 8)
+            z = floor(base_dims[2] * 8)
+        elif density == 'HIGH':
+            x = floor(base_dims[0] * 16)
+            y = floor(base_dims[1] * 16)
+            z = floor(base_dims[2] * 16)
+        return [x, y, z]
 
 
 def initialise_tile_creator(context):

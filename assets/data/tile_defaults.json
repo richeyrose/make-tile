@@ -754,6 +754,8 @@
             "end_eaves_pos": 0.1,
             "end_eaves_neg": 0.1,
             "side_eaves": 0.2755,
+            "side_eaves_neg": 0.2755,
+            "side_eaves_pos": 0.2755,
             "roof_pitch": 45,
             "roof_thickness": 0.2,
             "inset_dist": 0.09,

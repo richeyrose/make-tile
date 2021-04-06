@@ -1,24 +1,23 @@
-import bpy
+from math import radians, tan, sqrt
+from mathutils import geometry
+import bmesh
+
+
 from ..lib.bmturtle.commands import (
     create_turtle,
     finalise_turtle,
     add_vert,
     fd,
     bk,
-    lf,
     ri,
     up,
     dn,
     pu,
     pd,
     ptu,
-    ptd,
     ylf,
     yri,
-    home,
-    arc,
-    rt,
-    lt)
+    home)
 
 from ..lib.bmturtle.helpers import (
     bm_select_all,
@@ -29,7 +28,8 @@ from ..lib.bmturtle.helpers import (
 
 from ..lib.bmturtle.scripts import draw_cuboid
 
-def draw_shed_base(context, margin=0.001):
+
+def draw_shed_base(self, context, margin=0.001):
     """Draw a shed style roof base (Not sure why this style is called "shed" but hey ho)."""
     #  B
     #  |\
@@ -68,7 +68,7 @@ def draw_shed_base(context, margin=0.001):
     c = sqrt(a**2 + b**2)
 
     # subdivisions
-    subdivs = get_subdivs(tile_props.subdivision_density, base_dims)
+    subdivs = self.get_subdivs(tile_props.subdivision_density, base_dims)
 
     for index, value in enumerate(subdivs):
         if value == 0:
@@ -177,7 +177,12 @@ def draw_shed_base(context, margin=0.001):
         turtle.location[1],
         turtle.location[2])
 
-    bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=margin / 4, plane_co=plane, plane_no=(1, 0, 0))
+    bmesh.ops.bisect_plane(
+        bm,
+        geom=bm.verts[:] + bm.edges[:] + bm.faces[:],
+        dist=margin / 4,
+        plane_co=plane,
+        plane_no=(1, 0, 0))
 
     # base right
     plane = (
@@ -185,7 +190,12 @@ def draw_shed_base(context, margin=0.001):
         turtle.location[1],
         turtle.location[2])
 
-    bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=margin / 4, plane_co=plane, plane_no=(1, 0, 0))
+    bmesh.ops.bisect_plane(
+        bm,
+        geom=bm.verts[:] + bm.edges[:] + bm.faces[:],
+        dist=margin / 4,
+        plane_co=plane,
+        plane_no=(1, 0, 0))
 
     # roof right
     v1 = (
@@ -208,7 +218,12 @@ def draw_shed_base(context, margin=0.001):
         turtle.location[1],
         turtle.location[2] + base_dims[2])
 
-    bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=margin / 4, plane_co=plane, plane_no=norm)
+    bmesh.ops.bisect_plane(
+        bm,
+        geom=bm.verts[:] + bm.edges[:] + bm.faces[:],
+        dist=margin / 4,
+        plane_co=plane,
+        plane_no=norm)
 
     # create a temporary bmesh for gable ends to select verts inside and create vert groups
     gable_bm = bmesh.new()
@@ -253,7 +268,6 @@ def draw_shed_base(context, margin=0.001):
         if vert.co[1] < draw_origin[1] + margin / 2:
             vert.select = select
     front_verts = [v for v in bm.verts if v.select]
-    # assign_verts_to_group(front_verts, obj, deform_groups, "Gable Front")
 
     bm_deselect_all(bm)
 
@@ -270,7 +284,6 @@ def draw_shed_base(context, margin=0.001):
     back_verts = [v for v in bm.verts if v.select]
     # Free gable bmesh as we don't need it any more
     gable_bm.free()
-    #assign_verts_to_group(back_verts, obj, deform_groups, "Gable Back")
 
     bm_deselect_all(bm)
     turtle.location = draw_origin
@@ -340,113 +353,7 @@ def draw_shed_base(context, margin=0.001):
     return obj
 
 
-def spawn_openlock_base_slot_cutter(base, tile_props, roof_props, offset=0.236):
-    """Spawn an openlock base slot cutter into scene and positions it correctly.
-
-    Args:
-        base (bpy.types.Object): base
-        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
-
-    Returns:
-        bpy.type.Object: slot cutter
-    """
-    mode('OBJECT')
-
-    base_location = base.location.copy()
-    base_dims = base.dimensions.copy()
-
-    # correct for wall inset distance
-    if roof_props.inset_x_neg:
-        base_dims[0] = base_dims[0] + roof_props.inset_dist
-    if roof_props.inset_x_pos:
-        base_dims[0] = base_dims[0] + roof_props.inset_dist
-    if roof_props.inset_y_neg:
-        base_dims[1] = base_dims[1] + roof_props.inset_dist
-    if roof_props.inset_y_pos:
-        base_dims[1] = base_dims[1] + roof_props.inset_dist
-
-    # one sided base socket
-    if base_dims[0] <= 1 or base_dims[1] <= 1:
-        # work out bool size X from base size, y and z are constants.
-        bool_size = [
-            base_dims[0] - (offset * 2),
-            0.155,
-            0.25]
-
-        cutter = draw_cuboid(bool_size)
-        cutter.name = 'Base Slot.' + tile_props.tile_name + ".slot_cutter"
-
-        diff = base_dims[0] - bool_size[0]
-
-        cutter.location = (
-            base_location[0] + diff / 2,
-            base_location[1] + offset,
-            base_location[2] - 0.001)
-
-        ctx = {
-            'object': cutter,
-            'active_object': cutter,
-            'selected_objects': [cutter]
-        }
-
-        bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-
-        return cutter
-
-    # 4 sided base socket
-    else:
-        preferences = get_prefs()
-        booleans_path = os.path.join(
-            preferences.assets_path,
-            "meshes",
-            "booleans",
-            "rect_floor_slot_cutter.blend")
-
-        with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
-            data_to.objects = [
-                'corner_xneg_yneg',
-                'corner_xneg_ypos',
-                'corner_xpos_yneg',
-                'corner_xpos_ypos',
-                'slot_cutter_a',
-                'slot_cutter_b',
-                'slot_cutter_c',
-                'base_slot_cutter_final']
-
-        for obj in data_to.objects:
-            add_object_to_collection(obj, tile_props.tile_name)
-
-        for obj in data_to.objects:
-            # obj.hide_set(True)
-            obj.hide_viewport = True
-
-        cutter_a = data_to.objects[4]
-        cutter_b = data_to.objects[5]
-        cutter_c = data_to.objects[6]
-        cutter_d = data_to.objects[7]
-
-        cutter_d.name = 'Base Slot Cutter.' + tile_props.tile_name
-
-        a_array = cutter_a.modifiers['Array']
-        a_array.fit_length = base_dims[1] - 1.014
-
-        b_array = cutter_b.modifiers['Array']
-        b_array.fit_length = base_dims[0] - 1.014
-
-        c_array = cutter_c.modifiers['Array']
-        c_array.fit_length = base_dims[0] - 1.014
-
-        d_array = cutter_d.modifiers['Array']
-        d_array.fit_length = base_dims[1] - 1.014
-
-        cutter_d.location = (
-            base_location[0] + 0.24,
-            base_location[1] + 0.24,
-            base_location[2] + 0.24)
-
-        return cutter_d
-
-def draw_shed_roof_top(context, margin=0.001):
+def draw_shed_roof_top(self, context, margin=0.001):
     """Draw a shed type roof top.
 
     Args:
@@ -583,7 +490,7 @@ def draw_shed_roof_top(context, margin=0.001):
 
     # subdivisions
     density = tile_props.subdivision_density
-    subdivs = get_subdivs(density, base_dims)
+    subdivs = self.get_subdivs(density, base_dims)
 
     vert_groups = ['Left', 'Right']
     bm, obj = create_turtle('Roof', vert_groups)
@@ -595,10 +502,6 @@ def draw_shed_roof_top(context, margin=0.001):
 
     # start
     # check to see if we're correcting for wall thickness
-    '''
-    if roof_tile_props.inset_x_neg:
-        ri(bm, roof_tile_props.inset_dist)
-    '''
     if roof_tile_props.inset_y_pos:
         fd(bm, roof_tile_props.inset_dist)
 
@@ -621,13 +524,13 @@ def draw_shed_roof_top(context, margin=0.001):
     # vert 2
     pu(bm)
     # vert 3
-    turtle.location=draw_origin
+    turtle.location = draw_origin
     fd(bm, inner_tri['c'])
     pd(bm)
     add_vert(bm)
     # vert 4
-    turtle.location=(0, 0, 0)
-    turtle.rotation_euler=(0, 0, 0)
+    turtle.location = (0, 0, 0)
+    turtle.rotation_euler = (0, 0, 0)
 
     # create gable end face
     bmesh.ops.contextual_create(bm, geom=bm.verts, mat_nr=0, use_smooth=False)
@@ -650,16 +553,17 @@ def draw_shed_roof_top(context, margin=0.001):
     bmesh.ops.bisect_plane(
         bm,
         geom=bm.verts[:] + bm.edges[:] + bm.faces[:],
-        dist = margin / 4,
+        dist=margin / 4,
         plane_co=plane,
-        plane_no = (0, 0, 1))
+        plane_no=(0, 0, 1))
 
     # extrude along y
     bm.select_mode = {'FACE'}
     bm_select_all(bm)
 
     fd(bm, margin, del_original=False)
-    subdiv_y_dist = (base_dims[1] - (margin * 2) + roof_tile_props.end_eaves_neg + roof_tile_props.end_eaves_pos) / (subdivs[1] - 1)
+    subdiv_y_dist = (
+        base_dims[1] - (margin * 2) + roof_tile_props.end_eaves_neg + roof_tile_props.end_eaves_pos) / (subdivs[1] - 1)
 
     i = 1
     while i < subdivs[1]:
@@ -699,14 +603,7 @@ def draw_shed_roof_top(context, margin=0.001):
         if vert.co[2] > draw_origin[2] + margin / 4 and \
             vert.co[1] > draw_origin[1] + margin / 4 and \
                 vert.co[1] < draw_origin[1] + base_dims[1] + roof_tile_props.end_eaves_neg + roof_tile_props.end_eaves_pos - (margin / 4):
-                vert.select = select
-        '''
-        if vert.co[0] > base_dims[0] - margin and \
-            vert.co[2] > draw_origin[2] + margin / 4 and \
-                vert.co[1] > draw_origin[1] + margin / 4 and \
-                    vert.co[1] < draw_origin[1] + base_dims[1] + roof_tile_props.end_eaves_neg + roof_tile_props.end_eaves_pos - (margin / 4):
-                    vert.select = select
-        '''
+            vert.select = select
 
     right_verts = [v for v in bm.verts if v.select]
     assign_verts_to_group(right_verts, obj, deform_groups, 'Right')

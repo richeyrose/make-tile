@@ -1,10 +1,15 @@
+import os
 import bpy
 
 from bpy.types import Operator, Panel
+
+from ..utils.registration import get_prefs
+
 from .. lib.utils.collections import (
     create_collection,
-    activate_collection)
-
+    activate_collection,
+    add_object_to_collection)
+from .. lib.bmturtle.scripts import draw_cuboid
 from .. lib.utils.utils import mode, get_all_subclasses
 from ..lib.utils.selection import activate
 from .create_tile import (
@@ -19,7 +24,9 @@ from .create_tile import (
     create_common_tile_props)
 
 from .apex_roof import draw_apex_roof_top, draw_apex_base
-from .Rectangular_Tiles import spawn_openlock_base_slot_cutter
+from .shed_roof import draw_shed_base, draw_shed_roof_top
+from .butterfly_roof import draw_butterfly_base, draw_butterfly_roof_top
+
 
 # TODO Make side eaves seperately customisable in same way as end eaves
 # TODO Ensure UI updates to show roof options when roof is selected
@@ -91,6 +98,7 @@ class MT_PT_Roof_Panel(Panel):
 
         layout.operator('scene.reset_roof_defaults')
 
+
 def initialise_roof_creator(context):
     """Initialise the roof creator and set common properties."""
     tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator(context)
@@ -115,6 +123,7 @@ def initialise_roof_creator(context):
 
     return cursor_orig_loc, cursor_orig_rot
 
+
 def create_roof_tile_props(roof_scene_props, roof_tile_props):
     """Create roof tile properties.
 
@@ -126,6 +135,7 @@ def create_roof_tile_props(roof_scene_props, roof_tile_props):
         for k in roof_tile_props.__annotations__.keys():
             if k == key:
                 setattr(roof_tile_props, str(k), getattr(roof_scene_props, str(k)))
+
 
 class MT_OT_Make_Roof(MT_Tile_Generator, Operator):
     """Operator. Generates a roof tile."""
@@ -160,6 +170,7 @@ class MT_OT_Make_Roof(MT_Tile_Generator, Operator):
         finalise_tile(gables, rooftop, cursor_orig_loc, cursor_orig_rot)
 
         return {'FINISHED'}
+
 
 class MT_OT_Make_Roof_Base(MT_Tile_Generator, Operator):
     """Internal Operator. Generate a Roof Base."""
@@ -209,6 +220,7 @@ class MT_OT_Make_Roof_Top(MT_Tile_Generator, Operator):
             textured_vertex_groups)
         return{'FINISHED'}
 
+
 class MT_OT_Make_Empty_Roof_Base(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an empty roof base."""
 
@@ -225,6 +237,7 @@ class MT_OT_Make_Empty_Roof_Base(MT_Tile_Generator, Operator):
         spawn_empty_base(tile_props)
         return{'FINISHED'}
 
+
 class MT_OT_Make_Empty_Roof_Top(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an empty roof top."""
 
@@ -238,6 +251,7 @@ class MT_OT_Make_Empty_Roof_Top(MT_Tile_Generator, Operator):
         """Execute the operator."""
         return{'PASS_THROUGH'}
 
+
 def spawn_roof(self, context):
     tile = context.collection
     tile_props = tile.mt_tile_props
@@ -246,9 +260,9 @@ def spawn_roof(self, context):
     if roof_props.roof_type == 'APEX':
         roof = draw_apex_roof_top(self, context)
     elif roof_props.roof_type == 'SHED':
-        roof = draw_shed_roof_top(context)
+        roof = draw_shed_roof_top(self, context)
     elif roof_props.roof_type == 'BUTTERFLY':
-        roof = draw_butterfly_roof_top(context)
+        roof = draw_butterfly_roof_top(self, context)
 
     roof.name = tile_props.tile_name + '.roof'
     obj_props = roof.mt_object_props
@@ -280,9 +294,9 @@ def spawn_base(self, context):
     if roof_props.roof_type == 'APEX':
         base = draw_apex_base(self, context)
     elif roof_props.roof_type == 'SHED':
-        base = draw_shed_base(context)
+        base = draw_shed_base(self, context)
     elif roof_props.roof_type == 'BUTTERFLY':
-        base = draw_butterfly_base(context)
+        base = draw_butterfly_base(self, context)
 
     base.name = tile_props.tile_name + '.base'
     obj_props = base.mt_object_props
@@ -305,3 +319,110 @@ def spawn_base(self, context):
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
 
     return base
+
+
+def spawn_openlock_base_slot_cutter(base, tile_props, roof_props, offset=0.236):
+    """Spawn an openlock base slot cutter into scene and positions it correctly.
+
+    Args:
+        base (bpy.types.Object): base
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
+
+    Returns:
+        bpy.type.Object: slot cutter
+    """
+    mode('OBJECT')
+
+    base_location = base.location.copy()
+    base_dims = base.dimensions.copy()
+
+    # correct for wall inset distance
+    if roof_props.inset_x_neg:
+        base_dims[0] = base_dims[0] + roof_props.inset_dist
+    if roof_props.inset_x_pos:
+        base_dims[0] = base_dims[0] + roof_props.inset_dist
+    if roof_props.inset_y_neg:
+        base_dims[1] = base_dims[1] + roof_props.inset_dist
+    if roof_props.inset_y_pos:
+        base_dims[1] = base_dims[1] + roof_props.inset_dist
+
+    # one sided base socket
+    if base_dims[0] <= 1 or base_dims[1] <= 1:
+        # work out bool size X from base size, y and z are constants.
+        bool_size = [
+            base_dims[0] - (offset * 2),
+            0.155,
+            0.25]
+
+        cutter = draw_cuboid(bool_size)
+        cutter.name = 'Base Slot.' + tile_props.tile_name + ".slot_cutter"
+
+        diff = base_dims[0] - bool_size[0]
+
+        cutter.location = (
+            base_location[0] + diff / 2,
+            base_location[1] + offset,
+            base_location[2] - 0.001)
+
+        ctx = {
+            'object': cutter,
+            'active_object': cutter,
+            'selected_objects': [cutter]
+        }
+
+        bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+
+        return cutter
+
+    # 4 sided base socket
+    else:
+        preferences = get_prefs()
+        booleans_path = os.path.join(
+            preferences.assets_path,
+            "meshes",
+            "booleans",
+            "rect_floor_slot_cutter.blend")
+
+        with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
+            data_to.objects = [
+                'corner_xneg_yneg',
+                'corner_xneg_ypos',
+                'corner_xpos_yneg',
+                'corner_xpos_ypos',
+                'slot_cutter_a',
+                'slot_cutter_b',
+                'slot_cutter_c',
+                'base_slot_cutter_final']
+
+        for obj in data_to.objects:
+            add_object_to_collection(obj, tile_props.tile_name)
+
+        for obj in data_to.objects:
+            # obj.hide_set(True)
+            obj.hide_viewport = True
+
+        cutter_a = data_to.objects[4]
+        cutter_b = data_to.objects[5]
+        cutter_c = data_to.objects[6]
+        cutter_d = data_to.objects[7]
+
+        cutter_d.name = 'Base Slot Cutter.' + tile_props.tile_name
+
+        a_array = cutter_a.modifiers['Array']
+        a_array.fit_length = base_dims[1] - 1.014
+
+        b_array = cutter_b.modifiers['Array']
+        b_array.fit_length = base_dims[0] - 1.014
+
+        c_array = cutter_c.modifiers['Array']
+        c_array.fit_length = base_dims[0] - 1.014
+
+        d_array = cutter_d.modifiers['Array']
+        d_array.fit_length = base_dims[1] - 1.014
+
+        cutter_d.location = (
+            base_location[0] + 0.24,
+            base_location[1] + 0.24,
+            base_location[2] + 0.24)
+
+        return cutter_d

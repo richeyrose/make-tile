@@ -1,25 +1,20 @@
-import bpy
+from math import tan, radians, sqrt, sin
+import bmesh
+from mathutils import geometry
 from ..lib.bmturtle.commands import (
     create_turtle,
     finalise_turtle,
     add_vert,
     fd,
     bk,
-    lf,
     ri,
     up,
-    dn,
     pu,
     pd,
     ptu,
-    ptd,
     ylf,
     yri,
-    home,
-    arc,
-    rt,
-    lt)
-
+    home)
 from ..lib.bmturtle.helpers import (
     bm_select_all,
     bm_deselect_all,
@@ -27,9 +22,8 @@ from ..lib.bmturtle.helpers import (
     select_verts_in_bounds,
     points_are_inside_bmesh)
 
-from ..lib.bmturtle.scripts import draw_cuboid
 
-def draw_butterfly_base(context, margin=0.001):
+def draw_butterfly_base(self, context, margin=0.001):
     """Draw a butterfly style roof base.
 
     Args:
@@ -75,7 +69,7 @@ def draw_butterfly_base(context, margin=0.001):
     c = sqrt(a**2 + b**2)
 
     # subdivisions
-    subdivs = get_subdivs(tile_props.subdivision_density, base_dims)
+    subdivs = self.get_subdivs(tile_props.subdivision_density, base_dims)
 
     for index, value in enumerate(subdivs):
         if value == 0:
@@ -173,7 +167,6 @@ def draw_butterfly_base(context, margin=0.001):
     bm.select_mode = {'VERT'}
     bm_select_all(bm)
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=margin / 2)
-    #bmesh.ops.contextual_create(bm, geom=bm.verts, mat_nr=0, use_smooth=False)
 
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
 
@@ -205,7 +198,12 @@ def draw_butterfly_base(context, margin=0.001):
         turtle.location[1],
         turtle.location[2])
 
-    bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=margin / 4, plane_co=plane, plane_no=(1, 0, 0))
+    bmesh.ops.bisect_plane(
+        bm,
+        geom=bm.verts[:] + bm.edges[:] + bm.faces[:],
+        dist=margin / 4,
+        plane_co=plane,
+        plane_no=(1, 0, 0))
 
     # base right
     plane = (
@@ -213,7 +211,12 @@ def draw_butterfly_base(context, margin=0.001):
         turtle.location[1],
         turtle.location[2])
 
-    bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=margin / 4, plane_co=plane, plane_no=(1, 0, 0))
+    bmesh.ops.bisect_plane(
+        bm,
+        geom=bm.verts[:] + bm.edges[:] + bm.faces[:],
+        dist=margin / 4,
+        plane_co=plane,
+        plane_no=(1, 0, 0))
 
     bm_deselect_all(bm)
 
@@ -415,9 +418,9 @@ def draw_butterfly_base(context, margin=0.001):
             turtle.location[2] + left_peak_loc[2]),
         buffer=margin / 2,
         bm=bm)
-    left_verts = [v for v in bm.verts if v in left_verts and \
-        v not in top_verts and \
-        v not in bottom_verts]
+    left_verts = [v for v in bm.verts if v in left_verts and
+                  v not in top_verts and
+                  v not in bottom_verts]
     assign_verts_to_group(left_verts, obj, deform_groups, "Base Left")
     bm_deselect_all(bm)
 
@@ -433,9 +436,9 @@ def draw_butterfly_base(context, margin=0.001):
             turtle.location[2] + right_peak_loc[2]),
         buffer=margin / 2,
         bm=bm)
-    right_verts = [v for v in bm.verts if v in right_verts and \
-        v not in top_verts and \
-            v not in bottom_verts]
+    right_verts = [v for v in bm.verts if v in right_verts and
+                   v not in top_verts and
+                   v not in bottom_verts]
     assign_verts_to_group(right_verts, obj, deform_groups, "Base Right")
     bm_deselect_all(bm)
 
@@ -449,11 +452,11 @@ def draw_butterfly_base(context, margin=0.001):
             left_peak_loc[2]),
         buffer=margin / 2,
         bm=bm)
-    front_verts = [v for v in bm.verts if v in front_verts and \
-        v not in top_verts and \
-        v not in bottom_verts and \
-        v not in left_verts and \
-        v not in right_verts]
+    front_verts = [v for v in bm.verts if v in front_verts and
+                   v not in top_verts and
+                   v not in bottom_verts and
+                   v not in left_verts and
+                   v not in right_verts]
     assign_verts_to_group(front_verts, obj, deform_groups, "Gable Front")
     bm_deselect_all(bm)
 
@@ -469,11 +472,11 @@ def draw_butterfly_base(context, margin=0.001):
             left_peak_loc[2]),
         buffer=margin / 2,
         bm=bm)
-    back_verts = [v for v in bm.verts if v in back_verts and \
-        v not in top_verts and \
-        v not in bottom_verts and \
-        v not in left_verts and \
-        v not in right_verts]
+    back_verts = [v for v in bm.verts if v in back_verts and
+                  v not in top_verts and
+                  v not in bottom_verts and
+                  v not in left_verts and
+                  v not in right_verts]
     assign_verts_to_group(back_verts, obj, deform_groups, "Gable Back")
     bm_deselect_all(bm)
 
@@ -481,14 +484,14 @@ def draw_butterfly_base(context, margin=0.001):
     finalise_turtle(bm, obj)
     return obj
 
-def draw_butterfly_roof_top(context, margin=0.001):
+
+def draw_butterfly_roof_top(self, context, margin=0.001):
     """Draw a butterfly type roof top.
 
     Args:
         context (bpy.context): context
         margin (float, optional): Margin around textured area. Defaults to 0.001.
     """
-
     # Base tri
     #         C__b__A
     #   |\    |    /|
@@ -591,14 +594,15 @@ def draw_butterfly_roof_top(context, margin=0.001):
 
     # subdivisions
     density = tile_props.subdivision_density
-    subdivs = get_subdivs(density, base_dims)
+    subdivs = self.get_subdivs(density, base_dims)
 
     for index, value in enumerate(subdivs):
         if value == 0:
             subdivs[index] = 1
 
     subdiv_x_dist = (roof_bottom['c'] - margin) / subdivs[0]
-    subdiv_y_dist = (base_dims[1] - (margin * 2) + roof_tile_props.end_eaves_neg + roof_tile_props.end_eaves_pos) / subdivs[1]
+    subdiv_y_dist = (
+        base_dims[1] - (margin * 2) + roof_tile_props.end_eaves_neg + roof_tile_props.end_eaves_pos) / subdivs[1]
 
     vert_groups = ['Left', 'Right']
     bm, obj = create_turtle('Roof Top', vert_groups)
@@ -690,7 +694,7 @@ def draw_butterfly_roof_top(context, margin=0.001):
     # filter
     for vert, select in zip(bm.verts, to_select):
         if vert.co[0] <= select_origin[0] + margin and \
-            vert.co[2] >= select_origin[2] - margin:
+                vert.co[2] >= select_origin[2] - margin:
             vert.select = select
 
     left_verts = [v for v in bm.verts if v.select]
@@ -699,7 +703,7 @@ def draw_butterfly_roof_top(context, margin=0.001):
     # mirror selector mesh
     ret = bmesh.ops.mirror(
         left_bm,
-        geom= left_bm.verts[:] + left_bm.edges[:] + left_bm.faces[:],
+        geom=left_bm.verts[:] + left_bm.edges[:] + left_bm.faces[:],
         merge_dist=0,
         axis='X')
 
@@ -722,7 +726,7 @@ def draw_butterfly_roof_top(context, margin=0.001):
     # filter
     for vert, select in zip(bm.verts, to_select):
         if vert.co[0] >= select_origin[0] - margin and \
-            vert.co[2] >= select_origin[2] - margin:
+                vert.co[2] >= select_origin[2] - margin:
             vert.select = select
 
     right_verts = [v for v in bm.verts if v.select]
@@ -733,4 +737,3 @@ def draw_butterfly_roof_top(context, margin=0.001):
     left_bm.free()
     finalise_turtle(bm, obj)
     return obj
-

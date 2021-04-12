@@ -195,32 +195,6 @@ class MT_OT_Make_Plain_Straight_Wall_Core(MT_Tile_Generator, Operator):
     mt_blueprint = "PLAIN"
     mt_type = "STRAIGHT_WALL_CORE"
 
-    def get_subdivs(self, density, base_dims):
-        """Get the number of times to subdivide each side when drawing.
-
-        Args:
-            density (ENUM in {'LOW', 'MEDIUM', 'HIGH'}): Density of subdivision
-            base_dims (list(float, float, float)): Base dimensions
-
-        Returns:
-            [list(int, int, int)]: subdivisions
-        """
-        if density == 'LOW':
-            x = floor(base_dims[0] * 4)
-            y = floor(base_dims[1] * 2)
-            z = floor(base_dims[2] * 4)
-        elif density == 'MEDIUM':
-            x = floor(base_dims[0] * 8)
-            y = floor(base_dims[1] * 4)
-            z = floor(base_dims[2] * 8)
-        elif density == 'HIGH':
-            x = floor(base_dims[0] * 16)
-            y = floor(base_dims[1] * 8)
-            z = floor(base_dims[2] * 16)
-        subdivs = [x, y, z]
-        subdivs = [x + 1 if x == 0 else x for x in subdivs]
-        return subdivs
-
     def execute(self, context):
         """Execute the operator."""
         spawn_plain_wall_cores(self, context)
@@ -264,32 +238,6 @@ class MT_OT_Make_Plain_Straight_Floor_Core(MT_Tile_Generator, Operator):
     bl_options = {'INTERNAL'}
     mt_blueprint = "PLAIN"
     mt_type = "STRAIGHT_FLOOR_CORE"
-
-    def get_subdivs(self, density, base_dims):
-        """Get the number of times to subdivide each side when drawing.
-
-        Args:
-            density (ENUM in {'LOW', 'MEDIUM', 'HIGH'}): Density of subdivision
-            base_dims (list(float, float, float)): Base dimensions
-
-        Returns:
-            [list(int, int, int)]: subdivisions
-        """
-        if density == 'LOW':
-            x = floor(base_dims[0] * 4)
-            y = floor(base_dims[1] * 4)
-            z = floor(base_dims[2] * 1)
-        elif density == 'MEDIUM':
-            x = floor(base_dims[0] * 8)
-            y = floor(base_dims[1] * 8)
-            z = floor(base_dims[2] * 2)
-        elif density == 'HIGH':
-            x = floor(base_dims[0] * 16)
-            y = floor(base_dims[1] * 16)
-            z = floor(base_dims[2] * 4)
-        subdivs = [x, y, z]
-        subdivs = [x + 1 if x == 0 else x for x in subdivs]
-        return subdivs
 
     def execute(self, context):
         """Execute the operator."""

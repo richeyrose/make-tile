@@ -23,9 +23,6 @@ from .create_tile import (
     initialise_tile_creator,
     create_common_tile_props)
 
-
-
-
 class MT_PT_Rect_Floor_Panel(Panel):
     """Draw a tile options panel in UI."""
 
@@ -72,11 +69,8 @@ class MT_PT_Rect_Floor_Panel(Panel):
         row.prop(scene_props, 'base_y')
         row.prop(scene_props, 'base_z')
 
-        layout.label(text="Native Subdivisions")
-        row = layout.row()
-        row.prop(scene_props, 'x_native_subdivisions')
-        row.prop(scene_props, 'y_native_subdivisions')
-        row.prop(scene_props, 'z_native_subdivisions')
+        layout.label(text="Subdivision Density")
+        layout.prop(scene_props, 'subdivision_density', text="")
 
         layout.operator('scene.reset_tile_defaults')
 
@@ -92,9 +86,7 @@ class MT_OT_Make_Openlock_Rect_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
-        spawn_openlock_base(tile_props)
+        spawn_openlock_base(self, context)
         return{'FINISHED'}
 
 
@@ -109,9 +101,7 @@ class MT_OT_Make_Plain_Rect_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
-        spawn_plain_base(tile_props)
+        spawn_plain_base(self, context)
         return{'FINISHED'}
 
 
@@ -126,9 +116,7 @@ class MT_OT_Make_Empty_Rect_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
-        spawn_empty_base(tile_props)
+        spawn_empty_base(self, context)
         return{'FINISHED'}
 
 
@@ -143,9 +131,7 @@ class MT_OT_Make_Plain_Rect_Floor_Core(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
-        create_plain_rect_floor_cores(tile_props)
+        create_plain_rect_floor_cores(self, context)
         return{'FINISHED'}
 
 
@@ -242,14 +228,10 @@ def initialise_floor_creator(context, scene_props):
     tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
     tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
 
-    tile_props.x_native_subdivisions = scene_props.x_native_subdivisions
-    tile_props.y_native_subdivisions = scene_props.y_native_subdivisions
-    tile_props.z_native_subdivisions = scene_props.z_native_subdivisions
-
     return cursor_orig_loc, cursor_orig_rot
 
 
-def create_plain_rect_floor_cores(tile_props):
+def create_plain_rect_floor_cores(self, context):
     """Create preview and displacement cores.
 
     Args:
@@ -258,7 +240,7 @@ def create_plain_rect_floor_cores(tile_props):
     Returns:
         bpy.types.Object: preview core
     """
-    preview_core = spawn_floor_core(tile_props)
+    preview_core = spawn_floor_core(self, context)
     textured_vertex_groups = ['Top']
 
     convert_to_displacement_core(
@@ -270,7 +252,7 @@ def create_plain_rect_floor_cores(tile_props):
     return preview_core
 
 
-def spawn_floor_core(tile_props):
+def spawn_floor_core(self, context):
     """Spawn the core (top part) of a floor tile.
 
     Args:
@@ -279,19 +261,19 @@ def spawn_floor_core(tile_props):
     Returns:
         bpy.types.Object: tile core
     """
+    tile_props = context.collection.mt_tile_props
     tile_size = tile_props.tile_size
     base_size = tile_props.base_size
+    core_size = [
+        tile_size[0],
+        tile_size[1],
+        tile_size[2] - base_size[2]]
     tile_name = tile_props.tile_name
     native_subdivisions = (
-        tile_props.x_native_subdivisions,
-        tile_props.y_native_subdivisions,
-        tile_props.z_native_subdivisions
-    )
+        self.get_subdivs(tile_props.subdivision_density, core_size))
 
     core = draw_rectangular_floor_core(
-        [tile_size[0],
-         tile_size[1],
-         tile_size[2] - base_size[2]],
+        core_size,
         native_subdivisions)
 
     core.name = tile_name + '.core'
@@ -322,7 +304,7 @@ def spawn_floor_core(tile_props):
     return core
 
 
-def spawn_plain_base(tile_props):
+def spawn_plain_base(self, context):
     """Spawn a plain base into the scene.
 
     Args:
@@ -331,6 +313,7 @@ def spawn_plain_base(tile_props):
     Returns:
         bpy.types.Object: tile base
     """
+    tile_props = context.collection.mt_tile_props
     base_size = tile_props.base_size
     tile_name = tile_props.tile_name
 
@@ -355,7 +338,7 @@ def spawn_plain_base(tile_props):
     return base
 
 
-def spawn_openlock_base(tile_props):
+def spawn_openlock_base(self, context):
     """Spawn an openlock base into the scene.
 
     Args:
@@ -365,8 +348,8 @@ def spawn_openlock_base(tile_props):
         bpy.types.Object: tile base
     """
 
-    base = spawn_plain_base(tile_props)
-
+    base = spawn_plain_base(self, context)
+    tile_props = context.collection.mt_tile_props
     slot_cutter = spawn_openlock_base_slot_cutter(base, tile_props)
     set_bool_obj_props(slot_cutter, base, tile_props, 'DIFFERENCE')
     set_bool_props(slot_cutter, base, 'DIFFERENCE')

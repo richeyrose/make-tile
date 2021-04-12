@@ -40,6 +40,7 @@ from ..lib.bmturtle.helpers import (
     assign_verts_to_group,
     select_verts_in_bounds)
 
+#TODO Bug with tall O colum socket generation
 #TODO #1 Ensure sockets and buffers only added to tall columns
 class MT_PT_Connecting_Column_Panel(Panel):
     """Draw a tile options panel in UI."""
@@ -93,11 +94,8 @@ class MT_PT_Connecting_Column_Panel(Panel):
         row.prop(scene_props, 'base_y')
         row.prop(scene_props, 'base_z')
 
-        layout.label(text="Native Subdivisions")
-        row = layout.row()
-        row.prop(scene_props, 'x_native_subdivisions')
-        row.prop(scene_props, 'y_native_subdivisions')
-        row.prop(scene_props, 'z_native_subdivisions')
+        layout.label(text="Subdivision Density")
+        layout.prop(scene_props, 'subdivision_density', text="")
 
         layout.prop(scene_props, 'displacement_thickness')
         layout.operator('scene.reset_tile_defaults')
@@ -114,9 +112,7 @@ class MT_OT_Make_Openlock_Connecting_Column_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
-        spawn_openlock_base(tile_props)
+        spawn_openlock_base(self, context)
         return{'FINISHED'}
 
 
@@ -131,9 +127,7 @@ class MT_OT_Make_Plain_Connecting_Column_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
-        spawn_plain_base(tile_props)
+        spawn_plain_base(self, context)
         return{'FINISHED'}
 
 
@@ -148,9 +142,7 @@ class MT_OT_Make_Empty_Connecting_Column_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
-        spawn_empty_base(tile_props)
+        spawn_empty_base(self, context)
         return{'FINISHED'}
 
 
@@ -165,9 +157,7 @@ class MT_OT_Make_Plain_Connecting_Column_Core(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
-        spawn_plain_connecting_column_core(tile_props)
+        spawn_plain_connecting_column_core(self, context)
         return{'FINISHED'}
 
 
@@ -182,10 +172,8 @@ class MT_OT_Make_Openlock_Connecting_Column_Core(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
         base = context.active_object
-        spawn_openlock_connecting_column_core(base, tile_props)
+        spawn_openlock_connecting_column_core(self, context, base)
         return{'FINISHED'}
 
 
@@ -235,7 +223,6 @@ class MT_OT_Make_Connecting_Column_Tile(MT_Tile_Generator, Operator):
         finalise_tile(base, preview_core, cursor_orig_loc, cursor_orig_rot)
 
         # scene.render.engine = original_renderer
-
         return {'FINISHED'}
 
 
@@ -268,17 +255,13 @@ def initialise_column_creator(context, scene_props):
     tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
     tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
 
-    tile_props.x_native_subdivisions = scene_props.x_native_subdivisions
-    tile_props.y_native_subdivisions = scene_props.y_native_subdivisions
-    tile_props.z_native_subdivisions = scene_props.z_native_subdivisions
-
     tile_props.displacement_thickness = scene_props.displacement_thickness
     tile_props.column_socket_style = scene_props.column_socket_style
 
     return cursor_orig_loc, cursor_orig_rot
 
 
-def spawn_plain_base(tile_props):
+def spawn_plain_base(self, context):
     """Spawn a plain base into the scene.
 
     Args:
@@ -287,6 +270,8 @@ def spawn_plain_base(tile_props):
     Returns:
         bpy.types.Object: tile base
     """
+    tile = context.collection
+    tile_props = tile.mt_tile_props
     base_size = tile_props.base_size
     tile_name = tile_props.tile_name
 
@@ -313,7 +298,7 @@ def spawn_plain_base(tile_props):
     return base
 
 
-def spawn_plain_connecting_column_core(tile_props):
+def spawn_plain_connecting_column_core(self, context):
     """Return the column core.
 
     Args:
@@ -322,26 +307,27 @@ def spawn_plain_connecting_column_core(tile_props):
     Returns:
         bpy.types.Object: core
     """
+    tile_props = context.collection.mt_tile_props
     column_type = tile_props.column_type
     socket_style = tile_props.column_socket_style
     if socket_style == 'TEXTURED':
-        core = spawn_generic_core(tile_props)
+        core = spawn_generic_core(self, context)
         textured_vertex_groups = ['Front', 'Back', 'Left', 'Right']
     else:
         if column_type == 'I':
-            core = spawn_I_core(tile_props)
+            core = spawn_I_core(self, context)
             textured_vertex_groups = ['Front', 'Back']
         elif column_type == 'L':
-            core = spawn_L_core(tile_props)
+            core = spawn_L_core(self, context)
             textured_vertex_groups = ['Front', 'Left']
         elif column_type == 'O':
-            core = spawn_O_core(tile_props)
+            core = spawn_O_core(self, context)
             textured_vertex_groups = ['Front', 'Back', 'Left']
         elif column_type == 'T':
-            core = spawn_T_core(tile_props)
+            core = spawn_T_core(self, context)
             textured_vertex_groups = ['Front']
         elif column_type == 'X':
-            core = spawn_X_core(tile_props)
+            core = spawn_X_core(self, context)
             textured_vertex_groups = []
 
     convert_to_displacement_core(
@@ -351,7 +337,7 @@ def spawn_plain_connecting_column_core(tile_props):
     return core
 
 
-def spawn_openlock_connecting_column_core(base, tile_props):
+def spawn_openlock_connecting_column_core(self, context, base):
     """Return the column core.
 
     Args:
@@ -360,51 +346,53 @@ def spawn_openlock_connecting_column_core(base, tile_props):
     Returns:
         bpy.types.Object: core
     """
+    tile = context.collection
+    tile_props = tile.mt_tile_props
     cutters = []
     buffers = []
     column_type = tile_props.column_type
     socket_style = tile_props.column_socket_style
     if column_type == 'I':
         if socket_style == 'TEXTURED':
-            core = spawn_generic_core(tile_props)
+            core = spawn_generic_core(self, context)
         else:
-            core = spawn_I_core(tile_props)
+            core = spawn_I_core(self, context)
             textured_vertex_groups = ['Front', 'Back']
         cutters = spawn_openlock_I_cutters(
             core,
             tile_props)
     elif column_type == 'L':
         if socket_style == 'TEXTURED':
-            core = spawn_generic_core(tile_props)
+            core = spawn_generic_core(self, context)
         else:
-            core = spawn_L_core(tile_props)
+            core = spawn_L_core(self, context)
             textured_vertex_groups = ['Front', 'Left']
         cutters = spawn_openlock_L_cutters(
             core,
             tile_props)
     elif column_type == 'O':
         if socket_style == 'TEXTURED':
-            core = spawn_generic_core(tile_props)
+            core = spawn_generic_core(self, context)
         else:
-            core = spawn_O_core(tile_props)
+            core = spawn_O_core(self, context)
             textured_vertex_groups = ['Front', 'Back', 'Left']
         cutters = spawn_openlock_O_cutters(
             core,
             tile_props)
     elif column_type == 'T':
         if socket_style == 'TEXTURED':
-            core = spawn_generic_core(tile_props)
+            core = spawn_generic_core(self, context)
         else:
-            core = spawn_T_core(tile_props)
+            core = spawn_T_core(self, context)
             textured_vertex_groups = ['Front']
         cutters = spawn_openlock_T_cutters(
             core,
             tile_props)
     elif column_type == 'X':
         if socket_style == 'TEXTURED':
-            core = spawn_generic_core(tile_props)
+            core = spawn_generic_core(self, context)
         else:
-            core = spawn_X_core(tile_props)
+            core = spawn_X_core(self, context)
             textured_vertex_groups = []
         cutters = spawn_openlock_X_cutters(
             core,
@@ -969,7 +957,7 @@ def spawn_openlock_O_cutters(core, tile_props):
     return cutters
 
 
-def spawn_generic_core(tile_props):
+def spawn_generic_core(self, context):
     """Spawn column core.
 
     Args:
@@ -978,6 +966,8 @@ def spawn_generic_core(tile_props):
     Returns:
         bpy.types.Object: Core
     """
+    tile = context.collection
+    tile_props = tile.mt_tile_props
     cursor = bpy.context.scene.cursor
     cursor_start_loc = cursor.location.copy()
 
@@ -986,14 +976,11 @@ def spawn_generic_core(tile_props):
     base_size = tile_props.base_size
     tile_name = tile_props.tile_name
 
-    native_subdivisions = [
-        tile_props.x_native_subdivisions,
-        tile_props.y_native_subdivisions,
-        tile_props.z_native_subdivisions]
-
     dims = [tile_size[0] - disp_thickness * 2,
             tile_size[1] - disp_thickness * 2,
             tile_size[2] - base_size[2]]
+
+    native_subdivisions = self.get_subdivs(tile_props.subdivision_density, dims)
 
     margin = tile_props.texture_margin
 
@@ -1018,7 +1005,7 @@ def spawn_generic_core(tile_props):
     return core
 
 
-def spawn_I_core(tile_props):
+def spawn_I_core(self, context):
     """Spawn column core.
 
     Args:
@@ -1027,6 +1014,8 @@ def spawn_I_core(tile_props):
     Returns:
         bpy.types.Object: Core
     """
+    tile = context.collection
+    tile_props = tile.mt_tile_props
     cursor = bpy.context.scene.cursor
     cursor_start_loc = cursor.location.copy()
 
@@ -1035,14 +1024,11 @@ def spawn_I_core(tile_props):
     base_size = tile_props.base_size
     tile_name = tile_props.tile_name
 
-    native_subdivisions = [
-        tile_props.x_native_subdivisions,
-        tile_props.y_native_subdivisions,
-        tile_props.z_native_subdivisions]
-
     dims = [tile_size[0],
             tile_size[1] - disp_thickness * 2,
             tile_size[2] - base_size[2]]
+
+    native_subdivisions = self.get_subdivs(tile_props.subdivision_density, dims)
 
     margin = tile_props.texture_margin
 
@@ -1067,7 +1053,7 @@ def spawn_I_core(tile_props):
     return core
 
 
-def spawn_L_core(tile_props):
+def spawn_L_core(self, context):
     """Spawn column core.
 
     Args:
@@ -1076,6 +1062,8 @@ def spawn_L_core(tile_props):
     Returns:
         bpy.types.Object: Core
     """
+    tile = context.collection
+    tile_props = tile.mt_tile_props
     cursor = bpy.context.scene.cursor
     cursor_start_loc = cursor.location.copy()
 
@@ -1084,14 +1072,11 @@ def spawn_L_core(tile_props):
     base_size = tile_props.base_size
     tile_name = tile_props.tile_name
 
-    native_subdivisions = [
-        tile_props.x_native_subdivisions,
-        tile_props.y_native_subdivisions,
-        tile_props.z_native_subdivisions]
-
     dims = [tile_size[0] - disp_thickness,
             tile_size[1] - disp_thickness,
             tile_size[2] - base_size[2]]
+
+    native_subdivisions = self.get_subdivs(tile_props.subdivision_density, dims)
 
     margin = tile_props.texture_margin
 
@@ -1116,7 +1101,7 @@ def spawn_L_core(tile_props):
     return core
 
 
-def spawn_O_core(tile_props):
+def spawn_O_core(self, context):
     """Spawn column core.
 
     Args:
@@ -1125,6 +1110,8 @@ def spawn_O_core(tile_props):
     Returns:
         bpy.types.Object: Core
     """
+    tile = context.collection
+    tile_props = tile.mt_tile_props
     cursor = bpy.context.scene.cursor
     cursor_start_loc = cursor.location.copy()
 
@@ -1133,14 +1120,11 @@ def spawn_O_core(tile_props):
     base_size = tile_props.base_size
     tile_name = tile_props.tile_name
 
-    native_subdivisions = [
-        tile_props.x_native_subdivisions,
-        tile_props.y_native_subdivisions,
-        tile_props.z_native_subdivisions]
-
     dims = [tile_size[0] - disp_thickness,
             tile_size[1] - (disp_thickness * 2),
             tile_size[2] - base_size[2]]
+
+    native_subdivisions = self.get_subdivs(tile_props.subdivision_density, dims)
 
     margin = tile_props.texture_margin
 
@@ -1165,7 +1149,7 @@ def spawn_O_core(tile_props):
     return core
 
 
-def spawn_T_core(tile_props):
+def spawn_T_core(self, context):
     """Spawn column core.
 
     Args:
@@ -1174,6 +1158,8 @@ def spawn_T_core(tile_props):
     Returns:
         bpy.types.Object: Core
     """
+    tile = context.collection
+    tile_props = tile.mt_tile_props
     cursor = bpy.context.scene.cursor
     cursor_start_loc = cursor.location.copy()
 
@@ -1182,14 +1168,11 @@ def spawn_T_core(tile_props):
     base_size = tile_props.base_size
     tile_name = tile_props.tile_name
 
-    native_subdivisions = [
-        tile_props.x_native_subdivisions,
-        tile_props.y_native_subdivisions,
-        tile_props.z_native_subdivisions]
-
     dims = [tile_size[0],
             tile_size[1] - disp_thickness,
             tile_size[2] - base_size[2]]
+
+    native_subdivisions = self.get_subdivs(tile_props.subdivision_density, dims)
 
     margin = tile_props.texture_margin
 
@@ -1214,7 +1197,7 @@ def spawn_T_core(tile_props):
     return core
 
 
-def spawn_X_core(tile_props):
+def spawn_X_core(self, context):
     """Spawn column core.
 
     Args:
@@ -1224,7 +1207,7 @@ def spawn_X_core(tile_props):
         bpy.types.Object: Core
     """
     # we only ever want texture on the top of our X column so use the rectangular floor core
-    core = spawn_floor_core(tile_props)
+    core = spawn_floor_core(self, context)
 
     return core
 

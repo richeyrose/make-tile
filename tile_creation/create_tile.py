@@ -246,7 +246,7 @@ def finalise_tile(base, core, cursor_orig_loc, cursor_orig_rot):
     context.view_layer.objects.active = base
 
 
-def spawn_empty_base(tile_props):
+def spawn_empty_base(self, context):
     """Spawn an empty base into the scene.
 
     Args:
@@ -255,8 +255,8 @@ def spawn_empty_base(tile_props):
     Returns:
         bpy.types.Object: Empty
     """
+    tile_props = context.collection.mt_tile_props
     tile_name = tile_props.tile_name
-
     base = bpy.data.objects.new(tile_props.tile_name + '.base', None)
     base.name = tile_name + '.base'
     add_object_to_collection(base, tile_props.tile_name)

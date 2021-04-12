@@ -556,7 +556,7 @@ def spawn_openlock_top_pegs(base, tile_props):
 
     bpy.ops.transform.rotate(
         ctx,
-        value=radians(tile_props.degrees_of_arc / 2) * -1,
+        value=radians(tile_props.degrees_of_arc / 2) * 1,
         orient_axis='Z',
         orient_type='GLOBAL',
         orient_matrix_type='GLOBAL',
@@ -641,7 +641,7 @@ def spawn_openlock_wall_cutters(core, base_location, tile_props):
     activate(right_cutter_bottom.name)
 
     bpy.ops.transform.rotate(
-        value=radians(tile_props.degrees_of_arc) * -1,
+        value=radians(tile_props.degrees_of_arc) * 1,
         orient_axis='Z',
         orient_type='GLOBAL',
         center_override=circle_center)
@@ -837,7 +837,7 @@ def spawn_openlock_base_clip_cutter(base, tile_props):
         initial_rot = 22.5
 
     bpy.ops.transform.rotate(
-        value=radians(initial_rot) * -1,
+        value=radians(initial_rot) * 1,
         orient_axis='Z',
         center_override=circle_center)
 

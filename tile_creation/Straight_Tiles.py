@@ -1,5 +1,5 @@
 import os
-from math import radians
+from math import radians, floor
 from mathutils import Vector
 import bpy
 
@@ -77,11 +77,8 @@ class MT_PT_Straight_Wall_Panel(Panel):
         row.prop(scene_props, 'base_y')
         row.prop(scene_props, 'base_z')
 
-        layout.label(text="Native Subdivisions")
-        row = layout.row()
-        row.prop(scene_props, 'x_native_subdivisions')
-        row.prop(scene_props, 'y_native_subdivisions')
-        row.prop(scene_props, 'z_native_subdivisions')
+        layout.label(text="Subdivision Density")
+        layout.prop(scene_props, 'subdivision_density', text="")
 
         layout.operator('scene.reset_tile_defaults')
 
@@ -132,11 +129,8 @@ class MT_PT_Straight_Floor_Panel(Panel):
         row.prop(scene_props, 'base_y')
         row.prop(scene_props, 'base_z')
 
-        layout.label(text="Native Subdivisions")
-        row = layout.row()
-        row.prop(scene_props, 'x_native_subdivisions')
-        row.prop(scene_props, 'y_native_subdivisions')
-        row.prop(scene_props, 'z_native_subdivisions')
+        layout.label(text="Subdivision Density")
+        layout.prop(scene_props, 'subdivision_density', text="")
 
         layout.operator('scene.reset_tile_defaults')
 
@@ -201,15 +195,39 @@ class MT_OT_Make_Plain_Straight_Wall_Core(MT_Tile_Generator, Operator):
     mt_blueprint = "PLAIN"
     mt_type = "STRAIGHT_WALL_CORE"
 
+    def get_subdivs(self, density, base_dims):
+        """Get the number of times to subdivide each side when drawing.
+
+        Args:
+            density (ENUM in {'LOW', 'MEDIUM', 'HIGH'}): Density of subdivision
+            base_dims (list(float, float, float)): Base dimensions
+
+        Returns:
+            [list(int, int, int)]: subdivisions
+        """
+        if density == 'LOW':
+            x = floor(base_dims[0] * 4)
+            y = floor(base_dims[1] * 2)
+            z = floor(base_dims[2] * 4)
+        elif density == 'MEDIUM':
+            x = floor(base_dims[0] * 8)
+            y = floor(base_dims[1] * 4)
+            z = floor(base_dims[2] * 8)
+        elif density == 'HIGH':
+            x = floor(base_dims[0] * 16)
+            y = floor(base_dims[1] * 8)
+            z = floor(base_dims[2] * 16)
+        subdivs = [x, y, z]
+        subdivs = [x + 1 if x == 0 else x for x in subdivs]
+        return subdivs
+
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
-        spawn_plain_wall_cores(tile_props)
+        spawn_plain_wall_cores(self, context)
         return{'FINISHED'}
 
 
-class MT_OT_Make_Openlock_Straight_Wall_Core(MT_Tile_Generator, Operator):
+class MT_OT_Make_Openlock_Straight_Wall_Core(MT_OT_Make_Plain_Straight_Wall_Core, Operator):
     """Internal Operator. Generate an openlock straight wall core."""
 
     bl_idname = "object.make_openlock_straight_wall_core"
@@ -220,10 +238,7 @@ class MT_OT_Make_Openlock_Straight_Wall_Core(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
-        base = context.active_object
-        spawn_openlock_wall_cores(base, tile_props)
+        spawn_openlock_wall_cores(self, context)
         return{'FINISHED'}
 
 
@@ -250,15 +265,39 @@ class MT_OT_Make_Plain_Straight_Floor_Core(MT_Tile_Generator, Operator):
     mt_blueprint = "PLAIN"
     mt_type = "STRAIGHT_FLOOR_CORE"
 
+    def get_subdivs(self, density, base_dims):
+        """Get the number of times to subdivide each side when drawing.
+
+        Args:
+            density (ENUM in {'LOW', 'MEDIUM', 'HIGH'}): Density of subdivision
+            base_dims (list(float, float, float)): Base dimensions
+
+        Returns:
+            [list(int, int, int)]: subdivisions
+        """
+        if density == 'LOW':
+            x = floor(base_dims[0] * 4)
+            y = floor(base_dims[1] * 4)
+            z = floor(base_dims[2] * 1)
+        elif density == 'MEDIUM':
+            x = floor(base_dims[0] * 8)
+            y = floor(base_dims[1] * 8)
+            z = floor(base_dims[2] * 2)
+        elif density == 'HIGH':
+            x = floor(base_dims[0] * 16)
+            y = floor(base_dims[1] * 16)
+            z = floor(base_dims[2] * 4)
+        subdivs = [x, y, z]
+        subdivs = [x + 1 if x == 0 else x for x in subdivs]
+        return subdivs
+
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
-        create_plain_floor_cores(tile_props)
+        create_plain_floor_cores(self, context)
         return{'FINISHED'}
 
 
-class MT_OT_Make_Openlock_Straight_Floor_Core(MT_Tile_Generator, Operator):
+class MT_OT_Make_Openlock_Straight_Floor_Core(MT_OT_Make_Plain_Straight_Floor_Core, Operator):
     """Internal Operator. Generate an openlock straight floor core."""
 
     bl_idname = "object.make_openlock_straight_floor_core"
@@ -266,13 +305,6 @@ class MT_OT_Make_Openlock_Straight_Floor_Core(MT_Tile_Generator, Operator):
     bl_options = {'INTERNAL'}
     mt_blueprint = "OPENLOCK"
     mt_type = "STRAIGHT_FLOOR_CORE"
-
-    def execute(self, context):
-        """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
-        create_plain_floor_cores(tile_props)
-        return{'FINISHED'}
 
 
 class MT_OT_Make_Empty_Straight_Floor_Core(MT_Tile_Generator, Operator):
@@ -386,10 +418,6 @@ def initialise_wall_creator(context, scene_props):
     tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
     tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
 
-    tile_props.x_native_subdivisions = scene_props.x_native_subdivisions
-    tile_props.y_native_subdivisions = scene_props.y_native_subdivisions
-    tile_props.z_native_subdivisions = scene_props.z_native_subdivisions
-
     return cursor_orig_loc, cursor_orig_rot
 
 
@@ -421,10 +449,6 @@ def initialise_floor_creator(context, scene_props):
     tile_props.tile_type = 'STRAIGHT_FLOOR'
     tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
     tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
-
-    tile_props.x_native_subdivisions = scene_props.x_native_subdivisions
-    tile_props.y_native_subdivisions = scene_props.y_native_subdivisions
-    tile_props.z_native_subdivisions = scene_props.z_native_subdivisions
 
     return cursor_orig_loc, cursor_orig_rot
 
@@ -584,7 +608,7 @@ def spawn_openlock_base_clip_cutter(base, tile_props):
     return clip_cutter
 
 
-def spawn_plain_wall_cores(tile_props):
+def spawn_plain_wall_cores(self, context):
     """Spawn plain Core.
 
     Args:
@@ -593,7 +617,7 @@ def spawn_plain_wall_cores(tile_props):
     Returns:
         bpy.types.Object: core
     """
-    preview_core = spawn_wall_core(tile_props)
+    preview_core = spawn_wall_core(self, context)
     textured_vertex_groups = ['Front', 'Back']
     convert_to_displacement_core(
         preview_core,
@@ -601,7 +625,7 @@ def spawn_plain_wall_cores(tile_props):
     return preview_core
 
 
-def spawn_openlock_wall_cores(base, tile_props):
+def spawn_openlock_wall_cores(self, context):
     """Spawn OpenLOCK core.
 
     Args:
@@ -611,7 +635,10 @@ def spawn_openlock_wall_cores(base, tile_props):
     Returns:
         bpy.types.Object: preview core
     """
-    core = spawn_wall_core(tile_props)
+    tile = context.collection
+    tile_props = tile.mt_tile_props
+    base = context.active_object
+    core = spawn_wall_core(self, context)
 
     wall_cutters = spawn_openlock_wall_cutters(
         core,
@@ -637,24 +664,24 @@ def spawn_openlock_wall_cores(base, tile_props):
     return core
 
 
-def spawn_wall_core(tile_props):
-    """Return the core (vertical) part of a straight wall tile.
-    """
+def spawn_wall_core(self, context):
+    """Return the core (vertical) part of a straight wall tile."""
+    tile = context.collection
+    tile_props = tile.mt_tile_props
 
     cursor = bpy.context.scene.cursor
     cursor_start_loc = cursor.location.copy()
     tile_size = tile_props.tile_size
     base_size = tile_props.base_size
+    core_size = [
+        tile_size[0],
+        tile_size[1],
+        tile_size[2] - base_size[2]]
     tile_name = tile_props.tile_name
-    native_subdivisions = [
-        tile_props.x_native_subdivisions,
-        tile_props.y_native_subdivisions,
-        tile_props.z_native_subdivisions]
+    native_subdivisions = self.get_subdivs(tile_props.subdivision_density, core_size)
 
     core = draw_straight_wall_core(
-        [tile_size[0],
-         tile_size[1],
-         tile_size[2] - base_size[2]],
+        core_size,
         native_subdivisions)
 
     core.name = tile_name + '.core'

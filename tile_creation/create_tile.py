@@ -43,8 +43,9 @@ class MT_Tile_Generator:
             x = floor(base_dims[0] * 16)
             y = floor(base_dims[1] * 16)
             z = floor(base_dims[2] * 16)
-        return [x, y, z]
-
+        subdivs = [x, y, z]
+        subdivs = [x + 1 if x == 0 else x for x in subdivs]
+        return subdivs
 
 def initialise_tile_creator(context):
     deselect_all()

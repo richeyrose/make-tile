@@ -365,13 +365,13 @@ def spawn_openlock_wall_cutters(base, tile_props):
     for cutter in bottom_cutters:
         cutter.location[2] = cutter.location[2] + 0.63
         array_mod = cutter.modifiers['Array']
-        array_mod.constant_offset_displace[2] = 2
+        array_mod.constant_offset_displace = [0, 0, 2]
         array_mod.fit_length = tile_size[2] - 1
 
     for cutter in top_cutters:
         cutter.location[2] = cutter.location[2] + 1.38
         array_mod = cutter.modifiers['Array']
-        array_mod.constant_offset_displace[2] = 2
+        array_mod.constant_offset_displace = [0, 0, 2]
         array_mod.fit_length = tile_size[2] - 1.8
 
     return cutters

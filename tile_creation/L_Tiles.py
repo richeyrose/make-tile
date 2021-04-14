@@ -706,7 +706,7 @@ def spawn_openlock_wall_cutters(core, tile_props):
     array_mod = left_cutter_bottom.modifiers.new('Array', 'ARRAY')
     array_mod.use_relative_offset = False
     array_mod.use_constant_offset = True
-    array_mod.constant_offset_displace[2] = 2
+    array_mod.constant_offset_displace = [0, 0, 2]
     array_mod.fit_type = 'FIT_LENGTH'
     array_mod.fit_length = tile_size[2] - 1
 
@@ -746,7 +746,7 @@ def spawn_openlock_wall_cutters(core, tile_props):
     array_mod = right_cutter_bottom.modifiers.new('Array', 'ARRAY')
     array_mod.use_relative_offset = False
     array_mod.use_constant_offset = True
-    array_mod.constant_offset_displace[2] = 2
+    array_mod.constant_offset_displace = [0, 0, 2]
     array_mod.fit_type = 'FIT_LENGTH'
     array_mod.fit_length = tile_size[2] - 1
 

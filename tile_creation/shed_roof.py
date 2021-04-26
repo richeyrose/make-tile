@@ -28,6 +28,7 @@ from ..lib.bmturtle.helpers import (
 
 from ..lib.bmturtle.scripts import draw_cuboid
 
+from .create_tile import get_subdivs
 
 def draw_shed_base(self, context, margin=0.001):
     """Draw a shed style roof base (Not sure why this style is called "shed" but hey ho)."""
@@ -68,7 +69,7 @@ def draw_shed_base(self, context, margin=0.001):
     c = sqrt(a**2 + b**2)
 
     # subdivisions
-    subdivs = self.get_subdivs(tile_props.subdivision_density, base_dims)
+    subdivs = get_subdivs(tile_props.subdivision_density, base_dims)
 
     for index, value in enumerate(subdivs):
         if value == 0:
@@ -490,7 +491,7 @@ def draw_shed_roof_top(self, context, margin=0.001):
 
     # subdivisions
     density = tile_props.subdivision_density
-    subdivs = self.get_subdivs(density, base_dims)
+    subdivs = get_subdivs(density, base_dims)
 
     vert_groups = ['Left', 'Right']
     bm, obj = create_turtle('Roof', vert_groups)

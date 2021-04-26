@@ -1,5 +1,5 @@
 import os
-from math import radians
+from math import radians, cos, sqrt
 import bpy
 from bpy.types import Panel, Operator
 
@@ -20,7 +20,8 @@ from .create_tile import (
     set_bool_props,
     MT_Tile_Generator,
     initialise_tile_creator,
-    create_common_tile_props)
+    create_common_tile_props,
+    get_subdivs)
 
 
 class MT_PT_Triangular_Floor_Panel(Panel):
@@ -63,10 +64,8 @@ class MT_PT_Triangular_Floor_Panel(Panel):
         layout.label(text="Base Properties")
         layout.prop(scene_props, 'base_z', text='Base Height')
 
-        layout.label(text="Native Subdivisions")
-        row = layout.row()
-        row.prop(scene_props, 'opposite_native_subdivisions')
-        row.prop(scene_props, 'z_native_subdivisions')
+        layout.label(text="Subdivision Density")
+        layout.prop(scene_props, 'subdivision_density', text="")
 
         layout.operator('scene.reset_tile_defaults')
 
@@ -235,9 +234,6 @@ def initialise_floor_creator(context, scene_props):
     tile_props.angle = scene_props.angle
     tile_props.tile_z = scene_props.tile_z
     tile_props.base_z = scene_props.base_z
-
-    tile_props.opposite_native_subdivisions = scene_props.opposite_native_subdivisions
-    tile_props.z_native_subdivisions = scene_props.z_native_subdivisions
 
     tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
     tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
@@ -431,7 +427,7 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
 
             bpy.ops.transform.rotate(
                 ctx,
-                value=radians(A - 90) * -1,
+                value=radians(A - 90) * 1,
                 orient_axis='Z',
                 orient_type='GLOBAL',
                 center_override=loc_A)
@@ -510,7 +506,7 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
 
             bpy.ops.transform.rotate(
                 ctx,
-                value=radians(-90 - B) * -1,
+                value=radians(-90 - B) * 1,
                 orient_axis='Z',
                 orient_type='GLOBAL',
                 center_override=loc_C)
@@ -552,15 +548,18 @@ def spawn_floor_core(tile_props):
         bpy.types.Object: tile core
     """
     tile_name = tile_props.tile_name
-    native_subdivisions = [
-        tile_props.opposite_native_subdivisions,
-        tile_props.z_native_subdivisions]
-
+    b = tile_props.leg_1_len
+    c = tile_props.leg_2_len
+    A = tile_props.angle
+    hyp = sqrt((b**2 + c**2) - ((2 * b * c) * cos(radians(A))))
+    native_subdivisions = get_subdivs(
+        tile_props.subdivision_density,
+        [hyp, tile_props.tile_size[2] - tile_props.base_size[2]])
     core = draw_tri_floor_core(
         dimensions={
-            'b': tile_props.leg_1_len,
-            'c': tile_props.leg_2_len,
-            'A': tile_props.angle,
+            'b': b,
+            'c': c,
+            'A': A,
             'height': tile_props.tile_size[2] - tile_props.base_size[2]
         },
         subdivs=native_subdivisions

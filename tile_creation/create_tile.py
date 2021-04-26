@@ -6,6 +6,8 @@ from .. utils.registration import get_prefs
 from .. lib.utils.vertex_groups import construct_displacement_mod_vert_group
 from .. lib.utils.collections import add_object_to_collection, create_collection
 from .. lib.utils.selection import select, deselect_all, activate
+from ..lib.utils.multimethod import multimethod
+
 from .. materials.materials import (
     assign_mat_to_vert_group)
 from ..operators.assign_reference_object import create_helper_object
@@ -20,32 +22,56 @@ class MT_Tile_Generator:
         else:
             return True
 
+@multimethod(str, dict)
+def get_subdivs(density, dims):
+    """Get the number of times to subdivide each side when drawing.
 
-    def get_subdivs(self, density, base_dims):
-        """Get the number of times to subdivide each side when drawing.
+    Args:
+        density (ENUM in {'LOW', 'MEDIUM', 'HIGH'}): Density of subdivision
+        dims (dict): Dimensions
 
-        Args:
-            density (ENUM in {'LOW', 'MEDIUM', 'HIGH'}): Density of subdivision
-            base_dims (list(float, float, float)): Base dimensions
+    Returns:
+        [list(int, int, int)]: subdivisions
+    """
+    subdivs = {}
+    if density == 'LOW':
+        multiplier = 4
+    elif density == 'MEDIUM':
+        multiplier = 8
+    elif density == 'HIGH':
+        multiplier = 16
 
-        Returns:
-            [list(int, int, int)]: subdivisions
-        """
+    for k, v in dims.items():
+        v = floor(v * multiplier)
+        if v == 0:
+            v = v + 1
+        subdivs[k] = v
+    return subdivs
+
+@multimethod(str, list)
+def get_subdivs(density, base_dims):
+    """Get the number of times to subdivide each side when drawing.
+
+    Args:
+        density (ENUM in {'LOW', 'MEDIUM', 'HIGH'}): Density of subdivision
+        base_dims (list(float, float, float)): Base dimensions
+
+    Returns:
+        [list(int)]: subdivisions
+    """
+    subdivs = []
+    for x in base_dims:
         if density == 'LOW':
-            x = floor(base_dims[0] * 4)
-            y = floor(base_dims[1] * 4)
-            z = floor(base_dims[2] * 4)
+            multiplier = 4
         elif density == 'MEDIUM':
-            x = floor(base_dims[0] * 8)
-            y = floor(base_dims[1] * 8)
-            z = floor(base_dims[2] * 8)
+            multiplier = 8
         elif density == 'HIGH':
-            x = floor(base_dims[0] * 16)
-            y = floor(base_dims[1] * 16)
-            z = floor(base_dims[2] * 16)
-        subdivs = [x, y, z]
-        subdivs = [x + 1 if x == 0 else x for x in subdivs]
-        return subdivs
+            multiplier = 16
+    for x in base_dims:
+        x = floor(x * multiplier)
+        subdivs.append(x)
+    subdivs = [x + 1 if x == 0 else x for x in subdivs]
+    return subdivs
 
 def initialise_tile_creator(context):
     deselect_all()
@@ -246,7 +272,7 @@ def finalise_tile(base, core, cursor_orig_loc, cursor_orig_rot):
     context.view_layer.objects.active = base
 
 
-def spawn_empty_base(self, context):
+def spawn_empty_base(tile_props):
     """Spawn an empty base into the scene.
 
     Args:
@@ -255,11 +281,10 @@ def spawn_empty_base(self, context):
     Returns:
         bpy.types.Object: Empty
     """
-    tile_props = context.collection.mt_tile_props
     tile_name = tile_props.tile_name
-    base = bpy.data.objects.new(tile_props.tile_name + '.base', None)
+    base = bpy.data.objects.new(tile_name + '.base', None)
     base.name = tile_name + '.base'
-    add_object_to_collection(base, tile_props.tile_name)
+    add_object_to_collection(base, tile_name)
     obj_props = base.mt_object_props
     obj_props.is_mt_object = True
     obj_props.geometry_type = 'BASE'

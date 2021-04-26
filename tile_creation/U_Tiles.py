@@ -38,7 +38,8 @@ from .create_tile import (
     load_openlock_top_peg,
     MT_Tile_Generator,
     initialise_tile_creator,
-    create_common_tile_props)
+    create_common_tile_props,
+    get_subdivs)
 
 
 # leg_1_len and leg_2_len are the inner lengths of the legs
@@ -102,14 +103,8 @@ class MT_PT_U_Tile_Panel(Panel):
         if scene_props.base_blueprint == 'OPENLOCK':
             layout.prop(scene_props, 'base_socket_side', text='Base Socket Side')
 
-        layout.label(text="Native Subdivisions:")
-        row = layout.row()
-        row.prop(scene_props, 'leg_1_native_subdivisions')
-        row.prop(scene_props, 'leg_2_native_subdivisions')
-        row = layout.row()
-        row.prop(scene_props, 'x_native_subdivisions')
-        row.prop(scene_props, 'y_native_subdivisions')
-        row.prop(scene_props, 'z_native_subdivisions')
+        layout.label(text="Subdivision Density")
+        layout.prop(scene_props, 'subdivision_density', text="")
 
         layout.operator('scene.reset_tile_defaults')
 
@@ -566,14 +561,6 @@ def spawn_core(tile_props):
     Returns:
         bpy.types.Object: core
     """
-
-    subdivs = {
-        'leg_1': tile_props.leg_1_native_subdivisions,
-        'leg_2': tile_props.leg_2_native_subdivisions,
-        'x': tile_props.x_native_subdivisions,
-        'width': tile_props.y_native_subdivisions,
-        'height': tile_props.z_native_subdivisions}
-
     dimensions = {
         'leg_1_inner': tile_props.leg_1_len,
         'leg_2_inner': tile_props.leg_2_len,
@@ -583,6 +570,14 @@ def spawn_core(tile_props):
         'thickness': tile_props.tile_size[1],
         'thickness_diff': tile_props.base_size[1] - tile_props.tile_size[1]}
 
+    subdivs = {
+        'leg_1': tile_props.leg_1_len,
+        'leg_2': tile_props.leg_2_len,
+        'x': tile_props.tile_size[0],
+        'width': tile_props.tile_size[1],
+        'height': tile_props.tile_size[2] - tile_props.base_size[2]}
+
+    subdivs = get_subdivs(tile_props.subdivision_density, subdivs)
     core = draw_u_wall_core(dimensions, subdivs, margin=0.001)
 
     core.name = tile_props.tile_name + '.core'

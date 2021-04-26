@@ -25,6 +25,7 @@ from ..lib.bmturtle.helpers import (
     select_verts_in_bounds,
     points_are_inside_bmesh)
 
+from .create_tile import get_subdivs
 
 def draw_apex_base(self, context, margin=0.001):
     """Draw an apex style roof base."""
@@ -67,7 +68,7 @@ def draw_apex_base(self, context, margin=0.001):
     c = sqrt(a**2 + b**2)
 
     # subdivisions
-    subdivs = self.get_subdivs(tile_props.subdivision_density, base_dims)
+    subdivs = get_subdivs(tile_props.subdivision_density, base_dims)
 
     for index, value in enumerate(subdivs):
         if value == 0:
@@ -514,7 +515,7 @@ def draw_apex_roof_top(self, context, margin=0.001):
 
     # subdivisions
     density = tile_props.subdivision_density
-    subdivs = self.get_subdivs(density, base_dims)
+    subdivs = get_subdivs(density, base_dims)
 
     vert_groups = ['Left', 'Right']
     bm, obj = create_turtle('Roof', vert_groups)

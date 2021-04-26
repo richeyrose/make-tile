@@ -134,7 +134,7 @@ def draw_tri_floor_core(dimensions, subdivs, margin=0.001):
     #    /    \
     #   /______\
     #  A    b    C
-    subdivs[0] = 15
+    # subdivs[0] = 15
     b = dimensions['b']
     c = dimensions['c']
     A = dimensions['A']

@@ -2,7 +2,6 @@ import os
 from math import radians, pi, modf, degrees
 from mathutils import Vector
 import bpy
-from bpy import context
 from bpy.types import Operator, Panel
 from .. lib.utils.collections import (
     add_object_to_collection,
@@ -30,7 +29,8 @@ from .create_tile import (
     load_openlock_top_peg,
     MT_Tile_Generator,
     initialise_tile_creator,
-    create_common_tile_props)
+    create_common_tile_props,
+    get_subdivs)
 
 # TODO #2 Fix bug where base sockets are not displaying correctly on bases more than 0.5 inches wide
 class MT_PT_Curved_Wall_Tile_Panel(Panel):
@@ -82,11 +82,8 @@ class MT_PT_Curved_Wall_Tile_Panel(Panel):
         layout.prop(scene_props, 'base_y', text="Width")
         layout.prop(scene_props, 'base_z', text="Height")
 
-        layout.label(text="Native Subdivisions")
-        row = layout.row()
-        row.prop(scene_props, 'curve_native_subdivisions')
-        row.prop(scene_props, 'y_native_subdivisions')
-        row.prop(scene_props, 'z_native_subdivisions')
+        layout.label(text="Subdivision Density")
+        layout.prop(scene_props, 'subdivision_density', text="")
 
         layout.operator('scene.reset_tile_defaults')
 
@@ -140,11 +137,8 @@ class MT_PT_Curved_Floor_Tile_Panel(Panel):
         layout.prop(scene_props, 'base_y', text="Width")
         layout.prop(scene_props, 'base_z', text="Height")
 
-        layout.label(text="Native Subdivisions")
-        row = layout.row()
-        row.prop(scene_props, 'curve_native_subdivisions')
-        row.prop(scene_props, 'y_native_subdivisions')
-        row.prop(scene_props, 'z_native_subdivisions')
+        layout.label(text="Subdivision Density")
+        layout.prop(scene_props, 'subdivision_density', text="")
 
         layout.operator('scene.reset_tile_defaults')
 
@@ -230,7 +224,7 @@ class MT_OT_Make_Openlock_Curved_Base(MT_Tile_Generator, Operator):
         """Execute the operator."""
         tile = context.collection
         tile_props = tile.mt_tile_props
-        spawn_openlock_base(tile_props)
+        spawn_openlock_base(self, tile_props)
         return{'FINISHED'}
 
 
@@ -247,7 +241,7 @@ class MT_OT_Make_Plain_Curved_Base(MT_Tile_Generator, Operator):
         """Execute the operator."""
         tile = context.collection
         tile_props = tile.mt_tile_props
-        spawn_plain_base(tile_props)
+        spawn_plain_base(self, tile_props)
         return{'FINISHED'}
 
 
@@ -281,7 +275,7 @@ class MT_OT_Make_Plain_Curved_Wall_Core(MT_Tile_Generator, Operator):
         """Execute the operator."""
         tile = context.collection
         tile_props = tile.mt_tile_props
-        spawn_plain_wall_cores(tile_props)
+        spawn_plain_wall_cores(self, tile_props)
         return{'FINISHED'}
 
 
@@ -299,7 +293,7 @@ class MT_OT_Make_Openlock_Curved_Wall_Core(MT_Tile_Generator, Operator):
         tile = context.collection
         tile_props = tile.mt_tile_props
         base = context.active_object
-        spawn_openlock_wall_cores(base, tile_props)
+        spawn_openlock_wall_cores(self, base, tile_props)
         return{'FINISHED'}
 
 
@@ -330,8 +324,7 @@ class MT_OT_Make_Plain_Curved_Floor_Core(MT_Tile_Generator, Operator):
         """Execute the operator."""
         tile = context.collection
         tile_props = tile.mt_tile_props
-        base = context.active_object
-        spawn_plain_floor_cores(base, tile_props)
+        spawn_plain_floor_cores(self, tile_props)
         return{'FINISHED'}
 
 
@@ -348,8 +341,7 @@ class MT_OT_Make_Openlock_Curved_Floor_Core(MT_Tile_Generator, Operator):
         """Execute the operator."""
         tile = context.collection
         tile_props = tile.mt_tile_props
-        base = context.active_object
-        spawn_plain_floor_cores(base, tile_props)
+        spawn_plain_floor_cores(self, tile_props)
         return{'FINISHED'}
 
 
@@ -401,10 +393,6 @@ def initialise_wall_creator(context, scene_props):
     tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
     tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
 
-    tile_props.curve_native_subdivisions = scene_props.curve_native_subdivisions
-    tile_props.y_native_subdivisions = scene_props.y_native_subdivisions
-    tile_props.z_native_subdivisions = scene_props.z_native_subdivisions
-
     return cursor_orig_loc, cursor_orig_rot
 
 
@@ -442,14 +430,10 @@ def initialise_floor_creator(context, scene_props):
     tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
     tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
 
-    tile_props.curve_native_subdivisions = scene_props.curve_native_subdivisions
-    tile_props.y_native_subdivisions = scene_props.y_native_subdivisions
-    tile_props.z_native_subdivisions = scene_props.z_native_subdivisions
-
     return cursor_orig_loc, cursor_orig_rot
 
 
-def spawn_plain_wall_cores(tile_props):
+def spawn_plain_wall_cores(self, tile_props):
     """Spawn plain wall cores into scene.
 
     Args:
@@ -462,7 +446,7 @@ def spawn_plain_wall_cores(tile_props):
     offset = (tile_props.base_size[1] - tile_props.tile_size[1]) / 2
     tile_props.core_radius = tile_props.base_radius + offset
     textured_vertex_groups = ['Front', 'Back']
-    preview_core = spawn_wall_core(tile_props)
+    preview_core = spawn_wall_core(self, tile_props)
     convert_to_displacement_core(
         preview_core,
         textured_vertex_groups)
@@ -470,7 +454,7 @@ def spawn_plain_wall_cores(tile_props):
     return preview_core
 
 
-def spawn_openlock_wall_cores(base, tile_props):
+def spawn_openlock_wall_cores(self, base, tile_props):
     """Spawn OpenLOCK wall cores into scene.
 
     Args:
@@ -483,7 +467,7 @@ def spawn_openlock_wall_cores(base, tile_props):
     offset = (tile_props.base_size[1] - tile_props.tile_size[1]) / 2
     tile_props.core_radius = tile_props.base_radius + offset
 
-    core = spawn_wall_core(tile_props)
+    core = spawn_wall_core(self, tile_props)
 
     cutters = spawn_openlock_wall_cutters(
         core,
@@ -660,7 +644,7 @@ def spawn_openlock_wall_cutters(core, base_location, tile_props):
     return cutters
 
 
-def spawn_plain_base(tile_props):
+def spawn_plain_base(self, tile_props):
     """Spawn a plain base into the scene.
 
     Args:
@@ -670,15 +654,16 @@ def spawn_plain_base(tile_props):
         bpy.types.Object: tile base
     """
     radius = tile_props.base_radius
-    segments = tile_props.curve_native_subdivisions
     deg = tile_props.degrees_of_arc
     height = tile_props.base_size[2]
     width = tile_props.base_size[1]
+    arc = (deg / 360) * (2 * pi) * radius
+    subdivs = get_subdivs(tile_props.subdivision_density, [arc, width, height])
 
     base = draw_curved_cuboid(
         tile_props.tile_name + '.base',
         radius,
-        segments,
+        subdivs[0],
         deg,
         height,
         width)
@@ -692,7 +677,7 @@ def spawn_plain_base(tile_props):
     return base
 
 
-def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
+def spawn_openlock_base_slot_cutter(self, base, tile_props, offset=0.236):
     """Spawns an openlock base slot cutter into the scene and positions it correctly
 
     Args:
@@ -705,7 +690,6 @@ def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
     """
     clip_side = tile_props.base_socket_side
     base_radius = tile_props.base_radius
-    segments = tile_props.curve_native_subdivisions
     base_degrees = tile_props.degrees_of_arc
 
     cutter_w = 0.181
@@ -721,10 +705,12 @@ def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
     cutter_inner_arc_len = (2 * pi * cutter_radius) / (360 / base_degrees) - (offset * 2)
     central_angle = degrees(cutter_inner_arc_len / cutter_radius)
 
+    subdivs = get_subdivs(tile_props.subdivision_density, [cutter_inner_arc_len, cutter_w, cutter_h])
+
     slot_cutter = draw_curved_cuboid(
         'Slot.' + tile_props.tile_name,
         cutter_radius,
-        segments,
+        subdivs[0],
         central_angle,
         cutter_h + bool_overlap,
         cutter_w
@@ -746,7 +732,7 @@ def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
     return slot_cutter
 
 
-def spawn_openlock_base(tile_props):
+def spawn_openlock_base(self, tile_props):
     """Spawn OpenLOCK base into scene.
 
     Args:
@@ -756,20 +742,20 @@ def spawn_openlock_base(tile_props):
         bpy.types.Object: base
     """
     radius = tile_props.base_radius
-    segments = tile_props.curve_native_subdivisions
     deg = tile_props.degrees_of_arc
     height = tile_props.base_size[2]
     width = tile_props.base_size[1]
-
+    arc = (deg / 360) * (2 * pi) * radius
+    subdivs = get_subdivs(tile_props.subdivision_density, [arc, width, height])
     base = draw_curved_cuboid(
         tile_props.tile_name + '.base',
         radius,
-        segments,
+        subdivs[0],
         deg,
         height,
         width)
 
-    slot_cutter = spawn_openlock_base_slot_cutter(base, tile_props)
+    slot_cutter = spawn_openlock_base_slot_cutter(self, base, tile_props)
     set_bool_obj_props(slot_cutter, base, tile_props, 'DIFFERENCE')
     set_bool_props(slot_cutter, base, 'DIFFERENCE')
 
@@ -866,11 +852,10 @@ def spawn_openlock_base_clip_cutter(base, tile_props):
     return clip_cutter
 
 
-def spawn_plain_floor_cores(base, tile_props):
+def spawn_plain_floor_cores(self, tile_props):
     """Spawn preview and displacement cores into scene.
 
     Args:
-        base (bpy.types.Object): tile base
         tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
 
     Returns:
@@ -878,7 +863,7 @@ def spawn_plain_floor_cores(base, tile_props):
     """
     textured_vertex_groups = ['Top']
     tile_props.core_radius = tile_props.base_radius
-    preview_core = spawn_floor_core(tile_props)
+    preview_core = spawn_floor_core(self, tile_props)
 
     convert_to_displacement_core(
         preview_core,
@@ -887,7 +872,7 @@ def spawn_plain_floor_cores(base, tile_props):
     return preview_core
 
 
-def spawn_floor_core(tile_props):
+def spawn_floor_core(self, tile_props):
     """Spawn core into scene.
 
     Args:
@@ -903,11 +888,8 @@ def spawn_floor_core(tile_props):
     inner_circumference = 2 * pi * radius
     floor_length = inner_circumference / (360 / angle)
     tile_name = tile_props.tile_name
-    native_subdivisions = (
-        tile_props.curve_native_subdivisions,
-        tile_props.y_native_subdivisions,
-        tile_props.z_native_subdivisions
-    )
+    arc = (angle / 360) * (2 * pi) * radius
+    native_subdivisions = get_subdivs(tile_props.subdivision_density, [arc, width, height])
 
     # Rather than creating our cores as curved objects we create them as straight cuboids
     # and then add a deform modifier. This allows us to not use the modifier when baking the
@@ -966,7 +948,7 @@ def spawn_floor_core(tile_props):
     return core
 
 
-def spawn_wall_core(tile_props):
+def spawn_wall_core(self, tile_props):
     """Spawn core into scene.
 
     Args:
@@ -982,11 +964,9 @@ def spawn_wall_core(tile_props):
     inner_circumference = 2 * pi * radius
     wall_length = inner_circumference / (360 / angle)
     tile_name = tile_props.tile_name
-    native_subdivisions = (
-        tile_props.curve_native_subdivisions,
-        tile_props.y_native_subdivisions,
-        tile_props.z_native_subdivisions
-    )
+    arc = (angle / 360) * (2 * pi) * radius
+    native_subdivisions = get_subdivs(tile_props.subdivision_density, [arc, width, height])
+
 
     # Rather than creating our cores as curved objects we create them as straight cuboids
     # and then add a deform modifier. This allows us to not use the modifier when baking the

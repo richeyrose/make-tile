@@ -21,7 +21,8 @@ from .create_tile import (
     set_bool_props,
     MT_Tile_Generator,
     initialise_tile_creator,
-    create_common_tile_props)
+    create_common_tile_props,
+    get_subdivs)
 
 class MT_PT_Rect_Floor_Panel(Panel):
     """Draw a tile options panel in UI."""
@@ -86,7 +87,8 @@ class MT_OT_Make_Openlock_Rect_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        spawn_openlock_base(self, context)
+        tile_props = context.collection.mt_tile_props
+        spawn_openlock_base(tile_props)
         return{'FINISHED'}
 
 
@@ -101,7 +103,8 @@ class MT_OT_Make_Plain_Rect_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        spawn_plain_base(self, context)
+        tile_props = context.collection.mt_tile_props
+        spawn_plain_base(tile_props)
         return{'FINISHED'}
 
 
@@ -116,7 +119,8 @@ class MT_OT_Make_Empty_Rect_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        spawn_empty_base(self, context)
+        tile_props = context.collection.mt_tile_props
+        spawn_empty_base(tile_props)
         return{'FINISHED'}
 
 
@@ -131,7 +135,8 @@ class MT_OT_Make_Plain_Rect_Floor_Core(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        create_plain_rect_floor_cores(self, context)
+        tile_props = context.collection.mt_tile_props
+        create_plain_rect_floor_cores(self, tile_props)
         return{'FINISHED'}
 
 
@@ -231,7 +236,7 @@ def initialise_floor_creator(context, scene_props):
     return cursor_orig_loc, cursor_orig_rot
 
 
-def create_plain_rect_floor_cores(self, context):
+def create_plain_rect_floor_cores(self, tile_props):
     """Create preview and displacement cores.
 
     Args:
@@ -240,7 +245,7 @@ def create_plain_rect_floor_cores(self, context):
     Returns:
         bpy.types.Object: preview core
     """
-    preview_core = spawn_floor_core(self, context)
+    preview_core = spawn_floor_core(self, tile_props)
     textured_vertex_groups = ['Top']
 
     convert_to_displacement_core(
@@ -252,7 +257,7 @@ def create_plain_rect_floor_cores(self, context):
     return preview_core
 
 
-def spawn_floor_core(self, context):
+def spawn_floor_core(self, tile_props):
     """Spawn the core (top part) of a floor tile.
 
     Args:
@@ -261,7 +266,6 @@ def spawn_floor_core(self, context):
     Returns:
         bpy.types.Object: tile core
     """
-    tile_props = context.collection.mt_tile_props
     tile_size = tile_props.tile_size
     base_size = tile_props.base_size
     core_size = [
@@ -270,7 +274,7 @@ def spawn_floor_core(self, context):
         tile_size[2] - base_size[2]]
     tile_name = tile_props.tile_name
     native_subdivisions = (
-        self.get_subdivs(tile_props.subdivision_density, core_size))
+        get_subdivs(tile_props.subdivision_density, core_size))
 
     core = draw_rectangular_floor_core(
         core_size,
@@ -304,7 +308,7 @@ def spawn_floor_core(self, context):
     return core
 
 
-def spawn_plain_base(self, context):
+def spawn_plain_base(tile_props):
     """Spawn a plain base into the scene.
 
     Args:
@@ -313,7 +317,6 @@ def spawn_plain_base(self, context):
     Returns:
         bpy.types.Object: tile base
     """
-    tile_props = context.collection.mt_tile_props
     base_size = tile_props.base_size
     tile_name = tile_props.tile_name
 
@@ -338,7 +341,7 @@ def spawn_plain_base(self, context):
     return base
 
 
-def spawn_openlock_base(self, context):
+def spawn_openlock_base(tile_props):
     """Spawn an openlock base into the scene.
 
     Args:
@@ -348,8 +351,7 @@ def spawn_openlock_base(self, context):
         bpy.types.Object: tile base
     """
 
-    base = spawn_plain_base(self, context)
-    tile_props = context.collection.mt_tile_props
+    base = spawn_plain_base(tile_props)
     slot_cutter = spawn_openlock_base_slot_cutter(base, tile_props)
     set_bool_obj_props(slot_cutter, base, tile_props, 'DIFFERENCE')
     set_bool_props(slot_cutter, base, 'DIFFERENCE')

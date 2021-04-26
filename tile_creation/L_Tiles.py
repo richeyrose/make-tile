@@ -31,7 +31,8 @@ from . create_tile import (
     load_openlock_top_peg,
     MT_Tile_Generator,
     initialise_tile_creator,
-    create_common_tile_props)
+    create_common_tile_props,
+    get_subdivs)
 
 
 class MT_PT_L_Tile_Panel(Panel):
@@ -214,34 +215,7 @@ class MT_OT_Make_Empty_L_Base(MT_Tile_Generator, Operator):
         return{'FINISHED'}
 
 
-class MT_L_Core:
-    def get_subdivs(self, density, dims):
-        """Get the number of times to subdivide each side when drawing.
-
-        Args:
-            density (ENUM in {'LOW', 'MEDIUM', 'HIGH'}): Density of subdivision
-            base_dims (list(float, float, float)): Base dimensions
-
-        Returns:
-            [list(int, int, int)]: subdivisions
-        """
-        subdivs = {}
-        if density == 'LOW':
-            multiplier = 4
-        elif density == 'MEDIUM':
-            multiplier = 8
-        elif density == 'HIGH':
-            multiplier = 16
-
-        for k, v in dims.items():
-            v = floor(v * multiplier)
-            if v == 0:
-                v = v + 1
-            subdivs[k] = v
-        return subdivs
-
-
-class MT_OT_Make_Plain_L_Wall_Core(MT_L_Core, MT_Tile_Generator, Operator):
+class MT_OT_Make_Plain_L_Wall_Core(MT_Tile_Generator, Operator):
     """Internal Operator. Generate a plain L wall core."""
 
     bl_idname = "object.make_plain_l_wall_core"
@@ -252,11 +226,12 @@ class MT_OT_Make_Plain_L_Wall_Core(MT_L_Core, MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        spawn_plain_wall_cores(self, context)
+        tile_props = context.collection.mt_tile_props
+        spawn_plain_wall_cores(self, tile_props)
         return{'FINISHED'}
 
 
-class MT_OT_Make_Openlock_L_Wall_Core(MT_L_Core, MT_Tile_Generator, Operator):
+class MT_OT_Make_Openlock_L_Wall_Core(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an openlock L wall core."""
 
     bl_idname = "object.make_openlock_l_wall_core"
@@ -268,7 +243,8 @@ class MT_OT_Make_Openlock_L_Wall_Core(MT_L_Core, MT_Tile_Generator, Operator):
     def execute(self, context):
         """Execute the operator."""
         base = context.active_object
-        spawn_openlock_wall_cores(self, context, base)
+        tile_props = context.collection.mt_tile_props
+        spawn_openlock_wall_cores(self, tile_props, base)
         return{'FINISHED'}
 
 
@@ -286,7 +262,7 @@ class MT_OT_Make_Empty_L_Wall_Core(MT_Tile_Generator, Operator):
         return {'PASS_THROUGH'}
 
 
-class MT_OT_Make_Plain_L_Floor_Core(MT_L_Core, MT_Tile_Generator, Operator):
+class MT_OT_Make_Plain_L_Floor_Core(MT_Tile_Generator, Operator):
     """Internal Operator. Generate a plain L wall core."""
 
     bl_idname = "object.make_plain_l_floor_core"
@@ -297,11 +273,12 @@ class MT_OT_Make_Plain_L_Floor_Core(MT_L_Core, MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        spawn_plain_floor_cores(self, context)
+        tile_props = context.collection.mt_tile_props
+        spawn_plain_floor_cores(self, tile_props)
         return{'FINISHED'}
 
 
-class MT_OT_Make_Openlock_L_Floor_Core(MT_L_Core, MT_Tile_Generator, Operator):
+class MT_OT_Make_Openlock_L_Floor_Core(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an openlock L floor core."""
 
     bl_idname = "object.make_openlock_l_floor_core"
@@ -312,7 +289,8 @@ class MT_OT_Make_Openlock_L_Floor_Core(MT_L_Core, MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        spawn_plain_floor_cores(self, context)
+        tile_props = context.collection.mt_tile_props
+        spawn_plain_floor_cores(self, tile_props)
         return{'FINISHED'}
 
 
@@ -404,16 +382,16 @@ def initialise_floor_creator(context, scene_props):
     return cursor_orig_loc, cursor_orig_rot
 
 
-def spawn_plain_wall_cores(self, context):
+def spawn_plain_wall_cores(self, tile_props):
     """Spawn plain wall cores into scene.
 
     Args:
-        context (bpy.Context): context
+        tile_props (bpy.types.MT_Tile_Props): tile properties
 
     Returns:
         (bpy.types.Object): preview_core
     """
-    preview_core = spawn_wall_core(self, context)
+    preview_core = spawn_wall_core(self, tile_props)
     textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner']
     convert_to_displacement_core(
         preview_core,
@@ -422,17 +400,17 @@ def spawn_plain_wall_cores(self, context):
     return preview_core
 
 
-def spawn_plain_floor_cores(self, context):
+def spawn_plain_floor_cores(self, tile_props):
     """Spawn plain floor cores into scene.
 
     Args:
-        context (bpy.Context): context
+        tile_props (bpy.types.MT_Tile_Props): tile properties
 
     Returns:
         (bpy.types.Object): preview_core
     """
     textured_vertex_groups = ['Leg 1 Top', 'Leg 2 Top']
-    preview_core = spawn_floor_core(self, context)
+    preview_core = spawn_floor_core(self, tile_props)
 
     convert_to_displacement_core(
         preview_core,
@@ -441,16 +419,15 @@ def spawn_plain_floor_cores(self, context):
     return preview_core
 
 
-def spawn_floor_core(self, context):
+def spawn_floor_core(self, tile_props):
     """Spawn core into scene.
 
     Args:
-        context (bpy.Context): context
+        tile_props (bpy.types.MT_Tile_Props): tile properties
 
     Returns:
         bpy.types.Object: core
     """
-    tile_props = context.collection.mt_tile_props
     base_thickness = tile_props.base_size[1]
     core_thickness = tile_props.tile_size[1]
     base_height = tile_props.base_size[2]
@@ -465,7 +442,7 @@ def spawn_floor_core(self, context):
         'width': core_thickness,
         'height': floor_height - base_height}
 
-    native_subdivisions = self.get_subdivs(tile_props.subdivision_density, native_subdivisions)
+    native_subdivisions = get_subdivs(tile_props.subdivision_density, native_subdivisions)
     thickness_diff = base_thickness - core_thickness
 
     # first work out where we're going to start drawing our wall
@@ -520,7 +497,7 @@ def spawn_floor_core(self, context):
     return core
 
 
-def spawn_openlock_wall_cores(self, context, base):
+def spawn_openlock_wall_cores(self, tile_props, base):
     """Spawn openlock wall cores into scene.
 
     Args:
@@ -530,9 +507,7 @@ def spawn_openlock_wall_cores(self, context, base):
     Returns:
         (bpy.types.Object): core
     """
-    tile = context.collection
-    tile_props = tile.mt_tile_props
-    core = spawn_wall_core(self, context)
+    core = spawn_wall_core(self, tile_props)
     cutters = spawn_openlock_wall_cutters(core, tile_props)
 
     if tile_props.leg_1_len >= 1 or tile_props.leg_2_len >= 1:
@@ -787,7 +762,7 @@ def spawn_openlock_wall_cutters(core, tile_props):
     return cutters
 
 
-def spawn_wall_core(self, context):
+def spawn_wall_core(self, tile_props):
     """Spawn core into scene.
 
     Args:
@@ -796,7 +771,6 @@ def spawn_wall_core(self, context):
     Returns:
         bpy.types.Object: core
     """
-    tile_props = context.collection.mt_tile_props
     base_thickness = tile_props.base_size[1]
     wall_thickness = tile_props.tile_size[1]
     base_height = tile_props.base_size[2]
@@ -811,7 +785,7 @@ def spawn_wall_core(self, context):
         'width': wall_thickness,
         'height': wall_height - base_height}
 
-    native_subdivisions = self.get_subdivs(tile_props.subdivision_density, native_subdivisions)
+    native_subdivisions = get_subdivs(tile_props.subdivision_density, native_subdivisions)
     thickness_diff = base_thickness - wall_thickness
 
     # first work out where we're going to start drawing our wall

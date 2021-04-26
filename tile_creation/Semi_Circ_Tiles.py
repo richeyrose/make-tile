@@ -1,6 +1,8 @@
 import os
 from math import (
-    radians)
+    radians,
+    floor,
+    pi)
 from mathutils.geometry import intersect_line_line
 import bpy
 import bmesh
@@ -15,7 +17,8 @@ from . create_tile import (
     set_bool_props,
     MT_Tile_Generator,
     initialise_tile_creator,
-    create_common_tile_props)
+    create_common_tile_props,
+    get_subdivs)
 
 from .. utils.registration import get_prefs
 from .. lib.utils.selection import (
@@ -91,11 +94,8 @@ class MT_PT_Semi_Circ_Floor_Panel(Panel):
         layout.label(text="Base Properties")
         layout.prop(scene_props, 'base_z', text="Height")
 
-        layout.label(text="Native Subdivisions")
-        row = layout.row()
-        row.prop(scene_props, 'x_native_subdivisions')
-        row.prop(scene_props, 'z_native_subdivisions')
-        row.prop(scene_props, 'curve_native_subdivisions')
+        layout.label(text="Subdivision Density")
+        layout.prop(scene_props, 'subdivision_density', text="")
 
         layout.operator('scene.reset_tile_defaults')
 
@@ -147,7 +147,7 @@ class MT_OT_Make_Openlock_Semi_Circ_Base(MT_Tile_Generator, Operator):
         """Execute the operator."""
         tile = context.collection
         tile_props = tile.mt_tile_props
-        spawn_openlock_base(tile_props)
+        spawn_openlock_base(self, tile_props)
         return{'FINISHED'}
 
 
@@ -162,9 +162,8 @@ class MT_OT_Make_Plain_Semi_Circ_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
-        spawn_plain_base(tile_props)
+        tile_props = context.collection.mt_tile_props
+        spawn_plain_base(self, tile_props)
         return{'FINISHED'}
 
 
@@ -198,7 +197,7 @@ class MT_OT_Make_Plain_Semi_Circ_Floor_Core(MT_Tile_Generator, Operator):
         """Execute the operator."""
         tile = context.collection
         tile_props = tile.mt_tile_props
-        spawn_plain_floor_cores(tile_props)
+        spawn_plain_floor_cores(self, tile_props)
         return{'FINISHED'}
 
 
@@ -215,7 +214,7 @@ class MT_OT_Make_Openlock_Semi_Circ_Floor_Core(MT_Tile_Generator, Operator):
         """Execute the operator."""
         tile = context.collection
         tile_props = tile.mt_tile_props
-        spawn_plain_floor_cores(tile_props)
+        spawn_plain_floor_cores(self, tile_props)
         return{'FINISHED'}
 
 
@@ -264,14 +263,16 @@ def initialise_floor_creator(context, scene_props):
     tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
     tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
 
+    '''
     tile_props.x_native_subdivisions = scene_props.x_native_subdivisions
     tile_props.z_native_subdivisions = scene_props.z_native_subdivisions
     tile_props.curve_native_subdivisions = scene_props.curve_native_subdivisions
+    '''
 
     return cursor_orig_loc, cursor_orig_rot
 
 
-def spawn_plain_base(tile_props):
+def spawn_plain_base(self, tile_props):
     """Spawn a plain base into the scene.
 
     Args:
@@ -280,13 +281,16 @@ def spawn_plain_base(tile_props):
     Returns:
         bpy.types.Object: tile base
     """
+    angle = tile_props.angle
+    radius = tile_props.base_radius
+    subdivs = {
+        'arc': (angle / 360) * (2 * pi) * radius}
+    subdivs = get_subdivs(tile_props.subdivision_density, subdivs)
+
     dimensions = {
         'height': tile_props.base_size[2],
-        'angle': tile_props.angle,
-        'radius': tile_props.base_radius}
-
-    subdivs = {
-        'arc': tile_props.curve_native_subdivisions}
+        'angle': angle,
+        'radius': radius}
 
     curve_type = tile_props.curve_type
 
@@ -312,7 +316,7 @@ def spawn_plain_base(tile_props):
     return base
 
 
-def spawn_openlock_base(tile_props):
+def spawn_openlock_base(self, tile_props):
     """Spawn OpenLOCK base into scene.
 
     Args:
@@ -323,18 +327,22 @@ def spawn_openlock_base(tile_props):
     """
     curve_type = tile_props.curve_type
 
+    angle = tile_props.angle
+    radius = tile_props.base_radius
+
     dimensions = {
         'height': tile_props.base_size[2],
-        'angle': tile_props.angle,
-        'radius': tile_props.base_radius,
+        'angle': angle,
+        'radius': radius,
         'outer_w': 0.236,
         'slot_w': 0.181,
         'slot_h': 0.24}
 
     subdivs = {
-        'arc': tile_props.curve_native_subdivisions}
+        'arc': (angle / 360) * (2 * pi) * radius}
+    subdivs = get_subdivs(tile_props.subdivision_density, subdivs)
 
-    base = spawn_plain_base(tile_props)
+    base = spawn_plain_base(self, tile_props)
 
     base.mt_object_props.geometry_type = 'BASE'
     ctx = {
@@ -373,7 +381,7 @@ def spawn_openlock_base(tile_props):
     return base
 
 
-def spawn_plain_floor_cores(tile_props):
+def spawn_plain_floor_cores(self, tile_props):
     """Spawn preview and displacement cores into scene.
 
     Args:
@@ -382,7 +390,7 @@ def spawn_plain_floor_cores(tile_props):
     Returns:
         bpy.types.Object: preview core
     """
-    core = spawn_core(tile_props)
+    core = spawn_core(self, tile_props)
     textured_vertex_groups = ['Top']
 
     convert_to_displacement_core(
@@ -391,7 +399,7 @@ def spawn_plain_floor_cores(tile_props):
     return core
 
 
-def spawn_core(tile_props):
+def spawn_core(self, tile_props):
     """Spawn core into scene.
 
     Args:
@@ -403,15 +411,26 @@ def spawn_core(tile_props):
     base_size = tile_props.base_size
     curve_type = tile_props.curve_type
 
+    radius = tile_props.base_radius
+    angle = tile_props.angle
+    height = tile_props.tile_size[2] - tile_props.base_size[2]
     dimensions = {
-        'radius': tile_props.base_radius,
-        'angle': tile_props.angle,
-        'height': tile_props.tile_size[2] - tile_props.base_size[2]}
+        'radius': radius,
+        'angle': angle,
+        'height': height}
 
     subdivs = {
-        'sides': tile_props.x_native_subdivisions,
-        'arc': tile_props.curve_native_subdivisions,
-        'z': tile_props.z_native_subdivisions}
+        'sides': radius,
+        'arc': (angle / 360) * (2 * pi) * radius,
+        'z': height}
+    subdivs = get_subdivs(tile_props.subdivision_density, subdivs)
+
+    # In order for grid fill to work the sum of verts on the sides needs to be even
+    vert_sum = subdivs['arc'] + subdivs['sides']
+
+    if vert_sum % 2 > 0:
+        subdivs['arc'] = subdivs['arc'] - 1
+
 
     if curve_type == 'POS':
         core = draw_pos_curved_semi_circ_core(dimensions, subdivs)
@@ -514,7 +533,7 @@ def create_openlock_base_clip_cutters(tile_props):
         select(clip_cutter_1.name)
 
         bpy.ops.transform.rotate(
-            value=(radians(angle - 90) * -1),
+            value=(radians(angle - 90) * 1),
             orient_axis='Z',
             orient_type='GLOBAL',
             center_override=cursor_orig_loc)
@@ -560,7 +579,7 @@ def create_openlock_base_clip_cutters(tile_props):
         clip_cutter_3.rotation_euler = (0, 0, radians(180))
         clip_cutter_3.location[1] = cursor_orig_loc[1] + radius - 0.25
         bpy.ops.transform.rotate(
-            value=radians(angle / 2) * -1,
+            value=radians(angle / 2) * 1,
             orient_axis='Z',
             orient_type='GLOBAL',
             center_override=cursor_orig_loc)

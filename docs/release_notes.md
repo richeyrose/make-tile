@@ -1,5 +1,33 @@
 # Release Notes
 
+## 0.0.23 ##
+
+### Roofs ###
+The first set of roofs are now available in the tile generator. You can create Apex style, Butterfly or Shed roofs.
+
+![Apex Roof](images/ApexRoof.jpg)
+
+**Apex Roof**
+
+![Butterfly Roof](images/ButterflyRoof.jpg)
+
+**Butterfly Roof**
+
+![Shed Roof](images/ShedRoof.jpg)
+
+**Shed Roof**
+
+### Subdivision Density ###
+When creating a tile you can now choose between High, Medium or Low subdivision density (Highlighted in Red) rather than having to specify how much you want to subdivide each part of a tile along each axis. In general this should keep the resolution of all your tiles consistent as long as you select the same subdivision density level when creating your tiles. You can still choose to subdivide a tile again post creation using the control at the top.
+
+![Subdivisions](images/TypesOfSubdivs.png)
+
+### Bug Fixes ###
+
+- Fixed a bug where extra side sockets weren't being added when tiles were greater than 2 inches high.
+
+- The reversed roator bug was fixed by the Blender core team which broke some of the tile generators again. These have now been fixed.
+
 ## 0.0.22 ##
 
 ### Color Picker ###
@@ -63,7 +91,9 @@ Previously when you converted an object MakeTile would automatically add whateve
 ### New Materials
 There are two new procedural materials included in this release for all MakeTile users. These are tidied up versions of the **Wooden Planks** and **Wooden Framework** materials from the Kickstarter videos.
 
-Because both these materials need to pick up a lot of detail to work properly, when creating your tiles you should bump up the amount of "native subdivisions" per 2 inches along your major axes from the default 15 to probably closer to 50 before you create your tile.
+~~Because both these materials need to pick up a lot of detail to work properly, when creating your tiles you should bump up the amount of "native subdivisions" per 2 inches along your major axes from the default 15 to probably closer to 50 before you create your tile.~~
+
+This control now gives you a choice between High, Medium and Low. Use High.
 
 ![Native Subdivisions](images/NativeSubdivisions.png)
 

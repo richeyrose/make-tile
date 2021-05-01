@@ -705,7 +705,7 @@ class MT_Scene_Properties(PropertyGroup):
     fix_non_manifold: BoolProperty(
         name="Fix non-manifold",
         description="Attempt to fix geometry errors",
-        default=True
+        default=False
     )
 
     export_subdivs: IntProperty(

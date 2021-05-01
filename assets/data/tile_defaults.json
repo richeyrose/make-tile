@@ -17,9 +17,7 @@
         "defaults": {
             "base_blueprint": "OPENLOCK",
             "main_part_blueprint": "OPENLOCK",
-            "x_native_subdivisions": 15,
-            "y_native_subdivisions": 15,
-            "z_native_subdivisions": 1,
+            "subdivision_density": "MEDIUM",
             "x_proportionate_scale": true,
             "y_proportionate_scale": true,
             "z_proportionate_scale": false,
@@ -66,7 +64,9 @@
         "type": "STRAIGHT_WALL",
         "base_blueprints": {
             "OPENLOCK": "OpenLOCK",
+            "OPENLOCK_S_WALL": "OpenLOCK S-Wall",
             "PLAIN": "Plain",
+            "PLAIN_S_WALL": "Plain S-Wall",
             "NONE": "None"
         },
         "main_part_blueprints": {
@@ -78,21 +78,31 @@
             {
             "base_blueprint": "OPENLOCK",
             "main_part_blueprint": "OPENLOCK",
-            "x_native_subdivisions": 15,
-            "y_native_subdivisions": 1,
-            "z_native_subdivisions": 15,
+            "subdivision_density": "MEDIUM",
             "x_proportionate_scale": true,
             "y_proportionate_scale": false,
             "z_proportionate_scale": false,
+            "floor_thickness": 0.0245,
+            "wall_position": "CENTER",
             "base_defaults": {
                 "OPENLOCK": {
                     "base_x": 2.015,
                     "base_y": 0.5,
                     "base_z": 0.2755
                 },
+                "OPENLOCK_S_WALL": {
+                    "base_x": 2.015,
+                    "base_y": 1,
+                    "base_z": 0.2755
+                },
                 "PLAIN": {
                     "base_x": 2.015,
-                    "base_y": 0.5,
+                    "base_y": 1,
+                    "base_z": 0.2755
+                },
+                "PLAIN_S_WALL": {
+                    "base_x": 2.015,
+                    "base_y": 1,
                     "base_z": 0.2755
                 },
                 "NONE": {
@@ -139,9 +149,7 @@
             {
             "base_blueprint": "OPENLOCK",
             "main_part_blueprint": "OPENLOCK",
-            "x_native_subdivisions": 15,
-            "y_native_subdivisions": 3,
-            "z_native_subdivisions": 1,
+            "subdivision_density": "MEDIUM",
             "x_proportionate_scale": true,
             "y_proportionate_scale": false,
             "z_proportionate_scale": false,
@@ -200,8 +208,7 @@
             {
             "base_blueprint": "OPENLOCK",
             "main_part_blueprint": "OPENLOCK",
-            "opposite_native_subdivisions": 15,
-            "z_native_subdivisions": 1,
+            "subdivision_density": "MEDIUM",
             "z_proportionate_scale": false,
             "base_defaults": {
                 "OPENLOCK": {
@@ -264,9 +271,7 @@
             {
             "base_blueprint": "OPENLOCK",
             "main_part_blueprint": "OPENLOCK",
-            "curve_native_subdivisions": 15,
-            "y_native_subdivisions":1,
-            "z_native_subdivisions": 15,
+            "subdivision_density": "MEDIUM",
             "y_proportionate_scale": false,
             "z_proportionate_scale": false,
             "base_defaults": {
@@ -330,9 +335,7 @@
             {
             "base_blueprint": "OPENLOCK",
             "main_part_blueprint": "OPENLOCK",
-            "curve_native_subdivisions": 15,
-            "y_native_subdivisions":3,
-            "z_native_subdivisions": 1,
+            "subdivision_density": "MEDIUM",
             "y_proportionate_scale": true,
             "z_proportionate_scale": false,
             "base_defaults": {
@@ -396,10 +399,7 @@
             {
             "base_blueprint": "OPENLOCK",
             "main_part_blueprint": "OPENLOCK",
-            "curve_native_subdivisions": 20,
-            "x_native_subdivisions":15,
-            "y_native_subdivisions":15,
-            "z_native_subdivisions": 1,
+            "subdivision_density": "MEDIUM",
             "z_proportionate_scale": false,
             "base_defaults": {
                 "OPENLOCK": {
@@ -462,10 +462,7 @@
             {
             "base_blueprint": "OPENLOCK",
             "main_part_blueprint": "OPENLOCK",
-            "leg_1_native_subdivisions": 15,
-            "leg_2_native_subdivisions": 15,
-            "width_native_subdivisions": 1,
-            "z_native_subdivisions": 15,
+            "subdivision_density": "MEDIUM",
             "y_proportionate_scale": false,
             "z_proportionate_scale": false,
             "base_defaults": {
@@ -535,10 +532,7 @@
             {
             "base_blueprint": "OPENLOCK",
             "main_part_blueprint": "OPENLOCK",
-            "leg_1_native_subdivisions": 15,
-            "leg_2_native_subdivisions": 15,
-            "width_native_subdivisions": 3,
-            "z_native_subdivisions": 1,
+            "subdivision_density": "MEDIUM",
             "y_proportionate_scale": true,
             "z_proportionate_scale": false,
             "base_defaults": {
@@ -609,11 +603,7 @@
             "base_blueprint": "OPENLOCK",
             "base_socket_side": "INNER",
             "main_part_blueprint": "OPENLOCK",
-            "leg_1_native_subdivisions": 15,
-            "leg_2_native_subdivisions": 15,
-            "x_native_subdivisions": 15,
-            "y_native_subdivisions": 1,
-            "z_native_subdivisions": 15,
+            "subdivision_density": "MEDIUM",
             "y_proportionate_scale": false,
             "z_proportionate_scale": false,
             "base_defaults": {
@@ -684,9 +674,7 @@
             "base_blueprint": "NONE",
             "main_part_blueprint": "OPENLOCK",
             "column_type": "I",
-            "x_native_subdivisions": 2,
-            "y_native_subdivisions": 2,
-            "z_native_subdivisions": 15,
+            "subdivision_density": "MEDIUM",
             "x_proportionate_scale": true,
             "y_proportionate_scale": true,
             "displacement_thickness": 0.05,

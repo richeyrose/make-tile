@@ -52,6 +52,8 @@ class MT_PT_Straight_Wall_Panel(Panel):
         """Draw the Panel."""
         scene = context.scene
         scene_props = scene.mt_scene_props
+        wall_props = scene.mt_wall_scene_props
+
         layout = self.layout
 
         layout.label(text="Blueprints")
@@ -65,6 +67,13 @@ class MT_PT_Straight_Wall_Panel(Panel):
 
         layout.label(text="Core Size")
         layout.prop(scene_props, 'tile_y', text="Width")
+
+        if scene_props.base_blueprint in ('OPENLOCK_S_WALL', 'PLAIN_S_WALL'):
+            layout.label(text="Floor Thickness")
+            layout.prop(wall_props, 'floor_thickness', text="")
+            layout.label(text="Wall Position"),
+            layout.prop(wall_props, 'wall_position', text="")
+
 
         layout.label(text="Lock Proportions")
         row = layout.row()
@@ -81,7 +90,7 @@ class MT_PT_Straight_Wall_Panel(Panel):
         layout.label(text="Subdivision Density")
         layout.prop(scene_props, 'subdivision_density', text="")
 
-        layout.operator('scene.reset_tile_defaults')
+        layout.operator('scene.reset_wall_defaults')
 
 
 class MT_PT_Straight_Floor_Panel(Panel):
@@ -143,6 +152,23 @@ class MT_OT_Make_Openlock_Straight_Base(MT_Tile_Generator, Operator):
     bl_label = "Straight Base"
     bl_options = {'INTERNAL'}
     mt_blueprint = "OPENLOCK"
+    mt_type = "STRAIGHT_BASE"
+
+    def execute(self, context):
+        """Execute the operator."""
+        tile = context.collection
+        tile_props = tile.mt_tile_props
+        spawn_openlock_base(tile_props)
+        return{'FINISHED'}
+
+
+class MT_OT_Make_Openlock_S_Wall_Straight_Base(MT_Tile_Generator, Operator):
+    """Internal Operator. Generate an OpenLOCK straight base."""
+
+    bl_idname = "object.make_openlock_s_wall_straight_base"
+    bl_label = "S Wall Straight Base"
+    bl_options = {'INTERNAL'}
+    mt_blueprint = "OPENLOCK_S_WALL"
     mt_type = "STRAIGHT_BASE"
 
     def execute(self, context):
@@ -293,6 +319,7 @@ class MT_OT_Make_Straight_Wall_Tile(MT_Tile_Generator, Operator):
         """Execute the operator."""
         scene = context.scene
         scene_props = scene.mt_scene_props
+        wall_scene_props = scene.mt_wall_scene_props
         base_blueprint = scene_props.base_blueprint
         core_blueprint = scene_props.main_part_blueprint
         base_type = 'STRAIGHT_BASE'
@@ -301,13 +328,24 @@ class MT_OT_Make_Straight_Wall_Tile(MT_Tile_Generator, Operator):
         cursor_orig_loc, cursor_orig_rot = initialise_wall_creator(context, scene_props)
         subclasses = get_all_subclasses(MT_Tile_Generator)
         base = spawn_prefab(context, subclasses, base_blueprint, base_type)
-
         if core_blueprint == 'NONE':
             preview_core = None
         else:
             preview_core = spawn_prefab(context, subclasses, core_blueprint, core_type)
+        tile_props = context.collection.mt_tile_props
+        orig_tile_size = []
+        for c, v in enumerate(tile_props.tile_size):
+            orig_tile_size.append(v)
 
-        finalise_tile(base, preview_core, cursor_orig_loc, cursor_orig_rot)
+        tile_props.tile_size = (
+            tile_props.base_size[0],
+            tile_props.base_size[1],
+            scene_props.base_z + wall_scene_props.floor_thickness)
+        if base_blueprint in {'OPENLOCK_S_WALL', 'PLAIN_S_WALL'}:
+            floor_core = spawn_prefab(context, subclasses, 'OPENLOCK', 'STRAIGHT_FLOOR_CORE')
+        tile_props.tile_size = orig_tile_size
+
+        finalise_tile(base, (preview_core, floor_core), cursor_orig_loc, cursor_orig_rot)
 
         # scene.render.engine = original_renderer
 

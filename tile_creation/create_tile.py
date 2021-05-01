@@ -240,7 +240,7 @@ def finalise_tile(base, core, cursor_orig_loc, cursor_orig_rot):
 
     Args:
         base (bpy.type.Object): base
-        core (bpy.types.Object): core
+        core (bpy.types.Object or list or tuple of bpy.types.Object): core(s)
         cursor_orig_loc (Vector(3)): original cursor location
         cursor_orig_rot (Vector(3)): original cursor rotation
     """
@@ -257,12 +257,15 @@ def finalise_tile(base, core, cursor_orig_loc, cursor_orig_rot):
     cursor.location = cursor_orig_loc
     cursor.rotation_euler = cursor_orig_rot
 
-    # Parent core to base
+    # Parent cores to base
     if core is not None:
-        core.parent = base
-
-        # lock all transforms so we can only translate base
-        lock_all_transforms(core)
+        if isinstance(core, (list, tuple)):
+            for c in core:
+                c.parent = base
+                lock_all_transforms(c)
+        else:
+            core.parent = base
+            lock_all_transforms(core)
 
     # deselect any currently selected objects
     for obj in context.selected_objects:

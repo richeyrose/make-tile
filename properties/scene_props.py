@@ -65,6 +65,7 @@ def update_scene_defaults(self, context):
 
 def update_base_defaults(self, context):
     scene_props = context.scene.mt_scene_props
+    wall_props = context.scene.mt_wall_scene_props
     tile_type = scene_props.tile_type
     base_blueprint = scene_props.base_blueprint
     tile_defaults = scene_props['tile_defaults']
@@ -77,6 +78,7 @@ def update_base_defaults(self, context):
                 if key == base_blueprint:
                     for k, v in value.items():
                         setattr(scene_props, k, v)
+                        setattr(wall_props, k, v)
                     break
 
 

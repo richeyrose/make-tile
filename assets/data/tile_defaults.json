@@ -88,27 +88,32 @@
                 "OPENLOCK": {
                     "base_x": 2.015,
                     "base_y": 0.5,
-                    "base_z": 0.2755
+                    "base_z": 0.2755,
+                    "wall_position": "CENTER"
                 },
                 "OPENLOCK_S_WALL": {
                     "base_x": 2.015,
                     "base_y": 1,
-                    "base_z": 0.2755
+                    "base_z": 0.2755,
+                    "wall_position": "CENTER"
                 },
                 "PLAIN": {
                     "base_x": 2.015,
-                    "base_y": 1,
-                    "base_z": 0.2755
+                    "base_y": 0.5,
+                    "base_z": 0.2755,
+                    "wall_position": "CENTER"
                 },
                 "PLAIN_S_WALL": {
                     "base_x": 2.015,
                     "base_y": 1,
-                    "base_z": 0.2755
+                    "base_z": 0.2755,
+                    "wall_position": "CENTER"
                 },
                 "NONE": {
                     "base_x": 2.015,
                     "base_y": 0.5,
-                    "base_z": 0
+                    "base_z": 0,
+                    "wall_position": "CENTER"
                 }
             },
             "tile_defaults": {

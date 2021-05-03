@@ -101,14 +101,26 @@ def initialise_tile_creator(context):
 
 def create_common_tile_props(scene_props, tile_props, tile_collection):
     """Create properties common to all tiles."""
-    for key in scene_props.__annotations__.keys():
-        for k in tile_props.__annotations__.keys():
-            if k == key:
-                setattr(tile_props, str(k), getattr(scene_props, str(k)))
+    copy_property_group_values(scene_props, tile_props)
 
     tile_props.tile_name = tile_collection.name
     tile_props.is_mt_collection = True
     tile_props.collection_type = "TILE"
+
+
+def copy_property_group_values(source_prop_group, target_prop_group):
+    """Set the props in the target property group to the value of the props in the source prop group.
+
+    Props must have same names and be of same type
+
+    Args:
+        source_prop_group (bpy.Types.PropertyGroup): Source Property Group
+        target_prop_group (bpy.Types.PropertyGroup): Target Property Group
+    """
+    for key in source_prop_group.__annotations__.keys():
+        for k in target_prop_group.__annotations__.keys():
+            if k == key:
+                setattr(target_prop_group, str(k), getattr(source_prop_group, str(k)))
 
 
 def lock_all_transforms(obj):

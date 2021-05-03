@@ -25,9 +25,13 @@ from .create_tile import (
     MT_Tile_Generator,
     initialise_tile_creator,
     create_common_tile_props,
+    copy_property_group_values,
     get_subdivs)
 
-from .Rectangular_Tiles import create_plain_rect_floor_cores as create_plain_floor_cores
+from .Rectangular_Tiles import (
+    create_plain_rect_floor_cores,
+    spawn_plain_base,
+    spawn_openlock_base)
 
 
 class MT_PT_Straight_Wall_Panel(Panel):
@@ -71,9 +75,8 @@ class MT_PT_Straight_Wall_Panel(Panel):
         if scene_props.base_blueprint in ('OPENLOCK_S_WALL', 'PLAIN_S_WALL'):
             layout.label(text="Floor Thickness")
             layout.prop(wall_props, 'floor_thickness', text="")
-            layout.label(text="Wall Position"),
-            layout.prop(wall_props, 'wall_position', text="")
-
+        layout.label(text="Wall Position"),
+        layout.prop(wall_props, 'wall_position', text="")
 
         layout.label(text="Lock Proportions")
         row = layout.row()
@@ -179,6 +182,23 @@ class MT_OT_Make_Openlock_S_Wall_Straight_Base(MT_Tile_Generator, Operator):
         return{'FINISHED'}
 
 
+class MT_OT_Make_Plain_S_Wall_Straight_Base(MT_Tile_Generator, Operator):
+    """Internal Operator. Generate an OpenLOCK straight base."""
+
+    bl_idname = "object.make_plain_s_wall_straight_base"
+    bl_label = "S Wall Straight Base"
+    bl_options = {'INTERNAL'}
+    mt_blueprint = "PLAIN_S_WALL"
+    mt_type = "STRAIGHT_BASE"
+
+    def execute(self, context):
+        """Execute the operator."""
+        tile = context.collection
+        tile_props = tile.mt_tile_props
+        spawn_plain_base(tile_props)
+        return{'FINISHED'}
+
+
 class MT_OT_Make_Plain_Straight_Base(MT_Tile_Generator, Operator):
     """Internal Operator. Generate a plain straight base."""
 
@@ -225,7 +245,8 @@ class MT_OT_Make_Plain_Straight_Wall_Core(MT_Tile_Generator, Operator):
     def execute(self, context):
         """Execute the operator."""
         tile_props = context.collection.mt_tile_props
-        spawn_plain_wall_cores(self, tile_props)
+        wall_props = context.collection.mt_wall_tile_props
+        spawn_plain_wall_cores(self, tile_props, wall_props)
         return{'FINISHED'}
 
 
@@ -241,8 +262,9 @@ class MT_OT_Make_Openlock_Straight_Wall_Core(MT_OT_Make_Plain_Straight_Wall_Core
     def execute(self, context):
         """Execute the operator."""
         tile_props = context.collection.mt_tile_props
+        wall_props = context.collection.mt_wall_tile_props
         base = context.active_object
-        spawn_openlock_wall_cores(self, tile_props, base)
+        spawn_openlock_wall_cores(self, tile_props, wall_props, base)
         return{'FINISHED'}
 
 
@@ -272,7 +294,7 @@ class MT_OT_Make_Plain_Straight_Floor_Core(MT_Tile_Generator, Operator):
     def execute(self, context):
         """Execute the operator."""
         tile_props = context.collection.mt_tile_props
-        create_plain_floor_cores(self, tile_props)
+        create_plain_rect_floor_cores(self, tile_props)
         return{'FINISHED'}
 
 
@@ -288,7 +310,7 @@ class MT_OT_Make_Openlock_Straight_Floor_Core(MT_Tile_Generator, Operator):
     def execute(self, context):
         """Execute the operator."""
         tile_props = context.collection.mt_tile_props
-        create_plain_floor_cores(self, tile_props)
+        create_plain_rect_floor_cores(self, tile_props)
         return{'FINISHED'}
 
 
@@ -325,14 +347,19 @@ class MT_OT_Make_Straight_Wall_Tile(MT_Tile_Generator, Operator):
         base_type = 'STRAIGHT_BASE'
         core_type = 'STRAIGHT_WALL_CORE'
 
-        cursor_orig_loc, cursor_orig_rot = initialise_wall_creator(context, scene_props)
+        cursor_orig_loc, cursor_orig_rot = initialise_wall_creator(context)
         subclasses = get_all_subclasses(MT_Tile_Generator)
         base = spawn_prefab(context, subclasses, base_blueprint, base_type)
+
         if core_blueprint == 'NONE':
-            preview_core = None
+            wall_core = None
         else:
-            preview_core = spawn_prefab(context, subclasses, core_blueprint, core_type)
+            wall_core = spawn_prefab(context, subclasses, core_blueprint, core_type)
         tile_props = context.collection.mt_tile_props
+
+        # We temporarily override tile_props.base_size to generate floor core for S-Tiles.
+        # It is easier to do it this way as the PropertyGroup.copy() method turns
+        # produces a dict
         orig_tile_size = []
         for c, v in enumerate(tile_props.tile_size):
             orig_tile_size.append(v)
@@ -341,13 +368,14 @@ class MT_OT_Make_Straight_Wall_Tile(MT_Tile_Generator, Operator):
             tile_props.base_size[0],
             tile_props.base_size[1],
             scene_props.base_z + wall_scene_props.floor_thickness)
+
         if base_blueprint in {'OPENLOCK_S_WALL', 'PLAIN_S_WALL'}:
             floor_core = spawn_prefab(context, subclasses, 'OPENLOCK', 'STRAIGHT_FLOOR_CORE')
+            finalise_tile(base, (wall_core, floor_core), cursor_orig_loc, cursor_orig_rot)
+        else:
+            finalise_tile(base, wall_core, cursor_orig_loc, cursor_orig_rot)
+
         tile_props.tile_size = orig_tile_size
-
-        finalise_tile(base, (preview_core, floor_core), cursor_orig_loc, cursor_orig_rot)
-
-        # scene.render.engine = original_renderer
 
         return {'FINISHED'}
 
@@ -386,7 +414,7 @@ class MT_OT_Make_Straight_Floor_Tile(MT_Tile_Generator, Operator):
         return {'FINISHED'}
 
 
-def initialise_wall_creator(context, scene_props):
+def initialise_wall_creator(context):
     """Initialise the wall creator and set common properties.
 
     Args:
@@ -409,13 +437,21 @@ def initialise_wall_creator(context, scene_props):
     activate_collection(tile_collection.name)
 
     tile_props = tile_collection.mt_tile_props
+    wall_tile_props = tile_collection.mt_wall_tile_props
+
+    scene_props = context.scene.mt_scene_props
+    wall_scene_props = context.scene.mt_wall_scene_props
     create_common_tile_props(scene_props, tile_props, tile_collection)
+    copy_property_group_values(wall_scene_props, wall_tile_props)
+
+    wall_tile_props.is_wall = True
 
     tile_props.tile_type = 'STRAIGHT_WALL'
     tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
     tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
 
     return cursor_orig_loc, cursor_orig_rot
+
 
 
 def initialise_floor_creator(context, scene_props):
@@ -450,162 +486,7 @@ def initialise_floor_creator(context, scene_props):
     return cursor_orig_loc, cursor_orig_rot
 
 
-def spawn_plain_base(tile_props):
-    """Spawn a plain base into the scene.
-
-    Args:
-        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
-
-    Returns:
-        bpy.types.Object: tile base
-    """
-    base_size = tile_props.base_size
-    tile_name = tile_props.tile_name
-
-    # make base
-    # base = draw_cuboid(base_size)
-    base = draw_cuboid(base_size)
-    base.name = tile_name + '.base'
-    add_object_to_collection(base, tile_name)
-
-    ctx = {
-        'object': base,
-        'active_object': base,
-        'selected_objects': [base]
-    }
-
-    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-
-    obj_props = base.mt_object_props
-    obj_props.is_mt_object = True
-    obj_props.geometry_type = 'BASE'
-    obj_props.tile_name = tile_name
-    bpy.context.view_layer.objects.active = base
-
-    return base
-
-
-def spawn_openlock_base(tile_props):
-    """Spawn an openlock base into the scene.
-
-    Args:
-        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
-
-    Returns:
-        bpy.types.Object: tile base
-    """
-
-    # make base
-    base = spawn_plain_base(tile_props)
-
-    # create the slot cutter in the bottom of the base used for stacking tiles
-    slot_cutter = spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236)
-    set_bool_obj_props(slot_cutter, base, tile_props, 'DIFFERENCE')
-    set_bool_props(slot_cutter, base, 'DIFFERENCE')
-
-    # create the clip cutters used for attaching walls to bases
-    if base.dimensions[0] >= 1:
-        clip_cutter = spawn_openlock_base_clip_cutter(base, tile_props)
-        set_bool_obj_props(clip_cutter, base, tile_props, 'DIFFERENCE')
-        set_bool_props(clip_cutter, base, 'DIFFERENCE')
-
-    bpy.context.view_layer.objects.active = base
-
-    return base
-
-
-def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
-    """Makes a cutter for the openlock base slot
-    based on the width of the base
-    """
-    # get original location of object and cursor
-    base_location = base.location.copy()
-    base_size = tile_props.base_size
-
-    # work out bool size X from base size, y and z are constants.
-    bool_size = [
-        base_size[0] - (offset * 2),
-        0.197,
-        0.25]
-
-    cutter = draw_cuboid(bool_size)
-    cutter.name = 'Base Slot.' + tile_props.tile_name + ".slot_cutter"
-
-    diff = base_size[0] - bool_size[0]
-
-    cutter.location = (
-        base_location[0] + diff / 2,
-        base_location[1] + offset,
-        base_location[2] - 0.001)
-
-    ctx = {
-        'object': cutter,
-        'active_object': cutter,
-        'selected_objects': [cutter]
-    }
-
-    base.select_set(False)
-    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-
-    return cutter
-
-
-def spawn_openlock_base_clip_cutter(base, tile_props):
-    """Makes a cutter for the openlock base clip based
-    on the width of the base and positions it correctly
-    """
-
-    mode('OBJECT')
-
-    # get original location of cursor
-    base_location = base.location.copy()
-
-    # Get cutter
-    preferences = get_prefs()
-    booleans_path = os.path.join(
-        preferences.assets_path,
-        "meshes",
-        "booleans",
-        "openlock.blend")
-
-    # load base cutters
-    with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
-        data_to.objects = [
-            'openlock.wall.base.cutter.clip',
-            'openlock.wall.base.cutter.clip.cap.start',
-            'openlock.wall.base.cutter.clip.cap.end']
-
-    for obj in data_to.objects:
-        add_object_to_collection(obj, tile_props.tile_name)
-
-    clip_cutter = data_to.objects[0]
-    cutter_start_cap = data_to.objects[1]
-    cutter_end_cap = data_to.objects[2]
-
-    # cutter_start_cap.hide_set(True)
-    # cutter_end_cap.hide_set(True)
-    cutter_start_cap.hide_viewport = True
-    cutter_end_cap.hide_viewport = True
-
-    clip_cutter.location = Vector((
-        base_location[0] + 0.5,
-        base_location[1] + 0.25,
-        base_location[2]))
-
-    array_mod = clip_cutter.modifiers.new('Array', 'ARRAY')
-    array_mod.start_cap = cutter_start_cap
-    array_mod.end_cap = cutter_end_cap
-    array_mod.use_merge_vertices = True
-
-    array_mod.fit_type = 'FIT_LENGTH'
-    array_mod.fit_length = tile_props.base_size[0] - 1
-
-    clip_cutter.name = 'Clip Cutter.' + base.name
-
-    return clip_cutter
-
-
-def spawn_plain_wall_cores(self, tile_props):
+def spawn_plain_wall_cores(self, tile_props, wall_props):
     """Spawn plain Core.
 
     Args:
@@ -614,7 +495,7 @@ def spawn_plain_wall_cores(self, tile_props):
     Returns:
         bpy.types.Object: core
     """
-    preview_core = spawn_wall_core(self, tile_props)
+    preview_core = spawn_wall_core(self, tile_props, wall_props)
     textured_vertex_groups = ['Front', 'Back']
     convert_to_displacement_core(
         preview_core,
@@ -622,7 +503,7 @@ def spawn_plain_wall_cores(self, tile_props):
     return preview_core
 
 
-def spawn_openlock_wall_cores(self, tile_props, base):
+def spawn_openlock_wall_cores(self, tile_props, wall_props, base):
     """Spawn OpenLOCK core.
 
     Args:
@@ -632,11 +513,12 @@ def spawn_openlock_wall_cores(self, tile_props, base):
     Returns:
         bpy.types.Object: preview core
     """
-    core = spawn_wall_core(self, tile_props)
+    core = spawn_wall_core(self, tile_props, wall_props)
 
     wall_cutters = spawn_openlock_wall_cutters(
         core,
-        tile_props)
+        tile_props,
+        wall_props)
 
     if tile_props.tile_size[0] > 1:
         top_pegs = spawn_openlock_top_pegs(
@@ -658,7 +540,7 @@ def spawn_openlock_wall_cores(self, tile_props, base):
     return core
 
 
-def spawn_wall_core(self, tile_props):
+def spawn_wall_core(self, tile_props, wall_props):
     """Return the core (vertical) part of a straight wall tile."""
     cursor = bpy.context.scene.cursor
     cursor_start_loc = cursor.location.copy()
@@ -678,11 +560,17 @@ def spawn_wall_core(self, tile_props):
     core.name = tile_name + '.core'
     add_object_to_collection(core, tile_name)
 
-    # move core so centred, move up so on top of base and set origin to world origin
-    core.location = (
-        core.location[0],
-        core.location[1] + (base_size[1] - tile_size[1]) / 2,
-        cursor_start_loc[2] + base_size[2])
+    if wall_props.wall_position == 'CENTER':
+        # move core so centred, move up so on top of base and set origin to world origin
+        core.location = (
+            core.location[0],
+            core.location[1] + (base_size[1] - tile_size[1]) / 2,
+            cursor_start_loc[2] + base_size[2])
+    elif wall_props.wall_position == 'SIDE':
+        core.location = (
+            core.location[0],
+            core.location[1] + base_size[1] - tile_size[1] - 0.09,
+            cursor_start_loc[2] + base_size[2])
 
     ctx = {
         'object': core,
@@ -749,7 +637,7 @@ def spawn_openlock_top_pegs(core, tile_props):
     return peg
 
 
-def spawn_openlock_wall_cutters(core, tile_props):
+def spawn_openlock_wall_cutters(core, tile_props, wall_props):
     """Creates the cutters for the wall and positions them correctly
     """
     preferences = get_prefs()
@@ -780,10 +668,16 @@ def spawn_openlock_wall_cutters(core, tile_props):
     front_left = core_location
 
     # move cutter to bottom front left corner then up by 0.63 inches
-    left_cutter_bottom.location = [
-        front_left[0],
-        front_left[1] + (base_size[1] / 2),
-        front_left[2] + 0.63]
+    if wall_props.wall_position == 'CENTER':
+        left_cutter_bottom.location = [
+            front_left[0],
+            front_left[1] + (base_size[1] / 2),
+            front_left[2] + 0.63]
+    elif wall_props.wall_position == 'SIDE':
+        left_cutter_bottom.location = [
+            front_left[0],
+            front_left[1] + base_size[1] - (tile_size[1] / 2) - 0.09,
+            front_left[2] + 0.63]
 
     array_mod = left_cutter_bottom.modifiers.new('Array', 'ARRAY')
     array_mod.use_relative_offset = False
@@ -817,11 +711,18 @@ def spawn_openlock_wall_cutters(core, tile_props):
         core_location[0] + (tile_size[0]),
         core_location[1],
         core_location[2]]
-    # move cutter to bottom front right corner then up by 0.63 inches
-    right_cutter_bottom.location = [
-        front_right[0],
-        front_right[1] + (base_size[1] / 2),
-        front_right[2] + 0.63]
+
+    if wall_props.wall_position == 'CENTER':
+        # move cutter to bottom front right corner then up by 0.63 inches
+        right_cutter_bottom.location = [
+            front_right[0],
+            front_right[1] + (base_size[1] / 2),
+            front_right[2] + 0.63]
+    elif wall_props.wall_position == 'SIDE':
+        right_cutter_bottom.location = [
+            front_right[0],
+            front_left[1] + base_size[1] - (tile_size[1] / 2) - 0.09,
+            front_right[2] + 0.63]
     # rotate cutter 180 degrees around Z
     right_cutter_bottom.rotation_euler[2] = radians(180)
 

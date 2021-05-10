@@ -523,7 +523,8 @@ def spawn_openlock_wall_cores(self, tile_props, wall_props, base):
     if tile_props.tile_size[0] > 1:
         top_pegs = spawn_openlock_top_pegs(
             core,
-            tile_props)
+            tile_props,
+            wall_props)
 
         set_bool_obj_props(top_pegs, base, tile_props, 'UNION')
         set_bool_props(top_pegs, core, 'UNION')
@@ -593,7 +594,7 @@ def spawn_wall_core(self, tile_props, wall_props):
     return core
 
 
-def spawn_openlock_top_pegs(core, tile_props):
+def spawn_openlock_top_pegs(core, tile_props, wall_props):
     """Spawn top peg(s) for stacking wall tiles and position it.
 
     Args:
@@ -617,23 +618,36 @@ def spawn_openlock_top_pegs(core, tile_props):
 
     core_location = core.location.copy()
 
-    if tile_size[0] < 4 and tile_size[0] >= 1:
-        peg.location = (
-            core_location[0] + (tile_size[0] / 2) - 0.252,
-            core_location[1] + (base_size[1] / 2) + 0.08,
-            core_location[2] + tile_size[2])
-    else:
-        peg.location = (
-            core_location[0] + 0.756,
-            core_location[1] + (base_size[1] / 2) + 0.08,
-            core_location[2] + tile_size[2])
-        array_mod = peg.modifiers.new('Array', 'ARRAY')
-        array_mod.use_relative_offset = False
-        array_mod.use_constant_offset = True
-        array_mod.constant_offset_displace[0] = 2.017
-        array_mod.fit_type = 'FIT_LENGTH'
-        array_mod.fit_length = tile_size[0] - 1.3
+    if wall_props.wall_position == 'CENTER':
+        if tile_size[0] < 4 and tile_size[0] >= 1:
+            peg.location = (
+                core_location[0] + (tile_size[0] / 2) - 0.252,
+                core_location[1] + (base_size[1] / 2) + 0.08,
+                core_location[2] + tile_size[2])
+        else:
+            peg.location = (
+                core_location[0] + 0.756,
+                core_location[1] + (base_size[1] / 2) + 0.08,
+                core_location[2] + tile_size[2])
 
+    elif wall_props.wall_position == 'SIDE':
+        if tile_size[0] < 4 and tile_size[0] >= 1:
+            peg.location = (
+                core_location[0] + (tile_size[0] / 2) - 0.252,
+                core_location[1] + base_size[1] - 0.33,
+                core_location[2] + tile_size[2])
+        else:
+            peg.location = (
+                core_location[0] + 0.756,
+                core_location[1] + base_size[1] - 0.33,
+                core_location[2] + tile_size[2])
+
+    array_mod = peg.modifiers.new('Array', 'ARRAY')
+    array_mod.use_relative_offset = False
+    array_mod.use_constant_offset = True
+    array_mod.constant_offset_displace[0] = 2.017
+    array_mod.fit_type = 'FIT_LENGTH'
+    array_mod.fit_length = tile_size[0] - 1.3
     return peg
 
 

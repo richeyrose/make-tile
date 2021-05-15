@@ -75,10 +75,11 @@ class MT_PT_Straight_Wall_Panel(Panel):
         if scene_props.base_blueprint in ('OPENLOCK_S_WALL', 'PLAIN_S_WALL'):
             layout.label(text="Floor Thickness")
             layout.prop(wall_props, 'floor_thickness', text="")
-        layout.label(text="Wall Position"),
-        layout.prop(wall_props, 'wall_position', text="")
 
-        layout.label(text="Lock Proportions")
+            layout.label(text="Wall Position")
+            layout.prop(wall_props, 'wall_position', text="")
+
+        layout.label(text="Sync Proportions")
         row = layout.row()
         row.prop(scene_props, 'x_proportionate_scale')
         row.prop(scene_props, 'y_proportionate_scale')
@@ -166,7 +167,7 @@ class MT_OT_Make_Openlock_Straight_Base(MT_Tile_Generator, Operator):
 
 
 class MT_OT_Make_Openlock_S_Wall_Straight_Base(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate an OpenLOCK straight base."""
+    """Internal Operator. Generate an OpenLOCK S Wall straight base."""
 
     bl_idname = "object.make_openlock_s_wall_straight_base"
     bl_label = "S Wall Straight Base"
@@ -183,7 +184,7 @@ class MT_OT_Make_Openlock_S_Wall_Straight_Base(MT_Tile_Generator, Operator):
 
 
 class MT_OT_Make_Plain_S_Wall_Straight_Base(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate an OpenLOCK straight base."""
+    """Internal Operator. Generate an plain S wall straight base."""
 
     bl_idname = "object.make_plain_s_wall_straight_base"
     bl_label = "S Wall Straight Base"
@@ -355,11 +356,11 @@ class MT_OT_Make_Straight_Wall_Tile(MT_Tile_Generator, Operator):
             wall_core = None
         else:
             wall_core = spawn_prefab(context, subclasses, core_blueprint, core_type)
-        tile_props = context.collection.mt_tile_props
 
         # We temporarily override tile_props.base_size to generate floor core for S-Tiles.
-        # It is easier to do it this way as the PropertyGroup.copy() method turns
-        # produces a dict
+        # It is easier to do it this way as the PropertyGroup.copy() method produces a dict
+        tile_props = context.collection.mt_tile_props
+
         orig_tile_size = []
         for c, v in enumerate(tile_props.tile_size):
             orig_tile_size.append(v)
@@ -558,7 +559,7 @@ def spawn_wall_core(self, tile_props, wall_props):
         core_size,
         native_subdivisions)
 
-    core.name = tile_name + '.core'
+    core.name = tile_name + '.wall_core'
     add_object_to_collection(core, tile_name)
 
     if wall_props.wall_position == 'CENTER':

@@ -280,7 +280,7 @@ def spawn_floor_core(self, tile_props):
         core_size,
         native_subdivisions)
 
-    core.name = tile_name + '.core'
+    core.name = tile_name + '.floor_core'
     add_object_to_collection(core, tile_name)
 
     core.location[2] = core.location[2] + base_size[2]

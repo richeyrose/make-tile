@@ -264,7 +264,9 @@
         "type": "CURVED_WALL",
         "base_blueprints": {
             "OPENLOCK": "OpenLOCK",
+            "OPENLOCK_S_WALL": "OpenLOCK S-Wall",
             "PLAIN": "Plain",
+            "PLAIN_S_WALL": "Plain S-Wall",
             "NONE": "None"
         },
         "main_part_blueprints": {
@@ -279,24 +281,43 @@
             "subdivision_density": "MEDIUM",
             "y_proportionate_scale": false,
             "z_proportionate_scale": false,
+            "floor_thickness": 0.0245,
+            "wall_position": "CENTER",
             "base_defaults": {
                 "OPENLOCK": {
                     "base_radius": 2.015,
                     "degrees_of_arc": 90,
                     "base_y": 0.5,
-                    "base_z": 0.2755
+                    "base_z": 0.2755,
+                    "wall_position": "CENTER"
+                },
+                "OPENLOCK_S_WALL": {
+                    "base_radius": 2.015,
+                    "degrees_of_arc": 90,
+                    "base_y": 1,
+                    "base_z": 0.2755,
+                    "wall_position": "CENTER"
                 },
                 "PLAIN": {
                     "base_radius": 2.015,
                     "degrees_of_arc": 90,
                     "base_y": 0.5,
-                    "base_z": 0.2755
+                    "base_z": 0.2755,
+                    "wall_position": "CENTER"
+                },
+                "PLAIN_S_WALL": {
+                    "base_radius": 2.015,
+                    "degrees_of_arc": 90,
+                    "base_y": 1,
+                    "base_z": 0.2755,
+                    "wall_position": "CENTER"
                 },
                 "NONE": {
                     "base_radius": 2.015,
                     "degrees_of_arc": 90,
                     "base_y": 0.5,
-                    "base_z": 0
+                    "base_z": 0,
+                    "wall_position": "CENTER"
                 }
             },
             "tile_defaults": {

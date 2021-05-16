@@ -4,11 +4,18 @@ from mathutils import Vector
 import bpy
 
 from bpy.types import Operator, Panel
+from bpy.props import FloatProperty
+
 from .. utils.registration import get_prefs
 from .. lib.utils.collections import (
     add_object_to_collection,
     create_collection,
     activate_collection)
+
+from ..operators.assign_reference_object import (
+    create_helper_object)
+
+from ..lib.utils.selection import select, deselect_all, activate
 from ..lib.bmturtle.scripts import (
     draw_cuboid,
     draw_straight_wall_core)
@@ -90,6 +97,7 @@ class MT_PT_Straight_Wall_Panel(Panel):
         row.prop(scene_props, 'base_x')
         row.prop(scene_props, 'base_y')
         row.prop(scene_props, 'base_z')
+
 
         layout.label(text="Subdivision Density")
         layout.prop(scene_props, 'subdivision_density', text="")
@@ -329,26 +337,29 @@ class MT_OT_Make_Empty_Straight_Floor_Core(MT_Tile_Generator, Operator):
         return {'PASS_THROUGH'}
 
 
-class MT_OT_Make_Straight_Wall_Tile(MT_Tile_Generator, Operator):
+class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
     """Operator. Generates a straight wall tile with a customisable base and main part."""
 
     bl_idname = "object.make_straight_wall"
     bl_label = "Straight Wall"
-    bl_options = {'UNDO'}
+    bl_options = {'UNDO', 'REGISTER'}
     mt_blueprint = "CUSTOM"
     mt_type = "STRAIGHT_WALL"
 
     def execute(self, context):
         """Execute the operator."""
+        super().execute(context)
+        if not self.refresh:
+            return {'PASS_THROUGH'}
         scene = context.scene
         scene_props = scene.mt_scene_props
         wall_scene_props = scene.mt_wall_scene_props
-        base_blueprint = scene_props.base_blueprint
-        core_blueprint = scene_props.main_part_blueprint
+        base_blueprint = self.base_blueprint
+        core_blueprint = self.main_part_blueprint
         base_type = 'STRAIGHT_BASE'
         core_type = 'STRAIGHT_WALL_CORE'
 
-        cursor_orig_loc, cursor_orig_rot = initialise_wall_creator(context)
+        cursor_orig_loc, cursor_orig_rot = initialise_wall_creator_2(self, context)
         subclasses = get_all_subclasses(MT_Tile_Generator)
         base = spawn_prefab(context, subclasses, base_blueprint, base_type)
 
@@ -377,7 +388,8 @@ class MT_OT_Make_Straight_Wall_Tile(MT_Tile_Generator, Operator):
             finalise_tile(base, wall_core, cursor_orig_loc, cursor_orig_rot)
 
         tile_props.tile_size = orig_tile_size
-
+        if self.auto_refresh is False:
+            self.refresh = False
         return {'FINISHED'}
 
 
@@ -414,6 +426,55 @@ class MT_OT_Make_Straight_Floor_Tile(MT_Tile_Generator, Operator):
 
         return {'FINISHED'}
 
+
+def initialise_wall_creator_2(self, context):
+    tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator_2(self, context)
+
+    create_collection('Walls', tiles_collection)
+    tile_collection = bpy.data.collections.new(tile_name)
+    bpy.data.collections['Walls'].children.link(tile_collection)
+    activate_collection(tile_collection.name)
+
+    tile_props = tile_collection.mt_tile_props
+    wall_tile_props = tile_collection.mt_wall_tile_props
+
+    copy_property_group_values(self, tile_props)
+    copy_property_group_values(self, wall_tile_props)
+
+    tile_props.tile_name = tile_collection.name
+    tile_props.is_mt_collection = True
+    tile_props.collection_type = "TILE"
+
+    wall_tile_props.is_wall = True
+    tile_props.tile_type = 'STRAIGHT_WALL'
+    tile_props.tile_size = (self.tile_x, self.tile_y, self.tile_z)
+    tile_props.base_size = (self.base_x, self.base_y, self.base_z)
+    return cursor_orig_loc, cursor_orig_rot
+
+
+def initialise_tile_creator_2(self, context):
+    deselect_all()
+    scene = context.scene
+
+    # Root collection to which we add all tiles
+    tiles_collection = create_collection('Tiles', scene.collection)
+
+    # create helper object for material mapping
+    create_helper_object(context)
+
+    # set tile name
+    tile_name = self.tile_type.lower()
+
+    # We create tile at origin and then move it to original location
+    # this stops us from having to update the view layer every time
+    # we parent an object
+    cursor = scene.cursor
+    cursor_orig_loc = cursor.location.copy()
+    cursor_orig_rot = cursor.rotation_euler.copy()
+    cursor.location = (0, 0, 0)
+    cursor.rotation_euler = (0, 0, 0)
+
+    return tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot
 
 def initialise_wall_creator(context):
     """Initialise the wall creator and set common properties.

@@ -1,7 +1,8 @@
 import bpy
 from bpy.types import PropertyGroup
 from bpy.props import (
-    FloatVectorProperty, StringProperty,
+    FloatVectorProperty,
+    StringProperty,
     EnumProperty,
     BoolProperty,
     FloatProperty,

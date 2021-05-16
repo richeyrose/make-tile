@@ -5,6 +5,7 @@ from bpy.props import (
     EnumProperty,
     BoolProperty,
     FloatProperty,
+    FloatVectorProperty,
     IntProperty,
     PointerProperty)
 from ..enums.enums import (
@@ -22,7 +23,7 @@ from .properties import (
 from ..app_handlers import create_properties_on_load
 
 
-def load_material_enums(self, context):
+def create_material_enums(self, context):
     """Create a list of enum items of materials compatible with the MakeTile material system.
 
     Args:
@@ -396,7 +397,7 @@ class MT_Scene_Properties(PropertyGroup):
     )
 
     tile_material_1: EnumProperty(
-        items=load_material_enums,
+        items=create_material_enums,
         name="Material"
     )
 

@@ -1,19 +1,256 @@
 import os
 from math import floor
 import bpy
-from ..operators.assign_reference_object import assign_obj_to_obj_texture_coords
-from .. utils.registration import get_prefs
-from .. lib.utils.vertex_groups import construct_displacement_mod_vert_group
-from .. lib.utils.collections import add_object_to_collection, create_collection
-from .. lib.utils.selection import select, deselect_all, activate
-from ..lib.utils.multimethod import multimethod
+from bpy.types import Operator
+from bpy.props import (
+    FloatVectorProperty,
+    StringProperty,
+    EnumProperty,
+    BoolProperty,
+    FloatProperty,
+    IntProperty,
+    PointerProperty)
 
-from .. materials.materials import (
-    assign_mat_to_vert_group)
-from ..operators.assign_reference_object import create_helper_object
+from ..operators.assign_reference_object import (
+    create_helper_object,
+    assign_obj_to_obj_texture_coords)
+
+from ..utils.registration import get_prefs
+
+from ..lib.utils.vertex_groups import construct_displacement_mod_vert_group
+from ..lib.utils.collections import add_object_to_collection, create_collection
+from ..lib.utils.selection import select, deselect_all, activate
+from ..lib.utils.multimethod import multimethod
+from ..materials.materials import assign_mat_to_vert_group
+from ..lib.utils.utils import get_all_subclasses
+
+from ..enums.enums import (
+    tile_blueprints,
+    curve_types,
+    base_socket_side,
+    units,
+    openlock_column_types,
+    column_socket_style,
+    collection_types)
+
+
+def create_tile_type_enums(self, context):
+    """Create an enum of tile types out of subclasses of MT_OT_Make_Tile."""
+    enum_items = []
+    if context is None:
+        return enum_items
+
+    # blueprint = context.scene.mt_scene_props.tile_blueprint
+    subclasses = get_all_subclasses(MT_Tile_Generator)
+
+    for subclass in subclasses:
+        # if hasattr(subclass, 'mt_blueprint'):
+        if 'INTERNAL' not in subclass.bl_options:
+            enum = (subclass.mt_type, subclass.bl_label, "")
+            enum_items.append(enum)
+    return sorted(enum_items)
+
+
+def create_main_part_blueprint_enums(self, context):
+    """Dynamically creates a list of enum items depending on what is set in the tile_type defaults.
+
+    Args:
+        context (bpy.Context): scene context
+
+    Returns:
+        list[enum_item]: list of enum items
+    """
+    enum_items = []
+    scene = context.scene
+    scene_props = scene.mt_scene_props
+
+    if context is None:
+        return enum_items
+
+    if 'tile_defaults' not in scene_props:
+        return enum_items
+
+    tile_type = scene_props.tile_type
+    tile_defaults = scene_props['tile_defaults']
+
+    for default in tile_defaults:
+        if default['type'] == tile_type:
+            for key, value in default['main_part_blueprints'].items():
+                enum = (key, value, "")
+                enum_items.append(enum)
+            return sorted(enum_items)
+    return enum_items
+
+
+def create_base_blueprint_enums(self, context):
+    enum_items = []
+    scene = context.scene
+    scene_props = scene.mt_scene_props
+
+    if context is None:
+        return enum_items
+
+    if 'tile_defaults' not in scene_props:
+        return enum_items
+
+    tile_type = scene_props.tile_type
+    tile_defaults = scene_props['tile_defaults']
+
+    for default in tile_defaults:
+        if default['type'] == tile_type:
+            for key, value in default['base_blueprints'].items():
+                enum = (key, value, "")
+                enum_items.append(enum)
+            return sorted(enum_items)
+    return enum_items
+
+
+def create_material_enums(self, context):
+    """Create a list of enum items of materials compatible with the MakeTile material system.
+
+    Args:
+        context (bpy.context): context
+
+    Returns:
+        list[EnumPropertyItem]: enum items
+    """
+    enum_items = []
+    if context is None:
+        return enum_items
+
+    materials = bpy.data.materials
+    for material in materials:
+        if 'mt_material' in material.keys():
+            if material['mt_material']:
+                enum = (material.name, material.name, "")
+                enum_items.append(enum)
+    return enum_items
 
 class MT_Tile_Generator:
     """Subclass this to create your tile operator."""
+    refresh: BoolProperty(
+        name="Refresh",
+        default=False,
+        description="Refresh")
+
+    auto_refresh: BoolProperty(
+        name="Auto",
+        default=True,
+        description="Automatic Refresh")
+
+    # Universal properties
+    tile_type: EnumProperty(
+        items=create_tile_type_enums,
+        name="Tile Type",
+        description="The type of tile e.g. Straight Wall, Curved Floor"
+    )
+
+    tile_material_1: EnumProperty(
+        items=create_material_enums,
+        name="Material"
+    )
+
+    # Tile type #
+    main_part_blueprint: EnumProperty(
+        items=create_main_part_blueprint_enums,
+        name="Core"
+    )
+
+    base_blueprint: EnumProperty(
+        items=create_base_blueprint_enums,
+        name="Base"
+    )
+
+    # Native Subdivisions
+    subdivision_density: EnumProperty(
+        items=[
+            ("HIGH", "High", "", 1),
+            ("MEDIUM", "Medium", "", 2),
+            ("LOW", "Low", "", 3)],
+        default="MEDIUM",
+        name="Subdivision Density")
+
+    # Subsurf modifier subdivisions #
+    subdivisions: IntProperty(
+        name="Subdivisions",
+        description="Subsurf modifier subdivision levels",
+        default=3
+    )
+
+    # UV smart projection correction
+    UV_island_margin: FloatProperty(
+        name="UV Margin",
+        default=0.012,
+        min=0,
+        step=0.001,
+        description="Tweak this if you have gaps at edges of tiles when you Make3D"
+    )
+
+    # stops texture projecting beyond bounds of vert group
+    texture_margin: FloatProperty(
+        name="Texture Margin",
+        description="Margin around displacement texture. Used for correcting distortion",
+        default=0.001,
+        min=0.0001,
+        soft_max=0.1,
+        step=0.0001
+    )
+
+    # Dimensions #
+    # Tile size
+    tile_x: FloatProperty(
+        name="X",
+        default=2.0,
+        step=50,
+        precision=2,
+        min=0
+    )
+
+    tile_y: FloatProperty(
+        name="Y",
+        default=0.3,
+        step=50,
+        precision=2,
+        min=0
+    )
+
+    tile_z: FloatProperty(
+        name="Z",
+        default=2.0,
+        step=50,
+        precision=2,
+        min=0
+    )
+
+    # Base size
+    base_x: FloatProperty(
+        name="X",
+        default=2.0,
+        step=50,
+        precision=2,
+        min=0
+    )
+
+    base_y: FloatProperty(
+        name="Y",
+        default=0.5,
+        step=50,
+        precision=2,
+        min=0
+    )
+
+    base_z: FloatProperty(
+        name="Z",
+        default=0.3,
+        step=50,
+        precision=2,
+        min=0
+    )
+
+    tile_units: EnumProperty(
+        name="Tile Units",
+        items=units
+    )
 
     @classmethod
     def poll(cls, context):
@@ -21,6 +258,289 @@ class MT_Tile_Generator:
             return context.object.mode == 'OBJECT'
         else:
             return True
+
+    def invoke(self, context, event):
+        self.refresh = True
+        scene_props = context.scene.mt_scene_props
+        copy_property_group_values(scene_props, self)
+        deselect_all()
+        return self.execute(context)
+
+    def execute(self, context):
+        deselect_all()
+
+    def draw(self, context):
+        layout = self.layout
+        if self.auto_refresh is False:
+            self.refresh = False
+        elif self.auto_refresh is True:
+            self.refresh = True
+
+        # Refresh options
+        row = layout.box().row()
+        split = row.split()
+        split.scale_y = 1.5
+        split.prop(self, "auto_refresh", toggle=True, icon_only=True, icon='AUTO')
+        split.prop(self, "refresh", toggle=True, icon_only=True, icon='FILE_REFRESH')
+        self.draw_universal_props(context)
+
+    def draw_universal_props(self, context):
+        layout = self.layout
+        layout.prop(self, 'base_blueprint')
+        layout.prop(self, 'main_part_blueprint')
+        layout.prop(self, 'subdivision_density')
+
+
+class MT_PT_Tile_Generator(Operator):
+    bl_idname = "object.make_tile"
+    bl_label = "New Make Tile"
+    bl_description = "Add a Tile"
+    bl_options = {'UNDO', 'REGISTER', 'PRESET'}
+
+    refresh: BoolProperty(
+        name="Refresh",
+        default=False,
+        description="Refresh")
+
+    auto_refresh: BoolProperty(
+        name="Auto",
+        default=True,
+        description="Automatic Refresh")
+
+    # Universal properties
+    tile_name: StringProperty(
+        name="Tile Name",
+        default="Tile"
+    )
+
+    tile_type: EnumProperty(
+        items=create_tile_type_enums,
+        name="Tile Type",
+        description="The type of tile e.g. Straight Wall, Curved Floor"
+    )
+
+    tile_material_1: EnumProperty(
+        items=create_material_enums,
+        name="Material"
+    )
+
+    collection_type: EnumProperty(
+        items=collection_types,
+        name="Collection Types",
+        description="Easy way of distinguishing whether we are dealing with a tile, \
+            an architectural element or a larger prefab such as a building or dungeon."
+    )
+
+    # Tile type #
+    main_part_blueprint: EnumProperty(
+        items=create_main_part_blueprint_enums,
+        name="Core"
+    )
+
+    base_blueprint: EnumProperty(
+        items=create_base_blueprint_enums,
+        name="Base"
+    )
+
+
+    # Native Subdivisions
+    subdivision_density: EnumProperty(
+        items=[
+            ("HIGH", "High", "", 1),
+            ("MEDIUM", "Medium", "", 2),
+            ("LOW", "Low", "", 3)],
+        default="MEDIUM",
+        name="Subdivision Density")
+
+    x_native_subdivisions: IntProperty(
+        name="X",
+        description="The number of times to subdivide the X axis on creation",
+        default=15
+    )
+
+    y_native_subdivisions: IntProperty(
+        name="Y",
+        description="The number of times to subdivide the Y axis on creation",
+        default=3
+    )
+
+    z_native_subdivisions: IntProperty(
+        name="Z",
+        description="The number of times to subdivide the Z axis on creation",
+        default=15
+    )
+
+    opposite_native_subdivisions: IntProperty(
+        name="Opposite Side",
+        description="The number of times to subdivide the edge opposite the root angle on triangular tile creation",
+        default=15
+    )
+
+    curve_native_subdivisions: IntProperty(
+        name="Curved Side",
+        description="The number of times to subdivide the curved side of a tile",
+        default=15
+    )
+
+    leg_1_native_subdivisions: IntProperty(
+        name="Leg 1",
+        description="The number of times to subdivide the length of leg 1 of the tile",
+        default=15
+    )
+
+    leg_2_native_subdivisions: IntProperty(
+        name="Leg 2",
+        description="The number of times to subdivide the length of leg 2 of the tile",
+        default=15
+    )
+
+    width_native_subdivisions: IntProperty(
+        name="Width",
+        description="The number of times to subdivide each leg along its width",
+        default=3
+    )
+
+    # Subsurf modifier subdivisions #
+    subdivisions: IntProperty(
+        name="Subdivisions",
+        description="Subsurf modifier subdivision levels",
+        default=3
+    )
+
+    # UV smart projection correction
+    UV_island_margin: FloatProperty(
+        name="UV Margin",
+        default=0.012,
+        min=0,
+        step=0.001,
+        description="Tweak this if you have gaps at edges of tiles when you Make3D"
+    )
+
+    # stops texture projecting beyond bounds of vert group
+    texture_margin: FloatProperty(
+        name="Texture Margin",
+        description="Margin around displacement texture. Used for correcting distortion",
+        default=0.001,
+        min=0.0001,
+        soft_max=0.1,
+        step=0.0001
+    )
+
+    # used for where it makes sense to set displacement thickness directly rather than
+    # as an offset between base and core. e.g. connecting columns
+    displacement_thickness: FloatProperty(
+        name="Displacement Thickness",
+        description="Thickness of displacement texture.",
+        default=0.05
+    )
+
+    # Dimensions #
+    tile_size: FloatVectorProperty(
+        name="Tile Size"
+    )
+
+    base_size: FloatVectorProperty(
+        name="Base size"
+    )
+
+    base_radius: FloatProperty(
+        name="Base Radius"
+    )
+
+    wall_radius: FloatProperty(
+        name="Wall Radius"
+    )
+
+    base_socket_side: EnumProperty(
+        name="Socket Side",
+        items=base_socket_side
+    )
+
+    degrees_of_arc: FloatProperty(
+        name="Degrees of Arc"
+    )
+
+    angle: FloatProperty(
+        name="Angle"
+    )
+
+    leg_1_len: FloatProperty(
+        name="Leg 1 Length"
+    )
+
+    leg_2_len: FloatProperty(
+        name="Leg 2 Length"
+    )
+
+    curve_type: EnumProperty(
+        name="Curve Type",
+        items=curve_types
+    )
+
+    column_type: EnumProperty(
+        items=openlock_column_types,
+        name="Column type"
+    )
+
+    column_socket_style: EnumProperty(
+        name="Socket Style",
+        items=column_socket_style,
+        default="TEXTURED"
+    )
+
+    tile_units: EnumProperty(
+        name="Tile Units",
+        items=units
+    )
+
+    tile_resolution: IntProperty(
+        name="Tile Resolution"
+    )
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        if obj is not None:
+            if obj.mode == 'EDIT':
+                return False
+        return True
+
+    def invoke(self, context, event):
+        self.refresh = True
+        scene_props = context.scene.mt_scene_props
+        self.tile_type = scene_props.tile_type
+        return self.execute(context)
+
+    def execute(self, context):
+        if not self.refresh:
+            return {'PASS_THROUGH'}
+        print('executing')
+
+        if self.auto_refresh is False:
+            self.refresh = False
+        return {'FINISHED'}
+
+    def draw(self, context):
+        layout = self.layout
+        if self.auto_refresh is False:
+            self.refresh = False
+        elif self.auto_refresh is True:
+            self.refresh = True
+
+        # Refresh options
+        row = layout.box().row()
+        split = row.split()
+        split.scale_y = 1.5
+        split.prop(self, "auto_refresh", toggle=True, icon_only=True, icon='AUTO')
+        split.prop(self, "refresh", toggle=True, icon_only=True, icon='FILE_REFRESH')
+        self.draw_universal_props(context)
+
+    def draw_universal_props(self, context):
+        layout = self.layout
+        layout.prop(self, 'tile_type')
+        layout.prop(self, 'tile_material_1', text="Main Material")
+        layout.prop(self, 'UV_island_margin')
+        layout.prop(self, 'subdivisions')
 
 @multimethod(str, dict)
 def get_subdivs(density, dims):

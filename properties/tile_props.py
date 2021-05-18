@@ -22,6 +22,8 @@ from .properties import (
     create_main_part_blueprint_enums,
     create_tile_type_enums,
     create_base_blueprint_enums)
+
+from ..tile_creation.create_tile import create_material_enums
 # TODO Decide how many of these properties we actually need to be storing.
 # TODO rename to mt_collection_props
 
@@ -47,6 +49,11 @@ class MT_Tile_Properties(PropertyGroup):
         items=tile_blueprints,
         name="Blueprint",
         description="Blueprint for entire tile - e.g. openLOCK or Plain")
+
+    tile_material_1: EnumProperty(
+        items=create_material_enums,
+        name="Material"
+    )
 
     main_part_blueprint: EnumProperty(
         items=create_main_part_blueprint_enums,

@@ -99,6 +99,44 @@ def update_main_part_defaults(self, context):
                         setattr(scene_props, k, v)
                     break
 
+def update_base_defaults_2(self, context):
+    scene_props = context.scene.mt_scene_props
+    wall_props = context.scene.mt_wall_scene_props
+    tile_type = self.tile_type
+    base_blueprint = self.base_blueprint
+    tile_defaults = scene_props['tile_defaults']
+
+    for tile in tile_defaults:
+        if tile['type'] == tile_type:
+            base_defaults = tile['defaults']['base_defaults']
+            for key, value in base_defaults.items():
+                if key == base_blueprint:
+                    for k, v in value.items():
+                        if hasattr(self, k):
+                            setattr(scene_props, k, v)
+                        if hasattr(self, k):
+                            setattr(wall_props, k, v)
+                        if hasattr(self, k):
+                            setattr(self, k, v)
+                    break
+
+def update_main_part_defaults_2(self, context):
+    scene_props = context.scene.mt_scene_props
+    tile_type = self.tile_type
+    main_part_blueprint = self.main_part_blueprint
+    tile_defaults = scene_props['tile_defaults']
+
+    for tile in tile_defaults:
+        if tile['type'] == tile_type:
+            defaults = tile['defaults']
+            main_part_defaults = defaults['tile_defaults']
+            for key, value in main_part_defaults.items():
+                if key == main_part_blueprint:
+                    for k, v in value.items():
+                        setattr(scene_props, k, v)
+                        setattr(self, k, v)
+                    break
+
 
 def update_UV_island_margin(self, context):
     '''Reruns UV smart project for preview and displacement object'''
@@ -277,6 +315,12 @@ class MT_Scene_Properties(PropertyGroup):
         type=bpy.types.Object
     )
 
+    tile_type: EnumProperty(
+        items=create_tile_type_enums,
+        name="Tile Type",
+        update=update_scene_defaults
+    )
+
     tile_name: StringProperty(
         name="Tile Name",
         default="Tile"
@@ -306,12 +350,6 @@ class MT_Scene_Properties(PropertyGroup):
         name="Base"
     )
 
-    tile_type: EnumProperty(
-        items=create_tile_type_enums,
-        name="Tile Type",
-        update=update_scene_defaults
-    )
-
     UV_island_margin: FloatProperty(
         name="UV Margin",
         default=0.01,
@@ -330,54 +368,6 @@ class MT_Scene_Properties(PropertyGroup):
             ("LOW", "Low", "", 3)],
         default="MEDIUM",
         name="Subdivision Density")
-
-    x_native_subdivisions: IntProperty(
-        name="X",
-        description="The number of times to subdivide the X axis on creation",
-        default=15
-    )
-
-    y_native_subdivisions: IntProperty(
-        name="Y",
-        description="The number of times to subdivide the Y axis on creation",
-        default=3
-    )
-
-    z_native_subdivisions: IntProperty(
-        name="Z",
-        description="The number of times to subdivide the Z axis on creation",
-        default=15
-    )
-
-    opposite_native_subdivisions: IntProperty(
-        name="Opposite Side",
-        description="The number of times to subdivide the edge opposite the root angle on triangular tile creation",
-        default=15
-    )
-
-    curve_native_subdivisions: IntProperty(
-        name="Curved Side",
-        description="The number of times to subdivide the curved side of a tile",
-        default=15
-    )
-
-    leg_1_native_subdivisions: IntProperty(
-        name="Leg 1",
-        description="The number of times to subdivide the length of leg 1 of the tile",
-        default=15
-    )
-
-    leg_2_native_subdivisions: IntProperty(
-        name="Leg 2",
-        description="The number of times to subdivide the length of leg 2 of the tile",
-        default=15
-    )
-
-    width_native_subdivisions: IntProperty(
-        name="Width",
-        description="The number of times to subdivide each leg along its width",
-        default=3
-    )
 
     material_mapping_method: EnumProperty(
         items=material_mapping,

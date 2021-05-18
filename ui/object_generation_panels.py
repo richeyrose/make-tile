@@ -30,10 +30,10 @@ class MT_PT_Tile_Generator_Panel(Panel):
         layout.prop(scene_props, 'UV_island_margin')
         layout.prop(scene_props, 'subdivisions')
 
-        layout.operator('object.make_tile')
-
+        # DIsplay the appropriate operator based on tile_type
         tile_type = scene_props.tile_type
         tile_defaults = scene_props['tile_defaults']
+
         for default in tile_defaults:
             if default['type'] == tile_type:
                 layout.operator(default['bl_idname'], text="MakeTile")

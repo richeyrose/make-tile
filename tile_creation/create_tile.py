@@ -253,8 +253,6 @@ class MT_Tile_Generator:
 
     def draw_universal_props(self, context):
         layout = self.layout
-        layout.prop(self, 'base_blueprint')
-        layout.prop(self, 'main_part_blueprint')
         layout.prop(self, 'subdivision_density')
 
 

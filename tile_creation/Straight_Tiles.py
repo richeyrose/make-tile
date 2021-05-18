@@ -330,6 +330,8 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
+        layout.prop(self, 'base_blueprint')
+        layout.prop(self, 'main_part_blueprint')
         layout.label(text="Tile Size")
         row = layout.row()
         row.prop(self, 'tile_x')
@@ -487,7 +489,7 @@ class MT_OT_Make_Plain_Straight_Wall_Core(MT_Tile_Generator, Operator):
         return{'FINISHED'}
 
 
-class MT_OT_Make_Openlock_Straight_Wall_Core(MT_OT_Make_Plain_Straight_Wall_Core, Operator):
+class MT_OT_Make_Openlock_Straight_Wall_Core(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an openlock straight wall core."""
 
     bl_idname = "object.make_openlock_straight_wall_core"
@@ -588,6 +590,7 @@ def initialise_wall_creator_2(self, context):
     self.tile_type = 'STRAIGHT_WALL'
     tile_props.tile_size = (self.tile_x, self.tile_y, self.tile_z)
     tile_props.base_size = (self.base_x, self.base_y, self.base_z)
+    tile_props.subdivision_density = self.subdivision_density
     return cursor_orig_loc, cursor_orig_rot
 
 

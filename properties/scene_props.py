@@ -99,6 +99,7 @@ def update_main_part_defaults(self, context):
                         setattr(scene_props, k, v)
                     break
 
+
 def update_base_defaults_2(self, context):
     scene_props = context.scene.mt_scene_props
     wall_props = context.scene.mt_wall_scene_props

@@ -293,7 +293,7 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
         core_type = 'STRAIGHT_WALL_CORE'
         self.tile_type = 'STRAIGHT_WALL'
 
-        cursor_orig_loc, cursor_orig_rot = initialise_wall_creator_2(self, context)
+        initialise_wall_creator_2(self, context)
         subclasses = get_all_subclasses(MT_Tile_Generator)
         base = spawn_prefab(context, subclasses, base_blueprint, base_type)
 
@@ -317,9 +317,9 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
 
         if base_blueprint in {'OPENLOCK_S_WALL', 'PLAIN_S_WALL'}:
             floor_core = spawn_prefab(context, subclasses, 'OPENLOCK', 'STRAIGHT_FLOOR_CORE')
-            finalise_tile(base, (wall_core, floor_core), cursor_orig_loc, cursor_orig_rot)
+            finalise_tile(base, (wall_core, floor_core), self.cursor_orig_loc, self.cursor_orig_rot)
         else:
-            finalise_tile(base, wall_core, cursor_orig_loc, cursor_orig_rot)
+            finalise_tile(base, wall_core, self.cursor_orig_loc, self.cursor_orig_rot)
 
         tile_props.tile_size = orig_tile_size
 
@@ -572,9 +572,10 @@ class MT_OT_Make_Empty_Straight_Floor_Core(MT_Tile_Generator, Operator):
 
 
 def initialise_wall_creator_2(self, context):
-    tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator_2(self, context)
+    tile_name = initialise_tile_creator_2(self, context)
 
-    create_collection('Walls', tiles_collection)
+    if 'Walls' not in bpy.data.collections:
+        create_collection('Walls', bpy.data.collections['Tiles'])
     tile_collection = bpy.data.collections.new(tile_name)
     bpy.data.collections['Walls'].children.link(tile_collection)
     activate_collection(tile_collection.name)
@@ -594,32 +595,19 @@ def initialise_wall_creator_2(self, context):
     tile_props.tile_size = (self.tile_x, self.tile_y, self.tile_z)
     tile_props.base_size = (self.base_x, self.base_y, self.base_z)
 
-    return cursor_orig_loc, cursor_orig_rot
-
 
 def initialise_tile_creator_2(self, context):
     deselect_all()
     scene = context.scene
 
+    '''
     # Root collection to which we add all tiles
     tiles_collection = create_collection('Tiles', scene.collection)
-
-    # create helper object for material mapping
-    create_helper_object(context)
-
+    '''
     # set tile name
     tile_name = self.tile_type.lower()
 
-    # We create tile at origin and then move it to original location
-    # this stops us from having to update the view layer every time
-    # we parent an object
-    cursor = scene.cursor
-    cursor_orig_loc = cursor.location.copy()
-    cursor_orig_rot = cursor.rotation_euler.copy()
-    cursor.location = (0, 0, 0)
-    cursor.rotation_euler = (0, 0, 0)
-
-    return tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot
+    return tile_name
 
 def initialise_wall_creator(context):
     """Initialise the wall creator and set common properties.

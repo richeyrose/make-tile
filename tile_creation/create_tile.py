@@ -221,6 +221,10 @@ class MT_Tile_Generator:
         else:
             return True
 
+    def __init__(self):
+        self.cursor_orig_loc = (0, 0, 0)
+        self.cursor_orig_rot = (0, 0, 0)
+
     def invoke(self, context, event):
         scene_props = context.scene.mt_scene_props
         all_annotations = self.get_annotations()
@@ -240,6 +244,24 @@ class MT_Tile_Generator:
     def execute(self, context):
         """Call when operator is executed."""
         deselect_all()
+        scene = context.scene
+
+        # We create tile at origin and then move it back to original location.
+        # This saves us having to update the scene when we reset origins etc.
+        cursor = scene.cursor
+        self.cursor_orig_loc = cursor.location.copy()
+        self.cursor_orig_rot = cursor.rotation_euler.copy()
+        cursor.location = (0, 0, 0)
+        cursor.rotation_euler = (0, 0, 0)
+
+        # create helper object for material mapping
+        create_helper_object(context)
+
+        # Root collection to which we add all tiles
+        if 'Tiles' not in bpy.data.collections:
+            create_collection('Tiles', scene.collection)
+
+
 
     def draw(self, context):
         """Draw the Redo panel."""

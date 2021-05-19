@@ -230,13 +230,19 @@ class MT_Tile_Generator:
                     setattr(self, str(k), getattr(scene_props, str(k)))
 
         self.refresh = True
-        self.invoked = True
+        self.on_invoke(context, event)
         return self.execute(context)
 
+    def on_invoke(self, context, event):
+        """Call when operator is invoked from UI."""
+        self.invoked = True
+
     def execute(self, context):
-        return {'PASS_THROUGH'}
+        """Call when operator is executed."""
+        deselect_all()
 
     def draw(self, context):
+        """Draw the Redo panel."""
         layout = self.layout
         if self.auto_refresh is False:
             self.refresh = False
@@ -249,10 +255,6 @@ class MT_Tile_Generator:
         split.scale_y = 1.5
         split.prop(self, "auto_refresh", toggle=True, icon_only=True, icon='AUTO')
         split.prop(self, "refresh", toggle=True, icon_only=True, icon='FILE_REFRESH')
-        self.draw_universal_props(context)
-
-    def draw_universal_props(self, context):
-        layout = self.layout
         layout.prop(self, 'subdivision_density')
 
 
@@ -373,6 +375,81 @@ def lock_all_transforms(obj):
     obj.lock_scale[0] = True
     obj.lock_scale[1] = True
     obj.lock_scale[2] = True
+
+
+def convert_to_displacement_core_2(core, tile_props, textured_vertex_groups):
+    """Convert the core part of an object so it can be used by the MakeTile dispacement system.
+
+    Args:
+        core (bpy.types.Object): object to convert
+        textured_vertex_groups (list[str]): list of vertex group names that should have a texture applied
+    """
+    context = bpy.context
+    scene = context.scene
+    preferences = get_prefs()
+    props = core.mt_object_props
+    scene_props = scene.mt_scene_props
+    primary_material = bpy.data.materials[tile_props.tile_material_1]
+    secondary_material = bpy.data.materials[preferences.secondary_material]
+
+    # create new displacement modifier
+    disp_mod = core.modifiers.new('MT Displacement', 'DISPLACE')
+    disp_mod.strength = 0
+    disp_mod.texture_coords = 'UV'
+    disp_mod.direction = 'NORMAL'
+    disp_mod.mid_level = 0
+    disp_mod.show_render = True
+
+    # save modifier name as custom property for use my maketile
+    props.disp_mod_name = disp_mod.name
+    props.displacement_strength = scene_props.displacement_strength
+    # core['disp_mod_name'] = disp_mod.name
+
+    # create a vertex group for the displacement modifier
+    vert_group = construct_displacement_mod_vert_group(core, textured_vertex_groups)
+    disp_mod.vertex_group = vert_group
+
+    # create texture for displacement modifier
+    props.disp_texture = bpy.data.textures.new(core.name + '.texture', 'IMAGE')
+    '''
+    # add a triangulate modifier to correct for distortion after bools
+    core.modifiers.new('MT Triangulate', 'TRIANGULATE')
+    '''
+    # add a subsurf modifier
+    subsurf = core.modifiers.new('MT Subsurf', 'SUBSURF')
+    subsurf.subdivision_type = 'SIMPLE'
+    props.subsurf_mod_name = subsurf.name
+    core.cycles.use_adaptive_subdivision = True
+
+    # move subsurf modifier to top of stack
+    ctx = {
+        'object': core,
+        'active_object': core,
+        'selected_objects': [core],
+        'selected_editable_objects': [core]
+    }
+
+    bpy.ops.object.modifier_move_to_index(ctx, modifier=subsurf.name, index=0)
+
+    subsurf.levels = 3
+
+    # switch off subsurf modifier if we are not in cycles mode
+    if bpy.context.scene.render.engine != 'CYCLES':
+        subsurf.show_viewport = False
+
+    # assign materials
+    if secondary_material.name not in core.data.materials:
+        core.data.materials.append(secondary_material)
+
+    if primary_material.name not in core.data.materials:
+        core.data.materials.append(primary_material)
+
+    for group in textured_vertex_groups:
+        assign_mat_to_vert_group(group, core, primary_material)
+
+    # flag core as a displacement object
+    core.mt_object_props.is_displacement = True
+    core.mt_object_props.geometry_type = 'CORE'
 
 
 def convert_to_displacement_core(core, textured_vertex_groups):

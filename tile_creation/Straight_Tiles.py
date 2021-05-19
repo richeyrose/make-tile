@@ -37,6 +37,7 @@ from .create_tile import (
     finalise_tile,
     spawn_empty_base,
     convert_to_displacement_core,
+    convert_to_displacement_core_2,
     spawn_prefab,
     set_bool_obj_props,
     set_bool_props,
@@ -278,7 +279,8 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
 
     def execute(self, context):
         """Execute the operator."""
-        deselect_all()
+        super().execute(context)
+
         if not self.refresh:
             return {'PASS_THROUGH'}
 
@@ -330,6 +332,7 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
+        layout.prop(self, 'tile_material_1')
         layout.prop(self, 'base_blueprint')
         layout.prop(self, 'main_part_blueprint')
         layout.label(text="Tile Size")
@@ -591,6 +594,8 @@ def initialise_wall_creator_2(self, context):
     tile_props.tile_size = (self.tile_x, self.tile_y, self.tile_z)
     tile_props.base_size = (self.base_x, self.base_y, self.base_z)
     tile_props.subdivision_density = self.subdivision_density
+    tile_props.tile_material_1 = self.tile_material_1
+
     return cursor_orig_loc, cursor_orig_rot
 
 
@@ -701,8 +706,9 @@ def spawn_plain_wall_cores(self, tile_props, wall_props):
     """
     preview_core = spawn_wall_core(self, tile_props, wall_props)
     textured_vertex_groups = ['Front', 'Back']
-    convert_to_displacement_core(
+    convert_to_displacement_core_2(
         preview_core,
+        tile_props,
         textured_vertex_groups)
     return preview_core
 
@@ -738,8 +744,9 @@ def spawn_openlock_wall_cores(self, tile_props, wall_props, base):
         set_bool_props(wall_cutter, core, 'DIFFERENCE')
 
     textured_vertex_groups = ['Front', 'Back']
-    convert_to_displacement_core(
+    convert_to_displacement_core_2(
         core,
+        tile_props,
         textured_vertex_groups)
 
     return core

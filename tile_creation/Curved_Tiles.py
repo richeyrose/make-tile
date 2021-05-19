@@ -31,7 +31,7 @@ from .create_tile import (
     MT_Tile_Generator,
     initialise_tile_creator,
     create_common_tile_props,
-    copy_property_group_values,
+    copy_annotation_props,
     get_subdivs)
 
 
@@ -455,7 +455,7 @@ def initialise_wall_creator(context):
     scene_props = context.scene.mt_scene_props
     wall_scene_props = context.scene.mt_wall_scene_props
     create_common_tile_props(scene_props, tile_props, tile_collection)
-    copy_property_group_values(wall_scene_props, wall_tile_props)
+    copy_annotation_props(wall_scene_props, wall_tile_props)
 
     wall_tile_props.is_wall = True
 

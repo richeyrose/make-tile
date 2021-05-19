@@ -45,7 +45,7 @@ from .create_tile import (
     MT_Tile_Generator,
     initialise_tile_creator,
     create_common_tile_props,
-    copy_property_group_values,
+    copy_annotation_props,
     get_subdivs)
 
 from .Rectangular_Tiles import (
@@ -291,6 +291,7 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
         core_blueprint = self.main_part_blueprint
         base_type = 'STRAIGHT_BASE'
         core_type = 'STRAIGHT_WALL_CORE'
+        self.tile_type = 'STRAIGHT_WALL'
 
         cursor_orig_loc, cursor_orig_rot = initialise_wall_creator_2(self, context)
         subclasses = get_all_subclasses(MT_Tile_Generator)
@@ -581,20 +582,17 @@ def initialise_wall_creator_2(self, context):
     tile_props = tile_collection.mt_tile_props
     wall_tile_props = tile_collection.mt_wall_tile_props
 
-    copy_property_group_values(self, tile_props)
-    copy_property_group_values(self, wall_tile_props)
+    self_annotations = self.get_annotations()
+    copy_annotation_props(self, tile_props, self_annotations)
+    copy_annotation_props(self, wall_tile_props)
 
     tile_props.tile_name = tile_collection.name
     tile_props.is_mt_collection = True
     tile_props.collection_type = "TILE"
 
     wall_tile_props.is_wall = True
-    tile_props.tile_type = 'STRAIGHT_WALL'
-    self.tile_type = 'STRAIGHT_WALL'
     tile_props.tile_size = (self.tile_x, self.tile_y, self.tile_z)
     tile_props.base_size = (self.base_x, self.base_y, self.base_z)
-    tile_props.subdivision_density = self.subdivision_density
-    tile_props.tile_material_1 = self.tile_material_1
 
     return cursor_orig_loc, cursor_orig_rot
 
@@ -651,7 +649,7 @@ def initialise_wall_creator(context):
     scene_props = context.scene.mt_scene_props
     wall_scene_props = context.scene.mt_wall_scene_props
     create_common_tile_props(scene_props, tile_props, tile_collection)
-    copy_property_group_values(wall_scene_props, wall_tile_props)
+    copy_annotation_props(wall_scene_props, wall_tile_props)
 
     wall_tile_props.is_wall = True
 

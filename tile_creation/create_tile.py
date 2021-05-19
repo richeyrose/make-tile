@@ -337,26 +337,34 @@ def initialise_tile_creator(context):
 
 def create_common_tile_props(scene_props, tile_props, tile_collection):
     """Create properties common to all tiles."""
-    copy_property_group_values(scene_props, tile_props)
+    copy_annotation_props(scene_props, tile_props)
 
     tile_props.tile_name = tile_collection.name
     tile_props.is_mt_collection = True
     tile_props.collection_type = "TILE"
 
 
-def copy_property_group_values(source_prop_group, target_prop_group):
-    """Set the props in the target property group to the value of the props in the source prop group.
+def copy_annotation_props(source_props, target_props, source_annotations=None, target_annotations=None):
+    """Set target_props to the value of source_props.
 
-    Props must have same names and be of same type
+    Props must have same names and be of same type. If you want to include annotations of parent
+    class(es) set them seperately.
 
     Args:
-        source_prop_group (bpy.Types.PropertyGroup): Source Property Group
-        target_prop_group (bpy.Types.PropertyGroup): Target Property Group
+        source_prop_group (class): Source class
+        target_prop_group (class): Target class
+        source_annotations (.__annotations__), optional: annotations to copy. Defaults to None.
+        target_annotations (.__annotations__), optional: annotations to set. Defaults to None.
     """
-    for key in source_prop_group.__annotations__.keys():
-        for k in target_prop_group.__annotations__.keys():
+    if not source_annotations:
+        source_annotations = source_props.__annotations__
+    if not target_annotations:
+        target_annotations = target_props.__annotations__
+
+    for key in source_annotations.keys():
+        for k in target_annotations.keys():
             if k == key:
-                setattr(target_prop_group, str(k), getattr(source_prop_group, str(k)))
+                setattr(target_props, str(k), getattr(source_props, str(k)))
 
 
 def lock_all_transforms(obj):

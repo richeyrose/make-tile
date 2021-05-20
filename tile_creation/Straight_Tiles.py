@@ -39,6 +39,7 @@ from .create_tile import (
     convert_to_displacement_core,
     convert_to_displacement_core_2,
     spawn_prefab,
+    spawn_prefab_2,
     set_bool_obj_props,
     set_bool_props,
     load_openlock_top_peg,
@@ -277,6 +278,20 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
         default=False
     )
 
+    # S Wall Props
+    wall_position: EnumProperty(
+        name="Wall Position",
+        items=[
+            ("CENTER", "Center", "Wall is in Center of base."),
+            ("SIDE", "Side", "Wall is on the side of base.")],
+        default="CENTER")
+
+    floor_thickness: FloatProperty(
+        name="Floor Thickness",
+        default=0.0245,
+        step=0.01,
+        precision=4)
+
     def execute(self, context):
         """Execute the operator."""
         super().execute(context)
@@ -292,12 +307,12 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
         base_type = 'STRAIGHT_BASE'
         core_type = 'STRAIGHT_WALL_CORE'
         subclasses = get_all_subclasses(MT_Tile_Generator)
-        base = spawn_prefab(context, subclasses, base_blueprint, base_type)
+        base = spawn_prefab_2(self, context, subclasses, base_blueprint, base_type)
 
         if self.main_part_blueprint == 'NONE':
             wall_core = None
         else:
-            wall_core = spawn_prefab(context, subclasses, self.main_part_blueprint, core_type)
+            wall_core = spawn_prefab_2(self, context, subclasses, self.main_part_blueprint, core_type)
 
         # We temporarily override tile_props.base_size to generate floor core for S-Tiles.
         # It is easier to do it this way as the PropertyGroup.copy() method produces a dict
@@ -310,13 +325,13 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
         tile_props.tile_size = (
             tile_props.base_size[0],
             tile_props.base_size[1],
-            scene_props.base_z + wall_scene_props.floor_thickness)
+            scene_props.base_z + self.floor_thickness)
 
         if base_blueprint in {'OPENLOCK_S_WALL', 'PLAIN_S_WALL'}:
-            floor_core = spawn_prefab(context, subclasses, 'OPENLOCK', 'STRAIGHT_FLOOR_CORE')
-            finalise_tile(base, (wall_core, floor_core), self.cursor_orig_loc, self.cursor_orig_rot)
+            floor_core = spawn_prefab_2(self, context, subclasses, 'OPENLOCK', 'STRAIGHT_FLOOR_CORE')
+            self.finalise_tile(context, base, wall_core, floor_core)
         else:
-            finalise_tile(base, wall_core, self.cursor_orig_loc, self.cursor_orig_rot)
+            self.finalise_tile(context, base, wall_core)
 
         tile_props.tile_size = orig_tile_size
 
@@ -363,6 +378,11 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
         row.prop(self, 'base_y')
         row.prop(self, 'base_z')
 
+        if self.base_blueprint in ('OPENLOCK_S_WALL', 'PLAIN_S_WALL'):
+            layout.label(text="Floor Thickness")
+            layout.prop(self, 'floor_thickness', text="")
+            layout.label(text="Wall Position")
+            layout.prop(self, 'wall_position', text="")
 
 class MT_OT_Make_Straight_Floor_Tile(MT_Tile_Generator, Operator):
     """Operator. Generates a straight wall tile with a customisable base and main part."""

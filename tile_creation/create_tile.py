@@ -217,7 +217,6 @@ class MT_Tile_Generator:
         default=False
     )
 
-
     @classmethod
     def get_annotations(cls):
         """Return all annotations of a class including from parent class.
@@ -300,6 +299,42 @@ class MT_Tile_Generator:
         self_annotations = self.get_annotations()
         copy_annotation_props(self, tile_props, self_annotations)
         activate_collection(tile_collection.name)
+
+    def finalise_tile(self, context, base, *args):
+        """Finalise the tile.
+
+        Parents the objects passed in *args to the base, sets the base material,
+        places the tile at the cursor location and resets the cursor.
+
+        Args:
+            context (bpy.context): Context
+            base (bpy.types.Object): Base to parent objects to
+            *args (list of bpy.types.Object)
+        """
+        # assign secondary material to base if it is a mesh
+        prefs = get_prefs()
+        if base.type == 'MESH' and prefs.secondary_material not in base.material_slots:
+            base.data.materials.append(bpy.data.materials[prefs.secondary_material])
+
+        # Reset location of base
+        base.location = self.cursor_orig_loc
+        cursor = context.scene.cursor
+        cursor.location = self.cursor_orig_loc
+        cursor.rotation_euler = self.cursor_orig_rot
+
+        # Parent cores to base
+        for arg in args:
+            if arg is not None:
+                arg.parent = base
+                lock_all_transforms(arg)
+
+        # deselect any currently selected objects
+        for obj in context.selected_objects:
+            obj.select_set(False)
+
+        base.select_set(True)
+        context.view_layer.objects.active = base
+
 
     def draw(self, context):
         """Draw the Redo panel."""
@@ -707,6 +742,37 @@ def spawn_prefab(context, subclasses, blueprint, mt_type):
         if hasattr(subclass, 'mt_type') and hasattr(subclass, 'mt_blueprint'):
             if subclass.mt_type == mt_type and subclass.mt_blueprint == blueprint:
                 eval_str = 'ops.' + subclass.bl_idname + '()'
+                eval(eval_str, {"__builtins__": {}}, allowed_names)
+
+    prefab = context.active_object
+    return prefab
+
+
+def spawn_prefab_2(self, context, subclasses, blueprint, mt_type, **kwargs):
+    """Spawn a maketile prefab such as a base or tile core(s).
+
+    Args:
+        context (bpy.context): Blender context
+        subclasses (list): list of all subclasses of MT_Tile_Generator
+        blueprint (str): mt_blueprint enum item
+        type (str): mt_type enum item
+        **kwargs (dict): Arguments to pass to operator
+
+    Returns:
+        bpy.types.Object: Prefab
+    """
+    args = []
+    for key, value in kwargs.items():
+        args.append(key + '=' + str(value))
+    arg_str = ', '.join(args)
+
+
+    # ensure we can only run bpy.ops in our eval statements
+    allowed_names = {k: v for k, v in bpy.__dict__.items() if k == 'ops'}
+    for subclass in subclasses:
+        if hasattr(subclass, 'mt_type') and hasattr(subclass, 'mt_blueprint'):
+            if subclass.mt_type == mt_type and subclass.mt_blueprint == blueprint:
+                eval_str = 'ops.' + subclass.bl_idname + '(' + arg_str + ')'
                 eval(eval_str, {"__builtins__": {}}, allowed_names)
 
     prefab = context.active_object

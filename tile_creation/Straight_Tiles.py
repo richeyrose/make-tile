@@ -291,16 +291,13 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
         core_blueprint = self.main_part_blueprint
         base_type = 'STRAIGHT_BASE'
         core_type = 'STRAIGHT_WALL_CORE'
-        self.tile_type = 'STRAIGHT_WALL'
-
-        initialise_wall_creator_2(self, context)
         subclasses = get_all_subclasses(MT_Tile_Generator)
         base = spawn_prefab(context, subclasses, base_blueprint, base_type)
 
-        if core_blueprint == 'NONE':
+        if self.main_part_blueprint == 'NONE':
             wall_core = None
         else:
-            wall_core = spawn_prefab(context, subclasses, core_blueprint, core_type)
+            wall_core = spawn_prefab(context, subclasses, self.main_part_blueprint, core_type)
 
         # We temporarily override tile_props.base_size to generate floor core for S-Tiles.
         # It is easier to do it this way as the PropertyGroup.copy() method produces a dict
@@ -330,6 +327,18 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
 
         return {'FINISHED'}
 
+    def init(self, context):
+        super().init(context)
+        tile_collection = bpy.data.collections[self.tile_name]
+        tile_props = tile_collection.mt_tile_props
+        tile_props.collection_type = "TILE"
+        tile_props.tile_size = (self.tile_x, self.tile_y, self.tile_z)
+        tile_props.base_size = (self.base_x, self.base_y, self.base_z)
+
+        wall_tile_props = tile_collection.mt_wall_tile_props
+        copy_annotation_props(self, wall_tile_props)
+        wall_tile_props.is_wall = True
+
     def draw(self, context):
         super().draw(context)
         layout = self.layout
@@ -339,10 +348,8 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
         layout.label(text="Tile Size")
         row = layout.row()
         row.prop(self, 'tile_x')
+        row.prop(self, 'tile_y')
         row.prop(self, 'tile_z')
-
-        layout.label(text="Core Size")
-        layout.prop(self, 'tile_y', text="Width")
 
         layout.label(text="Sync Proportions")
         row = layout.row()
@@ -571,43 +578,8 @@ class MT_OT_Make_Empty_Straight_Floor_Core(MT_Tile_Generator, Operator):
         return {'PASS_THROUGH'}
 
 
-def initialise_wall_creator_2(self, context):
-    tile_name = initialise_tile_creator_2(self, context)
-
-    if 'Walls' not in bpy.data.collections:
-        create_collection('Walls', bpy.data.collections['Tiles'])
-    tile_collection = bpy.data.collections.new(tile_name)
-    bpy.data.collections['Walls'].children.link(tile_collection)
-    activate_collection(tile_collection.name)
-
-    tile_props = tile_collection.mt_tile_props
-    wall_tile_props = tile_collection.mt_wall_tile_props
-
-    self_annotations = self.get_annotations()
-    copy_annotation_props(self, tile_props, self_annotations)
-    copy_annotation_props(self, wall_tile_props)
-
-    tile_props.tile_name = tile_collection.name
-    tile_props.is_mt_collection = True
-    tile_props.collection_type = "TILE"
-
-    wall_tile_props.is_wall = True
-    tile_props.tile_size = (self.tile_x, self.tile_y, self.tile_z)
-    tile_props.base_size = (self.base_x, self.base_y, self.base_z)
 
 
-def initialise_tile_creator_2(self, context):
-    deselect_all()
-    scene = context.scene
-
-    '''
-    # Root collection to which we add all tiles
-    tiles_collection = create_collection('Tiles', scene.collection)
-    '''
-    # set tile name
-    tile_name = self.tile_type.lower()
-
-    return tile_name
 
 def initialise_wall_creator(context):
     """Initialise the wall creator and set common properties.

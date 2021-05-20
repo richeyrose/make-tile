@@ -18,7 +18,11 @@ from ..operators.assign_reference_object import (
 from ..utils.registration import get_prefs
 
 from ..lib.utils.vertex_groups import construct_displacement_mod_vert_group
-from ..lib.utils.collections import add_object_to_collection, create_collection
+from ..lib.utils.collections import (
+    add_object_to_collection,
+    create_collection,
+    activate_collection)
+
 from ..lib.utils.selection import select, deselect_all, activate
 from ..lib.utils.multimethod import multimethod
 from ..materials.materials import assign_mat_to_vert_group
@@ -147,9 +151,24 @@ class MT_Tile_Generator:
         description="The type of tile e.g. Straight Wall, Curved Floor"
     )
 
+    collection_type: EnumProperty(
+        items=collection_types,
+        name="Collection Types",
+        description="Easy way of distinguishing whether we are dealing with a tile, \
+            an architectural element or a larger prefab such as a building or dungeon."
+    )
+
     tile_material_1: EnumProperty(
         items=create_material_enums,
         name="Material"
+    )
+
+    tile_name: StringProperty(
+        name="Tile Name"
+    )
+
+    is_mt_collection: BoolProperty(
+        default=True
     )
 
     # Native Subdivisions
@@ -198,6 +217,7 @@ class MT_Tile_Generator:
         default=False
     )
 
+
     @classmethod
     def get_annotations(cls):
         """Return all annotations of a class including from parent class.
@@ -216,16 +236,19 @@ class MT_Tile_Generator:
 
     @classmethod
     def poll(cls, context):
+        """Check in object mode."""
         if context.object is not None:
             return context.object.mode == 'OBJECT'
         else:
             return True
 
     def __init__(self):
+        """Initialise."""
         self.cursor_orig_loc = (0, 0, 0)
         self.cursor_orig_rot = (0, 0, 0)
 
     def invoke(self, context, event):
+        """Call when operator is invoked directly from the UI."""
         scene_props = context.scene.mt_scene_props
         all_annotations = self.get_annotations()
         for key in scene_props.__annotations__.keys():
@@ -243,9 +266,12 @@ class MT_Tile_Generator:
 
     def execute(self, context):
         """Call when operator is executed."""
+        self.init(context)
+
+    def init(self, context):
+        """Initialise operator properties."""
         deselect_all()
         scene = context.scene
-
         # We create tile at origin and then move it back to original location.
         # This saves us having to update the scene when we reset origins etc.
         cursor = scene.cursor
@@ -257,11 +283,23 @@ class MT_Tile_Generator:
         # create helper object for material mapping
         create_helper_object(context)
 
-        # Root collection to which we add all tiles
-        if 'Tiles' not in bpy.data.collections:
+        # Each tile is a sub collection of a 'Tiles' collection
+        collections = bpy.data.collections
+        if 'Tiles' not in collections:
             create_collection('Tiles', scene.collection)
+        tile_collection = collections.new(self.tile_type.lower())
+        collections['Tiles'].children.link(tile_collection)
 
+        # set tile_name to collection name
+        self.tile_name = tile_collection.name
 
+        # properties are stored on the tile collection for
+        # later access by the tile constructors
+        tile_props = tile_collection.mt_tile_props
+
+        self_annotations = self.get_annotations()
+        copy_annotation_props(self, tile_props, self_annotations)
+        activate_collection(tile_collection.name)
 
     def draw(self, context):
         """Draw the Redo panel."""

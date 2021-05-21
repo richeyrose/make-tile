@@ -8,6 +8,7 @@ from bpy.props import (
     FloatProperty,
     EnumProperty,
     BoolProperty,
+    StringProperty,
     PointerProperty)
 
 from ..properties.properties import (
@@ -17,6 +18,8 @@ from ..properties.properties import (
 from ..properties.scene_props import (
     update_main_part_defaults_2,
     update_base_defaults_2)
+
+from ..properties.tile_props import MT_Tile_Properties
 
 from .. utils.registration import get_prefs
 from .. lib.utils.collections import (
@@ -187,15 +190,7 @@ def tile_z_update(self, context):
         self.base_z = tile_props.base_size[2] + self.tile_z - tile_props.tile_size[2]
 
 
-class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
-    """Operator. Generates a straight wall tile with a customisable base and main part."""
-
-    bl_idname = "object.make_straight_wall"
-    bl_label = "Straight Wall"
-    bl_options = {'UNDO', 'REGISTER', "PRESET"}
-    mt_blueprint = "CUSTOM"
-    mt_type = "STRAIGHT_WALL"
-
+class MT_Straight_Tile:
     # Tile type #
     main_part_blueprint: EnumProperty(
         items=create_main_part_blueprint_enums,
@@ -277,77 +272,6 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
         default=False
     )
 
-    # S Wall Props
-    wall_position: EnumProperty(
-        name="Wall Position",
-        items=[
-            ("CENTER", "Center", "Wall is in Center of base."),
-            ("SIDE", "Side", "Wall is on the side of base.")],
-        default="CENTER")
-
-    floor_thickness: FloatProperty(
-        name="Floor Thickness",
-        default=0.0245,
-        step=0.01,
-        precision=4)
-
-    def execute(self, context):
-        """Execute the operator."""
-        super().execute(context)
-
-        if not self.refresh:
-            return {'PASS_THROUGH'}
-
-        scene = context.scene
-        scene_props = scene.mt_scene_props
-        base_blueprint = self.base_blueprint
-        core_blueprint = self.main_part_blueprint
-        base_type = 'STRAIGHT_BASE'
-        core_type = 'STRAIGHT_WALL_CORE'
-        subclasses = get_all_subclasses(MT_Tile_Generator)
-        base = spawn_prefab(context, subclasses, base_blueprint, base_type)
-
-        if self.main_part_blueprint == 'NONE':
-            wall_core = None
-        else:
-            wall_core = spawn_prefab(context, subclasses, self.main_part_blueprint, core_type)
-
-        # We temporarily override tile_props.base_size to generate floor core for S-Tiles.
-        # It is easier to do it this way as the PropertyGroup.copy() method produces a dict
-        tile_props = context.collection.mt_tile_props
-
-        orig_tile_size = []
-        for c, v in enumerate(tile_props.tile_size):
-            orig_tile_size.append(v)
-
-        tile_props.tile_size = (
-            tile_props.base_size[0],
-            tile_props.base_size[1],
-            scene_props.base_z + self.floor_thickness)
-
-        if base_blueprint in {'OPENLOCK_S_WALL', 'PLAIN_S_WALL'}:
-            floor_core = spawn_prefab(context, subclasses, 'OPENLOCK', 'STRAIGHT_FLOOR_CORE')
-            self.finalise_tile(context, base, wall_core, floor_core)
-        else:
-            self.finalise_tile(context, base, wall_core)
-
-        tile_props.tile_size = orig_tile_size
-
-        if self.auto_refresh is False:
-            self.refresh = False
-
-        self.invoked = False
-
-        return {'FINISHED'}
-
-    def init(self, context):
-        super().init(context)
-        tile_collection = bpy.data.collections[self.tile_name]
-        tile_props = tile_collection.mt_tile_props
-        tile_props.collection_type = "TILE"
-        tile_props.tile_size = (self.tile_x, self.tile_y, self.tile_z)
-        tile_props.base_size = (self.base_x, self.base_y, self.base_z)
-
     def draw(self, context):
         super().draw(context)
         layout = self.layout
@@ -372,45 +296,147 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
         row.prop(self, 'base_y')
         row.prop(self, 'base_z')
 
+
+class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Straight_Tile, MT_Tile_Generator):
+    """Operator. Generates a straight wall tile with a customisable base and main part."""
+
+    bl_idname = "object.make_straight_wall"
+    bl_label = "Straight Wall"
+    bl_options = {'UNDO', 'REGISTER', "PRESET"}
+    mt_blueprint = "CUSTOM"
+    mt_type = "STRAIGHT_WALL"
+
+    # S Wall Props
+    wall_position: EnumProperty(
+        name="Wall Position",
+        items=[
+            ("CENTER", "Center", "Wall is in Center of base."),
+            ("SIDE", "Side", "Wall is on the side of base.")],
+        default="CENTER")
+
+    floor_thickness: FloatProperty(
+        name="Floor Thickness",
+        default=0.0245,
+        step=0.01,
+        precision=4)
+
+    def execute(self, context):
+        """Execute the operator."""
+        super().execute(context)
+        if not self.refresh:
+            return {'PASS_THROUGH'}
+
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        base_blueprint = self.base_blueprint
+        core_blueprint = self.main_part_blueprint
+        base_type = 'STRAIGHT_BASE'
+        core_type = 'STRAIGHT_WALL_CORE'
+        subclasses = get_all_subclasses(MT_Tile_Generator)
+        kwargs = {"tile_name": "\"" + str(self.tile_name) + "\""}
+
+        base = spawn_prefab(context, subclasses, base_blueprint, base_type, **kwargs)
+
+        kwargs["base_name"] = "\"" + str(base.name) + "\""
+
+        if core_blueprint == 'NONE':
+            wall_core = None
+        else:
+            wall_core = spawn_prefab(context, subclasses, core_blueprint, core_type, **kwargs)
+
+        # We temporarily override tile_props.base_size to generate floor core for S-Tiles.
+        # It is easier to do it this way as the PropertyGroup.copy() method produces a dict
+        tile_props = context.collection.mt_tile_props
+
+        orig_tile_size = []
+        for c, v in enumerate(tile_props.tile_size):
+            orig_tile_size.append(v)
+
+        tile_props.tile_size = (
+            tile_props.base_size[0],
+            tile_props.base_size[1],
+            scene_props.base_z + self.floor_thickness)
+
+        if base_blueprint in {'OPENLOCK_S_WALL', 'PLAIN_S_WALL'}:
+            floor_core = spawn_prefab(context, subclasses, 'OPENLOCK', 'STRAIGHT_FLOOR_CORE', **kwargs)
+            self.finalise_tile(context, base, wall_core, floor_core)
+        else:
+            self.finalise_tile(context, base, wall_core)
+
+        tile_props.tile_size = orig_tile_size
+
+        if self.auto_refresh is False:
+            self.refresh = False
+
+        self.invoked = False
+
+        return {'FINISHED'}
+
+    def init(self, context):
+        super().init(context)
+        tile_collection = bpy.data.collections[self.tile_name]
+        tile_props = tile_collection.mt_tile_props
+        tile_props.collection_type = "TILE"
+        tile_props.tile_size = (self.tile_x, self.tile_y, self.tile_z)
+        tile_props.base_size = (self.base_x, self.base_y, self.base_z)
+
+    def draw(self, context):
+        super().draw(context)
+        layout = self.layout
         if self.base_blueprint in ('OPENLOCK_S_WALL', 'PLAIN_S_WALL'):
             layout.label(text="Floor Thickness")
             layout.prop(self, 'floor_thickness', text="")
             layout.label(text="Wall Position")
             layout.prop(self, 'wall_position', text="")
 
-class MT_OT_Make_Straight_Floor_Tile(MT_Tile_Generator, Operator):
+class MT_OT_Make_Straight_Floor_Tile(Operator, MT_Straight_Tile, MT_Tile_Generator):
     """Operator. Generates a straight wall tile with a customisable base and main part."""
 
     bl_idname = "object.make_straight_floor"
     bl_label = "Straight Floor"
-    bl_options = {'UNDO'}
+    bl_options = {'UNDO', 'REGISTER', "PRESET"}
     mt_blueprint = "CUSTOM"
     mt_type = "STRAIGHT_FLOOR"
 
     def execute(self, context):
         """Execute the operator."""
-        scene = context.scene
-        scene_props = scene.mt_scene_props
-        base_blueprint = scene_props.base_blueprint
-        core_blueprint = scene_props.main_part_blueprint
+        super().execute(context)
+        if not self.refresh:
+            return {'PASS_THROUGH'}
+
+        base_blueprint = self.base_blueprint
+        core_blueprint = self.main_part_blueprint
         base_type = 'STRAIGHT_BASE'
         core_type = 'STRAIGHT_FLOOR_CORE'
         subclasses = get_all_subclasses(MT_Tile_Generator)
+        kwargs = {"tile_name": "\"" + str(self.tile_name) + "\""}
 
-        cursor_orig_loc, cursor_orig_rot = initialise_floor_creator(context, scene_props)
-        base = spawn_prefab(context, subclasses, base_blueprint, base_type)
+        base = spawn_prefab(context, subclasses, base_blueprint, base_type, **kwargs)
+        kwargs["base_name"] = "\"" + str(base.name) + "\""
 
         if core_blueprint == 'NONE':
             preview_core = None
         else:
-            preview_core = spawn_prefab(context, subclasses, core_blueprint, core_type)
+            preview_core = spawn_prefab(context, subclasses, core_blueprint, core_type, **kwargs)
 
-        finalise_tile(base, preview_core, cursor_orig_loc, cursor_orig_rot)
+        self.finalise_tile(context, base, preview_core)
+        if self.auto_refresh is False:
+            self.refresh = False
 
-        # scene.render.engine = original_renderer
+        self.invoked = False
 
         return {'FINISHED'}
 
+    def init(self, context):
+        super().init(context)
+        tile_collection = bpy.data.collections[self.tile_name]
+        tile_props = tile_collection.mt_tile_props
+        tile_props.collection_type = "TILE"
+        tile_props.tile_size = (self.tile_x, self.tile_y, self.tile_z)
+        tile_props.base_size = (self.base_x, self.base_y, self.base_z)
+
+    def draw(self, context):
+        super().draw(context)
 
 class MT_OT_Make_Openlock_Straight_Base(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an OpenLOCK straight base."""
@@ -423,8 +449,7 @@ class MT_OT_Make_Openlock_Straight_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         spawn_openlock_base(tile_props)
         return{'FINISHED'}
 
@@ -440,8 +465,7 @@ class MT_OT_Make_Openlock_S_Wall_Straight_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         spawn_openlock_base(tile_props)
         return{'FINISHED'}
 
@@ -457,8 +481,7 @@ class MT_OT_Make_Plain_S_Wall_Straight_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         spawn_plain_base(tile_props)
         return{'FINISHED'}
 
@@ -474,8 +497,7 @@ class MT_OT_Make_Plain_Straight_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         spawn_plain_base(tile_props)
         return{'FINISHED'}
 
@@ -491,8 +513,7 @@ class MT_OT_Make_Empty_Straight_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         spawn_empty_base(tile_props)
         return{'FINISHED'}
 
@@ -506,9 +527,11 @@ class MT_OT_Make_Plain_Straight_Wall_Core(MT_Tile_Generator, Operator):
     mt_blueprint = "PLAIN"
     mt_type = "STRAIGHT_WALL_CORE"
 
+    base_name: StringProperty()
+
     def execute(self, context):
         """Execute the operator."""
-        tile_props = context.collection.mt_tile_props
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         spawn_plain_wall_cores(self, tile_props)
         return{'FINISHED'}
 
@@ -522,10 +545,12 @@ class MT_OT_Make_Openlock_Straight_Wall_Core(MT_Tile_Generator, Operator):
     mt_blueprint = "OPENLOCK"
     mt_type = "STRAIGHT_WALL_CORE"
 
+    base_name: StringProperty()
+
     def execute(self, context):
         """Execute the operator."""
-        tile_props = context.collection.mt_tile_props
-        base = context.active_object
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
+        base = bpy.data.objects[self.base_name]
         spawn_openlock_wall_cores(self, tile_props, base)
         return{'FINISHED'}
 
@@ -553,9 +578,11 @@ class MT_OT_Make_Plain_Straight_Floor_Core(MT_Tile_Generator, Operator):
     mt_blueprint = "PLAIN"
     mt_type = "STRAIGHT_FLOOR_CORE"
 
+    base_name: StringProperty()
+
     def execute(self, context):
         """Execute the operator."""
-        tile_props = context.collection.mt_tile_props
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         create_plain_rect_floor_cores(self, tile_props)
         return{'FINISHED'}
 
@@ -568,6 +595,8 @@ class MT_OT_Make_Openlock_Straight_Floor_Core(MT_Tile_Generator, Operator):
     bl_options = {'INTERNAL'}
     mt_blueprint = "OPENLOCK"
     mt_type = "STRAIGHT_FLOOR_CORE"
+
+    base_name: StringProperty()
 
     def execute(self, context):
         """Execute the operator."""
@@ -588,9 +617,6 @@ class MT_OT_Make_Empty_Straight_Floor_Core(MT_Tile_Generator, Operator):
     def execute(self, context):
         """Execute the operator."""
         return {'PASS_THROUGH'}
-
-
-
 
 
 def initialise_wall_creator(context):

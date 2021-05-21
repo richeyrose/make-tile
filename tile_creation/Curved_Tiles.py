@@ -97,8 +97,6 @@ class MT_PT_Curved_Wall_Tile_Panel(Panel):
 
         layout.operator('scene.reset_tile_defaults')
 
-        # layout.operator('scene.reset_tile_defaults')
-
 
 class MT_PT_Curved_Floor_Tile_Panel(Panel):
     """Draw a tile options panel in the UI."""

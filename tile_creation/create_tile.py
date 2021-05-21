@@ -130,6 +130,9 @@ def create_material_enums(self, context):
                 enum_items.append(enum)
     return enum_items
 
+def update_material(self, context):
+    scene_props = context.scene.mt_scene_props
+    scene_props.tile_material_1 = self.tile_material_1
 
 class MT_Tile_Generator:
     """Subclass this to create your tile operator."""
@@ -160,6 +163,7 @@ class MT_Tile_Generator:
 
     tile_material_1: EnumProperty(
         items=create_material_enums,
+        update=update_material,
         name="Material"
     )
 

@@ -66,7 +66,6 @@ def update_scene_defaults(self, context):
 
 def update_base_defaults(self, context):
     scene_props = context.scene.mt_scene_props
-    wall_props = context.scene.mt_wall_scene_props
     tile_type = scene_props.tile_type
     base_blueprint = scene_props.base_blueprint
     tile_defaults = scene_props['tile_defaults']
@@ -79,7 +78,6 @@ def update_base_defaults(self, context):
                 if key == base_blueprint:
                     for k, v in value.items():
                         setattr(scene_props, k, v)
-                        setattr(wall_props, k, v)
                     break
 
 
@@ -102,7 +100,6 @@ def update_main_part_defaults(self, context):
 
 def update_base_defaults_2(self, context):
     scene_props = context.scene.mt_scene_props
-    wall_props = context.scene.mt_wall_scene_props
     tile_type = self.tile_type
     base_blueprint = self.base_blueprint
     tile_defaults = scene_props['tile_defaults']
@@ -115,11 +112,9 @@ def update_base_defaults_2(self, context):
                     for k, v in value.items():
                         if hasattr(self, k):
                             setattr(scene_props, k, v)
-                        if hasattr(self, k):
-                            setattr(wall_props, k, v)
-                        if hasattr(self, k):
                             setattr(self, k, v)
                     break
+
 
 def update_main_part_defaults_2(self, context):
     scene_props = context.scene.mt_scene_props
@@ -418,6 +413,7 @@ class MT_Scene_Properties(PropertyGroup):
         step=0.0001
     )
 
+
     # used for where it makes sense to set displacement thickness directly rather than
     # as an offset between base and core. e.g. connecting columns
     displacement_thickness: FloatProperty(
@@ -425,6 +421,19 @@ class MT_Scene_Properties(PropertyGroup):
         description="Thickness of displacement texture.",
         default=0.05
     )
+
+    wall_position: EnumProperty(
+        name="Wall Position",
+        items=[
+            ("CENTER", "Center", "Wall is in Center of base."),
+            ("SIDE", "Side", "Wall is on the side of base.")],
+        default="CENTER")
+
+    floor_thickness: FloatProperty(
+        name="Floor Thickness",
+        default=0.0245,
+        step=0.01,
+        precision=4)
 
     # Tile and base size. We use seperate floats so that we can only show
     # customisable ones where appropriate. These are wrapped up

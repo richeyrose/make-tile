@@ -80,54 +80,6 @@ class MT_Tile_Properties(PropertyGroup):
         default="MEDIUM",
         name="Subdivision Density")
 
-    x_native_subdivisions: IntProperty(
-        name="X",
-        description="The number of times to subdivide the X axis on creation",
-        default=15
-    )
-
-    y_native_subdivisions: IntProperty(
-        name="Y",
-        description="The number of times to subdivide the Y axis on creation",
-        default=3
-    )
-
-    z_native_subdivisions: IntProperty(
-        name="Z",
-        description="The number of times to subdivide the Z axis on creation",
-        default=15
-    )
-
-    opposite_native_subdivisions: IntProperty(
-        name="Opposite Side",
-        description="The number of times to subdivide the edge opposite the root angle on triangular tile creation",
-        default=15
-    )
-
-    curve_native_subdivisions: IntProperty(
-        name="Curved Side",
-        description="The number of times to subdivide the curved side of a tile",
-        default=15
-    )
-
-    leg_1_native_subdivisions: IntProperty(
-        name="Leg 1",
-        description="The number of times to subdivide the length of leg 1 of the tile",
-        default=15
-    )
-
-    leg_2_native_subdivisions: IntProperty(
-        name="Leg 2",
-        description="The number of times to subdivide the length of leg 2 of the tile",
-        default=15
-    )
-
-    width_native_subdivisions: IntProperty(
-        name="Width",
-        description="The number of times to subdivide each leg along its width",
-        default=3
-    )
-
     # Subsurf modifier subdivisions #
     subdivisions: IntProperty(
         name="Subdivisions",
@@ -174,6 +126,20 @@ class MT_Tile_Properties(PropertyGroup):
     base_radius: FloatProperty(
         name="Base Radius"
     )
+
+    wall_position: EnumProperty(
+        name="Wall Position",
+        items=[
+            ("CENTER", "Center", "Wall is in Center of base."),
+            ("SIDE", "Side", "Wall is on the side of base.")],
+        default="CENTER")
+
+    # used for S_Walls
+    floor_thickness: FloatProperty(
+        name="Floor Thickness",
+        default=0.0245,
+        step=0.01,
+        precision=4)
 
     wall_radius: FloatProperty(
         name="Wall Radius"

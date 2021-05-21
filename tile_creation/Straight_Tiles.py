@@ -77,7 +77,6 @@ class MT_PT_Straight_Wall_Panel(Panel):
         """Draw the Panel."""
         scene = context.scene
         scene_props = scene.mt_scene_props
-        wall_props = scene.mt_wall_scene_props
 
         layout = self.layout
 
@@ -95,10 +94,10 @@ class MT_PT_Straight_Wall_Panel(Panel):
 
         if scene_props.base_blueprint in ('OPENLOCK_S_WALL', 'PLAIN_S_WALL'):
             layout.label(text="Floor Thickness")
-            layout.prop(wall_props, 'floor_thickness', text="")
+            layout.prop(scene_props, 'floor_thickness', text="")
 
             layout.label(text="Wall Position")
-            layout.prop(wall_props, 'wall_position', text="")
+            layout.prop(scene_props, 'wall_position', text="")
 
         layout.label(text="Sync Proportions")
         row = layout.row()
@@ -115,7 +114,7 @@ class MT_PT_Straight_Wall_Panel(Panel):
         layout.label(text="Subdivision Density")
         layout.prop(scene_props, 'subdivision_density', text="")
 
-        layout.operator('scene.reset_wall_defaults')
+        layout.operator('scene.reset_tile_defaults')
 
 
 class MT_PT_Straight_Floor_Panel(Panel):
@@ -301,7 +300,6 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
 
         scene = context.scene
         scene_props = scene.mt_scene_props
-        wall_scene_props = scene.mt_wall_scene_props
         base_blueprint = self.base_blueprint
         core_blueprint = self.main_part_blueprint
         base_type = 'STRAIGHT_BASE'
@@ -349,10 +347,6 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
         tile_props.collection_type = "TILE"
         tile_props.tile_size = (self.tile_x, self.tile_y, self.tile_z)
         tile_props.base_size = (self.base_x, self.base_y, self.base_z)
-
-        wall_tile_props = tile_collection.mt_wall_tile_props
-        copy_annotation_props(self, wall_tile_props)
-        wall_tile_props.is_wall = True
 
     def draw(self, context):
         super().draw(context)
@@ -515,8 +509,7 @@ class MT_OT_Make_Plain_Straight_Wall_Core(MT_Tile_Generator, Operator):
     def execute(self, context):
         """Execute the operator."""
         tile_props = context.collection.mt_tile_props
-        wall_props = context.collection.mt_wall_tile_props
-        spawn_plain_wall_cores(self, tile_props, wall_props)
+        spawn_plain_wall_cores(self, tile_props)
         return{'FINISHED'}
 
 
@@ -532,9 +525,8 @@ class MT_OT_Make_Openlock_Straight_Wall_Core(MT_Tile_Generator, Operator):
     def execute(self, context):
         """Execute the operator."""
         tile_props = context.collection.mt_tile_props
-        wall_props = context.collection.mt_wall_tile_props
         base = context.active_object
-        spawn_openlock_wall_cores(self, tile_props, wall_props, base)
+        spawn_openlock_wall_cores(self, tile_props, base)
         return{'FINISHED'}
 
 
@@ -673,7 +665,7 @@ def initialise_floor_creator(context, scene_props):
     return cursor_orig_loc, cursor_orig_rot
 
 
-def spawn_plain_wall_cores(self, tile_props, wall_props):
+def spawn_plain_wall_cores(self, tile_props):
     """Spawn plain Core.
 
     Args:
@@ -682,7 +674,7 @@ def spawn_plain_wall_cores(self, tile_props, wall_props):
     Returns:
         bpy.types.Object: core
     """
-    preview_core = spawn_wall_core(self, tile_props, wall_props)
+    preview_core = spawn_wall_core(self, tile_props)
     textured_vertex_groups = ['Front', 'Back']
     convert_to_displacement_core_2(
         preview_core,
@@ -691,7 +683,7 @@ def spawn_plain_wall_cores(self, tile_props, wall_props):
     return preview_core
 
 
-def spawn_openlock_wall_cores(self, tile_props, wall_props, base):
+def spawn_openlock_wall_cores(self, tile_props, base):
     """Spawn OpenLOCK core.
 
     Args:
@@ -701,18 +693,16 @@ def spawn_openlock_wall_cores(self, tile_props, wall_props, base):
     Returns:
         bpy.types.Object: preview core
     """
-    core = spawn_wall_core(self, tile_props, wall_props)
+    core = spawn_wall_core(self, tile_props)
 
     wall_cutters = spawn_openlock_wall_cutters(
         core,
-        tile_props,
-        wall_props)
+        tile_props)
 
     if tile_props.tile_size[0] > 1:
         top_pegs = spawn_openlock_top_pegs(
             core,
-            tile_props,
-            wall_props)
+            tile_props)
 
         set_bool_obj_props(top_pegs, base, tile_props, 'UNION')
         set_bool_props(top_pegs, core, 'UNION')
@@ -730,7 +720,7 @@ def spawn_openlock_wall_cores(self, tile_props, wall_props, base):
     return core
 
 
-def spawn_wall_core(self, tile_props, wall_props):
+def spawn_wall_core(self, tile_props):
     """Return the core (vertical) part of a straight wall tile."""
     cursor = bpy.context.scene.cursor
     cursor_start_loc = cursor.location.copy()
@@ -750,13 +740,13 @@ def spawn_wall_core(self, tile_props, wall_props):
     core.name = tile_name + '.wall_core'
     add_object_to_collection(core, tile_name)
 
-    if wall_props.wall_position == 'CENTER':
+    if tile_props.wall_position == 'CENTER':
         # move core so centred, move up so on top of base and set origin to world origin
         core.location = (
             core.location[0],
             core.location[1] + (base_size[1] - tile_size[1]) / 2,
             cursor_start_loc[2] + base_size[2])
-    elif wall_props.wall_position == 'SIDE':
+    elif tile_props.wall_position == 'SIDE':
         core.location = (
             core.location[0],
             core.location[1] + base_size[1] - tile_size[1] - 0.09,
@@ -783,7 +773,7 @@ def spawn_wall_core(self, tile_props, wall_props):
     return core
 
 
-def spawn_openlock_top_pegs(core, tile_props, wall_props):
+def spawn_openlock_top_pegs(core, tile_props):
     """Spawn top peg(s) for stacking wall tiles and position it.
 
     Args:
@@ -807,7 +797,7 @@ def spawn_openlock_top_pegs(core, tile_props, wall_props):
 
     core_location = core.location.copy()
 
-    if wall_props.wall_position == 'CENTER':
+    if tile_props.wall_position == 'CENTER':
         if tile_size[0] < 4 and tile_size[0] >= 1:
             peg.location = (
                 core_location[0] + (tile_size[0] / 2) - 0.252,
@@ -819,7 +809,7 @@ def spawn_openlock_top_pegs(core, tile_props, wall_props):
                 core_location[1] + (base_size[1] / 2) + 0.08,
                 core_location[2] + tile_size[2])
 
-    elif wall_props.wall_position == 'SIDE':
+    elif tile_props.wall_position == 'SIDE':
         if tile_size[0] < 4 and tile_size[0] >= 1:
             peg.location = (
                 core_location[0] + (tile_size[0] / 2) - 0.252,
@@ -840,7 +830,7 @@ def spawn_openlock_top_pegs(core, tile_props, wall_props):
     return peg
 
 
-def spawn_openlock_wall_cutters(core, tile_props, wall_props):
+def spawn_openlock_wall_cutters(core, tile_props):
     """Creates the cutters for the wall and positions them correctly
     """
     preferences = get_prefs()
@@ -871,12 +861,12 @@ def spawn_openlock_wall_cutters(core, tile_props, wall_props):
     front_left = core_location
 
     # move cutter to bottom front left corner then up by 0.63 inches
-    if wall_props.wall_position == 'CENTER':
+    if tile_props.wall_position == 'CENTER':
         left_cutter_bottom.location = [
             front_left[0],
             front_left[1] + (base_size[1] / 2),
             front_left[2] + 0.63]
-    elif wall_props.wall_position == 'SIDE':
+    elif tile_props.wall_position == 'SIDE':
         left_cutter_bottom.location = [
             front_left[0],
             front_left[1] + base_size[1] - (tile_size[1] / 2) - 0.09,
@@ -915,13 +905,13 @@ def spawn_openlock_wall_cutters(core, tile_props, wall_props):
         core_location[1],
         core_location[2]]
 
-    if wall_props.wall_position == 'CENTER':
+    if tile_props.wall_position == 'CENTER':
         # move cutter to bottom front right corner then up by 0.63 inches
         right_cutter_bottom.location = [
             front_right[0],
             front_right[1] + (base_size[1] / 2),
             front_right[2] + 0.63]
-    elif wall_props.wall_position == 'SIDE':
+    elif tile_props.wall_position == 'SIDE':
         right_cutter_bottom.location = [
             front_right[0],
             front_left[1] + base_size[1] - (tile_size[1] / 2) - 0.09,

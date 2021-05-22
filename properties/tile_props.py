@@ -23,7 +23,12 @@ from .properties import (
     create_tile_type_enums,
     create_base_blueprint_enums)
 
-from ..tile_creation.create_tile import create_material_enums
+from ..tile_creation.create_tile import (
+    create_material_enums,
+    MT_Tile_Generator)
+
+from ..lib.utils.utils import get_all_subclasses
+
 # TODO Decide how many of these properties we actually need to be storing.
 # TODO rename to mt_collection_props
 
@@ -191,13 +196,48 @@ class MT_Tile_Properties(PropertyGroup):
         name="Tile Resolution"
     )
 
+def get_annotations(cls):
+    """Return all annotations of a class including from parent class.
+
+    Returns:
+        dict: dict of annotations
+    """
+    all_annotations = {}
+    for c in cls.mro():
+        try:
+            all_annotations.update(**c.__annotations__)
+        except AttributeError:
+            # object, at least, has no __annotations__ attribute.
+            pass
+    return all_annotations
+
+
+def create_tile_props():
+    """Dynamically create new_mt_tile_props PropertyGroup based on properties in MT_Tile_Generator and subclasses."""
+    subclasses = get_all_subclasses(MT_Tile_Generator)
+    annotations = {}
+    for subclass in subclasses:
+        annotations.update(subclass.__annotations__)
+
+    #annotations = get_annotations(MT_Tile_Generator)
+    New_MT_Tile_Props = type(
+        'New_MT_Tile_Props',
+        (PropertyGroup,),
+        {'__annotations__':
+            annotations})
+    bpy.utils.register_class(New_MT_Tile_Props)
+    PointerTileProps = PointerProperty(type=New_MT_Tile_Props)
+    setattr(bpy.types.Collection, "mt_tile_props", PointerTileProps)
 
 def register():
     # Property group that contains properties relating to a tile stored on the tile collection
+    '''
     bpy.types.Collection.mt_tile_props = PointerProperty(
         type=MT_Tile_Properties
     )
-
+    '''
+    create_tile_props()
 
 def unregister():
+    #del bpy.types.Collection.new_mt_tile_props
     del bpy.types.Collection.mt_tile_props

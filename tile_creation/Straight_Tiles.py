@@ -9,7 +9,7 @@ from bpy.props import (
     EnumProperty,
     BoolProperty,
     StringProperty,
-    PointerProperty)
+    FloatVectorProperty)
 
 from ..properties.properties import (
     create_base_blueprint_enums,
@@ -19,27 +19,16 @@ from ..properties.scene_props import (
     update_main_part_defaults_2,
     update_base_defaults_2)
 
-from ..properties.tile_props import MT_Tile_Properties
-
 from .. utils.registration import get_prefs
 from .. lib.utils.collections import (
-    add_object_to_collection,
-    create_collection,
-    activate_collection)
+    add_object_to_collection)
 
-from ..operators.assign_reference_object import (
-    create_helper_object)
-
-from ..lib.utils.selection import select, deselect_all, activate
 from ..lib.bmturtle.scripts import (
-    draw_cuboid,
     draw_straight_wall_core)
-from .. lib.utils.utils import mode, get_all_subclasses
+from .. lib.utils.utils import get_all_subclasses
 
 from .create_tile import (
-    finalise_tile,
     spawn_empty_base,
-    convert_to_displacement_core,
     convert_to_displacement_core_2,
     spawn_prefab,
     spawn_prefab,
@@ -47,9 +36,6 @@ from .create_tile import (
     set_bool_props,
     load_openlock_top_peg,
     MT_Tile_Generator,
-    initialise_tile_creator,
-    create_common_tile_props,
-    copy_annotation_props,
     get_subdivs)
 
 from .Rectangular_Tiles import (
@@ -272,6 +258,14 @@ class MT_Straight_Tile:
         default=False
     )
 
+    tile_size: FloatVectorProperty(
+        name="Tile Size"
+    )
+
+    base_size: FloatVectorProperty(
+        name="Base size"
+    )
+
     def draw(self, context):
         super().draw(context)
         layout = self.layout
@@ -333,11 +327,11 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Straight_Tile, MT_Tile_Generato
         base_type = 'STRAIGHT_BASE'
         core_type = 'STRAIGHT_WALL_CORE'
         subclasses = get_all_subclasses(MT_Tile_Generator)
-        kwargs = {"tile_name": "\"" + str(self.tile_name) + "\""}
+        kwargs = {"tile_name": self.tile_name}
 
         base = spawn_prefab(context, subclasses, base_blueprint, base_type, **kwargs)
 
-        kwargs["base_name"] = "\"" + str(base.name) + "\""
+        kwargs["base_name"] =base.name
 
         if core_blueprint == 'NONE':
             wall_core = None
@@ -409,10 +403,10 @@ class MT_OT_Make_Straight_Floor_Tile(Operator, MT_Straight_Tile, MT_Tile_Generat
         base_type = 'STRAIGHT_BASE'
         core_type = 'STRAIGHT_FLOOR_CORE'
         subclasses = get_all_subclasses(MT_Tile_Generator)
-        kwargs = {"tile_name": "\"" + str(self.tile_name) + "\""}
+        kwargs = {"tile_name": self.tile_name}
 
         base = spawn_prefab(context, subclasses, base_blueprint, base_type, **kwargs)
-        kwargs["base_name"] = "\"" + str(base.name) + "\""
+        kwargs["base_name"] = base.name
 
         if core_blueprint == 'NONE':
             preview_core = None
@@ -617,78 +611,6 @@ class MT_OT_Make_Empty_Straight_Floor_Core(MT_Tile_Generator, Operator):
     def execute(self, context):
         """Execute the operator."""
         return {'PASS_THROUGH'}
-
-
-def initialise_wall_creator(context):
-    """Initialise the wall creator and set common properties.
-
-    Args:
-        context (bpy.context): context
-        scene_props (MakeTile.properties.MT_Scene_Properties): maketile scene properties
-
-    Returns:
-        enum: enum in {'BLENDER_EEVEE', 'CYCLES', 'WORKBENCH'}
-        list[3]: cursor original location
-        list[3]: cursor original rotation
-
-    """
-    tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator(context)
-    # We store tile properties in the mt_tile_props property group of
-    # the collection so we can access them from any object in this
-    # collection.
-    create_collection('Walls', tiles_collection)
-    tile_collection = bpy.data.collections.new(tile_name)
-    bpy.data.collections['Walls'].children.link(tile_collection)
-    activate_collection(tile_collection.name)
-
-    tile_props = tile_collection.mt_tile_props
-    wall_tile_props = tile_collection.mt_wall_tile_props
-
-    scene_props = context.scene.mt_scene_props
-    wall_scene_props = context.scene.mt_wall_scene_props
-    create_common_tile_props(scene_props, tile_props, tile_collection)
-    copy_annotation_props(wall_scene_props, wall_tile_props)
-
-    wall_tile_props.is_wall = True
-
-    tile_props.tile_type = 'STRAIGHT_WALL'
-    tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
-    tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
-
-    return cursor_orig_loc, cursor_orig_rot
-
-
-
-def initialise_floor_creator(context, scene_props):
-    """Initialise the floor creator and set common properties.
-
-    Args:
-        context (bpy.context): context
-        scene_props (MakeTile.properties.MT_Scene_Properties): maketile scene properties
-
-    Returns:
-        enum: enum in {'BLENDER_EEVEE', 'CYCLES', 'WORKBENCH'}
-        list[3]: cursor original location
-        list[3]: cursor original rotation
-
-    """
-    tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator(context)
-    # We store tile properties in the mt_tile_props property group of
-    # the collection so we can access them from any object in this
-    # collection.
-    create_collection('Floors', tiles_collection)
-    tile_collection = bpy.data.collections.new(tile_name)
-    bpy.data.collections['Floors'].children.link(tile_collection)
-    activate_collection(tile_collection.name)
-
-    tile_props = tile_collection.mt_tile_props
-    create_common_tile_props(scene_props, tile_props, tile_collection)
-
-    tile_props.tile_type = 'STRAIGHT_FLOOR'
-    tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
-    tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
-
-    return cursor_orig_loc, cursor_orig_rot
 
 
 def spawn_plain_wall_cores(self, tile_props):

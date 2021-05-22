@@ -3,17 +3,15 @@ from math import floor
 import bpy
 from bpy.types import Operator
 from bpy.props import (
-    FloatVectorProperty,
+
     StringProperty,
     EnumProperty,
     BoolProperty,
     FloatProperty,
-    IntProperty,
-    PointerProperty)
+    IntProperty)
 
 from ..operators.assign_reference_object import (
-    create_helper_object,
-    assign_obj_to_obj_texture_coords)
+    create_helper_object)
 
 from ..utils.registration import get_prefs
 
@@ -23,18 +21,13 @@ from ..lib.utils.collections import (
     create_collection,
     activate_collection)
 
-from ..lib.utils.selection import select, deselect_all, activate
+from ..lib.utils.selection import deselect_all, activate
 from ..lib.utils.multimethod import multimethod
 from ..materials.materials import assign_mat_to_vert_group
 from ..lib.utils.utils import get_all_subclasses
 
 from ..enums.enums import (
-    tile_blueprints,
-    curve_types,
-    base_socket_side,
     units,
-    openlock_column_types,
-    column_socket_style,
     collection_types)
 
 
@@ -743,6 +736,8 @@ def spawn_prefab(context, subclasses, blueprint, mt_type, **kwargs):
     """
     args = []
     for key, value in kwargs.items():
+        if isinstance(value, str):
+            value = "\"" + value + "\""
         args.append(key + '=' + str(value))
     arg_str = ', '.join(args)
 

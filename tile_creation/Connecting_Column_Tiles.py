@@ -2,6 +2,12 @@ import os
 from math import radians
 import bpy
 from bpy.types import Operator, Panel
+from bpy.props import (
+    EnumProperty,
+    FloatProperty,
+    StringProperty,
+    BoolProperty,
+    FloatVectorProperty)
 from .. utils.registration import get_prefs
 from .. lib.utils.utils import get_all_subclasses
 from .. lib.utils.selection import activate
@@ -20,7 +26,10 @@ from .create_tile import (
     MT_Tile_Generator,
     initialise_tile_creator,
     create_common_tile_props,
-    get_subdivs)
+    get_subdivs,
+    tile_z_update,
+    tile_y_update,
+    tile_x_update)
 from ..lib.bmturtle.scripts import (
     draw_cuboid)
 from .Rectangular_Tiles import (
@@ -40,7 +49,12 @@ from ..lib.bmturtle.helpers import (
     bm_select_all,
     assign_verts_to_group,
     select_verts_in_bounds)
-
+from ..properties.properties import (
+    create_base_blueprint_enums,
+    create_main_part_blueprint_enums)
+from ..properties.scene_props import (
+    update_main_part_defaults_2,
+    update_base_defaults_2)
 #TODO Bug with tall O colum socket generation
 #TODO #1 Ensure sockets and buffers only added to tall columns
 class MT_PT_Connecting_Column_Panel(Panel):
@@ -83,7 +97,7 @@ class MT_PT_Connecting_Column_Panel(Panel):
         row.prop(scene_props, 'tile_y')
         row.prop(scene_props, 'tile_z')
 
-        layout.label(text="Lock Proportions")
+        layout.label(text="Sync Proportions")
         row = layout.row()
         row.prop(scene_props, 'x_proportionate_scale')
         row.prop(scene_props, 'y_proportionate_scale')
@@ -101,6 +115,199 @@ class MT_PT_Connecting_Column_Panel(Panel):
         layout.prop(scene_props, 'displacement_thickness')
         layout.operator('scene.reset_tile_defaults')
 
+
+class MT_OT_Make_Connecting_Column_Tile(Operator, MT_Tile_Generator):
+    """Operator. Generates a connecting column tile with a customisable base and main part."""
+
+    bl_idname = "object.make_connecting_column"
+    bl_label = "Connecting Column"
+    bl_options = {'UNDO', 'REGISTER', 'PRESET'}
+    mt_blueprint = "CUSTOM"
+    mt_type = "CONNECTING_COLUMN"
+
+    main_part_blueprint: EnumProperty(
+        items=create_main_part_blueprint_enums,
+        update=update_main_part_defaults_2,
+        name="Core"
+    )
+
+    base_blueprint: EnumProperty(
+        items=create_base_blueprint_enums,
+        update=update_base_defaults_2,
+        name="Base"
+    )
+
+    # Dimensions #
+    tile_x: FloatProperty(
+        name="X",
+        default=2.0,
+        step=50,
+        precision=2,
+        update=tile_x_update,
+        min=0
+    )
+
+    tile_y: FloatProperty(
+        name="Y",
+        default=0.3,
+        step=50,
+        precision=2,
+        update=tile_y_update,
+        min=0
+    )
+
+    tile_z: FloatProperty(
+        name="Z",
+        default=2.0,
+        step=50,
+        precision=2,
+        update=tile_z_update,
+        min=0
+    )
+
+    # Base size
+    base_x: FloatProperty(
+        name="X",
+        default=2.0,
+        step=50,
+        precision=2,
+        min=0
+    )
+
+    base_y: FloatProperty(
+        name="Y",
+        default=0.5,
+        step=50,
+        precision=2,
+        min=0
+    )
+
+    base_z: FloatProperty(
+        name="Z",
+        default=0.3,
+        step=50,
+        precision=2,
+        min=0
+    )
+
+    x_proportionate_scale: BoolProperty(
+        name="X",
+        default=True
+    )
+
+    y_proportionate_scale: BoolProperty(
+        name="Y",
+        default=False
+    )
+
+    z_proportionate_scale: BoolProperty(
+        name="Z",
+        default=False
+    )
+
+    tile_size: FloatVectorProperty(
+        name="Tile Size"
+    )
+
+    base_size: FloatVectorProperty(
+        name="Base size"
+    )
+
+    column_socket_style: EnumProperty(
+        name="Socket Style",
+        items=[
+            ("FLAT", "Flat", "", 1),
+            ("TEXTURED", "Textured", "", 2)],
+        default="TEXTURED",
+        description="Whether to have texture on the sides with sockets.")
+
+    # used for where it makes sense to set displacement thickness directly rather than
+    # as an offset between base and core. e.g. connecting columns
+    displacement_thickness: FloatProperty(
+        name="Displacement Thickness",
+        description="Thickness of displacement texture.",
+        default=0.05)
+
+    column_type: EnumProperty(
+        items=[
+            ("I", "I Column", "", 1),
+            ("L", "L Column", "", 2),
+            ("O", "O Column", "", 3),
+            ("T", "T Column", "", 4),
+            ("X", "X Column", "", 5)],
+        name="Column type",
+        default="O")
+
+    def execute(self, context):
+        """Execute the operator."""
+        super().execute(context)
+        if not self.refresh:
+            return {'PASS_THROUGH'}
+
+        scene = context.scene
+        base_blueprint = self.base_blueprint
+        core_blueprint = self.main_part_blueprint
+        base_type = 'CONNECTING_COLUMN_BASE'
+        core_type = 'CONNECTING_COLUMN_CORE'
+        subclasses = get_all_subclasses(MT_Tile_Generator)
+        kwargs = {"tile_name": self.tile_name}
+
+        base = spawn_prefab(context, subclasses, base_blueprint, base_type, **kwargs)
+        kwargs["base_name"] = base.name
+        '''
+        cursor_orig_loc, cursor_orig_rot = initialise_column_creator(
+            context,
+            scene_props)
+        subclasses = get_all_subclasses(MT_Tile_Generator)
+        base = spawn_prefab(context, subclasses, base_blueprint, base_type)
+        '''
+        if core_blueprint == 'NONE':
+            preview_core = None
+        else:
+            preview_core = spawn_prefab(context, subclasses, core_blueprint, core_type, **kwargs)
+
+        self.finalise_tile(context, base, preview_core)
+        if self.auto_refresh is False:
+            self.refresh = False
+
+        self.invoked = False
+        return {'FINISHED'}
+
+    def init(self, context):
+        super().init(context)
+        tile_collection = bpy.data.collections[self.tile_name]
+        tile_props = tile_collection.mt_tile_props
+        tile_props.collection_type = "TILE"
+        tile_props.tile_size = (self.tile_x, self.tile_y, self.tile_z)
+        tile_props.base_size = (self.base_x, self.base_y, self.base_z)
+
+    def draw(self, context):
+        super().draw(context)
+        layout = self.layout
+        layout.prop(self, 'tile_material_1')
+        layout.prop(self, 'base_blueprint')
+        layout.prop(self, 'main_part_blueprint')
+        layout.prop(self, 'column_type')
+        layout.prop(self, 'column_socket_style')
+        layout.prop(self, 'displacement_thickness')
+
+        layout.label(text="Column Size")
+        row = layout.row()
+        row.prop(self, 'tile_x')
+        row.prop(self, 'tile_y')
+        row.prop(self, 'tile_z')
+
+        layout.label(text="Sync Proportions")
+        row = layout.row()
+        row.prop(self, 'x_proportionate_scale')
+        row.prop(self, 'y_proportionate_scale')
+        row.prop(self, 'z_proportionate_scale')
+
+        layout.label(text="Base Size")
+        row = layout.row()
+        row.prop(self, 'base_x')
+        row.prop(self, 'base_y')
+        row.prop(self, 'base_z')
 
 class MT_OT_Make_Openlock_Connecting_Column_Base(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an OpenLOCK connecting column base."""
@@ -158,6 +365,7 @@ class MT_OT_Make_Plain_Connecting_Column_Core(MT_Tile_Generator, Operator):
     bl_options = {'INTERNAL'}
     mt_blueprint = "PLAIN"
     mt_type = "CONNECTING_COLUMN_CORE"
+    base_name: StringProperty()
 
     def execute(self, context):
         """Execute the operator."""
@@ -174,6 +382,7 @@ class MT_OT_Make_Openlock_Connecting_Column_Core(MT_Tile_Generator, Operator):
     bl_options = {'INTERNAL'}
     mt_blueprint = "OPENLOCK"
     mt_type = "CONNECTING_COLUMN_CORE"
+    base_name: StringProperty()
 
     def execute(self, context):
         """Execute the operator."""
@@ -197,39 +406,7 @@ class MT_OT_Make_Empty_Connecting_Column_Core(MT_Tile_Generator, Operator):
         return {'PASS_THROUGH'}
 
 
-class MT_OT_Make_Connecting_Column_Tile(MT_Tile_Generator, Operator):
-    """Operator. Generates a connecting column tile with a customisable base and main part."""
 
-    bl_idname = "object.make_connecting_column"
-    bl_label = "Connecting Column"
-    bl_options = {'UNDO'}
-    mt_blueprint = "CUSTOM"
-    mt_type = "CONNECTING_COLUMN"
-
-    def execute(self, context):
-        """Execute the operator."""
-        scene = context.scene
-        scene_props = scene.mt_scene_props
-        base_blueprint = scene_props.base_blueprint
-        core_blueprint = scene_props.main_part_blueprint
-        base_type = 'CONNECTING_COLUMN_BASE'
-        core_type = 'CONNECTING_COLUMN_CORE'
-
-        cursor_orig_loc, cursor_orig_rot = initialise_column_creator(
-            context,
-            scene_props)
-        subclasses = get_all_subclasses(MT_Tile_Generator)
-        base = spawn_prefab(context, subclasses, base_blueprint, base_type)
-
-        if core_blueprint == 'NONE':
-            preview_core = None
-        else:
-            preview_core = spawn_prefab(context, subclasses, core_blueprint, core_type)
-
-        finalise_tile(base, preview_core, cursor_orig_loc, cursor_orig_rot)
-
-        # scene.render.engine = original_renderer
-        return {'FINISHED'}
 
 
 def initialise_column_creator(context, scene_props):

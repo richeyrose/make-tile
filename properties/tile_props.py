@@ -27,7 +27,7 @@ from ..tile_creation.create_tile import (
     create_material_enums,
     MT_Tile_Generator)
 
-from ..lib.utils.utils import get_all_subclasses
+from ..lib.utils.utils import get_all_subclasses, get_annotations
 
 # TODO Decide how many of these properties we actually need to be storing.
 # TODO rename to mt_collection_props
@@ -195,22 +195,6 @@ class MT_Tile_Properties(PropertyGroup):
     tile_resolution: IntProperty(
         name="Tile Resolution"
     )
-
-def get_annotations(cls):
-    """Return all annotations of a class including from parent class.
-
-    Returns:
-        dict: dict of annotations
-    """
-    all_annotations = {}
-    for c in cls.mro():
-        try:
-            all_annotations.update(**c.__annotations__)
-        except AttributeError:
-            # object, at least, has no __annotations__ attribute.
-            pass
-    return all_annotations
-
 
 def create_tile_props():
     """Dynamically create new_mt_tile_props PropertyGroup based on properties in MT_Tile_Generator and subclasses."""

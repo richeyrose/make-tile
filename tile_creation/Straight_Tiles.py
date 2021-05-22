@@ -36,7 +36,10 @@ from .create_tile import (
     set_bool_props,
     load_openlock_top_peg,
     MT_Tile_Generator,
-    get_subdivs)
+    get_subdivs,
+    tile_x_update,
+    tile_y_update,
+    tile_z_update)
 
 from .Rectangular_Tiles import (
     create_plain_rect_floor_cores,
@@ -158,24 +161,6 @@ class MT_PT_Straight_Floor_Panel(Panel):
         layout.operator('scene.reset_tile_defaults')
 
 
-def tile_x_update(self, context):
-    tile_props = context.collection.mt_tile_props
-    if self.x_proportionate_scale and not self.invoked:
-        self.base_x = tile_props.base_size[0] + self.tile_x - tile_props.tile_size[0]
-
-
-def tile_y_update(self, context):
-    tile_props = context.collection.mt_tile_props
-    if self.y_proportionate_scale and not self.invoked:
-        self.base_y = tile_props.base_size[1] + self.tile_y - tile_props.tile_size[1]
-
-
-def tile_z_update(self, context):
-    tile_props = context.collection.mt_tile_props
-    if self.z_proportionate_scale and not self.invoked:
-        self.base_z = tile_props.base_size[2] + self.tile_z - tile_props.tile_size[2]
-
-
 class MT_Straight_Tile:
     # Dimensions #
     tile_x: FloatProperty(
@@ -255,36 +240,29 @@ class MT_Straight_Tile:
 
     def draw(self, context):
         super().draw(context)
-        layout = self.layout
-        layout.prop(self, 'tile_material_1')
-        layout.prop(self, 'base_blueprint')
-        layout.prop(self, 'main_part_blueprint')
-        layout.label(text="Tile Size")
-        row = layout.row()
-        row.prop(self, 'tile_x')
-        row.prop(self, 'tile_y')
-        row.prop(self, 'tile_z')
 
-        layout.label(text="Sync Proportions")
-        row = layout.row()
-        row.prop(self, 'x_proportionate_scale')
-        row.prop(self, 'y_proportionate_scale')
-        row.prop(self, 'z_proportionate_scale')
-
-        layout.label(text="Base Size")
-        row = layout.row()
-        row.prop(self, 'base_x')
-        row.prop(self, 'base_y')
-        row.prop(self, 'base_z')
 
 class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Straight_Tile, MT_Tile_Generator):
     """Operator. Generates a straight wall tile with a customisable base and main part."""
 
     bl_idname = "object.make_straight_wall"
     bl_label = "Straight Wall"
-    bl_options = {'UNDO', 'REGISTER', "PRESET"}
+    bl_options = {'UNDO', 'REGISTER', 'PRESET'}
     mt_blueprint = "CUSTOM"
     mt_type = "STRAIGHT_WALL"
+
+    def update_wall_blueprint(self,context):
+        pass
+
+    wall_blueprint: EnumProperty(
+        name="Wall Blueprint",
+        items=[
+            ("OPENLOCK", "OpenLOCK",""),
+            ("PLAIN", "Plain", ""),
+            ("NONE", "None", "")],
+        update=update_wall_blueprint,
+        default="OPENLOCK"
+    )
 
     main_part_blueprint: EnumProperty(
         items=create_main_part_blueprint_enums,
@@ -375,11 +353,33 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Straight_Tile, MT_Tile_Generato
     def draw(self, context):
         super().draw(context)
         layout = self.layout
+        layout.prop(self, 'tile_material_1')
+        layout.prop(self, 'base_blueprint')
+        layout.prop(self, 'wall_blueprint')
+        layout.prop(self, 'main_part_blueprint')
+        layout.label(text="Tile Size")
+        row = layout.row()
+        row.prop(self, 'tile_x')
+        row.prop(self, 'tile_y')
+        row.prop(self, 'tile_z')
+
+        layout.label(text="Sync Proportions")
+        row = layout.row()
+        row.prop(self, 'x_proportionate_scale')
+        row.prop(self, 'y_proportionate_scale')
+        row.prop(self, 'z_proportionate_scale')
+
+        layout.label(text="Base Size")
+        row = layout.row()
+        row.prop(self, 'base_x')
+        row.prop(self, 'base_y')
+        row.prop(self, 'base_z')
         if self.base_blueprint in ('OPENLOCK_S_WALL', 'PLAIN_S_WALL'):
             layout.label(text="Floor Thickness")
             layout.prop(self, 'floor_thickness', text="")
             layout.label(text="Wall Position")
             layout.prop(self, 'wall_position', text="")
+
 
 class MT_OT_Make_Straight_Floor_Tile(Operator, MT_Straight_Tile, MT_Tile_Generator):
     """Operator. Generates a straight wall tile with a customisable base and main part."""
@@ -440,6 +440,27 @@ class MT_OT_Make_Straight_Floor_Tile(Operator, MT_Straight_Tile, MT_Tile_Generat
 
     def draw(self, context):
         super().draw(context)
+        layout = self.layout
+        layout.prop(self, 'tile_material_1')
+        layout.prop(self, 'base_blueprint')
+        layout.prop(self, 'main_part_blueprint')
+        layout.label(text="Tile Size")
+        row = layout.row()
+        row.prop(self, 'tile_x')
+        row.prop(self, 'tile_y')
+        row.prop(self, 'tile_z')
+
+        layout.label(text="Sync Proportions")
+        row = layout.row()
+        row.prop(self, 'x_proportionate_scale')
+        row.prop(self, 'y_proportionate_scale')
+        row.prop(self, 'z_proportionate_scale')
+
+        layout.label(text="Base Size")
+        row = layout.row()
+        row.prop(self, 'base_x')
+        row.prop(self, 'base_y')
+        row.prop(self, 'base_z')
 
 class MT_OT_Make_Openlock_Straight_Base(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an OpenLOCK straight base."""

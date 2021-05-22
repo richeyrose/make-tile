@@ -24,12 +24,28 @@ from ..lib.utils.collections import (
 from ..lib.utils.selection import deselect_all, activate
 from ..lib.utils.multimethod import multimethod
 from ..materials.materials import assign_mat_to_vert_group
-from ..lib.utils.utils import get_all_subclasses
+from ..lib.utils.utils import get_all_subclasses, get_annotations
 
 from ..enums.enums import (
     units,
     collection_types)
 
+def tile_x_update(self, context):
+    tile_props = context.collection.mt_tile_props
+    if self.x_proportionate_scale and not self.invoked:
+        self.base_x = tile_props.base_size[0] + self.tile_x - tile_props.tile_size[0]
+
+
+def tile_y_update(self, context):
+    tile_props = context.collection.mt_tile_props
+    if self.y_proportionate_scale and not self.invoked:
+        self.base_y = tile_props.base_size[1] + self.tile_y - tile_props.tile_size[1]
+
+
+def tile_z_update(self, context):
+    tile_props = context.collection.mt_tile_props
+    if self.z_proportionate_scale and not self.invoked:
+        self.base_z = tile_props.base_size[2] + self.tile_z - tile_props.tile_size[2]
 
 def create_tile_type_enums(self, context):
     """Create an enum of tile types out of subclasses of MT_OT_Make_Tile."""
@@ -161,22 +177,6 @@ class MT_Tile_Generator:
     )
 
     @classmethod
-    def get_annotations(cls):
-        """Return all annotations of a class including from parent class.
-
-        Returns:
-            dict: dict of annotations
-        """
-        all_annotations = {}
-        for c in cls.mro():
-            try:
-                all_annotations.update(**c.__annotations__)
-            except AttributeError:
-                # object, at least, has no __annotations__ attribute.
-                pass
-        return all_annotations
-
-    @classmethod
     def poll(cls, context):
         """Check in object mode."""
         if context.object is not None:
@@ -192,7 +192,7 @@ class MT_Tile_Generator:
     def invoke(self, context, event):
         """Call when operator is invoked directly from the UI."""
         scene_props = context.scene.mt_scene_props
-        all_annotations = self.get_annotations()
+        all_annotations = get_annotations(self.__class__)
         for key in scene_props.__annotations__.keys():
             for k in all_annotations.keys():
                 if k == key:
@@ -239,7 +239,7 @@ class MT_Tile_Generator:
         # later access by the tile constructors
         tile_props = tile_collection.mt_tile_props
 
-        self_annotations = self.get_annotations()
+        self_annotations = get_annotations(self.__class__)
         copy_annotation_props(self, tile_props, self_annotations)
         activate_collection(tile_collection.name)
 

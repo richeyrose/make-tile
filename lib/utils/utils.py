@@ -6,6 +6,22 @@ from . selection import select, activate, deselect_all, select_all
 from . collections import add_object_to_collection
 
 
+def get_annotations(cls):
+    """Return all annotations of a class including from parent class.
+
+    Returns:
+        dict: dict of annotations
+    """
+    all_annotations = {}
+    for c in cls.mro():
+        try:
+            all_annotations.update(**c.__annotations__)
+        except AttributeError:
+            # object, at least, has no __annotations__ attribute.
+            pass
+    return all_annotations
+
+
 def mode(mode_name):
     """switch modes, ensuring that if we enter edit mode we deselect all selected vertices"""
     if bpy.context.object is None:

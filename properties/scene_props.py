@@ -22,6 +22,7 @@ from .properties import (
     create_base_blueprint_enums)
 from ..app_handlers import create_properties_on_load
 from ..tile_creation.create_tile import MT_Tile_Generator
+from ..lib.utils.utils import get_all_subclasses, get_annotations
 
 def create_material_enums(self, context):
     """Create a list of enum items of materials compatible with the MakeTile material system.
@@ -717,54 +718,39 @@ class MT_Scene_Properties(PropertyGroup):
         default=3
     )
 
-def dynamic(func):
-    """
-    @:keyword: dynamic - Function Generator that creates properties for Blender data types on the fly
-    :param func: Function to generate
-    :return: dynamic_property(): returns decorated function
-    """
-    def dynamic_property(*args, **kwargs):
-        """
+def create_scene_props():
+    props = {
+        "displacement_strength": FloatProperty(
+            name="Displacement Strength",
+            description="Overall Displacement Strength",
+            default=0.1,
+            step=1,
+            precision=3,
+            update=update_disp_strength)}
 
-        :param args: first argument is always *prop_dict (from func in outer scope)
-        :parameter *prop_dict: One Blender Property Mapped to a dict: e.g. prop_dict = {'mapname': bpy.props.StringProperty(default="some_path_to_map")}
-        :param kwargs: specific keywords needed by enclosed methods
-        :return: Pointer to newly registered/assigned property
-        """
-        Prop = type(str("Parameters"), (bpy.types.PropertyGroup,), func(*args))
-        bpy.utils.register_class(Prop)
+    subclasses = get_all_subclasses(MT_Tile_Generator)
+    annotations = {}
 
-        PropPointer = bpy.props.PointerProperty(name=func(kwargs.get('param_type')), type=Prop)
-        setattr(func(kwargs.get('blender_type')), func(kwargs.get('param_type')), PropPointer)
-        return PropPointer
-    return dynamic_property
-
-class BlenderProperty(object):
-    def __init__(self, **kwargs):
-        self.name = kwargs.setdefault("name", None)
-        self.prop_dict = {}
-        self.blender_type = bpy.types.Scene
-        self.param_type = "TestParameters"
-        self._prop = None
-
-    @property
-    def prop(self):
-        prop_ptr = self.create_property(self.prop_dict, blender_type=self.blender_type, param_type=self.param_type)
-        self._prop = prop_ptr
-        return self._prop
-
-    @staticmethod
-    @dynamic
-    def create_property(prop_dict, **kwargs):
-        return prop_dict
-
-
+    for subclass in subclasses:
+        # make sure we also get annotations of parent classes such as mixins
+        annotations.update(get_annotations(subclass))
+        annotations.update(subclass.__annotations__)
+        annotations.update(props)
+    New_MT_Scene_Props = type(
+        'New_MT_Scene_Props',
+        (PropertyGroup,),
+        {'__annotations__': annotations})
+    bpy.utils.register_class(New_MT_Scene_Props)
+    PointerSceneProps = PointerProperty(type=New_MT_Scene_Props)
+    setattr(bpy.types.Scene, "new_mt_scene_props", PointerSceneProps)
 
 def register():
     # Property group that contains properties set in UI
     bpy.types.Scene.mt_scene_props = PointerProperty(
         type=MT_Scene_Properties
     )
+
+    create_scene_props()
 
 def unregister():
     del bpy.types.Scene.mt_scene_props

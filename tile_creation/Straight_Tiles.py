@@ -177,19 +177,6 @@ def tile_z_update(self, context):
 
 
 class MT_Straight_Tile:
-    # Tile type #
-    main_part_blueprint: EnumProperty(
-        items=create_main_part_blueprint_enums,
-        update=update_main_part_defaults_2,
-        name="Core"
-    )
-
-    base_blueprint: EnumProperty(
-        items=create_base_blueprint_enums,
-        update=update_base_defaults_2,
-        name="Base"
-    )
-
     # Dimensions #
     tile_x: FloatProperty(
         name="X",
@@ -290,7 +277,6 @@ class MT_Straight_Tile:
         row.prop(self, 'base_y')
         row.prop(self, 'base_z')
 
-
 class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Straight_Tile, MT_Tile_Generator):
     """Operator. Generates a straight wall tile with a customisable base and main part."""
 
@@ -299,6 +285,18 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Straight_Tile, MT_Tile_Generato
     bl_options = {'UNDO', 'REGISTER', "PRESET"}
     mt_blueprint = "CUSTOM"
     mt_type = "STRAIGHT_WALL"
+
+    main_part_blueprint: EnumProperty(
+        items=create_main_part_blueprint_enums,
+        update=update_main_part_defaults_2,
+        name="Core"
+    )
+
+    base_blueprint: EnumProperty(
+        items=create_base_blueprint_enums,
+        update=update_base_defaults_2,
+        name="Base"
+    )
 
     # S Wall Props
     wall_position: EnumProperty(
@@ -331,7 +329,7 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Straight_Tile, MT_Tile_Generato
 
         base = spawn_prefab(context, subclasses, base_blueprint, base_type, **kwargs)
 
-        kwargs["base_name"] =base.name
+        kwargs["base_name"] = base.name
 
         if core_blueprint == 'NONE':
             wall_core = None
@@ -392,6 +390,17 @@ class MT_OT_Make_Straight_Floor_Tile(Operator, MT_Straight_Tile, MT_Tile_Generat
     mt_blueprint = "CUSTOM"
     mt_type = "STRAIGHT_FLOOR"
 
+    main_part_blueprint: EnumProperty(
+        items=create_main_part_blueprint_enums,
+        update=update_main_part_defaults_2,
+        name="Core"
+    )
+
+    base_blueprint: EnumProperty(
+        items=create_base_blueprint_enums,
+        update=update_base_defaults_2,
+        name="Base"
+    )
     def execute(self, context):
         """Execute the operator."""
         super().execute(context)

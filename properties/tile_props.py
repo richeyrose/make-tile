@@ -216,10 +216,12 @@ def create_tile_props():
     """Dynamically create new_mt_tile_props PropertyGroup based on properties in MT_Tile_Generator and subclasses."""
     subclasses = get_all_subclasses(MT_Tile_Generator)
     annotations = {}
+
     for subclass in subclasses:
+        # make sure we also get annotations of parent classes such as mixins
+        annotations.update(get_annotations(subclass))
         annotations.update(subclass.__annotations__)
 
-    #annotations = get_annotations(MT_Tile_Generator)
     New_MT_Tile_Props = type(
         'New_MT_Tile_Props',
         (PropertyGroup,),

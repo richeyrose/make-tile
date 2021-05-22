@@ -48,60 +48,6 @@ def create_tile_type_enums(self, context):
     return sorted(enum_items)
 
 
-def create_main_part_blueprint_enums(self, context):
-    """Dynamically creates a list of enum items depending on what is set in the tile_type defaults.
-
-    Args:
-        context (bpy.Context): scene context
-
-    Returns:
-        list[enum_item]: list of enum items
-    """
-    enum_items = []
-    scene = context.scene
-    scene_props = scene.mt_scene_props
-
-    if context is None:
-        return enum_items
-
-    if 'tile_defaults' not in scene_props:
-        return enum_items
-
-    tile_type = scene_props.tile_type
-    tile_defaults = scene_props['tile_defaults']
-
-    for default in tile_defaults:
-        if default['type'] == tile_type:
-            for key, value in default['main_part_blueprints'].items():
-                enum = (key, value, "")
-                enum_items.append(enum)
-            return sorted(enum_items)
-    return enum_items
-
-
-def create_base_blueprint_enums(self, context):
-    enum_items = []
-    scene = context.scene
-    scene_props = scene.mt_scene_props
-
-    if context is None:
-        return enum_items
-
-    if 'tile_defaults' not in scene_props:
-        return enum_items
-
-    tile_type = scene_props.tile_type
-    tile_defaults = scene_props['tile_defaults']
-
-    for default in tile_defaults:
-        if default['type'] == tile_type:
-            for key, value in default['base_blueprints'].items():
-                enum = (key, value, "")
-                enum_items.append(enum)
-            return sorted(enum_items)
-    return enum_items
-
-
 def create_material_enums(self, context):
     """Create a list of enum items of materials compatible with the MakeTile material system.
 

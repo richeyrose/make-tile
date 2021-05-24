@@ -13,14 +13,11 @@ from bpy.props import (
 
 from ..properties.properties import (
     create_base_blueprint_enums,
-    create_main_part_blueprint_enums,
-    create_straight_wall_blueprint_enums,
-    create_tile_type_enums)
+    create_main_part_blueprint_enums)
 
 from ..properties.scene_props import (
-    update_main_part_defaults,
-    update_base_defaults,
-    update_straight_wall_defaults)
+    update_main_part_defaults_2,
+    update_base_defaults_2)
 
 from .. utils.registration import get_prefs
 from .. lib.utils.collections import (
@@ -48,8 +45,6 @@ from .Rectangular_Tiles import (
     create_plain_rect_floor_cores,
     spawn_plain_base,
     spawn_openlock_base)
-
-from ..app_handlers import create_properties_on_load
 
 
 class MT_PT_Straight_Wall_Panel(Panel):
@@ -79,7 +74,7 @@ class MT_PT_Straight_Wall_Panel(Panel):
 
         layout.label(text="Blueprints")
         layout.prop(scene_props, 'base_blueprint')
-        layout.prop(scene_props, 'straight_wall_blueprint')
+        layout.prop(scene_props, 'main_part_blueprint')
 
         layout.label(text="Tile Size")
         row = layout.row()
@@ -166,51 +161,7 @@ class MT_PT_Straight_Floor_Panel(Panel):
         layout.operator('scene.reset_tile_defaults')
 
 
-def create_tile_type_enums(self, context):
-    """Create an enum of tile types out of subclasses of MT_OT_Make_Tile."""
-    enum_items = []
-    if context is None:
-        return enum_items
-
-    # blueprint = context.scene.mt_scene_props.tile_blueprint
-    subclasses = get_all_subclasses(MT_Tile_Generator)
-
-    for subclass in subclasses:
-        # if hasattr(subclass, 'mt_blueprint'):
-        if 'INTERNAL' not in subclass.bl_options:
-            enum = (subclass.mt_type, subclass.bl_label, "")
-            enum_items.append(enum)
-    return sorted(enum_items)
-
-
-def update_scene_defaults(self, context):
-    scene_props = context.scene.mt_scene_props
-    tile_type = scene_props.tile_type
-    try:
-        tile_defaults = scene_props['tile_defaults']
-    except KeyError:
-        create_properties_on_load(dummy=None)
-
-    for tile in tile_defaults:
-        if tile['type'] == tile_type:
-            defaults = tile['defaults']
-            for key, value in defaults.items():
-                setattr(scene_props, key, value)
-            break
-
-    # update_main_part_defaults(self, context)
-    update_straight_wall_defaults(self, context)
-    update_base_defaults(self, context)
-
 class MT_Straight_Tile:
-    # Universal properties
-    tile_type: EnumProperty(
-        items=create_tile_type_enums,
-        name="Tile Type",
-        update=update_scene_defaults,
-        description="The type of tile e.g. Straight Wall, Curved Floor"
-    )
-
     # Dimensions #
     tile_x: FloatProperty(
         name="X",
@@ -313,9 +264,8 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Straight_Tile, MT_Tile_Generato
     mt_blueprint = "CUSTOM"
     mt_type = "STRAIGHT_WALL"
 
-    straight_wall_blueprint: EnumProperty(
-        items=create_straight_wall_blueprint_enums,
-        update=update_main_part_defaults,
+    main_part_blueprint: EnumProperty(
+        items=create_main_part_blueprint_enums,
         name="Wall")
 
     base_blueprint: EnumProperty(
@@ -347,7 +297,7 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Straight_Tile, MT_Tile_Generato
         scene = context.scene
         scene_props = scene.mt_scene_props
         base_blueprint = self.base_blueprint
-        wall_blueprint = self.straight_wall_blueprint
+        wall_blueprint = self.main_part_blueprint
         base_type = 'STRAIGHT_BASE'
         core_type = 'STRAIGHT_WALL_CORE'
         subclasses = get_all_subclasses(MT_Tile_Generator)
@@ -403,7 +353,7 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Straight_Tile, MT_Tile_Generato
         layout = self.layout
         layout.prop(self, 'tile_material_1')
         layout.prop(self, 'base_blueprint')
-        layout.prop(self, 'straight_wall_blueprint')
+        layout.prop(self, 'main_part_blueprint')
         layout.label(text="Tile Size")
         row = layout.row()
         row.prop(self, 'tile_x')
@@ -439,13 +389,13 @@ class MT_OT_Make_Straight_Floor_Tile(Operator, MT_Straight_Tile, MT_Tile_Generat
 
     main_part_blueprint: EnumProperty(
         items=create_main_part_blueprint_enums,
-        update=update_main_part_defaults,
+        update=update_main_part_defaults_2,
         name="Core"
     )
 
     base_blueprint: EnumProperty(
         items=create_base_blueprint_enums,
-        update=update_base_defaults,
+        update=update_base_defaults_2,
         name="Base"
     )
     def execute(self, context):

@@ -47,6 +47,22 @@ def tile_z_update(self, context):
     if self.z_proportionate_scale and not self.invoked:
         self.base_z = tile_props.base_size[2] + self.tile_z - tile_props.tile_size[2]
 
+def create_tile_type_enums(self, context):
+    """Create an enum of tile types out of subclasses of MT_OT_Make_Tile."""
+    enum_items = []
+    if context is None:
+        return enum_items
+
+    # blueprint = context.scene.mt_scene_props.tile_blueprint
+    subclasses = get_all_subclasses(MT_Tile_Generator)
+
+    for subclass in subclasses:
+        # if hasattr(subclass, 'mt_blueprint'):
+        if 'INTERNAL' not in subclass.bl_options:
+            enum = (subclass.mt_type, subclass.bl_label, "")
+            enum_items.append(enum)
+    return sorted(enum_items)
+
 
 def create_material_enums(self, context):
     """Create a list of enum items of materials compatible with the MakeTile material system.
@@ -73,6 +89,56 @@ def update_material(self, context):
     scene_props = context.scene.mt_scene_props
     scene_props.tile_material_1 = self.tile_material_1
 
+def update_scene_defaults(self, context):
+    scene_props = context.scene.mt_scene_props
+    tile_type = scene_props.tile_type
+    try:
+        tile_defaults = scene_props['tile_defaults']
+    except KeyError:
+        create_properties_on_load(dummy=None)
+
+    for tile in tile_defaults:
+        if tile['type'] == tile_type:
+            defaults = tile['defaults']
+            for key, value in defaults.items():
+                setattr(scene_props, key, value)
+            break
+
+    update_main_part_defaults(self, context)
+    update_base_defaults(self, context)
+
+def update_base_defaults(self, context):
+    scene_props = context.scene.mt_scene_props
+    tile_type = scene_props.tile_type
+    base_blueprint = scene_props.base_blueprint
+    tile_defaults = scene_props['tile_defaults']
+
+    for tile in tile_defaults:
+        if tile['type'] == tile_type:
+            defaults = tile['defaults']
+            base_defaults = defaults['base_defaults']
+            for key, value in base_defaults.items():
+                if key == base_blueprint:
+                    for k, v in value.items():
+                        setattr(scene_props, k, v)
+                    break
+
+
+def update_main_part_defaults(self, context):
+    scene_props = context.scene.mt_scene_props
+    tile_type = scene_props.tile_type
+    main_part_blueprint = scene_props.main_part_blueprint
+    tile_defaults = scene_props['tile_defaults']
+
+    for tile in tile_defaults:
+        if tile['type'] == tile_type:
+            defaults = tile['defaults']
+            main_part_defaults = defaults['tile_defaults']
+            for key, value in main_part_defaults.items():
+                if key == main_part_blueprint:
+                    for k, v in value.items():
+                        setattr(scene_props, k, v)
+                    break
 
 class MT_Tile_Generator:
     """Subclass this to create your tile operator."""
@@ -86,6 +152,14 @@ class MT_Tile_Generator:
         name="Auto",
         default=True,
         description="Automatic Refresh")
+
+    # Universal properties
+    tile_type: EnumProperty(
+        items=create_tile_type_enums,
+        name="Tile Type",
+        update=update_scene_defaults,
+        description="The type of tile e.g. Straight Wall, Curved Floor"
+    )
 
     collection_type: EnumProperty(
         items=collection_types,

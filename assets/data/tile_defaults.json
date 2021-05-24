@@ -74,10 +74,16 @@
             "PLAIN": "Plain",
             "NONE": "None"
         },
+        "straight_wall_blueprints": {
+            "OPENLOCK": "OpenLOCK",
+            "PLAIN": "Plain",
+            "NONE": "None"
+        },
         "defaults":
             {
             "base_blueprint": "OPENLOCK",
             "main_part_blueprint": "OPENLOCK",
+            "straight_wall_blueprint": "OPENLOCK",
             "subdivision_density": "MEDIUM",
             "x_proportionate_scale": true,
             "y_proportionate_scale": false,
@@ -116,7 +122,7 @@
                     "wall_position": "CENTER"
                 }
             },
-            "tile_defaults": {
+            "wall_defaults": {
                 "OPENLOCK": {
                     "tile_x": 2.015,
                     "tile_y": 0.32,

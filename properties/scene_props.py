@@ -61,8 +61,29 @@ def update_scene_defaults(self, context):
                 setattr(scene_props, key, value)
             break
 
-    update_main_part_defaults(self, context)
+    # update_main_part_defaults(self, context)
+    update_straight_wall_defaults(self, context)
     update_base_defaults(self, context)
+
+
+def update_straight_wall_defaults(self, context):
+    scene_props = context.scene.mt_scene_props
+    tile_type = scene_props.tile_type
+    straight_wall_blueprint = scene_props.straight_wall_blueprint
+    tile_defaults = scene_props['tile_defaults']
+
+    for tile in tile_defaults:
+        if tile['type'] == tile_type:
+            defaults = tile['defaults']
+            try:
+                wall_defaults = defaults['wall_defaults']
+                for key, value in wall_defaults.items():
+                    if key == straight_wall_blueprint:
+                        for k, v in value.items():
+                            setattr(scene_props, k, v)
+                        break
+            except KeyError:
+                pass
 
 
 def update_base_defaults(self, context):

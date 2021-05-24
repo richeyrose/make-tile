@@ -320,7 +320,7 @@ class MT_OT_Make_Openlock_Connecting_Column_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile_props = context.collection.mt_tile_props
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         spawn_openlock_base(self, tile_props)
         return{'FINISHED'}
 
@@ -336,7 +336,7 @@ class MT_OT_Make_Plain_Connecting_Column_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile_props = context.collection.mt_tile_props
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         spawn_plain_base(tile_props)
         return{'FINISHED'}
 
@@ -352,7 +352,7 @@ class MT_OT_Make_Empty_Connecting_Column_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile_props = context.collection.mt_tile_props
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         spawn_empty_base(tile_props)
         return{'FINISHED'}
 
@@ -369,7 +369,7 @@ class MT_OT_Make_Plain_Connecting_Column_Core(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile_props = context.collection.mt_tile_props
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         spawn_plain_connecting_column_core(self, tile_props)
         return{'FINISHED'}
 
@@ -382,12 +382,13 @@ class MT_OT_Make_Openlock_Connecting_Column_Core(MT_Tile_Generator, Operator):
     bl_options = {'INTERNAL'}
     mt_blueprint = "OPENLOCK"
     mt_type = "CONNECTING_COLUMN_CORE"
+
     base_name: StringProperty()
 
     def execute(self, context):
         """Execute the operator."""
-        base = context.active_object
-        tile_props = context.collection.mt_tile_props
+        base = bpy.data.objects[self.base_name]
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         spawn_openlock_connecting_column_core(self, tile_props, base)
         return{'FINISHED'}
 
@@ -404,9 +405,6 @@ class MT_OT_Make_Empty_Connecting_Column_Core(MT_Tile_Generator, Operator):
     def execute(self, context):
         """Execute the operator."""
         return {'PASS_THROUGH'}
-
-
-
 
 
 def initialise_column_creator(context, scene_props):

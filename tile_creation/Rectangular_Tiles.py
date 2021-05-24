@@ -88,7 +88,7 @@ class MT_OT_Make_Openlock_Rect_Base(MT_Tile_Generator, Operator):
     def execute(self, context):
         """Execute the operator."""
         tile_props = context.collection.mt_tile_props
-        spawn_openlock_base(tile_props)
+        spawn_openlock_base(self, tile_props)
         return{'FINISHED'}
 
 
@@ -104,7 +104,7 @@ class MT_OT_Make_Plain_Rect_Base(MT_Tile_Generator, Operator):
     def execute(self, context):
         """Execute the operator."""
         tile_props = context.collection.mt_tile_props
-        spawn_plain_base(tile_props)
+        spawn_plain_base(self, tile_props)
         return{'FINISHED'}
 
 
@@ -341,7 +341,7 @@ def spawn_plain_base(tile_props):
     return base
 
 
-def spawn_openlock_base(tile_props):
+def spawn_openlock_base(self, tile_props):
     """Spawn an openlock base into the scene.
 
     Args:

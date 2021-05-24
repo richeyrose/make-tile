@@ -3,7 +3,6 @@ from math import floor
 import bpy
 from bpy.types import Operator
 from bpy.props import (
-
     StringProperty,
     EnumProperty,
     BoolProperty,
@@ -12,6 +11,7 @@ from bpy.props import (
 
 from ..operators.assign_reference_object import (
     create_helper_object)
+from ..app_handlers import create_properties_on_load
 
 from ..utils.registration import get_prefs
 
@@ -89,6 +89,57 @@ def update_material(self, context):
     scene_props = context.scene.mt_scene_props
     scene_props.tile_material_1 = self.tile_material_1
 
+def update_scene_defaults(self, context):
+    scene_props = context.scene.mt_scene_props
+    tile_type = scene_props.tile_type
+    try:
+        tile_defaults = scene_props['tile_defaults']
+    except KeyError:
+        create_properties_on_load(dummy=None)
+
+    for tile in tile_defaults:
+        if tile['type'] == tile_type:
+            defaults = tile['defaults']
+            for key, value in defaults.items():
+                setattr(scene_props, key, value)
+            break
+
+    update_main_part_defaults(self, context)
+    update_base_defaults(self, context)
+
+def update_base_defaults(self, context):
+    scene_props = context.scene.mt_scene_props
+    tile_type = scene_props.tile_type
+    base_blueprint = scene_props.base_blueprint
+    tile_defaults = scene_props['tile_defaults']
+
+    for tile in tile_defaults:
+        if tile['type'] == tile_type:
+            defaults = tile['defaults']
+            base_defaults = defaults['base_defaults']
+            for key, value in base_defaults.items():
+                if key == base_blueprint:
+                    for k, v in value.items():
+                        setattr(scene_props, k, v)
+                    break
+
+
+def update_main_part_defaults(self, context):
+    scene_props = context.scene.mt_scene_props
+    tile_type = scene_props.tile_type
+    main_part_blueprint = scene_props.main_part_blueprint
+    tile_defaults = scene_props['tile_defaults']
+
+    for tile in tile_defaults:
+        if tile['type'] == tile_type:
+            defaults = tile['defaults']
+            main_part_defaults = defaults['tile_defaults']
+            for key, value in main_part_defaults.items():
+                if key == main_part_blueprint:
+                    for k, v in value.items():
+                        setattr(scene_props, k, v)
+                    break
+
 class MT_Tile_Generator:
     """Subclass this to create your tile operator."""
 
@@ -106,6 +157,7 @@ class MT_Tile_Generator:
     tile_type: EnumProperty(
         items=create_tile_type_enums,
         name="Tile Type",
+        update=update_scene_defaults,
         description="The type of tile e.g. Straight Wall, Curved Floor"
     )
 
@@ -118,7 +170,7 @@ class MT_Tile_Generator:
 
     tile_material_1: EnumProperty(
         items=create_material_enums,
-        update=update_material,
+        #update=update_material,
         name="Material"
     )
 

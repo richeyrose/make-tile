@@ -718,6 +718,16 @@ class MT_Scene_Properties(PropertyGroup):
         default=3
     )
 
+    wall_blueprint: EnumProperty(
+        name="Wall Blueprint",
+        items=[
+            ("OPENLOCK", "OpenLOCK",""),
+            ("PLAIN", "Plain", ""),
+            ("NONE", "None", "")],
+        #update=update_wall_blueprint,
+        default="OPENLOCK"
+    )
+
 def create_scene_props():
     props = {
         "displacement_strength": FloatProperty(
@@ -726,7 +736,11 @@ def create_scene_props():
             default=0.1,
             step=1,
             precision=3,
-            update=update_disp_strength)}
+            update=update_disp_strength),
+        "mt_last_selected": PointerProperty(
+            name="Last Selected Object",
+            type=bpy.types.Object
+        )}
 
     subclasses = get_all_subclasses(MT_Tile_Generator)
     annotations = {}
@@ -742,14 +756,15 @@ def create_scene_props():
         {'__annotations__': annotations})
     bpy.utils.register_class(New_MT_Scene_Props)
     PointerSceneProps = PointerProperty(type=New_MT_Scene_Props)
-    setattr(bpy.types.Scene, "new_mt_scene_props", PointerSceneProps)
+    setattr(bpy.types.Scene, "mt_scene_props", PointerSceneProps)
 
 def register():
     # Property group that contains properties set in UI
+    '''
     bpy.types.Scene.mt_scene_props = PointerProperty(
         type=MT_Scene_Properties
     )
-
+    '''
     create_scene_props()
 
 def unregister():

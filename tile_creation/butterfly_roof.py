@@ -42,7 +42,7 @@ def draw_butterfly_base(self, context, margin=0.001):
     turtle = context.scene.cursor
     tile = context.collection
     tile_props = tile.mt_tile_props
-    roof_tile_props = tile.mt_roof_tile_props
+    # roof_tile_props = tile.mt_roof_tile_props
 
     base_dims = [s for s in tile_props.base_size]
 
@@ -52,18 +52,18 @@ def draw_butterfly_base(self, context, margin=0.001):
 
     # correct for inset (difference between standard base width and wall width) to take into account
     # displacement materials
-    if roof_tile_props.inset_x_neg:
-        base_dims[0] = base_dims[0] - roof_tile_props.inset_dist
-    if roof_tile_props.inset_x_pos:
-        base_dims[0] = base_dims[0] - roof_tile_props.inset_dist
-    if roof_tile_props.inset_y_neg:
-        base_dims[1] = base_dims[1] - roof_tile_props.inset_dist
-    if roof_tile_props.inset_y_pos:
-        base_dims[1] = base_dims[1] - roof_tile_props.inset_dist
+    if tile_props.inset_x_neg:
+        base_dims[0] = base_dims[0] - tile_props.inset_dist
+    if tile_props.inset_x_pos:
+        base_dims[0] = base_dims[0] - tile_props.inset_dist
+    if tile_props.inset_y_neg:
+        base_dims[1] = base_dims[1] - tile_props.inset_dist
+    if tile_props.inset_y_pos:
+        base_dims[1] = base_dims[1] - tile_props.inset_dist
 
     # Calculate triangle
     C = 90
-    A = roof_tile_props.roof_pitch
+    A = tile_props.roof_pitch
     B = 180 - C - A
     b = base_dims[0] / 2
     a = tan(radians(A)) * b
@@ -87,10 +87,10 @@ def draw_butterfly_base(self, context, margin=0.001):
 
     # start drawing
     # check to see if we're correcting for wall thickness
-    if roof_tile_props.inset_x_neg:
-        ri(bm, roof_tile_props.inset_dist)
-    if roof_tile_props.inset_y_pos:
-        fd(bm, roof_tile_props.inset_dist)
+    if tile_props.inset_x_neg:
+        ri(bm, tile_props.inset_dist)
+    if tile_props.inset_y_pos:
+        fd(bm, tile_props.inset_dist)
 
     draw_origin = turtle.location.copy()
 
@@ -506,24 +506,24 @@ def draw_butterfly_roof_top(self, context, margin=0.001):
     turtle = context.scene.cursor
     tile = context.collection
     tile_props = tile.mt_tile_props
-    roof_tile_props = tile.mt_roof_tile_props
+    # roof_tile_props = tile.mt_roof_tile_props
 
     base_dims = [s for s in tile_props.base_size]
 
     # correct for inset (difference between standard base width and wall width) to take into account
     # displacement materials
-    if roof_tile_props.inset_x_neg:
-        base_dims[0] = base_dims[0] - roof_tile_props.inset_dist
-    if roof_tile_props.inset_x_pos:
-        base_dims[0] = base_dims[0] - roof_tile_props.inset_dist
-    if roof_tile_props.inset_y_neg:
-        base_dims[1] = base_dims[1] - roof_tile_props.inset_dist
-    if roof_tile_props.inset_y_pos:
-        base_dims[1] = base_dims[1] - roof_tile_props.inset_dist
+    if tile_props.inset_x_neg:
+        base_dims[0] = base_dims[0] - tile_props.inset_dist
+    if tile_props.inset_x_pos:
+        base_dims[0] = base_dims[0] - tile_props.inset_dist
+    if tile_props.inset_y_neg:
+        base_dims[1] = base_dims[1] - tile_props.inset_dist
+    if tile_props.inset_y_pos:
+        base_dims[1] = base_dims[1] - tile_props.inset_dist
 
     # Calculate triangle
     C = 90
-    A = roof_tile_props.roof_pitch
+    A = tile_props.roof_pitch
     B = 180 - C - A
     b = base_dims[0] / 2
     a = tan(radians(A)) * b
@@ -550,7 +550,7 @@ def draw_butterfly_roof_top(self, context, margin=0.001):
     #   /|
     #  / |
 
-    b = roof_tile_props.side_eaves
+    b = tile_props.side_eaves
     a = (b/sin(radians(B)) * sin(radians(A)))
     c = (b/sin(radians(B)) * sin(radians(C)))
     eaves_tri = {
@@ -582,7 +582,7 @@ def draw_butterfly_roof_top(self, context, margin=0.001):
     C = 90
     B = 90 - B
     A = 180 - C - B
-    b = roof_tile_props.roof_thickness
+    b = tile_props.roof_thickness
     a = tan(radians(A)) * b
     c = sqrt(a**2 + b**2)
     peak_tri = {
@@ -603,7 +603,7 @@ def draw_butterfly_roof_top(self, context, margin=0.001):
 
     subdiv_x_dist = (roof_bottom['c'] - margin) / subdivs[0]
     subdiv_y_dist = (
-        base_dims[1] - (margin * 2) + roof_tile_props.end_eaves_neg + roof_tile_props.end_eaves_pos) / subdivs[1]
+        base_dims[1] - (margin * 2) + tile_props.end_eaves_neg + tile_props.end_eaves_pos) / subdivs[1]
 
     vert_groups = ['Left', 'Right']
     bm, obj = create_turtle('Roof Top', vert_groups)
@@ -615,13 +615,13 @@ def draw_butterfly_roof_top(self, context, margin=0.001):
 
     # start
     # check to see if we're correcting for wall thickness
-    if roof_tile_props.inset_y_pos:
-        fd(bm, roof_tile_props.inset_dist)
+    if tile_props.inset_y_pos:
+        fd(bm, tile_props.inset_dist)
 
     # draw gable end edges
-    bk(bm, roof_tile_props.end_eaves_neg)
+    bk(bm, tile_props.end_eaves_neg)
     up(bm, base_dims[2])
-    ri(bm, base_dims[0] / 2 + roof_tile_props.inset_dist)
+    ri(bm, base_dims[0] / 2 + tile_props.inset_dist)
 
     draw_origin = turtle.location.copy()
     pd(bm)
@@ -686,7 +686,7 @@ def draw_butterfly_roof_top(self, context, margin=0.001):
     up(left_bm, 0.1)
     left_bm.select_mode = {'FACE'}
     bm_select_all(left_bm)
-    fd(left_bm, (base_dims[1] - (margin) + roof_tile_props.end_eaves_neg + roof_tile_props.end_eaves_pos), False)
+    fd(left_bm, (base_dims[1] - (margin) + tile_props.end_eaves_neg + tile_props.end_eaves_pos), False)
     bmesh.ops.recalc_face_normals(left_bm, faces=left_bm.faces)
 
     # select all points inside left_bm

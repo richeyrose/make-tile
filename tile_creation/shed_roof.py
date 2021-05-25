@@ -2,7 +2,6 @@ from math import radians, tan, sqrt
 from mathutils import geometry
 import bmesh
 
-
 from ..lib.bmturtle.commands import (
     create_turtle,
     finalise_turtle,
@@ -41,7 +40,7 @@ def draw_shed_base(self, context, margin=0.001):
     turtle = context.scene.cursor
     tile = context.collection
     tile_props = tile.mt_tile_props
-    roof_tile_props = tile.mt_roof_tile_props
+    # roof_tile_props = tile.mt_roof_tile_props
 
     base_dims = [s for s in tile_props.base_size]
 
@@ -51,18 +50,18 @@ def draw_shed_base(self, context, margin=0.001):
 
     # correct for inset (difference between standard base width and wall width) to take into account
     # displacement materials
-    if roof_tile_props.inset_x_neg:
-        base_dims[0] = base_dims[0] - roof_tile_props.inset_dist
-    if roof_tile_props.inset_x_pos:
-        base_dims[0] = base_dims[0] - roof_tile_props.inset_dist
-    if roof_tile_props.inset_y_neg:
-        base_dims[1] = base_dims[1] - roof_tile_props.inset_dist
-    if roof_tile_props.inset_y_pos:
-        base_dims[1] = base_dims[1] - roof_tile_props.inset_dist
+    if tile_props.inset_x_neg:
+        base_dims[0] = base_dims[0] - tile_props.inset_dist
+    if tile_props.inset_x_pos:
+        base_dims[0] = base_dims[0] - tile_props.inset_dist
+    if tile_props.inset_y_neg:
+        base_dims[1] = base_dims[1] - tile_props.inset_dist
+    if tile_props.inset_y_pos:
+        base_dims[1] = base_dims[1] - tile_props.inset_dist
 
     # Calculate triangle
     C = 90
-    A = roof_tile_props.roof_pitch
+    A = tile_props.roof_pitch
     B = 180 - C - A
     b = base_dims[0]
     a = tan(radians(A)) * b
@@ -86,10 +85,10 @@ def draw_shed_base(self, context, margin=0.001):
 
     # start drawing
     # check to see if we're correcting for wall thickness
-    if roof_tile_props.inset_x_neg:
-        ri(bm, roof_tile_props.inset_dist)
-    if roof_tile_props.inset_y_pos:
-        fd(bm, roof_tile_props.inset_dist)
+    if tile_props.inset_x_neg:
+        ri(bm, tile_props.inset_dist)
+    if tile_props.inset_y_pos:
+        fd(bm, tile_props.inset_dist)
 
     draw_origin = turtle.location.copy()
 
@@ -371,7 +370,7 @@ def draw_shed_roof_top(self, context, margin=0.001):
     turtle = context.scene.cursor
     tile = context.collection
     tile_props = tile.mt_tile_props
-    roof_tile_props = tile.mt_roof_tile_props
+    #roof_tile_props = tile.mt_roof_tile_props
 
     base_dims = [s for s in tile_props.base_size]
 
@@ -381,16 +380,16 @@ def draw_shed_roof_top(self, context, margin=0.001):
     if roof_tile_props.inset_x_neg:
         base_dims[0] = base_dims[0] - roof_tile_props.inset_dist
     '''
-    if roof_tile_props.inset_x_pos:
-        base_dims[0] = base_dims[0] - roof_tile_props.inset_dist
-    if roof_tile_props.inset_y_neg:
-        base_dims[1] = base_dims[1] - roof_tile_props.inset_dist
-    if roof_tile_props.inset_y_pos:
-        base_dims[1] = base_dims[1] - roof_tile_props.inset_dist
+    if tile_props.inset_x_pos:
+        base_dims[0] = base_dims[0] - tile_props.inset_dist
+    if tile_props.inset_y_neg:
+        base_dims[1] = base_dims[1] - tile_props.inset_dist
+    if tile_props.inset_y_pos:
+        base_dims[1] = base_dims[1] - tile_props.inset_dist
 
     # calculate triangle
     C = 90
-    A = roof_tile_props.roof_pitch
+    A = tile_props.roof_pitch
     B = 180 - C - A
     b = base_dims[0]
     a = tan(radians(A)) * b
@@ -413,9 +412,9 @@ def draw_shed_roof_top(self, context, margin=0.001):
     #  C b | ▲ side eaves distance
     #  |___| ▼
 
-    a = base_tri['a'] + roof_tile_props.side_eaves
+    a = base_tri['a'] + tile_props.side_eaves
     C = 90
-    A = roof_tile_props.roof_pitch
+    A = tile_props.roof_pitch
     B = 180 - 90 - A
     b = a / tan(radians(A))
     c = sqrt(a**2 + b**2)
@@ -436,9 +435,9 @@ def draw_shed_roof_top(self, context, margin=0.001):
     #    /___|
     #   A  b  C
     C = 90
-    B = roof_tile_props.roof_pitch / 2
+    B = tile_props.roof_pitch / 2
     A = 180 - 90 - B
-    b = roof_tile_props.roof_thickness
+    b = tile_props.roof_thickness
     a = tan(radians(A)) * b
     c = sqrt(a**2 + b**2)
 
@@ -452,9 +451,9 @@ def draw_shed_roof_top(self, context, margin=0.001):
 
     # calculate size of eave end triangle based on roof thickness
     C = 90
-    A = roof_tile_props.roof_pitch
+    A = tile_props.roof_pitch
     B = 180 - C - A
-    a = roof_tile_props.roof_thickness
+    a = tile_props.roof_thickness
     b = a / tan(radians(A))
     c = sqrt(a**2 + b**2)
 
@@ -475,7 +474,7 @@ def draw_shed_roof_top(self, context, margin=0.001):
     #      C  b
 
     C = 90
-    A = roof_tile_props.roof_pitch
+    A = tile_props.roof_pitch
     B = 180 - A - C
     b = inner_tri['b'] + eave_end_tri['c']
     a = tan(radians(A)) * b
@@ -503,13 +502,13 @@ def draw_shed_roof_top(self, context, margin=0.001):
 
     # start
     # check to see if we're correcting for wall thickness
-    if roof_tile_props.inset_y_pos:
-        fd(bm, roof_tile_props.inset_dist)
+    if tile_props.inset_y_pos:
+        fd(bm, tile_props.inset_dist)
 
     # draw gable end edges
-    bk(bm, roof_tile_props.end_eaves_neg)
+    bk(bm, tile_props.end_eaves_neg)
     ri(bm, inner_tri['b'])
-    up(bm, base_dims[2] - roof_tile_props.side_eaves)
+    up(bm, base_dims[2] - tile_props.side_eaves)
 
     draw_origin = turtle.location.copy()
     pd(bm)
@@ -564,7 +563,7 @@ def draw_shed_roof_top(self, context, margin=0.001):
 
     fd(bm, margin, del_original=False)
     subdiv_y_dist = (
-        base_dims[1] - (margin * 2) + roof_tile_props.end_eaves_neg + roof_tile_props.end_eaves_pos) / (subdivs[1] - 1)
+        base_dims[1] - (margin * 2) + tile_props.end_eaves_neg + tile_props.end_eaves_pos) / (subdivs[1] - 1)
 
     i = 1
     while i < subdivs[1]:
@@ -592,7 +591,7 @@ def draw_shed_roof_top(self, context, margin=0.001):
     top_bm.select_mode = {'FACE'}
     turtle.rotation_euler = (0, 0, 0)
     bm_select_all(top_bm)
-    fd(top_bm, base_dims[1] + roof_tile_props.end_eaves_neg + roof_tile_props.end_eaves_pos + margin * 4, False)
+    fd(top_bm, base_dims[1] + tile_props.end_eaves_neg + tile_props.end_eaves_pos + margin * 4, False)
     bmesh.ops.recalc_face_normals(top_bm, faces=top_bm.faces)
 
     # select all points inside top_bm
@@ -603,7 +602,7 @@ def draw_shed_roof_top(self, context, margin=0.001):
 
         if vert.co[2] > draw_origin[2] + margin / 4 and \
             vert.co[1] > draw_origin[1] + margin / 4 and \
-                vert.co[1] < draw_origin[1] + base_dims[1] + roof_tile_props.end_eaves_neg + roof_tile_props.end_eaves_pos - (margin / 4):
+                vert.co[1] < draw_origin[1] + base_dims[1] + tile_props.end_eaves_neg + tile_props.end_eaves_pos - (margin / 4):
             vert.select = select
 
     right_verts = [v for v in bm.verts if v.select]

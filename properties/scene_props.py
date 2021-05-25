@@ -24,42 +24,6 @@ from ..app_handlers import create_properties_on_load
 from ..tile_creation.create_tile import MT_Tile_Generator
 from ..lib.utils.utils import get_all_subclasses, get_annotations
 
-'''
-def update_base_defaults_2(self, context):
-    scene_props = context.scene.mt_scene_props
-    tile_type = self.tile_type
-    base_blueprint = self.base_blueprint
-    tile_defaults = scene_props['tile_defaults']
-
-    for tile in tile_defaults:
-        if tile['type'] == tile_type:
-            base_defaults = tile['defaults']['base_defaults']
-            for key, value in base_defaults.items():
-                if key == base_blueprint:
-                    for k, v in value.items():
-                        if hasattr(self, k):
-                            setattr(scene_props, k, v)
-                            setattr(self, k, v)
-                    break
-
-
-def update_main_part_defaults_2(self, context):
-    scene_props = context.scene.mt_scene_props
-    tile_type = self.tile_type
-    main_part_blueprint = self.main_part_blueprint
-    tile_defaults = scene_props['tile_defaults']
-
-    for tile in tile_defaults:
-        if tile['type'] == tile_type:
-            defaults = tile['defaults']
-            main_part_defaults = defaults['tile_defaults']
-            for key, value in main_part_defaults.items():
-                if key == main_part_blueprint:
-                    for k, v in value.items():
-                        setattr(scene_props, k, v)
-                        setattr(self, k, v)
-                    break
-'''
 
 def update_UV_island_margin(self, context):
     '''Reruns UV smart project for preview and displacement object'''
@@ -160,51 +124,6 @@ def update_material_mapping(self, context):
                 map_type_node.outputs['Color'],
                 mapping_node.inputs['Vector'])
 
-'''
-def update_base_x(self, context):
-    """Update the x dimension of the base based on the size of the tile.
-
-    Args:
-        context (bpy.context): scene context
-    """
-    scene_props = context.scene.mt_scene_props
-    tile_x = scene_props.tile_x
-    base_x = scene_props.base_x
-    proportionate = scene_props.x_proportionate_scale
-
-    if proportionate:
-        scene_props.base_x = base_x + (tile_x - base_x)
-
-
-def update_base_y(self, context):
-    """Update the y dimension of the base based on the size of the tile.
-
-    Args:
-        context (bpy.context): scene context
-    """
-    scene_props = context.scene.mt_scene_props
-    tile_y = scene_props.tile_y
-    base_y = scene_props.base_y
-    proportionate = scene_props.y_proportionate_scale
-
-    if proportionate:
-        scene_props.base_y = base_y + (tile_y - base_y)
-
-
-def update_base_z(self, context):
-    """Update the z dimension of the base based on the size of the tile.
-
-    Args:
-        context (bpy.context): scene context
-    """
-    scene_props = context.scene.mt_scene_props
-    tile_z = scene_props.tile_z
-    base_z = scene_props.base_z
-    proportionate = scene_props.z_proportionate_scale
-
-    if proportionate:
-        scene_props.base_z = base_z + (tile_z - base_z)
-'''
 
 def update_curve_texture(self, context):
     """Change whether the texture on a curved floor tile follows the curve or not."""

@@ -2,6 +2,11 @@ import os
 import bpy
 
 from bpy.types import Operator, Panel
+from bpy.props import (
+    EnumProperty,
+    BoolProperty,
+    FloatProperty,
+    FloatVectorProperty)
 
 from ..utils.registration import get_prefs
 
@@ -21,7 +26,10 @@ from .create_tile import (
     set_bool_props,
     MT_Tile_Generator,
     initialise_tile_creator,
-    create_common_tile_props)
+    create_common_tile_props,
+    tile_x_update,
+    tile_y_update,
+    tile_z_update)
 
 from .apex_roof import draw_apex_roof_top, draw_apex_base
 from .shed_roof import draw_shed_base, draw_shed_roof_top
@@ -52,21 +60,21 @@ class MT_PT_Roof_Panel(Panel):
         """Draw the Panel."""
         scene = context.scene
         scene_props = scene.mt_scene_props
-        roof_props = scene.mt_roof_scene_props
+        #roof_props = scene.mt_roof_scene_props
 
         layout = self.layout
 
         # layout.label(text="Blueprints")
         layout.label(text="Roof Type")
-        layout.prop(roof_props, 'roof_type', text="")
+        layout.prop(scene_props, 'roof_type', text="")
 
         row = layout.row()
-        row.prop(roof_props, 'draw_gables')
-        row.prop(roof_props, 'draw_rooftop')
+        row.prop(scene_props, 'draw_gables')
+        row.prop(scene_props, 'draw_rooftop')
 
         # layout.label(text="Socket Types")
         layout.label(text="Bottom Socket")
-        layout.prop(roof_props, 'base_bottom_socket_type', text="")
+        layout.prop(scene_props, 'base_bottom_socket_type', text="")
         # layout.prop(roof_props, 'base_side_socket_type')
         # layout.prop(roof_props, 'gable_socket_type')
 
@@ -77,28 +85,28 @@ class MT_PT_Roof_Panel(Panel):
 
         layout.label(text="Roof Properties")
 
-        layout.prop(roof_props, 'roof_pitch', text="Roof Pitch")
-        layout.prop(roof_props, 'end_eaves_pos', text="Positive End Eaves")
-        layout.prop(roof_props, 'end_eaves_neg', text="Negative End Eaves")
-        layout.prop(roof_props, 'roof_thickness')
+        layout.prop(scene_props, 'roof_pitch', text="Roof Pitch")
+        layout.prop(scene_props, 'end_eaves_pos', text="Positive End Eaves")
+        layout.prop(scene_props, 'end_eaves_neg', text="Negative End Eaves")
+        layout.prop(scene_props, 'roof_thickness')
 
-        layout.prop(roof_props, 'side_eaves', text="Side Eaves")
+        layout.prop(scene_props, 'side_eaves', text="Side Eaves")
         layout.prop(scene_props, 'base_z', text="Base Height")
 
         layout.label(text="Subdivision Density")
         layout.prop(scene_props, 'subdivision_density', text="")
 
         layout.label(text="Wall Inset Correction")
-        layout.prop(roof_props, 'inset_dist', text="Inset Distance")
+        layout.prop(scene_props, 'inset_dist', text="Inset Distance")
         row = layout.row()
-        row.prop(roof_props, 'inset_x_neg', text="X Neg")
-        row.prop(roof_props, 'inset_x_pos', text="X Pos")
-        row.prop(roof_props, 'inset_y_neg', text="Y Neg")
-        row.prop(roof_props, 'inset_y_pos', text="Y Pos")
+        row.prop(scene_props, 'inset_x_neg', text="X Neg")
+        row.prop(scene_props, 'inset_x_pos', text="X Pos")
+        row.prop(scene_props, 'inset_y_neg', text="Y Neg")
+        row.prop(scene_props, 'inset_y_pos', text="Y Pos")
 
-        layout.operator('scene.reset_roof_defaults')
+        layout.operator('scene.reset_tile_defaults')
 
-
+'''
 def initialise_roof_creator(context):
     """Initialise the roof creator and set common properties."""
     tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator(context)
@@ -136,41 +144,290 @@ def create_roof_tile_props(roof_scene_props, roof_tile_props):
             if k == key:
                 setattr(roof_tile_props, str(k), getattr(roof_scene_props, str(k)))
 
+'''
 
-class MT_OT_Make_Roof(MT_Tile_Generator, Operator):
+class MT_OT_Make_Roof(Operator, MT_Tile_Generator):
     """Operator. Generates a roof tile."""
 
     bl_idname = "object.make_roof"
     bl_label = "Roof"
-    bl_options = {'UNDO'}
+    bl_options = {'UNDO', 'REGISTER'}
     mt_blueprint = "CUSTOM"
     mt_type = "ROOF"
 
+    # Dimensions #
+    tile_x: FloatProperty(
+        name="X",
+        default=2.0,
+        step=50,
+        precision=2,
+        update=tile_x_update,
+        min=0
+    )
+
+    tile_y: FloatProperty(
+        name="Y",
+        default=0.3,
+        step=50,
+        precision=2,
+        update=tile_y_update,
+        min=0
+    )
+
+    tile_z: FloatProperty(
+        name="Z",
+        default=2.0,
+        step=50,
+        precision=2,
+        update=tile_z_update,
+        min=0
+    )
+
+    # Base size
+    base_x: FloatProperty(
+        name="X",
+        default=2.0,
+        step=50,
+        precision=2,
+        min=0
+    )
+
+    base_y: FloatProperty(
+        name="Y",
+        default=0.5,
+        step=50,
+        precision=2,
+        min=0
+    )
+
+    base_z: FloatProperty(
+        name="Z",
+        default=0.3,
+        step=50,
+        precision=2,
+        min=0
+    )
+
+    x_proportionate_scale: BoolProperty(
+        name="X",
+        default=True
+    )
+
+    y_proportionate_scale: BoolProperty(
+        name="Y",
+        default=True
+    )
+
+    z_proportionate_scale: BoolProperty(
+        name="Z",
+        default=False
+    )
+
+    tile_size: FloatVectorProperty(
+        name="Tile Size"
+    )
+
+    base_size: FloatVectorProperty(
+        name="Base size"
+    )
+
+    roof_type: EnumProperty(
+        name="Roof Type",
+        items=[
+            ("APEX", "Apex", ""),
+            ("BUTTERFLY", "Butterfly", ""),
+            ("SHED", "Shed", "")],
+        default="APEX"
+    )
+
+    roof_pitch: FloatProperty(
+        name="Roof Pitch",
+        default=45,
+        step=1,
+        min=0
+    )
+
+    end_eaves_pos: FloatProperty(
+        name="End Eaves Positive",
+        default=0.1,
+        step=0.1,
+        min=0
+    )
+
+    end_eaves_neg: FloatProperty(
+        name="End Eaves Negative",
+        default=0.1,
+        step=0.1,
+        min=0
+    )
+
+    side_eaves: FloatProperty(
+        name="Side Eaves",
+        default=0.2755,
+        step=0.1,
+        min=0
+    )
+
+    roof_thickness: FloatProperty(
+        name="Roof Thickness",
+        default=0.1,
+        step=0.05,
+        min=0
+    )
+
+    draw_rooftop: BoolProperty(
+        name="Draw Rooftop?",
+        default=True,
+        description="Whether to draw the rooftop portion of the roof or just the Eaves."
+    )
+
+    draw_gables: BoolProperty(
+        name="Draw Gables?",
+        default=True,
+        description="Whether to draw the Gables."
+    )
+
+    inset_dist: FloatProperty(
+        name="Inset Distance",
+        description="Distance core is usually inset from the base of a wall",
+        default=0.09,
+        min=0
+    )
+
+    inset_x_neg: BoolProperty(
+        name="Inset X Neg",
+        default=True)
+
+    inset_x_pos: BoolProperty(
+        name="Inset X Pos",
+        default=True)
+
+    inset_y_neg: BoolProperty(
+        name="Inset Y Neg",
+        default=True)
+
+    inset_y_pos: BoolProperty(
+        name="Inset Y Pos",
+        default=True)
+
+    base_bottom_socket_type: EnumProperty(
+        items=[
+            ("OPENLOCK", "OpenLOCK", ""),
+            ("NONE", "None", "")],
+        name="Base Bottom Socket",
+        default='OPENLOCK')
+
+    base_side_socket_type: EnumProperty(
+        items=[
+            ("OPENLOCK", "OpenLOCK", ""),
+            ("NONE", "None", "")],
+        default='NONE',
+        name="Base Side Socket")
+
+    gable_socket_type: EnumProperty(
+        items=[
+            ("OPENLOCK", "OpenLOCK", ""),
+            ("NONE", "None", "")],
+        default='NONE',
+        name="Gable Side Socket")
+
     def execute(self, context):
         """Execute the Operator."""
+        super().execute(context)
+        if not self.refresh:
+            return {'PASS_THROUGH'}
+
         scene = context.scene
+        scene_props = scene.mt_scene_props
+
+        '''
         roof_scene_props = scene.mt_roof_scene_props
         cursor_orig_loc, cursor_orig_rot = initialise_roof_creator(
             context)
+        '''
         subclasses = get_all_subclasses(MT_Tile_Generator)
+        kwargs = {"tile_name": self.tile_name}
 
-        if roof_scene_props.draw_gables:
+        if self.draw_rooftop:
+            rooftop_type = 'PLAIN'
+            rooftop = spawn_prefab(context, subclasses, rooftop_type, 'ROOF_TOP', **kwargs)
+        else:
+            rooftop = None
+
+        if self.draw_gables:
             gable_type = 'PLAIN'
         else:
             gable_type = 'NONE'
 
+        kwargs['base_bottom_socket_type'] = self.base_bottom_socket_type
+        gables = spawn_prefab(context, subclasses, gable_type, 'ROOF_BASE', **kwargs)
+        '''
         if roof_scene_props.draw_rooftop:
             rooftop_type = 'PLAIN'
             rooftop = spawn_prefab(context, subclasses, rooftop_type, 'ROOF_TOP')
         else:
             rooftop = None
 
-        gables = spawn_prefab(context, subclasses, gable_type, 'ROOF_BASE')
 
         finalise_tile(gables, rooftop, cursor_orig_loc, cursor_orig_rot)
+        '''
+        self.finalise_tile(context, gables, rooftop)
+
+        if self.auto_refresh is False:
+            self.refresh = False
+
+        self.invoked = False
 
         return {'FINISHED'}
 
+    def init(self, context):
+        super().init(context)
+        tile_collection = bpy.data.collections[self.tile_name]
+        tile_props = tile_collection.mt_tile_props
+        tile_props.collection_type = "TILE"
+        tile_props.tile_size = (self.tile_x, self.tile_y, self.tile_z)
+        tile_props.base_size = (self.base_x, self.base_y, self.base_z)
+        tile_props.tile_type = 'ROOF'
+
+    def draw(self, context):
+        super().draw(context)
+        layout = self.layout
+        layout.prop(self, 'tile_material_1')
+        layout.label(text="Roof Type")
+        layout.prop(self, 'roof_type', text="")
+
+        row = layout.row()
+        row.prop(self, 'draw_gables')
+        row.prop(self, 'draw_rooftop')
+
+        # layout.label(text="Socket Types")
+        layout.label(text="Bottom Socket")
+        layout.prop(self, 'base_bottom_socket_type', text="")
+        # layout.prop(roof_props, 'base_side_socket_type')
+        # layout.prop(roof_props, 'gable_socket_type')
+
+        layout.label(text="Roof Footprint")
+        row = layout.row()
+        row.prop(self, 'base_x')
+        row.prop(self, 'base_y')
+
+        layout.label(text="Roof Properties")
+
+        layout.prop(self, 'roof_pitch', text="Roof Pitch")
+        layout.prop(self, 'end_eaves_pos', text="Positive End Eaves")
+        layout.prop(self, 'end_eaves_neg', text="Negative End Eaves")
+        layout.prop(self, 'roof_thickness')
+
+        layout.prop(self, 'side_eaves', text="Side Eaves")
+        layout.prop(self, 'base_z', text="Base Height")
+
+        layout.label(text="Wall Inset Correction")
+        layout.prop(self, 'inset_dist', text="Inset Distance")
+        row = layout.row()
+        row.prop(self, 'inset_x_neg', text="X Neg")
+        row.prop(self, 'inset_x_pos', text="X Pos")
+        row.prop(self, 'inset_y_neg', text="Y Neg")
+        row.prop(self, 'inset_y_pos', text="Y Pos")
 
 class MT_OT_Make_Roof_Base(MT_Tile_Generator, Operator):
     """Internal Operator. Generate a Roof Base."""
@@ -181,15 +438,21 @@ class MT_OT_Make_Roof_Base(MT_Tile_Generator, Operator):
     mt_blueprint = "PLAIN"
     mt_type = "ROOF_BASE"
 
+    base_bottom_socket_type: EnumProperty(
+        items=[
+            ("OPENLOCK", "OpenLOCK", ""),
+            ("NONE", "None", "")],
+        name="Base Bottom Socket",
+        default='OPENLOCK')
+
     def execute(self, context):
         """Execute the operator."""
-        roof_props = context.collection.mt_roof_tile_props
-        tile_props = context.collection.mt_tile_props
-
+        # roof_props = context.collection.mt_roof_tile_props
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         base = spawn_base(self, context)
 
-        if roof_props.base_bottom_socket_type == 'OPENLOCK':
-            slot_cutter = spawn_openlock_base_slot_cutter(base, tile_props, roof_props)
+        if self.base_bottom_socket_type == 'OPENLOCK':
+            slot_cutter = spawn_openlock_base_slot_cutter(base, tile_props)
             set_bool_obj_props(slot_cutter, base, tile_props, 'DIFFERENCE')
             set_bool_props(slot_cutter, base, 'DIFFERENCE')
 
@@ -201,6 +464,27 @@ class MT_OT_Make_Roof_Base(MT_Tile_Generator, Operator):
         activate(base.name)
         return{'FINISHED'}
 
+class MT_OT_Make_Empty_Roof_Base(MT_Tile_Generator, Operator):
+    """Internal Operator. Generate an empty roof base."""
+
+    bl_idname = "object.make_empty_roof_base"
+    bl_label = "Roof Base"
+    bl_options = {'INTERNAL'}
+    mt_blueprint = "NONE"
+    mt_type = "ROOF_BASE"
+
+    base_bottom_socket_type: EnumProperty(
+        items=[
+            ("OPENLOCK", "OpenLOCK", ""),
+            ("NONE", "None", "")],
+        name="Base Bottom Socket",
+        default='OPENLOCK')
+
+    def execute(self, context):
+        """Execute the operator."""
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
+        spawn_empty_base(tile_props)
+        return{'FINISHED'}
 
 class MT_OT_Make_Roof_Top(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an openlock Roof Top."""
@@ -221,23 +505,6 @@ class MT_OT_Make_Roof_Top(MT_Tile_Generator, Operator):
         return{'FINISHED'}
 
 
-class MT_OT_Make_Empty_Roof_Base(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate an empty roof base."""
-
-    bl_idname = "object.make_empty_roof_base"
-    bl_label = "Roof Base"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "NONE"
-    mt_type = "ROOF_BASE"
-
-    def execute(self, context):
-        """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
-        spawn_empty_base(tile_props)
-        return{'FINISHED'}
-
-
 class MT_OT_Make_Empty_Roof_Top(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an empty roof top."""
 
@@ -253,15 +520,13 @@ class MT_OT_Make_Empty_Roof_Top(MT_Tile_Generator, Operator):
 
 
 def spawn_roof(self, context):
-    tile = context.collection
-    tile_props = tile.mt_tile_props
-    roof_props = tile.mt_roof_tile_props
+    tile_props = bpy.data.collections[self.tile_name].mt_tile_props
 
-    if roof_props.roof_type == 'APEX':
+    if tile_props.roof_type == 'APEX':
         roof = draw_apex_roof_top(self, context)
-    elif roof_props.roof_type == 'SHED':
+    elif tile_props.roof_type == 'SHED':
         roof = draw_shed_roof_top(self, context)
-    elif roof_props.roof_type == 'BUTTERFLY':
+    elif tile_props.roof_type == 'BUTTERFLY':
         roof = draw_butterfly_roof_top(self, context)
 
     roof.name = tile_props.tile_name + '.roof'
@@ -287,15 +552,13 @@ def spawn_roof(self, context):
 
 
 def spawn_base(self, context):
-    tile = context.collection
-    tile_props = tile.mt_tile_props
-    roof_props = tile.mt_roof_tile_props
+    tile_props = bpy.data.collections[self.tile_name].mt_tile_props
 
-    if roof_props.roof_type == 'APEX':
+    if tile_props.roof_type == 'APEX':
         base = draw_apex_base(self, context)
-    elif roof_props.roof_type == 'SHED':
+    elif tile_props.roof_type == 'SHED':
         base = draw_shed_base(self, context)
-    elif roof_props.roof_type == 'BUTTERFLY':
+    elif tile_props.roof_type == 'BUTTERFLY':
         base = draw_butterfly_base(self, context)
 
     base.name = tile_props.tile_name + '.base'
@@ -321,7 +584,7 @@ def spawn_base(self, context):
     return base
 
 
-def spawn_openlock_base_slot_cutter(base, tile_props, roof_props, offset=0.236):
+def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
     """Spawn an openlock base slot cutter into scene and positions it correctly.
 
     Args:
@@ -337,14 +600,14 @@ def spawn_openlock_base_slot_cutter(base, tile_props, roof_props, offset=0.236):
     base_dims = base.dimensions.copy()
 
     # correct for wall inset distance
-    if roof_props.inset_x_neg:
-        base_dims[0] = base_dims[0] + roof_props.inset_dist
-    if roof_props.inset_x_pos:
-        base_dims[0] = base_dims[0] + roof_props.inset_dist
-    if roof_props.inset_y_neg:
-        base_dims[1] = base_dims[1] + roof_props.inset_dist
-    if roof_props.inset_y_pos:
-        base_dims[1] = base_dims[1] + roof_props.inset_dist
+    if tile_props.inset_x_neg:
+        base_dims[0] = base_dims[0] + tile_props.inset_dist
+    if tile_props.inset_x_pos:
+        base_dims[0] = base_dims[0] + tile_props.inset_dist
+    if tile_props.inset_y_neg:
+        base_dims[1] = base_dims[1] + tile_props.inset_dist
+    if tile_props.inset_y_pos:
+        base_dims[1] = base_dims[1] + tile_props.inset_dist
 
     # one sided base socket
     if base_dims[0] <= 1 or base_dims[1] <= 1:

@@ -15,9 +15,6 @@ from ..properties.properties import (
     create_base_blueprint_enums,
     create_main_part_blueprint_enums)
 
-from ..properties.scene_props import (
-    update_main_part_defaults_2,
-    update_base_defaults_2)
 
 from .. utils.registration import get_prefs
 from .. lib.utils.collections import (

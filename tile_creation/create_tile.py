@@ -48,50 +48,6 @@ def tile_z_update(self, context):
     if self.z_proportionate_scale and not self.invoked:
         self.base_z = tile_props.base_size[2] + self.tile_z - tile_props.tile_size[2]
 
-def create_tile_type_enums(self, context):
-    """Create an enum of tile types out of subclasses of MT_OT_Make_Tile."""
-    enum_items = []
-    if context is None:
-        return enum_items
-
-    # blueprint = context.scene.mt_scene_props.tile_blueprint
-    subclasses = get_all_subclasses(MT_Tile_Generator)
-
-    for subclass in subclasses:
-        # if hasattr(subclass, 'mt_blueprint'):
-        if 'INTERNAL' not in subclass.bl_options:
-            enum = (subclass.mt_type, subclass.bl_label, "")
-            enum_items.append(enum)
-    return sorted(enum_items)
-
-'''
-def create_material_enums(self, context):
-    """Create a list of enum items of materials compatible with the MakeTile material system.
-
-    Args:
-        context (bpy.context): context
-
-    Returns:
-        list[EnumPropertyItem]: enum items
-    """
-    enum_items = []
-    if context is None:
-        return enum_items
-
-    materials = bpy.data.materials
-    for material in materials:
-        if 'mt_material' in material.keys():
-            if material['mt_material']:
-                enum = (material.name, material.name, "")
-                enum_items.append(enum)
-    return enum_items
-
-def update_material(self, context):
-    scene_props = context.scene.mt_scene_props
-    scene_props.tile_material_1 = self.tile_material_1
-'''
-
-
 
 def update_base_defaults(self, context):
     scene_props = context.scene.mt_scene_props
@@ -186,6 +142,22 @@ class MT_Tile_Generator:
                     enum = (material.name, material.name, "")
                     enum_items.append(enum)
         return enum_items
+
+    def create_tile_type_enums(self, context):
+        """Create an enum of tile types out of subclasses of MT_OT_Make_Tile."""
+        enum_items = []
+        if context is None:
+            return enum_items
+
+        # blueprint = context.scene.mt_scene_props.tile_blueprint
+        subclasses = get_all_subclasses(MT_Tile_Generator)
+
+        for subclass in subclasses:
+            # if hasattr(subclass, 'mt_blueprint'):
+            if 'INTERNAL' not in subclass.bl_options:
+                enum = (subclass.mt_type, subclass.bl_label, "")
+                enum_items.append(enum)
+        return sorted(enum_items)
 
     refresh: BoolProperty(
         name="Refresh",

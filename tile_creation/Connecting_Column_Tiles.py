@@ -52,9 +52,7 @@ from ..lib.bmturtle.helpers import (
 from ..properties.properties import (
     create_base_blueprint_enums,
     create_main_part_blueprint_enums)
-from ..properties.scene_props import (
-    update_main_part_defaults_2,
-    update_base_defaults_2)
+
 #TODO Bug with tall O colum socket generation
 #TODO #1 Ensure sockets and buffers only added to tall columns
 class MT_PT_Connecting_Column_Panel(Panel):
@@ -143,7 +141,7 @@ class MT_OT_Make_Connecting_Column_Tile(Operator, MT_Tile_Generator):
 
     base_blueprint: EnumProperty(
         items=create_base_blueprint_enums,
-        update=update_base_defaults_2,
+        update=update_base_blueprint_enums,
         name="Base"
     )
 
@@ -264,13 +262,7 @@ class MT_OT_Make_Connecting_Column_Tile(Operator, MT_Tile_Generator):
 
         base = spawn_prefab(context, subclasses, base_blueprint, base_type, **kwargs)
         kwargs["base_name"] = base.name
-        '''
-        cursor_orig_loc, cursor_orig_rot = initialise_column_creator(
-            context,
-            scene_props)
-        subclasses = get_all_subclasses(MT_Tile_Generator)
-        base = spawn_prefab(context, subclasses, base_blueprint, base_type)
-        '''
+
         if core_blueprint == 'NONE':
             preview_core = None
         else:
@@ -318,6 +310,7 @@ class MT_OT_Make_Connecting_Column_Tile(Operator, MT_Tile_Generator):
         row.prop(self, 'base_x')
         row.prop(self, 'base_y')
         row.prop(self, 'base_z')
+
 
 class MT_OT_Make_Openlock_Connecting_Column_Base(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an OpenLOCK connecting column base."""

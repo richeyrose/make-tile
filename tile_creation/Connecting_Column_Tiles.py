@@ -121,13 +121,23 @@ class MT_OT_Make_Connecting_Column_Tile(Operator, MT_Tile_Generator):
 
     bl_idname = "object.make_connecting_column"
     bl_label = "Connecting Column"
-    bl_options = {'UNDO', 'REGISTER', 'PRESET'}
+    bl_options = {'UNDO', 'REGISTER'}
     mt_blueprint = "CUSTOM"
     mt_type = "CONNECTING_COLUMN"
 
+    def update_base_blueprint_enums(self, context):
+        if not self.invoked:
+            if self.base_blueprint in ("OPENLOCK", "PLAIN"):
+                self.base_y = self.tile_x
+                self.tile_y = self.tile_y
+                self.base_z = 0.2755
+            else:
+                self.base_x = self.tile_x
+                self.base_y = self.tile_y
+                self.base_z = 0.0
+
     main_part_blueprint: EnumProperty(
         items=create_main_part_blueprint_enums,
-        update=update_main_part_defaults_2,
         name="Core"
     )
 

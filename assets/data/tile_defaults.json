@@ -156,7 +156,7 @@
             "main_part_blueprint": "OPENLOCK",
             "subdivision_density": "MEDIUM",
             "x_proportionate_scale": true,
-            "y_proportionate_scale": false,
+            "y_proportionate_scale": true,
             "z_proportionate_scale": false,
             "base_defaults": {
                 "OPENLOCK": {

@@ -24,14 +24,13 @@ from .properties import (
     create_base_blueprint_enums)
 
 from ..tile_creation.create_tile import (
-    create_material_enums,
     MT_Tile_Generator)
 
 from ..lib.utils.utils import get_all_subclasses, get_annotations
 
 # TODO Decide how many of these properties we actually need to be storing.
 # TODO rename to mt_collection_props
-
+'''
 
 class MT_Tile_Properties(PropertyGroup):
     is_mt_collection: BoolProperty(
@@ -195,7 +194,7 @@ class MT_Tile_Properties(PropertyGroup):
     tile_resolution: IntProperty(
         name="Tile Resolution"
     )
-
+'''
 def create_tile_props():
     """Dynamically create new_mt_tile_props PropertyGroup based on properties in MT_Tile_Generator and subclasses."""
     subclasses = get_all_subclasses(MT_Tile_Generator)

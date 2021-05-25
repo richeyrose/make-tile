@@ -6,7 +6,7 @@ from bpy.props import (
     BoolProperty,
     FloatProperty,
     PointerProperty)
-from .scene_props import update_main_part_defaults, update_base_defaults
+from ..tile_creation.create_tile import update_main_part_defaults, update_base_defaults
 
 
 class MT_OT_Reset_Roof_Defaults(Operator):

@@ -24,81 +24,7 @@ from ..app_handlers import create_properties_on_load
 from ..tile_creation.create_tile import MT_Tile_Generator
 from ..lib.utils.utils import get_all_subclasses, get_annotations
 
-def create_material_enums(self, context):
-    """Create a list of enum items of materials compatible with the MakeTile material system.
-
-    Args:
-        context (bpy.context): context
-
-    Returns:
-        list[EnumPropertyItem]: enum items
-    """
-    enum_items = []
-    if context is None:
-        return enum_items
-
-    materials = bpy.data.materials
-    for material in materials:
-        if 'mt_material' in material.keys():
-            if material['mt_material']:
-                enum = (material.name, material.name, "")
-                enum_items.append(enum)
-    return enum_items
-
-
-def update_scene_defaults(self, context):
-    scene_props = context.scene.mt_scene_props
-    tile_type = scene_props.tile_type
-    try:
-        tile_defaults = scene_props['tile_defaults']
-    except KeyError:
-        create_properties_on_load(dummy=None)
-
-    for tile in tile_defaults:
-        if tile['type'] == tile_type:
-            defaults = tile['defaults']
-            for key, value in defaults.items():
-                setattr(scene_props, key, value)
-            break
-
-    update_main_part_defaults(self, context)
-    update_base_defaults(self, context)
-
-
-def update_base_defaults(self, context):
-    scene_props = context.scene.mt_scene_props
-    tile_type = scene_props.tile_type
-    base_blueprint = scene_props.base_blueprint
-    tile_defaults = scene_props['tile_defaults']
-
-    for tile in tile_defaults:
-        if tile['type'] == tile_type:
-            defaults = tile['defaults']
-            base_defaults = defaults['base_defaults']
-            for key, value in base_defaults.items():
-                if key == base_blueprint:
-                    for k, v in value.items():
-                        setattr(scene_props, k, v)
-                    break
-
-
-def update_main_part_defaults(self, context):
-    scene_props = context.scene.mt_scene_props
-    tile_type = scene_props.tile_type
-    main_part_blueprint = scene_props.main_part_blueprint
-    tile_defaults = scene_props['tile_defaults']
-
-    for tile in tile_defaults:
-        if tile['type'] == tile_type:
-            defaults = tile['defaults']
-            main_part_defaults = defaults['tile_defaults']
-            for key, value in main_part_defaults.items():
-                if key == main_part_blueprint:
-                    for k, v in value.items():
-                        setattr(scene_props, k, v)
-                    break
-
-
+'''
 def update_base_defaults_2(self, context):
     scene_props = context.scene.mt_scene_props
     tile_type = self.tile_type
@@ -133,7 +59,7 @@ def update_main_part_defaults_2(self, context):
                         setattr(scene_props, k, v)
                         setattr(self, k, v)
                     break
-
+'''
 
 def update_UV_island_margin(self, context):
     '''Reruns UV smart project for preview and displacement object'''
@@ -234,7 +160,7 @@ def update_material_mapping(self, context):
                 map_type_node.outputs['Color'],
                 mapping_node.inputs['Vector'])
 
-
+'''
 def update_base_x(self, context):
     """Update the x dimension of the base based on the size of the tile.
 
@@ -278,7 +204,7 @@ def update_base_z(self, context):
 
     if proportionate:
         scene_props.base_z = base_z + (tile_z - base_z)
-
+'''
 
 def update_curve_texture(self, context):
     """Change whether the texture on a curved floor tile follows the curve or not."""
@@ -293,7 +219,7 @@ def update_curve_texture(self, context):
     except KeyError:
         pass
 
-
+'''
 class MT_Scene_Properties(PropertyGroup):
     """Contains MakeTile scene properties.
     Used to store properties that can be set by user for tile generation etc.
@@ -727,6 +653,7 @@ class MT_Scene_Properties(PropertyGroup):
         #update=update_wall_blueprint,
         default="OPENLOCK"
     )
+'''
 
 def create_scene_props():
     props = {

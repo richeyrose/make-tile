@@ -222,7 +222,7 @@ class MT_Straight_Tile:
 
     y_proportionate_scale: BoolProperty(
         name="Y",
-        default=False
+        default=True
     )
 
     z_proportionate_scale: BoolProperty(
@@ -242,27 +242,26 @@ class MT_Straight_Tile:
         super().draw(context)
 
 
-def update_base_blueprint_enums(self, context):
-    if not self.invoked:
-        if self.base_blueprint in ("OPENLOCK", "PLAIN"):
-            self.base_y = 0.5
-            self.base_z = 0.2755
-        elif self.base_blueprint in ("OPENLOCK_S_WALL", "PLAIN_S_WALL"):
-            self.base_y = 1.0
-            self.base_z = 0.2755
-        else:
-            self.base_y = self.tile_y
-            self.base_z = 0.0
-
-
 class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Straight_Tile, MT_Tile_Generator):
     """Operator. Generates a straight wall tile with a customisable base and main part."""
 
     bl_idname = "object.make_straight_wall"
     bl_label = "Straight Wall"
-    bl_options = {'UNDO', 'REGISTER', 'PRESET'}
+    bl_options = {'UNDO', 'REGISTER'}
     mt_blueprint = "CUSTOM"
     mt_type = "STRAIGHT_WALL"
+
+    def update_base_blueprint_enums(self, context):
+        if not self.invoked:
+            if self.base_blueprint in ("OPENLOCK", "PLAIN"):
+                self.base_y = 0.5
+                self.base_z = 0.2755
+            elif self.base_blueprint in ("OPENLOCK_S_WALL", "PLAIN_S_WALL"):
+                self.base_y = 1.0
+                self.base_z = 0.2755
+            else:
+                self.base_y = self.tile_y
+                self.base_z = 0.0
 
     main_part_blueprint: EnumProperty(
         items=create_main_part_blueprint_enums,
@@ -383,21 +382,33 @@ class MT_OT_Make_Straight_Floor_Tile(Operator, MT_Straight_Tile, MT_Tile_Generat
 
     bl_idname = "object.make_straight_floor"
     bl_label = "Straight Floor"
-    bl_options = {'UNDO', 'REGISTER', "PRESET"}
+    bl_options = {'UNDO', 'REGISTER'}
     mt_blueprint = "CUSTOM"
     mt_type = "STRAIGHT_FLOOR"
 
+    def update_base_blueprint_enums(self, context):
+        if not self.invoked:
+            if self.base_blueprint in ("OPENLOCK", "PLAIN"):
+                self.base_y = self.tile_x
+                self.tile_y = self.tile_y
+                self.base_z = 0.2755
+            else:
+                self.base_x = self.tile_x
+                self.base_y = self.tile_y
+                self.base_z = 0.0
+
     main_part_blueprint: EnumProperty(
         items=create_main_part_blueprint_enums,
-        update=update_main_part_defaults_2,
+        #update=update_main_part_defaults_2,
         name="Core"
     )
 
     base_blueprint: EnumProperty(
         items=create_base_blueprint_enums,
-        update=update_base_defaults_2,
+        update=update_base_blueprint_enums,
         name="Base"
     )
+
     def execute(self, context):
         """Execute the operator."""
         super().execute(context)

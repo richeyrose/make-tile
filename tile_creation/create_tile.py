@@ -30,6 +30,7 @@ from ..enums.enums import (
     units,
     collection_types)
 
+
 def tile_x_update(self, context):
     tile_props = context.collection.mt_tile_props
     if self.x_proportionate_scale and not self.invoked:
@@ -63,7 +64,7 @@ def create_tile_type_enums(self, context):
             enum_items.append(enum)
     return sorted(enum_items)
 
-
+'''
 def create_material_enums(self, context):
     """Create a list of enum items of materials compatible with the MakeTile material system.
 
@@ -88,24 +89,9 @@ def create_material_enums(self, context):
 def update_material(self, context):
     scene_props = context.scene.mt_scene_props
     scene_props.tile_material_1 = self.tile_material_1
+'''
 
-def update_scene_defaults(self, context):
-    scene_props = context.scene.mt_scene_props
-    tile_type = scene_props.tile_type
-    try:
-        tile_defaults = scene_props['tile_defaults']
-    except KeyError:
-        create_properties_on_load(dummy=None)
 
-    for tile in tile_defaults:
-        if tile['type'] == tile_type:
-            defaults = tile['defaults']
-            for key, value in defaults.items():
-                setattr(scene_props, key, value)
-            break
-
-    update_main_part_defaults(self, context)
-    update_base_defaults(self, context)
 
 def update_base_defaults(self, context):
     scene_props = context.scene.mt_scene_props
@@ -140,8 +126,66 @@ def update_main_part_defaults(self, context):
                         setattr(scene_props, k, v)
                     break
 
+def update_scene_defaults(self, context):
+    scene_props = context.scene.mt_scene_props
+    tile_type = scene_props.tile_type
+    try:
+        tile_defaults = scene_props['tile_defaults']
+    except KeyError:
+        create_properties_on_load(dummy=None)
+
+    for tile in tile_defaults:
+        if tile['type'] == tile_type:
+            defaults = tile['defaults']
+            for key, value in defaults.items():
+                setattr(scene_props, key, value)
+            break
+
+    update_main_part_defaults(self, context)
+    update_base_defaults(self, context)
+
+
+class MT_OT_Reset_Tile_Defaults(Operator):
+    """Reset mt_scene_props of current tile_type."""
+
+    bl_idname = "scene.reset_tile_defaults"
+    bl_label = "Reset Defaults"
+    bl_options = {'UNDO'}
+
+    def execute(self, context):
+        """Execute the operator.
+
+        Args:
+            context (bpy.context): Blender context
+        """
+        update_scene_defaults(self, context)
+
+        return {'FINISHED'}
+
+
 class MT_Tile_Generator:
     """Subclass this to create your tile operator."""
+
+    def create_material_enums(self, context):
+        """Create a list of enum items of materials compatible with the MakeTile material system.
+
+        Args:
+            context (bpy.context): context
+
+        Returns:
+            list[EnumPropertyItem]: enum items
+        """
+        enum_items = []
+        if context is None:
+            return enum_items
+
+        materials = bpy.data.materials
+        for material in materials:
+            if 'mt_material' in material.keys():
+                if material['mt_material']:
+                    enum = (material.name, material.name, "")
+                    enum_items.append(enum)
+        return enum_items
 
     refresh: BoolProperty(
         name="Refresh",

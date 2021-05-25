@@ -1,8 +1,7 @@
 import os
-from math import radians, floor
-from mathutils import Vector
-import bpy
+from math import radians
 
+import bpy
 from bpy.types import Operator, Panel
 from bpy.props import (
     FloatProperty,
@@ -30,7 +29,6 @@ from .. lib.utils.utils import mode, get_all_subclasses
 from .create_tile import (
     spawn_empty_base,
     convert_to_displacement_core_2,
-    spawn_prefab,
     spawn_prefab,
     set_bool_obj_props,
     set_bool_props,
@@ -233,9 +231,6 @@ class MT_Straight_Tile:
         name="Base size"
     )
 
-    def draw(self, context):
-        super().draw(context)
-
 
 class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Straight_Tile, MT_Tile_Generator):
     """Operator. Generates a straight wall tile with a customisable base and main part."""
@@ -394,7 +389,6 @@ class MT_OT_Make_Rect_Floor_Tile(Operator, MT_Straight_Tile, MT_Tile_Generator):
 
     main_part_blueprint: EnumProperty(
         items=create_main_part_blueprint_enums,
-        #update=update_main_part_defaults_2,
         name="Core"
     )
 
@@ -813,8 +807,7 @@ def spawn_openlock_top_pegs(core, tile_props):
 
 
 def spawn_openlock_wall_cutters(core, tile_props):
-    """Creates the cutters for the wall and positions them correctly
-    """
+    """Create the cutters for the wall and position them correctly."""
     preferences = get_prefs()
 
     tile_name = tile_props.tile_name
@@ -920,6 +913,7 @@ def spawn_openlock_wall_cutters(core, tile_props):
     cutters.extend([right_cutter_bottom, right_cutter_top])
 
     return cutters
+
 
 def create_plain_rect_floor_cores(self, tile_props):
     """Create preview and displacement cores.
@@ -1036,7 +1030,6 @@ def spawn_openlock_base(self, tile_props):
     Returns:
         bpy.types.Object: tile base
     """
-
     base = spawn_plain_base(tile_props)
     slot_cutter = spawn_openlock_base_slot_cutter(base, tile_props)
     set_bool_obj_props(slot_cutter, base, tile_props, 'DIFFERENCE')

@@ -449,7 +449,7 @@ class MT_OT_Make_Roof_Base(MT_Tile_Generator, Operator):
         """Execute the operator."""
         # roof_props = context.collection.mt_roof_tile_props
         tile_props = bpy.data.collections[self.tile_name].mt_tile_props
-        base = spawn_base(self, context)
+        base = spawn_base(self, tile_props)
 
         if self.base_bottom_socket_type == 'OPENLOCK':
             slot_cutter = spawn_openlock_base_slot_cutter(base, tile_props)
@@ -497,7 +497,8 @@ class MT_OT_Make_Roof_Top(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        roof = spawn_roof(self, context)
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
+        roof = spawn_roof(self, tile_props)
         textured_vertex_groups = ['Left', 'Right']
         convert_to_displacement_core(
             roof,
@@ -519,15 +520,13 @@ class MT_OT_Make_Empty_Roof_Top(MT_Tile_Generator, Operator):
         return{'PASS_THROUGH'}
 
 
-def spawn_roof(self, context):
-    tile_props = bpy.data.collections[self.tile_name].mt_tile_props
-
+def spawn_roof(self, tile_props):
     if tile_props.roof_type == 'APEX':
-        roof = draw_apex_roof_top(self, context)
+        roof = draw_apex_roof_top(self, tile_props)
     elif tile_props.roof_type == 'SHED':
-        roof = draw_shed_roof_top(self, context)
+        roof = draw_shed_roof_top(self, tile_props)
     elif tile_props.roof_type == 'BUTTERFLY':
-        roof = draw_butterfly_roof_top(self, context)
+        roof = draw_butterfly_roof_top(self, tile_props)
 
     roof.name = tile_props.tile_name + '.roof'
     obj_props = roof.mt_object_props
@@ -551,15 +550,13 @@ def spawn_roof(self, context):
     return roof
 
 
-def spawn_base(self, context):
-    tile_props = bpy.data.collections[self.tile_name].mt_tile_props
-
+def spawn_base(self, tile_props):
     if tile_props.roof_type == 'APEX':
-        base = draw_apex_base(self, context)
+        base = draw_apex_base(self, tile_props)
     elif tile_props.roof_type == 'SHED':
-        base = draw_shed_base(self, context)
+        base = draw_shed_base(self, tile_props)
     elif tile_props.roof_type == 'BUTTERFLY':
-        base = draw_butterfly_base(self, context)
+        base = draw_butterfly_base(self, tile_props)
 
     base.name = tile_props.tile_name + '.base'
     obj_props = base.mt_object_props

@@ -1,7 +1,7 @@
 from math import radians, tan, sqrt
 from mathutils import geometry
 import bmesh
-
+import bpy
 from ..lib.bmturtle.commands import (
     create_turtle,
     finalise_turtle,
@@ -29,7 +29,7 @@ from ..lib.bmturtle.scripts import draw_cuboid
 
 from .create_tile import get_subdivs
 
-def draw_shed_base(self, context, margin=0.001):
+def draw_shed_base(self, tile_props, margin=0.001):
     """Draw a shed style roof base (Not sure why this style is called "shed" but hey ho)."""
     #  B
     #  |\
@@ -37,9 +37,8 @@ def draw_shed_base(self, context, margin=0.001):
     #  |__\A
     #  C b |
     #  |___|
-    turtle = context.scene.cursor
-    tile = context.collection
-    tile_props = tile.mt_tile_props
+    turtle = bpy.context.scene.cursor
+
     # roof_tile_props = tile.mt_roof_tile_props
 
     base_dims = [s for s in tile_props.base_size]
@@ -353,7 +352,7 @@ def draw_shed_base(self, context, margin=0.001):
     return obj
 
 
-def draw_shed_roof_top(self, context, margin=0.001):
+def draw_shed_roof_top(self, tile_props, margin=0.001):
     """Draw a shed type roof top.
 
     Args:
@@ -367,9 +366,7 @@ def draw_shed_roof_top(self, context, margin=0.001):
     #  C b |
     #  |___|
 
-    turtle = context.scene.cursor
-    tile = context.collection
-    tile_props = tile.mt_tile_props
+    turtle = bpy.context.scene.cursor
     #roof_tile_props = tile.mt_roof_tile_props
 
     base_dims = [s for s in tile_props.base_size]

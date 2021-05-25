@@ -1,5 +1,6 @@
 from math import tan, radians, sqrt, sin
 import bmesh
+import bpy
 from mathutils import geometry
 from ..lib.bmturtle.commands import (
     create_turtle,
@@ -24,7 +25,7 @@ from ..lib.bmturtle.helpers import (
 
 from .create_tile import get_subdivs
 
-def draw_butterfly_base(self, context, margin=0.001):
+def draw_butterfly_base(self, tile_props, margin=0.001):
     """Draw a butterfly style roof base.
 
     Args:
@@ -39,9 +40,7 @@ def draw_butterfly_base(self, context, margin=0.001):
     #   | b      |
     #   |________|
 
-    turtle = context.scene.cursor
-    tile = context.collection
-    tile_props = tile.mt_tile_props
+    turtle = bpy.context.scene.cursor
     # roof_tile_props = tile.mt_roof_tile_props
 
     base_dims = [s for s in tile_props.base_size]
@@ -486,7 +485,7 @@ def draw_butterfly_base(self, context, margin=0.001):
     return obj
 
 
-def draw_butterfly_roof_top(self, context, margin=0.001):
+def draw_butterfly_roof_top(self, tile_props, margin=0.001):
     """Draw a butterfly type roof top.
 
     Args:
@@ -503,9 +502,7 @@ def draw_butterfly_roof_top(self, context, margin=0.001):
     #   |     B     |
     #   |___________|
 
-    turtle = context.scene.cursor
-    tile = context.collection
-    tile_props = tile.mt_tile_props
+    turtle = bpy.context.scene.cursor
     # roof_tile_props = tile.mt_roof_tile_props
 
     base_dims = [s for s in tile_props.base_size]

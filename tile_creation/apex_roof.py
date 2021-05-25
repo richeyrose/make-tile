@@ -1,7 +1,7 @@
 from math import radians, tan, sqrt
 from mathutils import geometry
 import bmesh
-
+import bpy
 from ..lib.bmturtle.commands import (
     create_turtle,
     finalise_turtle,
@@ -27,7 +27,7 @@ from ..lib.bmturtle.helpers import (
 
 from .create_tile import get_subdivs
 
-def draw_apex_base(self, context, margin=0.001):
+def draw_apex_base(self, tile_props, margin=0.001):
     """Draw an apex style roof base."""
     #      B
     #     /|\
@@ -37,9 +37,7 @@ def draw_apex_base(self, context, margin=0.001):
     #  |   C b |
     #  |_______|
     #     base
-    turtle = context.scene.cursor
-    tile = context.collection
-    tile_props = tile.mt_tile_props
+    turtle = bpy.context.scene.cursor
     # roof_tile_props = tile.mt_roof_tile_props
 
     base_dims = [s for s in tile_props.base_size]
@@ -379,7 +377,7 @@ def draw_apex_base(self, context, margin=0.001):
     return obj
 
 
-def draw_apex_roof_top(self, context, margin=0.001):
+def draw_apex_roof_top(self, tile_props, margin=0.001):
     """Draw an apex type roof top.
 
     Args:
@@ -395,9 +393,7 @@ def draw_apex_roof_top(self, context, margin=0.001):
     #  |_______|
     #     base
 
-    turtle = context.scene.cursor
-    tile = context.collection
-    tile_props = tile.mt_tile_props
+    turtle = bpy.context.scene.cursor
     # roof_tile_props = tile.mt_roof_tile_props
 
     base_dims = [s for s in tile_props.base_size]

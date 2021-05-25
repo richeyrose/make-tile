@@ -83,22 +83,23 @@ def update_main_part_defaults(self, context):
                     break
 
 def update_scene_defaults(self, context):
-    scene_props = context.scene.mt_scene_props
-    tile_type = scene_props.tile_type
-    try:
-        tile_defaults = scene_props['tile_defaults']
-    except KeyError:
-        create_properties_on_load(dummy=None)
+    if not self.invoked:
+        scene_props = context.scene.mt_scene_props
+        tile_type = scene_props.tile_type
+        try:
+            tile_defaults = scene_props['tile_defaults']
+        except KeyError:
+            create_properties_on_load(dummy=None)
 
-    for tile in tile_defaults:
-        if tile['type'] == tile_type:
-            defaults = tile['defaults']
-            for key, value in defaults.items():
-                setattr(scene_props, key, value)
-            break
+        for tile in tile_defaults:
+            if tile['type'] == tile_type:
+                defaults = tile['defaults']
+                for key, value in defaults.items():
+                    setattr(scene_props, key, value)
+                break
 
-    update_main_part_defaults(self, context)
-    update_base_defaults(self, context)
+        update_main_part_defaults(self, context)
+        update_base_defaults(self, context)
 
 
 class MT_OT_Reset_Tile_Defaults(Operator):
@@ -259,6 +260,7 @@ class MT_Tile_Generator:
 
     def invoke(self, context, event):
         """Call when operator is invoked directly from the UI."""
+        self.invoked = True
         scene_props = context.scene.mt_scene_props
         all_annotations = get_annotations(self.__class__)
         for key in scene_props.__annotations__.keys():
@@ -267,7 +269,7 @@ class MT_Tile_Generator:
                     setattr(self, str(k), getattr(scene_props, str(k)))
 
         self.refresh = True
-        self.on_invoke(context, event)
+        #self.on_invoke(context, event)
         return self.execute(context)
 
     def on_invoke(self, context, event):

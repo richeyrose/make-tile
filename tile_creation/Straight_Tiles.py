@@ -21,8 +21,11 @@ from .. lib.utils.collections import (
     add_object_to_collection)
 
 from ..lib.bmturtle.scripts import (
-    draw_straight_wall_core)
-from .. lib.utils.utils import get_all_subclasses
+    draw_straight_wall_core,
+    draw_cuboid,
+    draw_rectangular_floor_core)
+
+from .. lib.utils.utils import mode, get_all_subclasses
 
 from .create_tile import (
     spawn_empty_base,
@@ -37,11 +40,6 @@ from .create_tile import (
     tile_x_update,
     tile_y_update,
     tile_z_update)
-
-from .Rectangular_Tiles import (
-    create_plain_rect_floor_cores,
-    spawn_plain_base,
-    spawn_openlock_base)
 
 
 class MT_PT_Straight_Wall_Panel(Panel):
@@ -106,7 +104,7 @@ class MT_PT_Straight_Wall_Panel(Panel):
         layout.operator('scene.reset_tile_defaults')
 
 
-class MT_PT_Straight_Floor_Panel(Panel):
+class MT_PT_Rect_Floor_Panel(Panel):
     """Draw a tile options panel in UI."""
 
     bl_space_type = "VIEW_3D"
@@ -114,7 +112,7 @@ class MT_PT_Straight_Floor_Panel(Panel):
     bl_category = "Make Tile"
     bl_label = "Tile Options"
     bl_order = 2
-    bl_idname = "MT_PT_Straight_Floor_Panel"
+    bl_idname = "MT_PT_Rect_Floor_Panel"
     bl_description = "Options to configure the dimensions of a tile"
 
     @classmethod
@@ -374,14 +372,14 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Straight_Tile, MT_Tile_Generato
             layout.prop(self, 'wall_position', text="")
 
 
-class MT_OT_Make_Straight_Floor_Tile(Operator, MT_Straight_Tile, MT_Tile_Generator):
-    """Operator. Generates a straight wall tile with a customisable base and main part."""
+class MT_OT_Make_Rect_Floor_Tile(Operator, MT_Straight_Tile, MT_Tile_Generator):
+    """Operator. Generates a rectangular floor tile with a customisable base and main part."""
 
-    bl_idname = "object.make_straight_floor"
-    bl_label = "Straight Floor"
+    bl_idname = "object.make_rect_floor"
+    bl_label = "Rectangular Floor"
     bl_options = {'UNDO', 'REGISTER'}
     mt_blueprint = "CUSTOM"
-    mt_type = "STRAIGHT_FLOOR"
+    mt_type = "RECT_FLOOR"
 
     def update_base_blueprint_enums(self, context):
         if not self.invoked:
@@ -417,20 +415,20 @@ class MT_OT_Make_Straight_Floor_Tile(Operator, MT_Straight_Tile, MT_Tile_Generat
         base_type = 'STRAIGHT_BASE'
         core_type = 'STRAIGHT_FLOOR_CORE'
         subclasses = get_all_subclasses(MT_Tile_Generator)
+
         kwargs = {"tile_name": self.tile_name}
-
         base = spawn_prefab(context, subclasses, base_blueprint, base_type, **kwargs)
-        kwargs["base_name"] = base.name
 
+        kwargs["base_name"] = base.name
         if core_blueprint == 'NONE':
             preview_core = None
         else:
             preview_core = spawn_prefab(context, subclasses, core_blueprint, core_type, **kwargs)
 
         self.finalise_tile(context, base, preview_core)
+
         if self.auto_refresh is False:
             self.refresh = False
-
         self.invoked = False
 
         return {'FINISHED'}
@@ -466,6 +464,7 @@ class MT_OT_Make_Straight_Floor_Tile(Operator, MT_Straight_Tile, MT_Tile_Generat
         row.prop(self, 'base_x')
         row.prop(self, 'base_y')
         row.prop(self, 'base_z')
+
 
 class MT_OT_Make_Openlock_Straight_Base(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an OpenLOCK straight base."""
@@ -921,3 +920,370 @@ def spawn_openlock_wall_cutters(core, tile_props):
     cutters.extend([right_cutter_bottom, right_cutter_top])
 
     return cutters
+
+def create_plain_rect_floor_cores(self, tile_props):
+    """Create preview and displacement cores.
+
+    Args:
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
+
+    Returns:
+        bpy.types.Object: preview core
+    """
+    preview_core = spawn_floor_core(self, tile_props)
+    textured_vertex_groups = ['Top']
+
+    convert_to_displacement_core_2(
+        preview_core,
+        tile_props,
+        textured_vertex_groups)
+
+    bpy.context.view_layer.objects.active = preview_core
+
+    return preview_core
+
+
+def spawn_floor_core(self, tile_props):
+    """Spawn the core (top part) of a floor tile.
+
+    Args:
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
+
+    Returns:
+        bpy.types.Object: tile core
+    """
+    tile_size = tile_props.tile_size
+    base_size = tile_props.base_size
+    core_size = [
+        tile_size[0],
+        tile_size[1],
+        tile_size[2] - base_size[2]]
+    tile_name = tile_props.tile_name
+    native_subdivisions = (
+        get_subdivs(tile_props.subdivision_density, core_size))
+
+    core = draw_rectangular_floor_core(
+        core_size,
+        native_subdivisions)
+
+    core.name = tile_name + '.floor_core'
+    add_object_to_collection(core, tile_name)
+
+    core.location[2] = core.location[2] + base_size[2]
+
+    ctx = {
+        'object': core,
+        'active_object': core,
+        'selected_editable_objects': [core],
+        'selected_objects': [core]
+    }
+
+    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+
+    bpy.ops.object.editmode_toggle(ctx)
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
+    bpy.ops.mesh.select_all(action='DESELECT')
+    bpy.ops.object.editmode_toggle(ctx)
+
+    obj_props = core.mt_object_props
+    obj_props.is_mt_object = True
+    obj_props.tile_name = tile_props.tile_name
+    bpy.context.view_layer.objects.active = core
+
+    return core
+
+
+def spawn_plain_base(tile_props):
+    """Spawn a plain base into the scene.
+
+    Args:
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
+
+    Returns:
+        bpy.types.Object: tile base
+    """
+    base_size = tile_props.base_size
+    tile_name = tile_props.tile_name
+
+    # make base
+    base = draw_cuboid(base_size)
+    base.name = tile_name + '.base'
+    add_object_to_collection(base, tile_name)
+
+    ctx = {
+        'object': base,
+        'active_object': base,
+        'selected_objects': [base]}
+
+    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+
+    obj_props = base.mt_object_props
+    obj_props.is_mt_object = True
+    obj_props.geometry_type = 'BASE'
+    obj_props.tile_name = tile_name
+    bpy.context.view_layer.objects.active = base
+
+    return base
+
+
+def spawn_openlock_base(self, tile_props):
+    """Spawn an openlock base into the scene.
+
+    Args:
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
+
+    Returns:
+        bpy.types.Object: tile base
+    """
+
+    base = spawn_plain_base(tile_props)
+    slot_cutter = spawn_openlock_base_slot_cutter(base, tile_props)
+    set_bool_obj_props(slot_cutter, base, tile_props, 'DIFFERENCE')
+    set_bool_props(slot_cutter, base, 'DIFFERENCE')
+
+    clip_cutters = spawn_openlock_base_clip_cutters(base, tile_props)
+
+    for clip_cutter in clip_cutters:
+        set_bool_obj_props(clip_cutter, base, tile_props, 'DIFFERENCE')
+        set_bool_props(clip_cutter, base, 'DIFFERENCE')
+
+    mode('OBJECT')
+
+    obj_props = base.mt_object_props
+    obj_props.is_mt_object = True
+    obj_props.geometry_type = 'BASE'
+    obj_props.tile_name = tile_props.tile_name
+    bpy.context.view_layer.objects.active = base
+
+    return base
+
+
+def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
+    """Spawn an openlock base slot cutter into scene and positions it correctly.
+
+    Args:
+        base (bpy.types.Object): base
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
+
+    Returns:
+        bpy.type.Object: slot cutter
+    """
+    mode('OBJECT')
+
+    base_location = base.location.copy()
+    base_dims = base.dimensions.copy()
+
+    if base_dims[0] < 1 or base_dims[1] < 1:
+        # work out bool size X from base size, y and z are constants.
+        bool_size = [
+            base_dims[0] - (offset * 2),
+            0.197,
+            0.25]
+
+        cutter = draw_cuboid(bool_size)
+        cutter.name = 'Base Slot.' + tile_props.tile_name + ".slot_cutter"
+
+        diff = base_dims[0] - bool_size[0]
+
+        cutter.location = (
+            base_location[0] + diff / 2,
+            base_location[1] + offset,
+            base_location[2] - 0.001)
+
+        ctx = {
+            'object': cutter,
+            'active_object': cutter,
+            'selected_objects': [cutter]
+        }
+
+        bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+
+        return cutter
+
+    else:
+        preferences = get_prefs()
+        booleans_path = os.path.join(
+            preferences.assets_path,
+            "meshes",
+            "booleans",
+            "rect_floor_slot_cutter.blend")
+
+        with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
+            data_to.objects = [
+                'corner_xneg_yneg',
+                'corner_xneg_ypos',
+                'corner_xpos_yneg',
+                'corner_xpos_ypos',
+                'slot_cutter_a',
+                'slot_cutter_b',
+                'slot_cutter_c',
+                'base_slot_cutter_final']
+
+        for obj in data_to.objects:
+            add_object_to_collection(obj, tile_props.tile_name)
+
+        for obj in data_to.objects:
+            # obj.hide_set(True)
+            obj.hide_viewport = True
+
+        cutter_a = data_to.objects[4]
+        cutter_b = data_to.objects[5]
+        cutter_c = data_to.objects[6]
+        cutter_d = data_to.objects[7]
+
+        cutter_d.name = 'Base Slot Cutter.' + tile_props.tile_name
+
+        a_array = cutter_a.modifiers['Array']
+        a_array.fit_length = base.dimensions[1] - 1.014
+
+        b_array = cutter_b.modifiers['Array']
+        b_array.fit_length = base.dimensions[0] - 1.014
+
+        c_array = cutter_c.modifiers['Array']
+        c_array.fit_length = base.dimensions[0] - 1.014
+
+        d_array = cutter_d.modifiers['Array']
+        d_array.fit_length = base.dimensions[1] - 1.014
+
+        cutter_d.location = (
+            base_location[0] + 0.24,
+            base_location[1] + 0.24,
+            base_location[2] + 0.24)
+
+        return cutter_d
+
+
+def spawn_openlock_base_clip_cutters(base, tile_props):
+    """Make cutters for the openlock base clips.
+
+    Args:
+        base (bpy.types.Object): tile base
+        tile_props (mt_tile_props): tile properties
+
+    Returns:
+        list[bpy.types.Object]
+
+    """
+
+    mode('OBJECT')
+
+    base_location = base.location.copy()
+    preferences = get_prefs()
+    booleans_path = os.path.join(
+        preferences.assets_path,
+        "meshes",
+        "booleans",
+        "openlock.blend")
+
+    with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
+        data_to.objects = [
+            'openlock.wall.base.cutter.clip',
+            'openlock.wall.base.cutter.clip.cap.start',
+            'openlock.wall.base.cutter.clip.cap.end']
+
+    for obj in data_to.objects:
+        add_object_to_collection(obj, tile_props.tile_name)
+
+    clip_cutter = data_to.objects[0]
+    cutter_start_cap = data_to.objects[1]
+    cutter_end_cap = data_to.objects[2]
+
+    cutter_start_cap.hide_viewport = True
+    cutter_end_cap.hide_viewport = True
+
+    # Special case if base is small
+    if base.dimensions[1] < 1:
+        clip_cutter.location = (
+            base_location[0] + 0.5,
+            base_location[1] + 0.25,
+            base_location[2])
+
+        array_mod = clip_cutter.modifiers.new('Array', 'ARRAY')
+        array_mod.start_cap = cutter_start_cap
+        array_mod.end_cap = cutter_end_cap
+        array_mod.use_merge_vertices = True
+
+        array_mod.fit_type = 'FIT_LENGTH'
+        array_mod.fit_length = tile_props.base_size[0] - 1
+
+        clip_cutter.name = 'Clip Cutter.' + base.name
+        return [clip_cutter]
+
+    clip_cutter.name = 'Y Neg Clip.' + base.name
+    # get location of bottom front left corner of tile
+    front_left = (
+        base_location[0],
+        base_location[1],
+        base_location[2])
+
+    clip_cutter.location = (
+        front_left[0] + 0.5,
+        front_left[1] + 0.25,
+        front_left[2])
+
+    array_mod = clip_cutter.modifiers.new('Array', 'ARRAY')
+    array_mod.start_cap = cutter_start_cap
+    array_mod.end_cap = cutter_end_cap
+    array_mod.use_merge_vertices = True
+
+    array_mod.fit_type = 'FIT_LENGTH'
+    array_mod.fit_length = base.dimensions[0] - 1
+
+    clip_cutter2 = clip_cutter.copy()
+    clip_cutter2.name = 'X Pos Clip.' + base.name
+    clip_cutter2.data = clip_cutter2.data.copy()
+
+    add_object_to_collection(clip_cutter2, tile_props.tile_name)
+    clip_cutter2.rotation_euler = (0, 0, radians(90))
+
+    front_right = (
+        base_location[0] + base.dimensions[0],
+        base_location[1],
+        base_location[2])
+
+    clip_cutter2.location = (
+        front_right[0] - 0.25,
+        front_right[1] + 0.5,
+        front_right[2])
+
+    array_mod2 = clip_cutter2.modifiers['Array']
+    array_mod2.fit_type = 'FIT_LENGTH'
+    array_mod2.fit_length = base.dimensions[1] - 1
+
+    clip_cutter3 = clip_cutter.copy()
+    clip_cutter3.name = 'Y Pos Clip.' + base.name
+    clip_cutter3.data = clip_cutter3.data.copy()
+    add_object_to_collection(clip_cutter3, tile_props.tile_name)
+
+    clip_cutter3.rotation_euler = (0, 0, radians(180))
+
+    clip_cutter3.location = (
+        clip_cutter.location[0] + base.dimensions[0] - 1,
+        clip_cutter.location[1] + base.dimensions[1] - 0.5,
+        clip_cutter.location[2]
+    )
+    array_mod3 = clip_cutter3.modifiers['Array']
+    array_mod3.fit_type = 'FIT_LENGTH'
+    array_mod3.fit_length = base.dimensions[0] - 1
+
+    clip_cutter4 = clip_cutter2.copy()
+    clip_cutter4.name = 'X Neg Clip.' + base.name
+    clip_cutter4.data = clip_cutter4.data.copy()
+    add_object_to_collection(clip_cutter4, tile_props.tile_name)
+
+    clip_cutter4.rotation_euler = (0, 0, radians(-90))
+
+    clip_cutter4.location = (
+        clip_cutter2.location[0] - base.dimensions[0] + 0.5,
+        clip_cutter2.location[1] + base.dimensions[1] - 1,
+        clip_cutter2.location[2]
+    )
+
+    array_mod4 = clip_cutter4.modifiers['Array']
+    array_mod4.fit_type = 'FIT_LENGTH'
+    array_mod4.fit_length = base.dimensions[1] - 1
+
+    bpy.ops.object.make_single_user(type='ALL', object=True, obdata=True)
+
+    return [clip_cutter, clip_cutter2, clip_cutter3, clip_cutter4]

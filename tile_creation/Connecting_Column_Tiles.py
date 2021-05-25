@@ -32,7 +32,7 @@ from .create_tile import (
     tile_x_update)
 from ..lib.bmturtle.scripts import (
     draw_cuboid)
-from .Rectangular_Tiles import (
+from .Straight_Tiles import (
     spawn_openlock_base,
     spawn_floor_core)
 from ..lib.bmturtle.commands import (

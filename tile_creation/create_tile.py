@@ -493,7 +493,7 @@ def lock_all_transforms(obj):
     obj.lock_scale[2] = True
 
 
-def convert_to_displacement_core_2(core, tile_props, textured_vertex_groups):
+def convert_to_displacement_core(core, tile_props, textured_vertex_groups):
     """Convert the core part of an object so it can be used by the MakeTile dispacement system.
 
     Args:
@@ -567,7 +567,7 @@ def convert_to_displacement_core_2(core, tile_props, textured_vertex_groups):
     core.mt_object_props.is_displacement = True
     core.mt_object_props.geometry_type = 'CORE'
 
-
+'''
 def convert_to_displacement_core(core, textured_vertex_groups):
     """Convert the core part of an object so it can be used by the MakeTile dispacement system.
 
@@ -601,10 +601,7 @@ def convert_to_displacement_core(core, textured_vertex_groups):
 
     # create texture for displacement modifier
     props.disp_texture = bpy.data.textures.new(core.name + '.texture', 'IMAGE')
-    '''
-    # add a triangulate modifier to correct for distortion after bools
-    core.modifiers.new('MT Triangulate', 'TRIANGULATE')
-    '''
+
     # add a subsurf modifier
     subsurf = core.modifiers.new('MT Subsurf', 'SUBSURF')
     subsurf.subdivision_type = 'SIMPLE'
@@ -640,7 +637,7 @@ def convert_to_displacement_core(core, textured_vertex_groups):
     # flag core as a displacement object
     core.mt_object_props.is_displacement = True
     core.mt_object_props.geometry_type = 'CORE'
-
+'''
 
 def finalise_core(core, tile_props):
     """Finalise core.

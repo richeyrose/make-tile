@@ -11,8 +11,6 @@ from bpy.props import (
 
 from ..enums.enums import (
     tile_blueprints,
-    curve_types,
-    base_socket_side,
     units,
     openlock_column_types,
     column_socket_style,

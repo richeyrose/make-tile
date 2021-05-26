@@ -10,8 +10,6 @@ from bpy.props import (
     PointerProperty)
 from ..enums.enums import (
     tile_blueprints,
-    curve_types,
-    base_socket_side,
     units,
     material_mapping,
     openlock_column_types,
@@ -125,18 +123,7 @@ def update_material_mapping(self, context):
                 mapping_node.inputs['Vector'])
 
 
-def update_curve_texture(self, context):
-    """Change whether the texture on a curved floor tile follows the curve or not."""
-    obj = context.active_object
 
-    try:
-        mod = obj.modifiers['Simple_Deform']
-        if mod.show_render:
-            mod.show_render = False
-        else:
-            mod.show_render = True
-    except KeyError:
-        pass
 
 '''
 class MT_Scene_Properties(PropertyGroup):

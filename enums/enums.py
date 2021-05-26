@@ -11,11 +11,6 @@ units = [
     ("CM", "Centimeters", "", 2)
 ]
 
-curve_types = [
-    ("POS", "Positive", "", 1),
-    ("NEG", "Negative", "", 2),
-]
-
 tile_blueprints = [
     ("PLAIN", "Plain", "", 1),
     ("OPENLOCK", "OpenLOCK", "", 2),
@@ -70,11 +65,6 @@ boolean_types = [
     ("UNION", "Union", ""),
     ("DIFFERENCE", "Difference", ""),
     ("INTERSECT", "Intersect", "")]
-
-base_socket_side = [
-    ("INNER", "Inner", "", 1),
-    ("OUTER", "Outer", "", 2)
-]
 
 view_mode = [
     ("CYCLES", "Cycles", ""),

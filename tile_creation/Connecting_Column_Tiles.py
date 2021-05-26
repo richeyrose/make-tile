@@ -513,6 +513,7 @@ def spawn_plain_connecting_column_core(self, tile_props):
 
     convert_to_displacement_core(
         core,
+        tile_props,
         textured_vertex_groups)
 
     return core
@@ -591,6 +592,7 @@ def spawn_openlock_connecting_column_core(self, tile_props, base):
 
     convert_to_displacement_core(
         core,
+        tile_props,
         textured_vertex_groups)
 
     return core

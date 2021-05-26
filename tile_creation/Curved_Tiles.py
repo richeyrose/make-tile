@@ -3,23 +3,38 @@ from math import radians, pi, modf, degrees
 from mathutils import Vector
 import bpy
 from bpy.types import Operator, Panel
-from bpy.props import FloatProperty
-from .. lib.utils.collections import (
+from bpy.props import (
+    FloatProperty,
+    EnumProperty,
+    BoolProperty,
+    StringProperty,
+    FloatVectorProperty)
+
+from ..lib.utils.collections import (
     add_object_to_collection,
     create_collection,
     activate_collection)
-from .. utils.registration import get_prefs
+
+from ..utils.registration import get_prefs
+
 from ..lib.bmturtle.scripts import (
     draw_straight_wall_core,
     draw_rectangular_floor_core,
     draw_curved_cuboid)
-from .. lib.utils.selection import (
+
+from ..lib.utils.selection import (
     deselect_all,
     select,
     activate)
-from .. lib.utils.utils import (
+
+from ..lib.utils.utils import (
     add_circle_array,
     get_all_subclasses)
+
+from ..properties.properties import (
+    create_base_blueprint_enums,
+    create_main_part_blueprint_enums)
+
 from .create_tile import (
     convert_to_displacement_core,
     finalise_tile,
@@ -32,7 +47,10 @@ from .create_tile import (
     initialise_tile_creator,
     create_common_tile_props,
     copy_annotation_props,
-    get_subdivs)
+    get_subdivs,
+    tile_x_update,
+    tile_y_update,
+    tile_z_update)
 
 
 class MT_PT_Curved_Wall_Tile_Panel(Panel):
@@ -50,8 +68,7 @@ class MT_PT_Curved_Wall_Tile_Panel(Panel):
     def poll(cls, context):
         """Check tile_type."""
         if hasattr(context.scene, 'mt_scene_props'):
-            return context.scene.mt_scene_props.tile_type in [
-                "CURVED_WALL"]
+            return context.scene.mt_scene_props.tile_type == "CURVED_WALL"
         return False
 
     def draw(self, context):
@@ -113,8 +130,7 @@ class MT_PT_Curved_Floor_Tile_Panel(Panel):
     def poll(cls, context):
         """Check tile_type."""
         if hasattr(context.scene, 'mt_scene_props'):
-            return context.scene.mt_scene_props.tile_type in [
-                "CURVED_FLOOR"]
+            return context.scene.mt_scene_props.tile_type == "CURVED_FLOOR"
         return False
 
     def draw(self, context):
@@ -153,7 +169,149 @@ class MT_PT_Curved_Floor_Tile_Panel(Panel):
         layout.operator('scene.reset_tile_defaults')
 
 
-class MT_OT_Make_Curved_Wall_Tile(MT_Tile_Generator, Operator):
+class MT_Curved_Tile:
+    def update_curve_texture(self, context):
+        """Change whether the texture on a curved floor tile follows the curve or not."""
+        obj = context.active_object
+
+        try:
+            mod = obj.modifiers['Simple_Deform']
+            if mod.show_render:
+                mod.show_render = False
+            else:
+                mod.show_render = True
+        except KeyError:
+            pass
+
+    # Dimensions #
+    tile_x: FloatProperty(
+        name="X",
+        default=2.0,
+        step=50,
+        precision=2,
+        update=tile_x_update,
+        min=0
+    )
+
+    tile_y: FloatProperty(
+        name="Y",
+        default=0.3,
+        step=50,
+        precision=2,
+        update=tile_y_update,
+        min=0
+    )
+
+    tile_z: FloatProperty(
+        name="Z",
+        default=2.0,
+        step=50,
+        precision=2,
+        update=tile_z_update,
+        min=0
+    )
+
+    # Base size
+    base_x: FloatProperty(
+        name="X",
+        default=2.0,
+        step=50,
+        precision=2,
+        min=0
+    )
+
+    base_y: FloatProperty(
+        name="Y",
+        default=0.5,
+        step=50,
+        precision=2,
+        min=0
+    )
+
+    base_z: FloatProperty(
+        name="Z",
+        default=0.3,
+        step=50,
+        precision=2,
+        min=0
+    )
+
+    x_proportionate_scale: BoolProperty(
+        name="X",
+        default=True
+    )
+
+    y_proportionate_scale: BoolProperty(
+        name="Y",
+        default=True
+    )
+
+    z_proportionate_scale: BoolProperty(
+        name="Z",
+        default=False
+    )
+
+    tile_size: FloatVectorProperty(
+        name="Tile Size"
+    )
+
+    base_size: FloatVectorProperty(
+        name="Base size"
+    )
+
+    base_socket_side: EnumProperty(
+        items=[
+            ("INNER", "Inner", "", 1),
+            ("OUTER", "Outer", "", 2)],
+        name="Socket Side",
+        default="INNER",
+    )
+
+    degrees_of_arc: FloatProperty(
+        name="Degrees of arc",
+        default=90,
+        step=45,
+        precision=1,
+        max=359.999,
+        min=0
+    )
+
+    # Used for curved wall tiles
+    base_radius: FloatProperty(
+        name="Base inner radius",
+        default=2.0,
+        step=50,
+        precision=1,
+        min=0,
+    )
+
+    wall_radius: FloatProperty(
+        name="Wall inner radius",
+        default=2.0,
+        step=50,
+        precision=1,
+        min=0
+    )
+
+    # used for curved floors
+    curve_type: EnumProperty(
+        items=[
+            ("POS", "Positive", "", 1),
+            ("NEG", "Negative", "", 2)],
+        name="Curve type",
+        default="POS",
+        description="Whether the tile has a positive or negative curvature"
+    )
+
+    curve_texture: BoolProperty(
+        name="Curve Texture",
+        description="Setting this to true will make the texture follow the curve of the tile. Useful for decorative elements, borders etc.",
+        default=False,
+        update=update_curve_texture
+    )
+
+
+class MT_OT_Make_Curved_Wall_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
     """Create a Curved Wall Tile."""
 
     bl_idname = "object.make_curved_wall"
@@ -162,25 +320,77 @@ class MT_OT_Make_Curved_Wall_Tile(MT_Tile_Generator, Operator):
     mt_blueprint = "CUSTOM"
     mt_type = "CURVED_WALL"
 
+    def update_base_blueprint_enums(self, context):
+        if not self.invoked:
+            scene_props = context.scene.mt_scene_props
+            defaults = {}
+            for tile in scene_props['tile_defaults']:
+                if tile['type'] == 'CURVED_WALL':
+                    base_defaults = tile['defaults']['base_defaults']
+                    break
+
+            if self.base_blueprint == "OPENLOCK":
+                self.base_y = base_defaults['OPENLOCK']['base_y']
+                self.base_z = base_defaults['OPENLOCK']['base_z']
+            elif self.base_blueprint == "PLAIN":
+                self.base_y = base_defaults['PLAIN']['base_y']
+                self.base_z = base_defaults['PLAIN']['base_z']
+            elif self.base_blueprint == "OPENLOCK_S_WALL":
+                self.base_y = base_defaults['OPENLOCK_S_WALL']['base_y']
+                self.base_z = base_defaults['OPENLOCK_S_WALL']['base_z']
+            elif self.base_blueprint == "PLAIN_S_WALL":
+                self.base_y = base_defaults['PLAIN_S_WALL']['base_y']
+                self.base_z = base_defaults['PLAIN_S_WALL']['base_z']
+            else:
+                self.base_y = self.tile_y
+                self.base_z = 0.0
+
+    main_part_blueprint: EnumProperty(
+        items=create_main_part_blueprint_enums,
+        name="Wall")
+
+    base_blueprint: EnumProperty(
+        items=create_base_blueprint_enums,
+        update=update_base_blueprint_enums,
+        name="Base"
+    )
+
+    # S Wall Props
+    wall_position: EnumProperty(
+        name="Wall Position",
+        items=[
+            ("CENTER", "Center", "Wall is in Center of base."),
+            ("SIDE", "Side", "Wall is on the side of base.")],
+        default="CENTER")
+
+    floor_thickness: FloatProperty(
+        name="Floor Thickness",
+        default=0.0245,
+        step=0.01,
+        precision=4)
+
     def execute(self, context):
         """Execute the operator."""
+        super().execute(context)
+        if not self.refresh:
+            return{'PASS_THROUGH'}
 
         scene = context.scene
         scene_props = scene.mt_scene_props
-
-        base_blueprint = scene_props.base_blueprint
-        core_blueprint = scene_props.main_part_blueprint
+        base_blueprint = self.base_blueprint
+        core_blueprint = self.main_part_blueprint
         base_type = 'CURVED_BASE'
         core_type = 'CURVED_WALL_CORE'
-
-        cursor_orig_loc, cursor_orig_rot = initialise_wall_creator(context)
         subclasses = get_all_subclasses(MT_Tile_Generator)
-        base = spawn_prefab(context, subclasses, base_blueprint, base_type)
 
+        kwargs = {"tile_name": self.tile_name}
+        base = spawn_prefab(context, subclasses, base_blueprint, base_type, **kwargs)
+
+        kwargs["base_name"] = base.name
         if core_blueprint == 'NONE':
             wall_core = None
         else:
-            wall_core = spawn_prefab(context, subclasses, core_blueprint, core_type)
+            wall_core = spawn_prefab(context, subclasses, core_blueprint, core_type, **kwargs)
 
         # We temporarily override tile_props.base_size to generate floor core for S-Tiles.
         # It is easier to do it this way as the PropertyGroup.copy() method produces a dict
@@ -193,52 +403,166 @@ class MT_OT_Make_Curved_Wall_Tile(MT_Tile_Generator, Operator):
         tile_props.tile_size = (
             tile_props.base_size[0],
             tile_props.base_size[1],
-            scene_props.base_z + scene_props.floor_thickness)
+            scene_props.base_z + self.floor_thickness)
 
         if base_blueprint in {'OPENLOCK_S_WALL', 'PLAIN_S_WALL'}:
-            floor_core = spawn_prefab(context, subclasses, 'OPENLOCK', 'CURVED_FLOOR_CORE')
-            finalise_tile(base, (wall_core, floor_core), cursor_orig_loc, cursor_orig_rot)
+            floor_core = spawn_prefab(context, subclasses, 'OPENLOCK', 'CURVED_FLOOR_CORE', **kwargs)
+            self.finalise_tile(context, base, wall_core, floor_core)
         else:
-            finalise_tile(base, wall_core, cursor_orig_loc, cursor_orig_rot)
+            self.finalise_tile(context, base, wall_core)
 
         tile_props.tile_size = orig_tile_size
 
+        if self.auto_refresh is False:
+            self.refresh = False
+
+        self.invoked = False
+
         return {'FINISHED'}
 
+    def init(self, context):
+        super().init(context)
+        tile_collection = bpy.data.collections[self.tile_name]
+        tile_props = tile_collection.mt_tile_props
+        tile_props.collection_type = "TILE"
+        tile_props.tile_size = (self.tile_x, self.tile_y, self.tile_z)
+        tile_props.base_size = (self.base_x, self.base_y, self.base_z)
 
-class MT_OT_Make_Curved_Floor_Tile(MT_Tile_Generator, Operator):
+    def draw(self, context):
+        super().draw(context)
+        layout = self.layout
+        layout.prop(self, 'tile_material_1')
+        layout.prop(self, 'base_blueprint')
+        layout.prop(self, 'main_part_blueprint')
+        layout.label(text="Tile Properties")
+
+        layout.prop(self, 'tile_z', text="Height")
+        layout.prop(self, 'base_radius', text="Radius")
+        layout.prop(self, 'degrees_of_arc')
+        layout.prop(self, 'base_socket_side', text="Socket Side")
+        layout.prop(self, 'curve_texture', text="Curve Texture")
+
+        layout.label(text="Core Properties")
+        layout.prop(self, 'tile_y', text="Width")
+
+        if self.base_blueprint in ('OPENLOCK_S_WALL', 'PLAIN_S_WALL'):
+            layout.label(text="Floor Thickness")
+            layout.prop(self, 'floor_thickness', text="")
+
+            layout.label(text="Wall Position")
+            layout.prop(self, 'wall_position', text="")
+
+        layout.label(text="Sync Proportions")
+        row = layout.row()
+        row.prop(self, 'y_proportionate_scale', text="Width")
+        row.prop(self, 'z_proportionate_scale', text="Height")
+
+        layout.label(text="Base Properties")
+        layout.prop(self, 'base_y', text="Width")
+        layout.prop(self, 'base_z', text="Height")
+
+
+class MT_OT_Make_Curved_Floor_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
     """Create a Curved Floor Tile."""
 
     bl_idname = "object.make_curved_floor"
     bl_label = "Curved Floor"
-    bl_options = {'UNDO'}
+    bl_options = {'UNDO', 'REGISTER'}
     mt_blueprint = "CUSTOM"
     mt_type = "CURVED_FLOOR"
 
+    def update_base_blueprint_enums(self, context):
+        if not self.invoked:
+            scene_props = context.scene.mt_scene_props
+            for tile in scene_props['tile_defaults']:
+                if tile['type'] == 'CURVED_FLOOR':
+                    base_defaults = tile['defaults']['base_defaults']
+                    break
+            if self.base_blueprint == "OPENLOCK":
+                self.base_y = base_defaults['OPENLOCK']['base_y']
+                self.base_z = base_defaults['OPENLOCK']['base_z']
+            elif self.base_blueprint == "PLAIN":
+                self.base_y = base_defaults['PLAIN']['base_y']
+                self.base_z = base_defaults['PLAIN']['base_z']
+            else:
+                self.base_y = self.tile_y
+                self.base_z = 0.0
+
+    main_part_blueprint: EnumProperty(
+        items=create_main_part_blueprint_enums,
+        name="Wall")
+
+    base_blueprint: EnumProperty(
+        items=create_base_blueprint_enums,
+        update=update_base_blueprint_enums,
+        name="Base"
+    )
     def execute(self, context):
         """Execute the operator."""
+        super().execute(context)
+        if not self.refresh:
+            return{'PASS_THROUGH'}
+
         scene = context.scene
         scene_props = scene.mt_scene_props
-        base_blueprint = scene_props.base_blueprint
-        core_blueprint = scene_props.main_part_blueprint
+        base_blueprint = self.base_blueprint
+        core_blueprint = self.main_part_blueprint
         base_type = 'CURVED_BASE'
         core_type = 'CURVED_FLOOR_CORE'
-
-        cursor_orig_loc, cursor_orig_rot = initialise_floor_creator(
-            context, scene_props)
         subclasses = get_all_subclasses(MT_Tile_Generator)
-        base = spawn_prefab(context, subclasses, base_blueprint, base_type)
 
+        kwargs = {"tile_name": self.tile_name}
+        base = spawn_prefab(context, subclasses, base_blueprint, base_type, **kwargs)
+
+        kwargs["base_name"] = base.name
         if core_blueprint == 'NONE':
             preview_core = None
         else:
-            preview_core = spawn_prefab(context, subclasses, core_blueprint, core_type)
+            preview_core = spawn_prefab(context, subclasses, core_blueprint, core_type, **kwargs)
 
-        finalise_tile(base, preview_core, cursor_orig_loc, cursor_orig_rot)
+        self.finalise_tile(context, base, preview_core)
 
-        # scene.render.engine = original_renderer
+        if self.auto_refresh is False:
+            self.refresh = False
+
+        self.invoked = False
+
         return {'FINISHED'}
 
+
+    def init(self, context):
+        super().init(context)
+        tile_collection = bpy.data.collections[self.tile_name]
+        tile_props = tile_collection.mt_tile_props
+        tile_props.collection_type = "TILE"
+        tile_props.tile_size = (self.tile_x, self.tile_y, self.tile_z)
+        tile_props.base_size = (self.base_x, self.base_y, self.base_z)
+
+
+    def draw(self, context):
+        super().draw(context)
+        layout = self.layout
+        layout.label(text="Tile Properties")
+
+        layout.prop(self, 'tile_z', text="Height")
+        layout.prop(self, 'base_radius', text="Radius")
+        layout.prop(self, 'degrees_of_arc')
+        layout.prop(self, 'base_socket_side', text="Socket Side")
+        layout.prop(self, 'curve_texture', text="Curve Texture")
+
+        layout.label(text="Core Properties")
+        layout.prop(self, 'tile_y', text="Width")
+
+        layout.label(text="Sync Proportions")
+        row = layout.row()
+        row.prop(self, 'y_proportionate_scale', text="Width")
+        row.prop(self, 'z_proportionate_scale', text="Height")
+
+        layout.label(text="Base Properties")
+        layout.prop(self, 'base_y', text="Width")
+        layout.prop(self, 'base_z', text="Height")
+
+        layout.operator('scene.reset_tile_defaults')
 
 class MT_OT_Make_Openlock_Curved_Base(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an OpenLOCK curved base."""
@@ -251,8 +575,7 @@ class MT_OT_Make_Openlock_Curved_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         spawn_openlock_base(self, tile_props)
         return{'FINISHED'}
 
@@ -268,8 +591,7 @@ class MT_OT_Make_Openlock_S_Wall_Straight_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         spawn_openlock_base(self, tile_props)
         return{'FINISHED'}
 
@@ -285,8 +607,7 @@ class MT_OT_Make_Plain_Curved_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         spawn_plain_base(self, tile_props)
         return{'FINISHED'}
 
@@ -302,8 +623,7 @@ class MT_OT_Make_Plain_S_Wall_Curved_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         spawn_plain_base(self, tile_props)
         return{'FINISHED'}
 
@@ -319,8 +639,7 @@ class MT_OT_Make_Empty_Curved_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         spawn_empty_base(tile_props)
         return{'FINISHED'}
 
@@ -333,11 +652,11 @@ class MT_OT_Make_Plain_Curved_Wall_Core(MT_Tile_Generator, Operator):
     bl_options = {'INTERNAL'}
     mt_blueprint = "PLAIN"
     mt_type = "CURVED_WALL_CORE"
+    base_name: StringProperty()
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         spawn_plain_wall_cores(self, tile_props)
         return{'FINISHED'}
 
@@ -350,12 +669,13 @@ class MT_OT_Make_Openlock_Curved_Wall_Core(MT_Tile_Generator, Operator):
     bl_options = {'INTERNAL', 'REGISTER'}
     mt_blueprint = "OPENLOCK"
     mt_type = "CURVED_WALL_CORE"
+    base_name: StringProperty()
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
-        base = context.active_object
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
+        base = bpy.data.objects[self.base_name]
+
         spawn_openlock_wall_cores(self, base, tile_props)
         return{'FINISHED'}
 
@@ -382,11 +702,12 @@ class MT_OT_Make_Plain_Curved_Floor_Core(MT_Tile_Generator, Operator):
     bl_options = {'INTERNAL'}
     mt_blueprint = "PLAIN"
     mt_type = "CURVED_FLOOR_CORE"
+    base_name: StringProperty()
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
+        base = bpy.data.objects[self.base_name]
         spawn_plain_floor_cores(self, tile_props)
         return{'FINISHED'}
 
@@ -399,11 +720,12 @@ class MT_OT_Make_Openlock_Curved_Floor_Core(MT_Tile_Generator, Operator):
     bl_options = {'INTERNAL'}
     mt_blueprint = "OPENLOCK"
     mt_type = "CURVED_FLOOR_CORE"
+    base_name: StringProperty()
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
+        base = bpy.data.objects[self.base_name]
         spawn_plain_floor_cores(self, tile_props)
         return{'FINISHED'}
 
@@ -513,6 +835,7 @@ def spawn_plain_wall_cores(self, tile_props):
     preview_core = spawn_wall_core(self, tile_props)
     convert_to_displacement_core(
         preview_core,
+        tile_props,
         textured_vertex_groups)
 
     return preview_core
@@ -555,6 +878,7 @@ def spawn_openlock_wall_cores(self, base, tile_props):
     textured_vertex_groups = ['Front', 'Back']
     convert_to_displacement_core(
         core,
+        tile_props,
         textured_vertex_groups)
 
     activate(core.name)
@@ -954,6 +1278,7 @@ def spawn_plain_floor_cores(self, tile_props):
 
     convert_to_displacement_core(
         preview_core,
+        tile_props,
         textured_vertex_groups)
 
     return preview_core

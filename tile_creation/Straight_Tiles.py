@@ -28,7 +28,7 @@ from .. lib.utils.utils import mode, get_all_subclasses
 
 from .create_tile import (
     spawn_empty_base,
-    convert_to_displacement_core_2,
+    convert_to_displacement_core,
     spawn_prefab,
     set_bool_obj_props,
     set_bool_props,
@@ -117,7 +117,7 @@ class MT_PT_Rect_Floor_Panel(Panel):
     def poll(cls, context):
         """Check tile_type."""
         if hasattr(context.scene, 'mt_scene_props'):
-            return context.scene.mt_scene_props.tile_type == "STRAIGHT_FLOOR"
+            return context.scene.mt_scene_props.tile_type == "RECT_FLOOR"
         return False
 
     def draw(self, context):
@@ -290,12 +290,11 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Straight_Tile, MT_Tile_Generato
         base_type = 'STRAIGHT_BASE'
         core_type = 'STRAIGHT_WALL_CORE'
         subclasses = get_all_subclasses(MT_Tile_Generator)
-        kwargs = {"tile_name": self.tile_name}
 
+        kwargs = {"tile_name": self.tile_name}
         base = spawn_prefab(context, subclasses, base_blueprint, base_type, **kwargs)
 
         kwargs["base_name"] = base.name
-
         if wall_blueprint == 'NONE':
             wall_core = None
         else:
@@ -379,8 +378,8 @@ class MT_OT_Make_Rect_Floor_Tile(Operator, MT_Straight_Tile, MT_Tile_Generator):
     def update_base_blueprint_enums(self, context):
         if not self.invoked:
             if self.base_blueprint in ("OPENLOCK", "PLAIN"):
-                self.base_y = self.tile_x
-                self.tile_y = self.tile_y
+                self.base_x = self.tile_x
+                self.base_y = self.tile_y
                 self.base_z = 0.2755
             else:
                 self.base_x = self.tile_x
@@ -652,7 +651,7 @@ def spawn_plain_wall_cores(self, tile_props):
     """
     preview_core = spawn_wall_core(self, tile_props)
     textured_vertex_groups = ['Front', 'Back']
-    convert_to_displacement_core_2(
+    convert_to_displacement_core(
         preview_core,
         tile_props,
         textured_vertex_groups)
@@ -688,7 +687,7 @@ def spawn_openlock_wall_cores(self, tile_props, base):
         set_bool_props(wall_cutter, core, 'DIFFERENCE')
 
     textured_vertex_groups = ['Front', 'Back']
-    convert_to_displacement_core_2(
+    convert_to_displacement_core(
         core,
         tile_props,
         textured_vertex_groups)
@@ -927,7 +926,7 @@ def create_plain_rect_floor_cores(self, tile_props):
     preview_core = spawn_floor_core(self, tile_props)
     textured_vertex_groups = ['Top']
 
-    convert_to_displacement_core_2(
+    convert_to_displacement_core(
         preview_core,
         tile_props,
         textured_vertex_groups)

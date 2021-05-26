@@ -429,6 +429,7 @@ class MT_OT_Make_Roof(Operator, MT_Tile_Generator):
         row.prop(self, 'inset_y_neg', text="Y Neg")
         row.prop(self, 'inset_y_pos', text="Y Pos")
 
+
 class MT_OT_Make_Roof_Base(MT_Tile_Generator, Operator):
     """Internal Operator. Generate a Roof Base."""
 
@@ -459,10 +460,12 @@ class MT_OT_Make_Roof_Base(MT_Tile_Generator, Operator):
         textured_vertex_groups = ['Base Left', 'Base Right', 'Gable Front', 'Gable Back']
         convert_to_displacement_core(
             base,
+            tile_props,
             textured_vertex_groups)
 
         activate(base.name)
         return{'FINISHED'}
+
 
 class MT_OT_Make_Empty_Roof_Base(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an empty roof base."""
@@ -486,6 +489,7 @@ class MT_OT_Make_Empty_Roof_Base(MT_Tile_Generator, Operator):
         spawn_empty_base(tile_props)
         return{'FINISHED'}
 
+
 class MT_OT_Make_Roof_Top(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an openlock Roof Top."""
 
@@ -502,6 +506,7 @@ class MT_OT_Make_Roof_Top(MT_Tile_Generator, Operator):
         textured_vertex_groups = ['Left', 'Right']
         convert_to_displacement_core(
             roof,
+            tile_props,
             textured_vertex_groups)
         return{'FINISHED'}
 

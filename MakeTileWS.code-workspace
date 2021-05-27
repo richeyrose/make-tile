@@ -4,7 +4,5 @@
 			"path": "."
 		}
 	],
-	"settings": {
-		"python.autoComplete.extraPaths": ["e:/BlenderScripts/Autocomplete/2.80"]
-	}
+	"settings": {}
 }

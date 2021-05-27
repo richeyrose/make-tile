@@ -193,6 +193,7 @@ class MT_Tile_Properties(PropertyGroup):
         name="Tile Resolution"
     )
 '''
+
 def create_tile_props():
     """Dynamically create new_mt_tile_props PropertyGroup based on properties in MT_Tile_Generator and subclasses."""
     subclasses = get_all_subclasses(MT_Tile_Generator)

@@ -172,16 +172,35 @@ class MT_PT_Curved_Floor_Tile_Panel(Panel):
 class MT_Curved_Tile:
     def update_curve_texture(self, context):
         """Change whether the texture on a curved floor tile follows the curve or not."""
-        obj = context.active_object
-
-        try:
-            mod = obj.modifiers['Simple_Deform']
-            if mod.show_render:
-                mod.show_render = False
-            else:
-                mod.show_render = True
-        except KeyError:
-            pass
+        if self.tile_name:
+            tile_collection = bpy.data.collections[self.tile_name]
+            tile_props = tile_collection.mt_tile_props
+            for obj in tile_collection.objects:
+                obj_props = obj.mt_object_props
+                if obj_props.is_displacement:
+                    try:
+                        mod = obj.modifiers['Simple_Deform']
+                        if mod.show_render:
+                            mod.show_render = False
+                        else:
+                            mod.show_render = True
+                    except KeyError:
+                        pass
+        else:
+            try:
+                obj = context.active_object
+                obj_props = obj.mt_object_props
+                if obj_props.is_displacement:
+                    try:
+                        mod = obj.modifiers['Simple_Deform']
+                        if mod.show_render:
+                            mod.show_render = False
+                        else:
+                            mod.show_render = True
+                    except KeyError:
+                        pass
+            except AttributeError:
+                pass
 
     # Dimensions #
     tile_x: FloatProperty(
@@ -305,7 +324,7 @@ class MT_Curved_Tile:
 
     curve_texture: BoolProperty(
         name="Curve Texture",
-        description="Setting this to true will make the texture follow the curve of the tile. Useful for decorative elements, borders etc.",
+        description="WARNING! You will need to make tile 3D to see the effects. Setting this to true will make the texture follow the curve of the tile. Useful for decorative elements, borders etc.",
         default=False,
         update=update_curve_texture
     )

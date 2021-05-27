@@ -123,8 +123,6 @@ def update_material_mapping(self, context):
                 mapping_node.inputs['Vector'])
 
 
-
-
 '''
 class MT_Scene_Properties(PropertyGroup):
     """Contains MakeTile scene properties.

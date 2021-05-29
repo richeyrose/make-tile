@@ -373,11 +373,6 @@ class MT_OT_Make_Roof(Operator, MT_Tile_Generator):
         '''
         self.finalise_tile(context, gables, rooftop)
 
-        if self.auto_refresh is False:
-            self.refresh = False
-
-        self.invoked = False
-
         return {'FINISHED'}
 
     def init(self, context):

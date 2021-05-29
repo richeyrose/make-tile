@@ -321,11 +321,6 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Straight_Tile, MT_Tile_Generato
 
         tile_props.tile_size = orig_tile_size
 
-        if self.auto_refresh is False:
-            self.refresh = False
-
-        self.invoked = False
-
         return {'FINISHED'}
 
     def init(self, context):
@@ -419,10 +414,6 @@ class MT_OT_Make_Rect_Floor_Tile(Operator, MT_Straight_Tile, MT_Tile_Generator):
             preview_core = spawn_prefab(context, subclasses, core_blueprint, core_type, **kwargs)
 
         self.finalise_tile(context, base, preview_core)
-
-        if self.auto_refresh is False:
-            self.refresh = False
-        self.invoked = False
 
         return {'FINISHED'}
 

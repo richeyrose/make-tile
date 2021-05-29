@@ -82,24 +82,24 @@ def update_main_part_defaults(self, context):
                         setattr(scene_props, k, v)
                     break
 
+
 def update_scene_defaults(self, context):
-    if not self.invoked:
-        scene_props = context.scene.mt_scene_props
-        tile_type = scene_props.tile_type
-        try:
-            tile_defaults = scene_props['tile_defaults']
-        except KeyError:
-            create_properties_on_load(dummy=None)
+    scene_props = context.scene.mt_scene_props
+    tile_type = scene_props.tile_type
+    try:
+        tile_defaults = scene_props['tile_defaults']
+    except KeyError:
+        create_properties_on_load(dummy=None)
 
-        for tile in tile_defaults:
-            if tile['type'] == tile_type:
-                defaults = tile['defaults']
-                for key, value in defaults.items():
-                    setattr(scene_props, key, value)
-                break
+    for tile in tile_defaults:
+        if tile['type'] == tile_type:
+            defaults = tile['defaults']
+            for key, value in defaults.items():
+                setattr(scene_props, key, value)
+            break
 
-        update_main_part_defaults(self, context)
-        update_base_defaults(self, context)
+    update_main_part_defaults(self, context)
+    update_base_defaults(self, context)
 
 
 class MT_OT_Reset_Tile_Defaults(Operator):
@@ -169,6 +169,12 @@ class MT_Tile_Generator:
         name="Auto",
         default=True,
         description="Automatic Refresh")
+
+    reset_defaults: BoolProperty(
+        name="Reset Defaults",
+        default=False,
+        description="Reset Defaults",
+    )
 
     # Universal properties
     tile_type: EnumProperty(
@@ -261,6 +267,7 @@ class MT_Tile_Generator:
     def invoke(self, context, event):
         """Call when operator is invoked directly from the UI."""
         self.invoked = True
+        self.reset_defaults = False
         scene_props = context.scene.mt_scene_props
         all_annotations = get_annotations(self.__class__)
         for key in scene_props.__annotations__.keys():
@@ -284,6 +291,34 @@ class MT_Tile_Generator:
         """Initialise operator properties."""
         deselect_all()
         scene = context.scene
+
+        # reset tile defaults
+        if self.reset_defaults:
+            scene_props = scene.mt_scene_props
+            tile_type = self.tile_type
+            tile_defaults = scene_props['tile_defaults']
+            for tile in tile_defaults:
+                if tile['type'] == tile_type:
+                    defaults = tile['defaults']
+                    for key, value in defaults.items():
+                        setattr(self, key, value)
+                    break
+            main_part_blueprint = self.main_part_blueprint
+            base_blueprint = self.base_blueprint
+            main_part_defaults = defaults['tile_defaults']
+            base_defaults = defaults['base_defaults']
+            for key, value in main_part_defaults.items():
+                if key == main_part_blueprint:
+                    for k, v in value.items():
+                        setattr(self, k, v)
+                    break
+            for key, value in base_defaults.items():
+                if key == base_blueprint:
+                    for k, v in value.items():
+                        setattr(self, k, v)
+                    break
+            self.reset_defaults = False
+
         # We create tile at origin and then move it back to original location.
         # This saves us having to update the scene when we reset origins etc.
         cursor = scene.cursor
@@ -348,6 +383,11 @@ class MT_Tile_Generator:
         base.select_set(True)
         context.view_layer.objects.active = base
 
+        if self.auto_refresh is False:
+            self.refresh = False
+
+        self.invoked = False
+
 
     def draw(self, context):
         """Draw the Redo panel."""
@@ -363,6 +403,7 @@ class MT_Tile_Generator:
         split.scale_y = 1.5
         split.prop(self, "auto_refresh", toggle=True, icon_only=True, icon='AUTO')
         split.prop(self, "refresh", toggle=True, icon_only=True, icon='FILE_REFRESH')
+        layout.prop(self, 'reset_defaults', toggle=True, icon='LOOP_BACK')
         layout.prop(self, 'subdivision_density')
 
 

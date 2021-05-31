@@ -174,7 +174,6 @@ class MT_Curved_Tile:
         """Change whether the texture on a curved floor tile follows the curve or not."""
         if self.tile_name:
             tile_collection = bpy.data.collections[self.tile_name]
-            tile_props = tile_collection.mt_tile_props
             for obj in tile_collection.objects:
                 obj_props = obj.mt_object_props
                 if obj_props.is_displacement:
@@ -201,82 +200,6 @@ class MT_Curved_Tile:
                         pass
             except AttributeError:
                 pass
-
-    # Dimensions #
-    tile_x: FloatProperty(
-        name="X",
-        default=2.0,
-        step=50,
-        precision=2,
-        update=tile_x_update,
-        min=0
-    )
-
-    tile_y: FloatProperty(
-        name="Y",
-        default=0.3,
-        step=50,
-        precision=2,
-        update=tile_y_update,
-        min=0
-    )
-
-    tile_z: FloatProperty(
-        name="Z",
-        default=2.0,
-        step=50,
-        precision=2,
-        update=tile_z_update,
-        min=0
-    )
-
-    # Base size
-    base_x: FloatProperty(
-        name="X",
-        default=2.0,
-        step=50,
-        precision=2,
-        min=0
-    )
-
-    base_y: FloatProperty(
-        name="Y",
-        default=0.5,
-        step=50,
-        precision=2,
-        min=0
-    )
-
-    base_z: FloatProperty(
-        name="Z",
-        default=0.3,
-        step=50,
-        precision=2,
-        min=0
-    )
-
-    x_proportionate_scale: BoolProperty(
-        name="X",
-        default=True
-    )
-
-    y_proportionate_scale: BoolProperty(
-        name="Y",
-        default=True
-    )
-
-    z_proportionate_scale: BoolProperty(
-        name="Z",
-        default=False
-    )
-
-    tile_size: FloatVectorProperty(
-        name="Tile Size"
-    )
-
-    base_size: FloatVectorProperty(
-        name="Base size"
-    )
 
     base_socket_side: EnumProperty(
         items=[

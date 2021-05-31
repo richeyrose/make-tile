@@ -7,6 +7,7 @@ from bpy.props import (
     EnumProperty,
     BoolProperty,
     FloatProperty,
+    FloatVectorProperty,
     IntProperty)
 
 from ..operators.assign_reference_object import (
@@ -174,6 +175,82 @@ class MT_Tile_Generator:
         name="Reset Defaults",
         default=False,
         description="Reset Defaults",
+    )
+
+    # Tile proportions
+    x_proportionate_scale: BoolProperty(
+        name="X",
+        default=True
+    )
+
+    y_proportionate_scale: BoolProperty(
+        name="Y",
+        default=False
+    )
+
+    z_proportionate_scale: BoolProperty(
+        name="Z",
+        default=False
+    )
+
+    tile_x: FloatProperty(
+        name="X",
+        default=2.0,
+        step=50,
+        precision=2,
+        update=tile_x_update,
+        min=0
+    )
+
+    tile_y: FloatProperty(
+        name="Y",
+        default=0.3,
+        step=50,
+        precision=2,
+        update=tile_y_update,
+        min=0
+    )
+
+    tile_z: FloatProperty(
+        name="Z",
+        default=2.0,
+        step=50,
+        precision=2,
+        update=tile_z_update,
+        min=0
+    )
+
+    # Base size
+    base_x: FloatProperty(
+        name="X",
+        default=2.0,
+        step=50,
+        precision=2,
+        min=0
+    )
+
+    base_y: FloatProperty(
+        name="Y",
+        default=0.5,
+        step=50,
+        precision=2,
+        min=0
+    )
+
+    base_z: FloatProperty(
+        name="Z",
+        default=0.3,
+        step=50,
+        precision=2,
+        min=0
+    )
+
+    tile_size: FloatVectorProperty(
+        name="Tile Size"
+    )
+
+    base_size: FloatVectorProperty(
+        name="Base size"
     )
 
     # Universal properties

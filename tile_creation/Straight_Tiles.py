@@ -154,85 +154,8 @@ class MT_PT_Rect_Floor_Panel(Panel):
         layout.operator('scene.reset_tile_defaults')
 
 
-class MT_Straight_Tile:
-    # Dimensions #
-    tile_x: FloatProperty(
-        name="X",
-        default=2.0,
-        step=50,
-        precision=2,
-        update=tile_x_update,
-        min=0
-    )
 
-    tile_y: FloatProperty(
-        name="Y",
-        default=0.3,
-        step=50,
-        precision=2,
-        update=tile_y_update,
-        min=0
-    )
-
-    tile_z: FloatProperty(
-        name="Z",
-        default=2.0,
-        step=50,
-        precision=2,
-        update=tile_z_update,
-        min=0
-    )
-
-    # Base size
-    base_x: FloatProperty(
-        name="X",
-        default=2.0,
-        step=50,
-        precision=2,
-        min=0
-    )
-
-    base_y: FloatProperty(
-        name="Y",
-        default=0.5,
-        step=50,
-        precision=2,
-        min=0
-    )
-
-    base_z: FloatProperty(
-        name="Z",
-        default=0.3,
-        step=50,
-        precision=2,
-        min=0
-    )
-
-    x_proportionate_scale: BoolProperty(
-        name="X",
-        default=True
-    )
-
-    y_proportionate_scale: BoolProperty(
-        name="Y",
-        default=True
-    )
-
-    z_proportionate_scale: BoolProperty(
-        name="Z",
-        default=False
-    )
-
-    tile_size: FloatVectorProperty(
-        name="Tile Size"
-    )
-
-    base_size: FloatVectorProperty(
-        name="Base size"
-    )
-
-
-class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Straight_Tile, MT_Tile_Generator):
+class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
     """Operator. Generates a straight wall tile with a customisable base and main part."""
 
     bl_idname = "object.make_straight_wall"
@@ -361,7 +284,7 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Straight_Tile, MT_Tile_Generato
             layout.prop(self, 'wall_position', text="")
 
 
-class MT_OT_Make_Rect_Floor_Tile(Operator, MT_Straight_Tile, MT_Tile_Generator):
+class MT_OT_Make_Rect_Floor_Tile(Operator, MT_Tile_Generator):
     """Operator. Generates a rectangular floor tile with a customisable base and main part."""
 
     bl_idname = "object.make_rect_floor"

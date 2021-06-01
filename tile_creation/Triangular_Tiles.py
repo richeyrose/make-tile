@@ -35,7 +35,7 @@ from .create_tile import (
     create_common_tile_props,
     get_subdivs)
 
-from ..properties.scene_props import (
+from ..properties.properties import (
     create_base_blueprint_enums,
     create_main_part_blueprint_enums)
 

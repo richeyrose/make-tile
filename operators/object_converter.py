@@ -120,7 +120,7 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
             textured_vertex_groups = ['All']
 
         # convert our object to a displacement object
-        convert_to_displacement_core(obj, textured_vertex_groups)
+        convert_to_displacement_core(obj, tile_props, textured_vertex_groups)
 
         # lock all transforms so we can only move parent
         lock_all_transforms(obj)

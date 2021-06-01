@@ -570,8 +570,93 @@ def create_scene_props():
             update=update_disp_strength),
         "mt_last_selected": PointerProperty(
             name="Last Selected Object",
-            type=bpy.types.Object
-        )}
+            type=bpy.types.Object),
+        "material_mapping_method": EnumProperty(
+            items=material_mapping,
+            description="How to map the active material onto an object",
+            name="Material Mapping Method",
+            update=update_material_mapping,
+            default='OBJECT'),
+        "base_unit": EnumProperty(
+            name="Base Unit",
+            items=units),
+        "target_unit": EnumProperty(
+            name="Target Unit",
+            items=units),
+        "tile_resolution": IntProperty(
+            name="Resolution",
+            description="Bake resolution of displacement maps. Higher = better quality but slower. Also images are 32 bit so 4K and 8K images can be gigabytes in size",
+            default=1024,
+            min=1024,
+            max=8192,
+            step=1024),
+        "voxel_size": FloatProperty(
+            name="Voxel Size",
+            description="Quality of the voxelisation. Smaller = Better",
+            soft_min=0.005,
+            default=0.0051,
+            precision=3),
+        "voxel_adaptivity": FloatProperty(
+            name="Adaptivity",
+            description="Amount by which to simplify mesh",
+            default=0.25,
+            precision=3),
+        "voxel_merge": BoolProperty(
+            name="Merge",
+            description="Merge objects on voxelisation? Creates a single mesh.",
+            default=True),
+        "fix_non_manifold": BoolProperty(
+            name="Fix non-manifold",
+            description="Attempt to fix geometry errors",
+            default=False),
+        "decimation_ratio": FloatProperty(
+            name="Decimation Ratio",
+            description="Amount to decimate by. Smaller = more simplification",
+            min=0.0,
+            max=1,
+            precision=3,
+            step=0.01,
+            default=0.25),
+        "decimation_merge": BoolProperty(
+            name="Merge",
+            description="Merge selected before decimation",
+            default=True),
+        "planar_decimation": BoolProperty(
+            name="Planar Decimation",
+            description="Further simplify the planar (flat) parts of the mesh",
+            default=False),
+        "planar_decimation_angle": FloatProperty(
+            name="Decimation Angle",
+            description="Angle below which to simplify",
+            default=5,
+            max=90,
+            min=0,
+            step=5),
+        "num_variants": IntProperty(
+            name="Variants",
+            description="Number of variants of tile to export",
+            default=1),
+        "randomise_on_export": BoolProperty(
+            name="Randomise",
+            description="Create random variant on export?",
+            default=True),
+        "voxelise_on_export": BoolProperty(
+            name="Voxelise",
+            default=True),
+        "decimate_on_export": BoolProperty(
+            name="Decimate",
+            default=False),
+        "export_units": EnumProperty(
+            name="Units",
+            items=units,
+            description="Export units",
+            default='INCHES'),
+        "export_subdivs": IntProperty(
+            name="Export Subdivisions",
+            description="Subdivision levels of exported tile",
+            default=3
+        )
+    }
 
     subclasses = get_all_subclasses(MT_Tile_Generator)
     annotations = {}

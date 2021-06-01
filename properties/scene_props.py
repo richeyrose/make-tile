@@ -1,27 +1,16 @@
 import bpy
 from bpy.types import PropertyGroup
 from bpy.props import (
-    StringProperty,
     EnumProperty,
     BoolProperty,
     FloatProperty,
-    FloatVectorProperty,
     IntProperty,
     PointerProperty)
 from ..enums.enums import (
-    tile_blueprints,
     units,
-    material_mapping,
-    openlock_column_types,
-    column_socket_style)
-from .properties import (
-    create_main_part_blueprint_enums,
-    create_tile_type_enums,
-    create_base_blueprint_enums)
-from ..app_handlers import create_properties_on_load
+    material_mapping)
 from ..tile_creation.create_tile import MT_Tile_Generator
 from ..lib.utils.utils import get_all_subclasses, get_annotations
-
 
 def update_UV_island_margin(self, context):
     '''Reruns UV smart project for preview and displacement object'''
@@ -77,13 +66,6 @@ def update_disp_subdivisions(self, context):
         obj.modifiers[obj_props.subsurf_mod_name].levels = context.scene.mt_scene_props.subdivisions
     except KeyError:
         pass
-    '''
-    if obj_props.geometry_type == 'DISPLACEMENT':
-        subsurf_mod = obj_props.subsurf_mod_name
-        if subsurf_mod in obj.modifiers:
-            modifier = obj.modifiers[subsurf_mod]
-            modifier.levels = context.scene.mt_scene_props.subdivisions
-    '''
 
 
 def update_material_mapping(self, context):
@@ -560,6 +542,9 @@ class MT_Scene_Properties(PropertyGroup):
 '''
 
 def create_scene_props():
+    """Dynamically create MT_Scene_Props property group.
+    """
+    # Manually created properties for exporter etc.
     props = {
         "displacement_strength": FloatProperty(
             name="Displacement Strength",
@@ -658,6 +643,7 @@ def create_scene_props():
         )
     }
 
+    # dynamically created properties constructed from all annotations in subclasses of MT_Tile_Generator
     subclasses = get_all_subclasses(MT_Tile_Generator)
     annotations = {}
 
@@ -666,21 +652,15 @@ def create_scene_props():
         annotations.update(get_annotations(subclass))
         annotations.update(subclass.__annotations__)
         annotations.update(props)
-    New_MT_Scene_Props = type(
+    MT_Scene_Props = type(
         'New_MT_Scene_Props',
         (PropertyGroup,),
         {'__annotations__': annotations})
-    bpy.utils.register_class(New_MT_Scene_Props)
-    PointerSceneProps = PointerProperty(type=New_MT_Scene_Props)
+    bpy.utils.register_class(MT_Scene_Props)
+    PointerSceneProps = PointerProperty(type=MT_Scene_Props)
     setattr(bpy.types.Scene, "mt_scene_props", PointerSceneProps)
 
 def register():
-    # Property group that contains properties set in UI
-    '''
-    bpy.types.Scene.mt_scene_props = PointerProperty(
-        type=MT_Scene_Properties
-    )
-    '''
     create_scene_props()
 
 def unregister():

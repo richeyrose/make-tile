@@ -40,7 +40,13 @@ from .create_tile import (
     initialise_tile_creator,
     create_common_tile_props,
     get_subdivs)
-
+from ..properties.properties import (
+    create_base_blueprint_enums,
+    create_main_part_blueprint_enums)
+from bpy.props import (
+    EnumProperty,
+    FloatProperty,
+    StringProperty)
 
 # leg_1_len and leg_2_len are the inner lengths of the legs
 #             ||           ||
@@ -114,34 +120,115 @@ class MT_OT_Make_U_Wall_Tile(MT_Tile_Generator, Operator):
 
     bl_idname = "object.make_u_wall"
     bl_label = "U Wall"
-    bl_options = {'UNDO'}
+    bl_options = {'UNDO', 'REGISTER'}
     mt_blueprint = "CUSTOM"
     mt_type = "U_WALL"
 
+    def update_base_blueprint_enums(self, context):
+        if not self.invoked:
+            if self.base_blueprint in ("OPENLOCK", "PLAIN"):
+                self.base_y = 0.5
+                self.base_z = 0.2755
+            else:
+                self.base_y = 0.5
+                self.base_z = 0.0
+
+    main_part_blueprint: EnumProperty(
+        items=create_main_part_blueprint_enums,
+        name="Main")
+
+    base_blueprint: EnumProperty(
+        items=create_base_blueprint_enums,
+        update=update_base_blueprint_enums,
+        name="Base"
+    )
+
+    base_socket_side: EnumProperty(
+        items=[
+            ("INNER", "Inner", "", 1),
+            ("OUTER", "Outer", "", 2)],
+        name="Socket Side",
+        default="INNER",
+    )
+
+    leg_1_len: FloatProperty(
+        name="Leg 1 Length",
+        description="Length of leg",
+        default=2,
+        step=50,
+        precision=1
+    )
+
+    leg_2_len: FloatProperty(
+        name="Leg 2 Length",
+        description="Length of leg",
+        default=2,
+        step=50,
+        precision=1
+    )
+
     def execute(self, context):
         """Execute the operator."""
-        scene = context.scene
-        scene_props = scene.mt_scene_props
-        base_blueprint = scene_props.base_blueprint
-        core_blueprint = scene_props.main_part_blueprint
+        super().execute(context)
+        if not self.refresh:
+            return {'PASS_THROUGH'}
+
+        base_blueprint = self.base_blueprint
+        core_blueprint = self.main_part_blueprint
         base_type = 'U_BASE'
         core_type = 'U_WALL_CORE'
-
-        cursor_orig_loc, cursor_orig_rot = initialise_wall_creator(
-            context, scene_props)
         subclasses = get_all_subclasses(MT_Tile_Generator)
-        base = spawn_prefab(context, subclasses, base_blueprint, base_type)
+        kwargs = {"tile_name": self.tile_name}
 
+        base = spawn_prefab(context, subclasses, base_blueprint, base_type, **kwargs)
+
+        kwargs["base_name"] = base.name
         if core_blueprint == 'NONE':
             preview_core = None
         else:
-            preview_core = spawn_prefab(context, subclasses, core_blueprint, core_type)
+            preview_core = spawn_prefab(context, subclasses, core_blueprint, core_type, **kwargs)
 
-        finalise_tile(base, preview_core, cursor_orig_loc, cursor_orig_rot)
-
-        # scene.render.engine = original_renderer
+        self.finalise_tile(context, base, preview_core)
         return {'FINISHED'}
 
+    def init(self, context):
+        super().init(context)
+        tile_collection = bpy.data.collections[self.tile_name]
+        tile_props = tile_collection.mt_tile_props
+        tile_props.collection_type = "TILE"
+        tile_props.tile_size = (self.tile_x, self.tile_y, self.tile_z)
+        tile_props.base_size = (self.base_x, self.base_y, self.base_z)
+
+    def draw(self, context):
+        super().draw(context)
+        layout=self.layout
+        layout.prop(self, 'tile_material_1')
+
+        layout.label(text="Blueprints")
+        layout.prop(self, 'base_blueprint')
+        layout.prop(self, 'main_part_blueprint')
+
+        layout.label(text="Tile Properties")
+
+        layout.prop(self, 'tile_z', text='Height')
+        layout.prop(self, 'leg_1_len', text='Leg 1 Length')
+        layout.prop(self, 'leg_2_len', text='Leg 2 Length')
+        layout.prop(self, 'tile_x', text='End Wall Length')
+
+        layout.label(text="Core Properties")
+        layout.prop(self, 'tile_y', text="Width")
+
+        layout.label(text="Sync Proportions")
+        row = layout.row()
+        row.prop(self, 'y_proportionate_scale', text="Width")
+        row.prop(self, 'z_proportionate_scale', text="Height")
+
+        layout.label(text="Base Properties")
+        layout.prop(self, 'base_y', text="Width")
+        layout.prop(self, 'base_z', text="Height")
+
+        if self.base_blueprint == 'OPENLOCK':
+            layout.prop(self, 'base_socket_side', text='Base Socket Side')
 
 class MT_OT_Make_Openlock_U_Base(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an OpenLOCK U base."""
@@ -154,8 +241,7 @@ class MT_OT_Make_Openlock_U_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         spawn_openlock_base(tile_props)
         return{'FINISHED'}
 
@@ -171,8 +257,7 @@ class MT_OT_Make_Plain_U_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         spawn_plain_base(tile_props)
         return{'FINISHED'}
 
@@ -188,8 +273,7 @@ class MT_OT_Make_Empty_U_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         spawn_empty_base(tile_props)
         return{'FINISHED'}
 
@@ -202,11 +286,11 @@ class MT_OT_Make_Plain_U_Wall_Core(MT_Tile_Generator, Operator):
     bl_options = {'INTERNAL'}
     mt_blueprint = "PLAIN"
     mt_type = "U_WALL_CORE"
+    base_name: StringProperty()
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         spawn_plain_wall_cores(tile_props)
         return{'FINISHED'}
 
@@ -219,12 +303,12 @@ class MT_OT_Make_Openlock_U_Wall_Core(MT_Tile_Generator, Operator):
     bl_options = {'INTERNAL'}
     mt_blueprint = "OPENLOCK"
     mt_type = "U_WALL_CORE"
+    base_name: StringProperty()
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
-        base = context.active_object
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
+        base = bpy.data.objects[self.base_name]
         spawn_openlock_wall_cores(base, tile_props)
         return{'FINISHED'}
 
@@ -272,6 +356,7 @@ def spawn_openlock_wall_cores(base, tile_props):
     textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'End Wall Inner', 'End Wall Outer', 'Leg 2 Inner', 'Leg 2 Outer']
     convert_to_displacement_core(
         core,
+        tile_props,
         textured_vertex_groups)
 
     return core
@@ -548,6 +633,7 @@ def spawn_plain_wall_cores(tile_props):
     textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'End Wall Inner', 'End Wall Outer', 'Leg 2 Inner', 'Leg 2 Outer']
     convert_to_displacement_core(
         preview_core,
+        tile_props,
         textured_vertex_groups)
     return preview_core
 

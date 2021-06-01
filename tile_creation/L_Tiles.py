@@ -2,14 +2,13 @@ import os
 from math import radians, floor
 import bpy
 from bpy.types import Panel, Operator
+from mathutils import Vector
+
 from bpy.props import (
     EnumProperty,
-    BoolProperty,
     FloatProperty,
     StringProperty)
 
-
-from mathutils import Vector
 from .. lib.utils.collections import (
     add_object_to_collection,
     create_collection,
@@ -35,7 +34,6 @@ from ..lib.bmturtle.helpers import calculate_corner_wall_triangles
 
 from . create_tile import (
     convert_to_displacement_core,
-    finalise_tile,
     spawn_empty_base,
     spawn_prefab,
     set_bool_props,
@@ -44,10 +42,7 @@ from . create_tile import (
     MT_Tile_Generator,
     initialise_tile_creator,
     create_common_tile_props,
-    get_subdivs,
-    tile_x_update,
-    tile_y_update,
-    tile_z_update)
+    get_subdivs)
 
 
 class MT_PT_L_Tile_Panel(Panel):
@@ -170,7 +165,7 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
 
     main_part_blueprint: EnumProperty(
         items=create_main_part_blueprint_enums,
-        name="Wall")
+        name="Main")
 
     base_blueprint: EnumProperty(
         items=create_base_blueprint_enums,
@@ -232,7 +227,7 @@ class MT_OT_Make_L_Floor_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
 
     main_part_blueprint: EnumProperty(
         items=create_main_part_blueprint_enums,
-        name="Wall")
+        name="Main")
 
     base_blueprint: EnumProperty(
         items=create_base_blueprint_enums,
@@ -251,8 +246,8 @@ class MT_OT_Make_L_Floor_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
         base_type = 'L_BASE'
         core_type = 'L_FLOOR_CORE'
         subclasses = get_all_subclasses(MT_Tile_Generator)
-
         kwargs = {"tile_name": self.tile_name}
+
         base = spawn_prefab(context, subclasses, base_blueprint, base_type, **kwargs)
 
         kwargs["base_name"] = base.name

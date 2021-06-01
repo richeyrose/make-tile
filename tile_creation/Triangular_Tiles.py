@@ -3,17 +3,29 @@ from math import radians, cos, sqrt
 import bpy
 from bpy.types import Panel, Operator
 
+from bpy.props import (
+    EnumProperty,
+    FloatProperty,
+    StringProperty)
+
 from .. utils.registration import get_prefs
-from ..lib.bmturtle.scripts import draw_tri_prism, draw_tri_floor_core, draw_tri_slot_cutter
+
+from ..lib.bmturtle.scripts import (
+    draw_tri_prism,
+    draw_tri_floor_core,
+    draw_tri_slot_cutter)
+
 from .. lib.utils.collections import (
     add_object_to_collection,
     create_collection,
     activate_collection)
+
 from .. lib.utils.utils import mode, get_all_subclasses
+
 from .. lib.utils.selection import select
+
 from .create_tile import (
     convert_to_displacement_core,
-    finalise_tile,
     spawn_empty_base,
     spawn_prefab,
     set_bool_obj_props,
@@ -22,6 +34,10 @@ from .create_tile import (
     initialise_tile_creator,
     create_common_tile_props,
     get_subdivs)
+
+from ..properties.scene_props import (
+    create_base_blueprint_enums,
+    create_main_part_blueprint_enums)
 
 
 class MT_PT_Triangular_Floor_Panel(Panel):
@@ -50,7 +66,7 @@ class MT_PT_Triangular_Floor_Panel(Panel):
 
         layout.label(text="Blueprints")
         layout.prop(scene_props, 'base_blueprint')
-        layout.prop(scene_props, 'main_part_blueprint')
+        layout.prop(scene_props, 'main_part_blueprint', text="Main")
 
         layout.label(text="Tile Properties")
         layout.prop(scene_props, 'tile_z', text='Tile Height')
@@ -70,38 +86,109 @@ class MT_PT_Triangular_Floor_Panel(Panel):
         layout.operator('scene.reset_tile_defaults')
 
 
-class MT_OT_Make_Triangular_Floor_Tile(MT_Tile_Generator, Operator):
+class MT_OT_Make_Triangular_Floor_Tile(Operator, MT_Tile_Generator):
     """Operator. Create a Triangular Floor Tile."""
 
     bl_idname = "object.make_triangular_floor"
     bl_label = "Triangle Floor"
-    bl_options = {'UNDO'}
+    bl_options = {'UNDO', 'REGISTER'}
     mt_blueprint = "CUSTOM"
     mt_type = "TRIANGULAR_FLOOR"
 
+    def update_base_blueprint_enums(self, context):
+        if not self.invoked:
+            if self.base_blueprint in ("OPENLOCK", "PLAIN"):
+                self.base_y = 0.5
+                self.base_z = 0.2755
+            else:
+                self.base_y = self.tile_y
+                self.base_z = 0.0
+
+    main_part_blueprint: EnumProperty(
+        items=create_main_part_blueprint_enums,
+        name="Wall")
+
+    base_blueprint: EnumProperty(
+        items=create_base_blueprint_enums,
+        update=update_base_blueprint_enums,
+        name="Base"
+    )
+
+    angle: FloatProperty(
+        name="Base Angle",
+        default=90,
+        step=500,
+        precision=0
+    )
+
+    leg_1_len: FloatProperty(
+        name="Leg 1 Length",
+        description="Length of leg",
+        default=2,
+        step=50,
+        precision=1
+    )
+
+    leg_2_len: FloatProperty(
+        name="Leg 2 Length",
+        description="Length of leg",
+        default=2,
+        step=50,
+        precision=1
+    )
+
     def execute(self, context):
         """Execute the operator."""
-        scene = context.scene
-        scene_props = scene.mt_scene_props
-        base_blueprint = scene_props.base_blueprint
-        core_blueprint = scene_props.main_part_blueprint
+        super().execute(context)
+        if not self.refresh:
+            return {'PASS_THROUGH'}
+
+        base_blueprint = self.base_blueprint
+        core_blueprint = self.main_part_blueprint
         base_type = 'TRIANGULAR_BASE'
         core_type = 'TRIANGULAR_FLOOR_CORE'
         subclasses = get_all_subclasses(MT_Tile_Generator)
 
-        cursor_orig_loc, cursor_orig_rot = initialise_floor_creator(context, scene_props)
-        base = spawn_prefab(context, subclasses, base_blueprint, base_type)
+        kwargs = {"tile_name": self.tile_name}
+        base = spawn_prefab(context, subclasses, base_blueprint, base_type, **kwargs)
 
-        if core_type == 'NONE':
+        kwargs["base_name"] = base.name
+        if core_blueprint == 'NONE':
             preview_core = None
         else:
-            preview_core = spawn_prefab(context, subclasses, core_blueprint, core_type)
+            preview_core = spawn_prefab(context, subclasses, core_blueprint, core_type, **kwargs)
 
-        finalise_tile(base, preview_core, cursor_orig_loc, cursor_orig_rot)
-
-        # scene.render.engine = original_renderer
+        self.finalise_tile(context, base, preview_core)
 
         return {'FINISHED'}
+
+    def init(self, context):
+        super().init(context)
+        tile_collection = bpy.data.collections[self.tile_name]
+        tile_props = tile_collection.mt_tile_props
+        tile_props.collection_type = "TILE"
+        tile_props.tile_size = (self.tile_x, self.tile_y, self.tile_z)
+        tile_props.base_size = (self.base_x, self.base_y, self.base_z)
+
+    def draw(self, context):
+        super().draw(context)
+        layout = self.layout
+        layout.prop(self, 'tile_material_1')
+        layout.label(text="Blueprints")
+        layout.prop(self, 'base_blueprint')
+        layout.prop(self, 'main_part_blueprint', text="Main")
+
+        layout.label(text="Tile Properties")
+        layout.prop(self, 'tile_z', text='Tile Height')
+        layout.prop(self, 'leg_1_len', text='Leg 1 Length')
+        layout.prop(self, 'leg_2_len', text='Leg 2 Length')
+        layout.prop(self, 'angle', text='Angle')
+
+        layout.label(text="Sync Proportions")
+        layout.prop(self, 'z_proportionate_scale')
+
+        layout.label(text="Base Properties")
+        layout.prop(self, 'base_z', text='Base Height')
 
 
 class MT_OT_Make_Openlock_Triangular_Base(MT_Tile_Generator, Operator):
@@ -115,8 +202,7 @@ class MT_OT_Make_Openlock_Triangular_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         spawn_openlock_base(tile_props)
         return{'FINISHED'}
 
@@ -132,8 +218,7 @@ class MT_OT_Make_Plain_Triangular_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         spawn_plain_base(tile_props)
         return{'FINISHED'}
 
@@ -149,8 +234,7 @@ class MT_OT_Make_Empty_Triangular_Base(MT_Tile_Generator, Operator):
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         spawn_empty_base(tile_props)
         return{'FINISHED'}
 
@@ -163,12 +247,12 @@ class MT_OT_Make_Plain_Triangular_Floor_Core(MT_Tile_Generator, Operator):
     bl_options = {'INTERNAL'}
     mt_blueprint = "PLAIN"
     mt_type = "TRIANGULAR_FLOOR_CORE"
+    base_name: StringProperty()
 
     def execute(self, context):
         """Execute the operator."""
-        tile = context.collection
-        tile_props = tile.mt_tile_props
-        base = context.active_object
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
+        base = bpy.data.objects[self.base_name]
         create_plain_triangular_floor_cores(base, tile_props)
         return{'FINISHED'}
 
@@ -181,10 +265,13 @@ class MT_OT_Make_Openlock_Triangular_Floor_Core(MT_Tile_Generator, Operator):
     bl_options = {'INTERNAL'}
     mt_blueprint = "OPENLOCK"
     mt_type = "TRIANGULAR_FLOOR_CORE"
+    base_name: StringProperty()
 
     def execute(self, context):
         """Execute the operator."""
-        bpy.ops.object.make_plain_triangular_floor_core()
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
+        base = bpy.data.objects[self.base_name]
+        create_plain_triangular_floor_cores(base, tile_props)
         return{'FINISHED'}
 
 
@@ -196,6 +283,7 @@ class MT_OT_Make_Empty_Triangular_Floor_Core(MT_Tile_Generator, Operator):
     bl_options = {'INTERNAL'}
     mt_blueprint = "NONE"
     mt_type = "TRIANGULAR_FLOOR_CORE"
+    base_name: StringProperty()
 
     def execute(self, context):
         """Execute the operator."""
@@ -533,6 +621,7 @@ def create_plain_triangular_floor_cores(base, tile_props):
     textured_vertex_groups = ['Top']
     convert_to_displacement_core(
         preview_core,
+        tile_props,
         textured_vertex_groups)
 
     return preview_core

@@ -461,7 +461,6 @@ class MT_OT_Make_Curved_Floor_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
 
         return {'FINISHED'}
 
-
     def init(self, context):
         super().init(context)
         tile_collection = bpy.data.collections[self.tile_name]
@@ -469,7 +468,6 @@ class MT_OT_Make_Curved_Floor_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
         tile_props.collection_type = "TILE"
         tile_props.tile_size = (self.tile_x, self.tile_y, self.tile_z)
         tile_props.base_size = (self.base_x, self.base_y, self.base_z)
-
 
     def draw(self, context):
         super().draw(context)

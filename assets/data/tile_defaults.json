@@ -10,13 +10,12 @@
             "NONE": "None"
         },
         "main_part_blueprints": {
-            "OPENLOCK": "OpenLOCK",
             "PLAIN": "Plain",
             "NONE": "None"
         },
         "defaults": {
             "base_blueprint": "OPENLOCK",
-            "main_part_blueprint": "OPENLOCK",
+            "main_part_blueprint": "PLAIN",
             "subdivision_density": "MEDIUM",
             "x_proportionate_scale": true,
             "y_proportionate_scale": true,
@@ -39,11 +38,6 @@
                 }
             },
             "tile_defaults": {
-                "OPENLOCK": {
-                    "tile_x": 2,
-                    "tile_y": 2,
-                    "tile_z": 0.3
-                },
                 "PLAIN": {
                     "tile_x": 2,
                     "tile_y": 2,
@@ -146,14 +140,13 @@
             "NONE": "None"
         },
         "main_part_blueprints": {
-            "OPENLOCK": "OpenLOCK",
             "PLAIN": "Plain",
             "NONE": "None"
         },
         "defaults":
             {
             "base_blueprint": "OPENLOCK",
-            "main_part_blueprint": "OPENLOCK",
+            "main_part_blueprint": "PLAIN",
             "subdivision_density": "MEDIUM",
             "x_proportionate_scale": true,
             "y_proportionate_scale": true,
@@ -176,11 +169,6 @@
                 }
             },
             "tile_defaults": {
-                "OPENLOCK": {
-                    "tile_x": 2,
-                    "tile_y": 0.5,
-                    "tile_z": 0.3
-                },
                 "PLAIN": {
                     "tile_x": 2,
                     "tile_y": 0.5,
@@ -205,14 +193,13 @@
             "NONE": "None"
         },
         "main_part_blueprints": {
-            "OPENLOCK": "OpenLOCK",
             "PLAIN": "Plain",
             "NONE": "None"
         },
         "defaults":
             {
             "base_blueprint": "OPENLOCK",
-            "main_part_blueprint": "OPENLOCK",
+            "main_part_blueprint": "PLAIN",
             "subdivision_density": "MEDIUM",
             "z_proportionate_scale": false,
             "base_defaults": {
@@ -236,12 +223,6 @@
                 }
             },
             "tile_defaults": {
-                "OPENLOCK": {
-                    "leg_1_len": 2,
-                    "leg_2_len": 2,
-                    "angle": 90,
-                    "tile_z": 0.3
-                },
                 "PLAIN": {
                     "leg_1_len": 2,
                     "leg_2_len": 2,
@@ -270,14 +251,13 @@
             "NONE": "None"
         },
         "main_part_blueprints": {
-            "OPENLOCK": "OpenLOCK",
             "PLAIN": "Plain",
             "NONE": "None"
         },
         "defaults":
             {
             "base_blueprint": "OPENLOCK",
-            "main_part_blueprint": "OPENLOCK",
+            "main_part_blueprint": "PLAIN",
             "subdivision_density": "MEDIUM",
             "y_proportionate_scale": false,
             "z_proportionate_scale": false,
@@ -321,12 +301,6 @@
                 }
             },
             "tile_defaults": {
-                "OPENLOCK": {
-                    "base_radius": 2.015,
-                    "degrees_of_arc": 90,
-                    "tile_y": 0.32,
-                    "tile_z": 2
-                },
                 "PLAIN": {
                     "base_radius": 2.015,
                     "degrees_of_arc": 90,
@@ -353,14 +327,13 @@
             "NONE": "None"
         },
         "main_part_blueprints": {
-            "OPENLOCK": "OpenLOCK",
             "PLAIN": "Plain",
             "NONE": "None"
         },
         "defaults":
             {
             "base_blueprint": "OPENLOCK",
-            "main_part_blueprint": "OPENLOCK",
+            "main_part_blueprint": "PLAIN",
             "subdivision_density": "MEDIUM",
             "y_proportionate_scale": true,
             "z_proportionate_scale": false,
@@ -385,12 +358,6 @@
                 }
             },
             "tile_defaults": {
-                "OPENLOCK": {
-                    "base_radius": 2,
-                    "degrees_of_arc": 90,
-                    "tile_y": 0.5,
-                    "tile_z": 0.3
-                },
                 "PLAIN": {
                     "base_radius": 2,
                     "degrees_of_arc": 90,
@@ -417,14 +384,13 @@
             "NONE": "None"
         },
         "main_part_blueprints": {
-            "OPENLOCK": "OpenLOCK",
             "PLAIN": "Plain",
             "NONE": "None"
         },
         "defaults":
             {
             "base_blueprint": "OPENLOCK",
-            "main_part_blueprint": "OPENLOCK",
+            "main_part_blueprint": "PLAIN",
             "subdivision_density": "MEDIUM",
             "z_proportionate_scale": false,
             "base_defaults": {
@@ -550,14 +516,13 @@
             "NONE": "None"
         },
         "main_part_blueprints": {
-            "OPENLOCK": "OpenLOCK",
             "PLAIN": "Plain",
             "NONE": "None"
         },
         "defaults":
             {
             "base_blueprint": "OPENLOCK",
-            "main_part_blueprint": "OPENLOCK",
+            "main_part_blueprint": "PLAIN",
             "subdivision_density": "MEDIUM",
             "y_proportionate_scale": true,
             "z_proportionate_scale": false,
@@ -585,13 +550,6 @@
                 }
             },
             "tile_defaults": {
-                "OPENLOCK": {
-                    "leg_1_len": 2,
-                    "leg_2_len": 2,
-                    "angle": 90,
-                    "tile_y": 0.5,
-                    "tile_z": 0.3
-                },
                 "PLAIN": {
                     "leg_1_len": 2,
                     "leg_2_len": 2,

@@ -363,6 +363,10 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                         'selected_objects': [dupes[0]],
                         'selected_editable_objects': [dupes[0]]}
 
+                    # set origin to center
+                    bpy.ops.object.origin_set(ctx, type='ORIGIN_GEOMETRY')
+                    dupes[0].location = (0, 0, 0)
+
                     # export our object
                     bpy.ops.export_mesh.stl(
                         ctx,

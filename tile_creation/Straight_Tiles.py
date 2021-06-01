@@ -35,6 +35,7 @@ from .create_tile import (
     load_openlock_top_peg,
     MT_Tile_Generator,
     get_subdivs,
+    create_material_enums,
     tile_x_update,
     tile_y_update,
     tile_z_update)
@@ -67,7 +68,10 @@ class MT_PT_Straight_Wall_Panel(Panel):
 
         layout.label(text="Blueprints")
         layout.prop(scene_props, 'base_blueprint')
+        if scene_props.base_blueprint in ('OPENLOCK_S_WALL', 'PLAIN_S_WALL'):
+            layout.prop(scene_props, 'floor_material')
         layout.prop(scene_props, 'main_part_blueprint')
+        layout.prop(scene_props, 'wall_material')
 
         layout.label(text="Tile Size")
         row = layout.row()
@@ -128,8 +132,8 @@ class MT_PT_Rect_Floor_Panel(Panel):
 
         layout.label(text="Blueprints")
         layout.prop(scene_props, 'base_blueprint')
+        layout.prop(scene_props, 'floor_material')
         layout.prop(scene_props, 'main_part_blueprint')
-
         layout.label(text="Tile Size")
         row = layout.row()
         row.prop(scene_props, 'tile_x')
@@ -152,7 +156,6 @@ class MT_PT_Rect_Floor_Panel(Panel):
         layout.prop(scene_props, 'subdivision_density', text="")
 
         layout.operator('scene.reset_tile_defaults')
-
 
 
 class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
@@ -199,6 +202,14 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
         default=0.0245,
         step=0.01,
         precision=4)
+
+    floor_material: EnumProperty(
+        items=create_material_enums,
+        name="Floor Material")
+
+    wall_material: EnumProperty(
+        items=create_material_enums,
+        name="Wall Material")
 
     def execute(self, context):
         """Execute the operator."""
@@ -257,9 +268,11 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
-        layout.prop(self, 'tile_material_1')
         layout.prop(self, 'base_blueprint')
+        if self.base_blueprint in ('OPENLOCK_S_WALL', 'PLAIN_S_WALL'):
+            layout.prop(self, 'floor_material')
         layout.prop(self, 'main_part_blueprint')
+        layout.prop(self, 'wall_material')
         layout.label(text="Tile Size")
         row = layout.row()
         row.prop(self, 'tile_x')
@@ -315,6 +328,10 @@ class MT_OT_Make_Rect_Floor_Tile(Operator, MT_Tile_Generator):
         name="Base"
     )
 
+    floor_material: EnumProperty(
+        items=create_material_enums,
+        name="Floor Material")
+
     def execute(self, context):
         """Execute the operator."""
         super().execute(context)
@@ -351,8 +368,8 @@ class MT_OT_Make_Rect_Floor_Tile(Operator, MT_Tile_Generator):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
-        layout.prop(self, 'tile_material_1')
         layout.prop(self, 'base_blueprint')
+        layout.prop(self, 'floor_material')
         layout.prop(self, 'main_part_blueprint')
         layout.label(text="Tile Size")
         row = layout.row()
@@ -522,24 +539,6 @@ class MT_OT_Make_Plain_Straight_Floor_Core(MT_Tile_Generator, Operator):
         return{'FINISHED'}
 
 
-class MT_OT_Make_Openlock_Straight_Floor_Core(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate an openlock straight floor core."""
-
-    bl_idname = "object.make_openlock_straight_floor_core"
-    bl_label = "Straight Floor Core"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "OPENLOCK"
-    mt_type = "STRAIGHT_FLOOR_CORE"
-
-    base_name: StringProperty()
-
-    def execute(self, context):
-        """Execute the operator."""
-        tile_props = context.collection.mt_tile_props
-        create_plain_rect_floor_cores(self, tile_props)
-        return{'FINISHED'}
-
-
 class MT_OT_Make_Empty_Straight_Floor_Core(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an empty straight wall core."""
 
@@ -565,10 +564,12 @@ def spawn_plain_wall_cores(self, tile_props):
     """
     preview_core = spawn_wall_core(self, tile_props)
     textured_vertex_groups = ['Front', 'Back']
+    material = tile_props.wall_material
+
     convert_to_displacement_core(
         preview_core,
-        tile_props,
-        textured_vertex_groups)
+        textured_vertex_groups,
+        material)
     return preview_core
 
 
@@ -601,10 +602,12 @@ def spawn_openlock_wall_cores(self, tile_props, base):
         set_bool_props(wall_cutter, core, 'DIFFERENCE')
 
     textured_vertex_groups = ['Front', 'Back']
+    material = tile_props.wall_material
+
     convert_to_displacement_core(
         core,
-        tile_props,
-        textured_vertex_groups)
+        textured_vertex_groups,
+        material)
 
     return core
 
@@ -839,11 +842,11 @@ def create_plain_rect_floor_cores(self, tile_props):
     """
     preview_core = spawn_floor_core(self, tile_props)
     textured_vertex_groups = ['Top']
-
+    material = tile_props.floor_material
     convert_to_displacement_core(
         preview_core,
-        tile_props,
-        textured_vertex_groups)
+        textured_vertex_groups,
+        material)
 
     bpy.context.view_layer.objects.active = preview_core
 

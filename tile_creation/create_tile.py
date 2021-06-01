@@ -103,6 +103,26 @@ def update_scene_defaults(self, context):
         update_main_part_defaults(self, context)
         update_base_defaults(self, context)
 
+def create_material_enums(self, context):
+    """Create a list of enum items of materials compatible with the MakeTile material system.
+
+    Args:
+        context (bpy.context): context
+
+    Returns:
+        list[EnumPropertyItem]: enum items
+    """
+    enum_items = []
+    if context is None:
+        return enum_items
+
+    materials = bpy.data.materials
+    for material in materials:
+        if 'mt_material' in material.keys():
+            if material['mt_material']:
+                enum = (material.name, material.name, "")
+                enum_items.append(enum)
+    return enum_items
 
 class MT_OT_Reset_Tile_Defaults(Operator):
     """Reset mt_scene_props of current tile_type."""
@@ -124,34 +144,11 @@ class MT_OT_Reset_Tile_Defaults(Operator):
 
 class MT_Tile_Generator:
     """Subclass this to create your tile operator."""
-
-    def create_material_enums(self, context):
-        """Create a list of enum items of materials compatible with the MakeTile material system.
-
-        Args:
-            context (bpy.context): context
-
-        Returns:
-            list[EnumPropertyItem]: enum items
-        """
-        enum_items = []
-        if context is None:
-            return enum_items
-
-        materials = bpy.data.materials
-        for material in materials:
-            if 'mt_material' in material.keys():
-                if material['mt_material']:
-                    enum = (material.name, material.name, "")
-                    enum_items.append(enum)
-        return enum_items
-
     def create_tile_type_enums(self, context):
         """Create an enum of tile types out of subclasses of MT_OT_Make_Tile."""
         enum_items = []
         if context is None:
             return enum_items
-
         # blueprint = context.scene.mt_scene_props.tile_blueprint
         subclasses = get_all_subclasses(MT_Tile_Generator)
 
@@ -613,19 +610,20 @@ def lock_all_transforms(obj):
     obj.lock_scale[2] = True
 
 
-def convert_to_displacement_core(core, tile_props, textured_vertex_groups):
+def convert_to_displacement_core(core, textured_vertex_groups, material):
     """Convert the core part of an object so it can be used by the MakeTile dispacement system.
 
     Args:
         core (bpy.types.Object): object to convert
         textured_vertex_groups (list[str]): list of vertex group names that should have a texture applied
+        material (str): Name of material to use
     """
     context = bpy.context
     scene = context.scene
     preferences = get_prefs()
     props = core.mt_object_props
     scene_props = scene.mt_scene_props
-    primary_material = bpy.data.materials[tile_props.tile_material_1]
+    primary_material = bpy.data.materials[material]
     secondary_material = bpy.data.materials[preferences.secondary_material]
 
     # create new displacement modifier

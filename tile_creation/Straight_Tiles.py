@@ -242,13 +242,13 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
         for c, v in enumerate(tile_props.tile_size):
             orig_tile_size.append(v)
 
-        tile_props.tile_size = (
+        context.collection.mt_tile_props.tile_size = (
             tile_props.base_size[0],
             tile_props.base_size[1],
-            scene_props.base_z + self.floor_thickness)
+            tile_props.base_size[2] + self.floor_thickness)
 
         if base_blueprint in {'OPENLOCK_S_WALL', 'PLAIN_S_WALL'}:
-            floor_core = spawn_prefab(context, subclasses, 'OPENLOCK', 'STRAIGHT_FLOOR_CORE', **kwargs)
+            floor_core = spawn_prefab(context, subclasses, 'PLAIN', 'STRAIGHT_FLOOR_CORE', **kwargs)
             self.finalise_tile(context, base, wall_core, floor_core)
         else:
             self.finalise_tile(context, base, wall_core)

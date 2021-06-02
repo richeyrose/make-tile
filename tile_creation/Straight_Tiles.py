@@ -35,10 +35,7 @@ from .create_tile import (
     load_openlock_top_peg,
     MT_Tile_Generator,
     get_subdivs,
-    create_material_enums,
-    tile_x_update,
-    tile_y_update,
-    tile_z_update)
+    create_material_enums)
 
 
 class MT_PT_Straight_Wall_Panel(Panel):
@@ -68,9 +65,11 @@ class MT_PT_Straight_Wall_Panel(Panel):
 
         layout.label(text="Blueprints")
         layout.prop(scene_props, 'base_blueprint')
+        layout.prop(scene_props, 'main_part_blueprint')
+
+        layout.label(text="Materials")
         if scene_props.base_blueprint in ('OPENLOCK_S_WALL', 'PLAIN_S_WALL'):
             layout.prop(scene_props, 'floor_material')
-        layout.prop(scene_props, 'main_part_blueprint')
         layout.prop(scene_props, 'wall_material')
 
         layout.label(text="Tile Size")
@@ -132,8 +131,11 @@ class MT_PT_Rect_Floor_Panel(Panel):
 
         layout.label(text="Blueprints")
         layout.prop(scene_props, 'base_blueprint')
-        layout.prop(scene_props, 'floor_material')
         layout.prop(scene_props, 'main_part_blueprint')
+
+        layout.label(text="Materials")
+        layout.prop(scene_props, 'floor_material')
+
         layout.label(text="Tile Size")
         row = layout.row()
         row.prop(scene_props, 'tile_x')
@@ -268,11 +270,16 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
+
+        layout.label(text="Blueprints")
         layout.prop(self, 'base_blueprint')
+        layout.prop(self, 'main_part_blueprint')
+
+        layout.label(text="Materials")
         if self.base_blueprint in ('OPENLOCK_S_WALL', 'PLAIN_S_WALL'):
             layout.prop(self, 'floor_material')
-        layout.prop(self, 'main_part_blueprint')
         layout.prop(self, 'wall_material')
+
         layout.label(text="Tile Size")
         row = layout.row()
         row.prop(self, 'tile_x')
@@ -368,9 +375,14 @@ class MT_OT_Make_Rect_Floor_Tile(Operator, MT_Tile_Generator):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
+
+        layout.label(text="Blueprints")
         layout.prop(self, 'base_blueprint')
-        layout.prop(self, 'floor_material')
         layout.prop(self, 'main_part_blueprint')
+
+        layout.label(text="Materials")
+        layout.prop(self, 'floor_material')
+
         layout.label(text="Tile Size")
         row = layout.row()
         row.prop(self, 'tile_x')

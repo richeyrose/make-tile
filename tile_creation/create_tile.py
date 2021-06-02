@@ -137,7 +137,22 @@ class MT_OT_Reset_Tile_Defaults(Operator):
         Args:
             context (bpy.context): Blender context
         """
-        update_scene_defaults(self, context)
+        scene_props = context.scene.mt_scene_props
+        tile_type = scene_props.tile_type
+        try:
+            tile_defaults = scene_props['tile_defaults']
+        except KeyError:
+            create_properties_on_load(dummy=None)
+
+        for tile in tile_defaults:
+            if tile['type'] == tile_type:
+                defaults = tile['defaults']
+                for key, value in defaults.items():
+                    setattr(scene_props, key, value)
+                break
+
+        update_main_part_defaults(self, context)
+        update_base_defaults(self, context)
 
         return {'FINISHED'}
 

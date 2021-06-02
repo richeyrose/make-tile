@@ -1,4 +1,19 @@
 # Release Notes
+## 0.0.24 ##
+
+### Redo Panel ###
+Immediately after creation tile properties can now be modified using the redo panel that appears on the left hand side when you click MakeTile. This panel dissapears once the tile is deselected. For complex tiles like the roof tiles you can turn off auto update by clicking on the car (auto) icon until you have made your changes and then click on the refresh icon.
+
+### Floor Blueprints ###
+Previously there was the option for OpenLOCK or Plain floor main part types which were exactly the same. There is now just the option for Plain main parts to reduce redundancy.
+
+The Straight Floor Tile Type has also been removed as the tile generator for the Rectangular Floor tile type can now produce these tiles.
+
+### S-Tiles ###
+The first set of S-Tiles (Wall on floor type tile) have been produced. Currently Straight and Curved Walls are supported and you can find the options for these by changing the base type to OpenLOCK S-Wall or Plain S-Wall in the Base Blueprints panel.
+
+### Materials ###
+For tiles with multiple textured parts such as the Roof tiles and S-Tiles you can now set the materials for each part seperately at tile creation.
 
 ## 0.0.23 ##
 

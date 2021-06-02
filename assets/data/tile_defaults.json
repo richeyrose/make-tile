@@ -251,13 +251,14 @@
             "NONE": "None"
         },
         "main_part_blueprints": {
+            "OPENLOCK": "OpenLOCK",
             "PLAIN": "Plain",
             "NONE": "None"
         },
         "defaults":
             {
             "base_blueprint": "OPENLOCK",
-            "main_part_blueprint": "PLAIN",
+            "main_part_blueprint": "OPENLOCK",
             "subdivision_density": "MEDIUM",
             "y_proportionate_scale": false,
             "z_proportionate_scale": false,
@@ -301,6 +302,12 @@
                 }
             },
             "tile_defaults": {
+                "OPENLOCK": {
+                    "base_radius": 2.015,
+                    "degrees_of_arc": 90,
+                    "tile_y": 0.32,
+                    "tile_z": 2
+                },
                 "PLAIN": {
                     "base_radius": 2.015,
                     "degrees_of_arc": 90,

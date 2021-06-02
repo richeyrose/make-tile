@@ -37,7 +37,6 @@ from ..properties.properties import (
 
 from .create_tile import (
     convert_to_displacement_core,
-    finalise_tile,
     spawn_empty_base,
     spawn_prefab,
     set_bool_obj_props,
@@ -46,11 +45,8 @@ from .create_tile import (
     MT_Tile_Generator,
     initialise_tile_creator,
     create_common_tile_props,
-    copy_annotation_props,
     get_subdivs,
-    tile_x_update,
-    tile_y_update,
-    tile_z_update)
+    create_material_enums)
 
 
 class MT_PT_Curved_Wall_Tile_Panel(Panel):
@@ -81,6 +77,10 @@ class MT_PT_Curved_Wall_Tile_Panel(Panel):
         layout.label(text="Blueprints")
         layout.prop(scene_props, 'base_blueprint')
         layout.prop(scene_props, 'main_part_blueprint')
+
+        layout.label(text="Materials")
+        layout.prop(scene_props, 'floor_material')
+        layout.prop(scene_props, 'wall_material')
 
         layout.label(text="Tile Properties")
 
@@ -143,8 +143,10 @@ class MT_PT_Curved_Floor_Tile_Panel(Panel):
         layout.prop(scene_props, 'base_blueprint')
         layout.prop(scene_props, 'main_part_blueprint')
 
-        layout.label(text="Tile Properties")
+        layout.label(text="Materials")
+        layout.prop(scene_props, 'floor_material')
 
+        layout.label(text="Tile Properties")
         layout.prop(scene_props, 'tile_z', text="Height")
         layout.prop(scene_props, 'base_radius', text="Radius")
         layout.prop(scene_props, 'degrees_of_arc')
@@ -311,6 +313,14 @@ class MT_OT_Make_Curved_Wall_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
         step=0.01,
         precision=4)
 
+    floor_material: EnumProperty(
+        items=create_material_enums,
+        name="Floor Material")
+
+    wall_material: EnumProperty(
+        items=create_material_enums,
+        name="Wall Material")
+
     def execute(self, context):
         """Execute the operator."""
         super().execute(context)
@@ -348,7 +358,7 @@ class MT_OT_Make_Curved_Wall_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
             scene_props.base_z + self.floor_thickness)
 
         if base_blueprint in {'OPENLOCK_S_WALL', 'PLAIN_S_WALL'}:
-            floor_core = spawn_prefab(context, subclasses, 'OPENLOCK', 'CURVED_FLOOR_CORE', **kwargs)
+            floor_core = spawn_prefab(context, subclasses, 'PLAIN', 'CURVED_FLOOR_CORE', **kwargs)
             self.finalise_tile(context, base, wall_core, floor_core)
         else:
             self.finalise_tile(context, base, wall_core)
@@ -368,11 +378,16 @@ class MT_OT_Make_Curved_Wall_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
-        layout.prop(self, 'tile_material_1')
+
+        layout.label(text="Blueprints")
         layout.prop(self, 'base_blueprint')
         layout.prop(self, 'main_part_blueprint')
-        layout.label(text="Tile Properties")
 
+        layout.label(text="Materials")
+        layout.prop(self, 'floor_material')
+        layout.prop(self, 'wall_material')
+
+        layout.label(text="Tile Properties")
         layout.prop(self, 'tile_z', text="Height")
         layout.prop(self, 'base_radius', text="Radius")
         layout.prop(self, 'degrees_of_arc')
@@ -427,13 +442,18 @@ class MT_OT_Make_Curved_Floor_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
 
     main_part_blueprint: EnumProperty(
         items=create_main_part_blueprint_enums,
-        name="Wall")
+        name="Main")
 
     base_blueprint: EnumProperty(
         items=create_base_blueprint_enums,
         update=update_base_blueprint_enums,
         name="Base"
     )
+
+    floor_material: EnumProperty(
+        items=create_material_enums,
+        name="Floor Material")
+
     def execute(self, context):
         """Execute the operator."""
         super().execute(context)
@@ -472,8 +492,15 @@ class MT_OT_Make_Curved_Floor_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
-        layout.label(text="Tile Properties")
 
+        layout.label(text="Blueprints")
+        layout.prop(self, 'base_blueprint')
+        layout.prop(self, 'main_part_blueprint')
+
+        layout.label(text="Materials")
+        layout.prop(self, 'floor_material')
+
+        layout.label(text="Tile Properties")
         layout.prop(self, 'tile_z', text="Height")
         layout.prop(self, 'base_radius', text="Radius")
         layout.prop(self, 'degrees_of_arc')
@@ -674,81 +701,6 @@ class MT_OT_Make_Empty_Curved_Floor_Core(MT_Tile_Generator, Operator):
         return {'PASS_THROUGH'}
 
 
-def initialise_wall_creator(context):
-    """Initialise the wall creator and set common properties.
-
-    Args:
-        context (bpy.context): context
-        scene_props (MakeTile.properties.MT_Scene_Properties): maketile scene properties
-
-    Returns:
-        enum: enum in {'BLENDER_EEVEE', 'CYCLES', 'WORKBENCH'}
-        list[3]: cursor original location
-        list[3]: cursor original rotation
-
-    """
-    tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator(context)
-    # We store tile properties in the mt_tile_props property group of
-    # the collection so we can access them from any object in this
-    # collection.
-    create_collection('Walls', tiles_collection)
-    tile_collection = bpy.data.collections.new(tile_name)
-    bpy.data.collections['Walls'].children.link(tile_collection)
-    activate_collection(tile_collection.name)
-
-    tile_props = tile_collection.mt_tile_props
-    scene_props = context.scene.mt_scene_props
-
-    create_common_tile_props(scene_props, tile_props, tile_collection)
-    tile_props.tile_type = 'CURVED_WALL'
-
-    tile_props.base_radius = scene_props.base_radius
-    tile_props.degrees_of_arc = scene_props.degrees_of_arc
-    tile_props.base_socket_side = scene_props.base_socket_side
-
-    tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
-    tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
-
-    return cursor_orig_loc, cursor_orig_rot
-
-
-def initialise_floor_creator(context, scene_props):
-    """Initialise the floor creator and set common properties.
-
-    Args:
-        context (bpy.context): context
-        scene_props (MakeTile.properties.MT_Scene_Properties): maketile scene properties
-
-    Returns:
-        enum: enum in {'BLENDER_EEVEE', 'CYCLES', 'WORKBENCH'}
-        list[3]: cursor original location
-        list[3]: cursor original rotation
-
-    """
-    tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator(context)
-    # We store tile properties in the mt_tile_props property group of
-    # the collection so we can access them from any object in this
-    # collection.
-    create_collection('Floors', tiles_collection)
-    tile_collection = bpy.data.collections.new(tile_name)
-    bpy.data.collections['Floors'].children.link(tile_collection)
-    activate_collection(tile_collection.name)
-
-    tile_props = tile_collection.mt_tile_props
-    create_common_tile_props(scene_props, tile_props, tile_collection)
-
-    tile_props.tile_type = 'CURVED_FLOOR'
-
-    tile_props.base_radius = scene_props.base_radius
-    tile_props.degrees_of_arc = scene_props.degrees_of_arc
-    tile_props.base_socket_side = scene_props.base_socket_side
-
-    tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
-    tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
-
-    return cursor_orig_loc, cursor_orig_rot
-
-
 def spawn_plain_wall_cores(self, tile_props):
     """Spawn plain wall cores into scene.
 
@@ -763,10 +715,12 @@ def spawn_plain_wall_cores(self, tile_props):
     tile_props.core_radius = tile_props.base_radius + offset
     textured_vertex_groups = ['Front', 'Back']
     preview_core = spawn_wall_core(self, tile_props)
+    material = tile_props.wall_material
+
     convert_to_displacement_core(
         preview_core,
-        tile_props,
-        textured_vertex_groups)
+        textured_vertex_groups,
+        material)
 
     return preview_core
 
@@ -806,10 +760,11 @@ def spawn_openlock_wall_cores(self, base, tile_props):
         set_bool_props(cutter, core, 'DIFFERENCE')
 
     textured_vertex_groups = ['Front', 'Back']
+    material = tile_props.wall_material
     convert_to_displacement_core(
         core,
-        tile_props,
-        textured_vertex_groups)
+        textured_vertex_groups,
+        material)
 
     activate(core.name)
 
@@ -1205,11 +1160,12 @@ def spawn_plain_floor_cores(self, tile_props):
     textured_vertex_groups = ['Top']
     tile_props.core_radius = tile_props.base_radius
     preview_core = spawn_floor_core(self, tile_props)
+    material = tile_props.floor_material
 
     convert_to_displacement_core(
         preview_core,
-        tile_props,
-        textured_vertex_groups)
+        textured_vertex_groups,
+        material)
 
     return preview_core
 

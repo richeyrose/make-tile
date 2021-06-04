@@ -42,6 +42,7 @@ from . create_tile import (
     MT_Tile_Generator,
     initialise_tile_creator,
     create_common_tile_props,
+    create_material_enums,
     get_subdivs)
 
 
@@ -72,6 +73,11 @@ class MT_PT_L_Tile_Panel(Panel):
         layout.label(text="Blueprints")
         layout.prop(scene_props, 'base_blueprint')
         layout.prop(scene_props, 'main_part_blueprint', text="Main")
+
+        layout.label(text="Materials")
+        layout.prop(scene_props, 'floor_material')
+        if scene_props.tile_type == "L_WALL":
+            layout.prop(scene_props, 'wall_material')
 
         layout.label(text="Tile Properties")
         layout.prop(scene_props, 'leg_1_len')
@@ -123,9 +129,14 @@ class MT_L_Tiles:
     def draw(self, context):
         super().draw(context)
         layout = self.layout
-        layout.prop(self, 'tile_material_1')
+        layout.label(text="Blueprints")
         layout.prop(self, 'base_blueprint')
         layout.prop(self, 'main_part_blueprint', text="Main")
+
+        layout.label(text="Materials")
+        layout.prop(self, 'floor_material')
+        if self.tile_type == "L_WALL":
+            layout.prop(self, 'wall_material')
 
         layout.label(text="Tile Properties")
         layout.prop(self, 'leg_1_len')
@@ -172,6 +183,14 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
         update=update_base_blueprint_enums,
         name="Base"
     )
+
+    floor_material: EnumProperty(
+        items=create_material_enums,
+        name="Floor Material")
+
+    wall_material: EnumProperty(
+        items=create_material_enums,
+        name="Wall Material")
 
     def execute(self, context):
         """Execute the operator."""
@@ -234,6 +253,10 @@ class MT_OT_Make_L_Floor_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
         update=update_base_blueprint_enums,
         name="Base"
     )
+
+    floor_material: EnumProperty(
+        items=create_material_enums,
+        name="Floor Material")
 
     def execute(self, context):
         """Execute the operator."""
@@ -501,10 +524,12 @@ def spawn_plain_wall_cores(self, tile_props):
     """
     preview_core = spawn_wall_core(self, tile_props)
     textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner']
+    material = tile_props.wall_material
+
     convert_to_displacement_core(
         preview_core,
-        tile_props,
-        textured_vertex_groups)
+        textured_vertex_groups,
+        material)
 
     return preview_core
 
@@ -520,11 +545,12 @@ def spawn_plain_floor_cores(self, tile_props):
     """
     textured_vertex_groups = ['Leg 1 Top', 'Leg 2 Top']
     preview_core = spawn_floor_core(self, tile_props)
+    material = tile_props.floor_material
 
     convert_to_displacement_core(
         preview_core,
-        tile_props,
-        textured_vertex_groups)
+        textured_vertex_groups,
+        material)
 
     return preview_core
 
@@ -634,10 +660,12 @@ def spawn_openlock_wall_cores(self, tile_props, base):
         set_bool_props(cutter, core, 'DIFFERENCE')
 
     textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner']
+    material = tile_props.wall_material
+
     convert_to_displacement_core(
         core,
-        tile_props,
-        textured_vertex_groups)
+        textured_vertex_groups,
+        material)
 
     bpy.context.scene.cursor.location = (0, 0, 0)
 

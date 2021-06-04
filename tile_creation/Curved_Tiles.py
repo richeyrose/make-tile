@@ -7,13 +7,10 @@ from bpy.props import (
     FloatProperty,
     EnumProperty,
     BoolProperty,
-    StringProperty,
-    FloatVectorProperty)
+    StringProperty)
 
 from ..lib.utils.collections import (
-    add_object_to_collection,
-    create_collection,
-    activate_collection)
+    add_object_to_collection)
 
 from ..utils.registration import get_prefs
 
@@ -43,8 +40,6 @@ from .create_tile import (
     set_bool_props,
     load_openlock_top_peg,
     MT_Tile_Generator,
-    initialise_tile_creator,
-    create_common_tile_props,
     get_subdivs,
     create_material_enums)
 
@@ -461,7 +456,6 @@ class MT_OT_Make_Curved_Floor_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
             return{'PASS_THROUGH'}
 
         scene = context.scene
-        scene_props = scene.mt_scene_props
         base_blueprint = self.base_blueprint
         core_blueprint = self.main_part_blueprint
         base_type = 'CURVED_BASE'

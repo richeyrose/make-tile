@@ -1,5 +1,5 @@
 import os
-from math import radians, floor
+from math import radians
 import bpy
 from bpy.types import Panel, Operator
 from mathutils import Vector
@@ -10,9 +10,7 @@ from bpy.props import (
     StringProperty)
 
 from .. lib.utils.collections import (
-    add_object_to_collection,
-    create_collection,
-    activate_collection)
+    add_object_to_collection)
 
 from ..properties.properties import (
     create_base_blueprint_enums,
@@ -40,8 +38,6 @@ from . create_tile import (
     set_bool_obj_props,
     load_openlock_top_peg,
     MT_Tile_Generator,
-    initialise_tile_creator,
-    create_common_tile_props,
     create_material_enums,
     get_subdivs)
 
@@ -75,7 +71,8 @@ class MT_PT_L_Tile_Panel(Panel):
         layout.prop(scene_props, 'main_part_blueprint', text="Main")
 
         layout.label(text="Materials")
-        layout.prop(scene_props, 'floor_material')
+        if scene_props.tile_type == "L_FLOOR":
+            layout.prop(scene_props, 'floor_material')
         if scene_props.tile_type == "L_WALL":
             layout.prop(scene_props, 'wall_material')
 
@@ -134,7 +131,8 @@ class MT_L_Tiles:
         layout.prop(self, 'main_part_blueprint', text="Main")
 
         layout.label(text="Materials")
-        layout.prop(self, 'floor_material')
+        if self.tile_type == "L_FLOOR":
+            layout.prop(self, 'floor_material')
         if self.tile_type == "L_WALL":
             layout.prop(self, 'wall_material')
 
@@ -183,10 +181,6 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
         update=update_base_blueprint_enums,
         name="Base"
     )
-
-    floor_material: EnumProperty(
-        items=create_material_enums,
-        name="Floor Material")
 
     wall_material: EnumProperty(
         items=create_material_enums,
@@ -437,80 +431,6 @@ class MT_OT_Make_Empty_L_Floor_Core(MT_Tile_Generator, Operator):
     def execute(self, context):
         """Execute the operator."""
         return {'PASS_THROUGH'}
-
-
-def initialise_wall_creator(context, scene_props):
-    """Initialise the wall creator and set common properties.
-
-    Args:
-        context (bpy.context): context
-        scene_props (MakeTile.properties.MT_Scene_Properties): maketile scene properties
-
-    Returns:
-        enum: enum in {'BLENDER_EEVEE', 'CYCLES', 'WORKBENCH'}
-        list[3]: cursor original location
-        list[3]: cursor original rotation
-
-    """
-    tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator(context)
-    # We store tile properties in the mt_tile_props property group of
-    # the collection so we can access them from any object in this
-    # collection.
-    create_collection('Walls', tiles_collection)
-    tile_collection = bpy.data.collections.new(tile_name)
-    bpy.data.collections['Walls'].children.link(tile_collection)
-    activate_collection(tile_collection.name)
-
-    tile_props = tile_collection.mt_tile_props
-    create_common_tile_props(scene_props, tile_props, tile_collection)
-
-    tile_props.tile_type = 'L_WALL'
-
-    tile_props.leg_1_len = scene_props.leg_1_len
-    tile_props.leg_2_len = scene_props.leg_2_len
-    tile_props.angle = scene_props.angle
-
-    tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
-    tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
-
-    return cursor_orig_loc, cursor_orig_rot
-
-
-def initialise_floor_creator(context, scene_props):
-    """Initialise the floor creator and set common properties.
-
-    Args:
-        context (bpy.context): context
-        scene_props (MakeTile.properties.MT_Scene_Properties): maketile scene properties
-
-    Returns:
-        enum: enum in {'BLENDER_EEVEE', 'CYCLES', 'WORKBENCH'}
-        list[3]: cursor original location
-        list[3]: cursor original rotation
-
-    """
-    tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator(context)
-    # We store tile properties in the mt_tile_props property group of
-    # the collection so we can access them from any object in this
-    # collection.
-    create_collection('Floors', tiles_collection)
-    tile_collection = bpy.data.collections.new(tile_name)
-    bpy.data.collections['Floors'].children.link(tile_collection)
-    activate_collection(tile_collection.name)
-
-    tile_props = tile_collection.mt_tile_props
-    create_common_tile_props(scene_props, tile_props, tile_collection)
-
-    tile_props.tile_type = 'L_FLOOR'
-
-    tile_props.leg_1_len = scene_props.leg_1_len
-    tile_props.leg_2_len = scene_props.leg_2_len
-    tile_props.angle = scene_props.angle
-
-    tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
-    tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
-
-    return cursor_orig_loc, cursor_orig_rot
 
 
 def spawn_plain_wall_cores(self, tile_props):

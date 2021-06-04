@@ -25,6 +25,7 @@ from .create_tile import (
     set_bool_obj_props,
     set_bool_props,
     MT_Tile_Generator,
+    create_material_enums,
     initialise_tile_creator,
     create_common_tile_props,
     tile_x_update,
@@ -60,17 +61,19 @@ class MT_PT_Roof_Panel(Panel):
         """Draw the Panel."""
         scene = context.scene
         scene_props = scene.mt_scene_props
-        #roof_props = scene.mt_roof_scene_props
 
         layout = self.layout
-
-        # layout.label(text="Blueprints")
         layout.label(text="Roof Type")
         layout.prop(scene_props, 'roof_type', text="")
-
         row = layout.row()
         row.prop(scene_props, 'draw_gables')
         row.prop(scene_props, 'draw_rooftop')
+
+        layout.label(text="Materials")
+        if scene_props.draw_gables:
+            layout.prop(scene_props, 'gable_material')
+        if scene_props.draw_rooftop:
+            layout.prop(scene_props, 'rooftop_material')
 
         # layout.label(text="Socket Types")
         layout.label(text="Bottom Socket")
@@ -255,6 +258,14 @@ class MT_OT_Make_Roof(Operator, MT_Tile_Generator):
         default='NONE',
         name="Gable Side Socket")
 
+    gable_material: EnumProperty(
+        items=create_material_enums,
+        name="Gable Material")
+
+    rooftop_material: EnumProperty(
+        items=create_material_enums,
+        name="Rooftop Material")
+
     def execute(self, context):
         """Execute the Operator."""
         super().execute(context)
@@ -311,13 +322,18 @@ class MT_OT_Make_Roof(Operator, MT_Tile_Generator):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
-        layout.prop(self, 'tile_material_1')
+
         layout.label(text="Roof Type")
         layout.prop(self, 'roof_type', text="")
-
         row = layout.row()
         row.prop(self, 'draw_gables')
         row.prop(self, 'draw_rooftop')
+
+        layout.label(text="Materials")
+        if self.draw_gables:
+            layout.prop(self, 'gable_material')
+        if self.draw_rooftop:
+            layout.prop(self, 'rooftop_material')
 
         # layout.label(text="Socket Types")
         layout.label(text="Bottom Socket")
@@ -377,10 +393,12 @@ class MT_OT_Make_Roof_Base(MT_Tile_Generator, Operator):
             set_bool_props(slot_cutter, base, 'DIFFERENCE')
 
         textured_vertex_groups = ['Base Left', 'Base Right', 'Gable Front', 'Gable Back']
+        material = tile_props.gable_material
+
         convert_to_displacement_core(
             base,
-            tile_props,
-            textured_vertex_groups)
+            textured_vertex_groups,
+            material)
 
         activate(base.name)
         return{'FINISHED'}
@@ -423,10 +441,13 @@ class MT_OT_Make_Roof_Top(MT_Tile_Generator, Operator):
         tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         roof = spawn_roof(self, tile_props)
         textured_vertex_groups = ['Left', 'Right']
+        material = tile_props.rooftop_material
+
         convert_to_displacement_core(
             roof,
-            tile_props,
-            textured_vertex_groups)
+            textured_vertex_groups,
+            material)
+
         return{'FINISHED'}
 
 

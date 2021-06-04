@@ -5,32 +5,23 @@ from bpy.types import Operator, Panel
 from bpy.props import (
     EnumProperty,
     BoolProperty,
-    FloatProperty,
-    FloatVectorProperty)
+    FloatProperty)
 
 from ..utils.registration import get_prefs
 
 from .. lib.utils.collections import (
-    create_collection,
-    activate_collection,
     add_object_to_collection)
 from .. lib.bmturtle.scripts import draw_cuboid
 from .. lib.utils.utils import mode, get_all_subclasses
 from ..lib.utils.selection import activate
 from .create_tile import (
-    finalise_tile,
     spawn_empty_base,
     convert_to_displacement_core,
     spawn_prefab,
     set_bool_obj_props,
     set_bool_props,
     MT_Tile_Generator,
-    create_material_enums,
-    initialise_tile_creator,
-    create_common_tile_props,
-    tile_x_update,
-    tile_y_update,
-    tile_z_update)
+    create_material_enums)
 
 from .apex_roof import draw_apex_roof_top, draw_apex_base
 from .shed_roof import draw_shed_base, draw_shed_roof_top
@@ -109,45 +100,6 @@ class MT_PT_Roof_Panel(Panel):
 
         layout.operator('scene.reset_tile_defaults')
 
-'''
-def initialise_roof_creator(context):
-    """Initialise the roof creator and set common properties."""
-    tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator(context)
-    create_collection('Roofs', tiles_collection)
-    tile_collection = bpy.data.collections.new(tile_name)
-    bpy.data.collections['Roofs'].children.link(tile_collection)
-    activate_collection(tile_collection.name)
-
-    tile_props = tile_collection.mt_tile_props
-    roof_tile_props = tile_collection.mt_roof_tile_props
-
-    scene_props = context.scene.mt_scene_props
-    roof_scene_props = context.scene.mt_roof_scene_props
-    create_common_tile_props(scene_props, tile_props, tile_collection)
-    create_roof_tile_props(roof_scene_props, roof_tile_props)
-
-    roof_tile_props.is_roof = True
-
-    tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
-    tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
-    tile_props.tile_type = 'ROOF'
-
-    return cursor_orig_loc, cursor_orig_rot
-
-
-def create_roof_tile_props(roof_scene_props, roof_tile_props):
-    """Create roof tile properties.
-
-    Args:
-        roof_scene_props (MakeTile.properties.MT_Roof_Properties): scene props
-        roof_tile_props (MakeTile.properties.MT_Roof_Properties): tile props
-    """
-    for key in roof_scene_props.__annotations__.keys():
-        for k in roof_tile_props.__annotations__.keys():
-            if k == key:
-                setattr(roof_tile_props, str(k), getattr(roof_scene_props, str(k)))
-
-'''
 
 class MT_OT_Make_Roof(Operator, MT_Tile_Generator):
     """Operator. Generates a roof tile."""

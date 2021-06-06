@@ -281,12 +281,6 @@ class MT_Tile_Generator:
             an architectural element or a larger prefab such as a building or dungeon."
     )
 
-    tile_material_1: EnumProperty(
-        items=create_material_enums,
-        #update=update_material,
-        name="Material"
-    )
-
     tile_name: StringProperty(
         name="Tile Name"
     )
@@ -295,6 +289,11 @@ class MT_Tile_Generator:
         default=True
     )
 
+    converter_material: EnumProperty(
+        items=create_material_enums,
+        name="Material",
+        description="Material to apply to converted object"
+    )
     # Native Subdivisions
     subdivision_density: EnumProperty(
         items=[

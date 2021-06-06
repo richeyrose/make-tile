@@ -11,6 +11,8 @@ from ..enums.enums import (
     material_mapping)
 from ..tile_creation.create_tile import MT_Tile_Generator
 from ..lib.utils.utils import get_all_subclasses, get_annotations
+from ..tile_creation.create_tile import create_material_enums
+
 
 def update_UV_island_margin(self, context):
     '''Reruns UV smart project for preview and displacement object'''

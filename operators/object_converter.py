@@ -1,4 +1,7 @@
 import bpy
+from bpy.props import (
+    EnumProperty,
+    BoolProperty)
 from ..tile_creation.create_tile import (
     convert_to_displacement_core,
     lock_all_transforms,
@@ -15,6 +18,7 @@ from .. lib.utils.collections import (
     add_object_to_collection,
     activate_collection)
 from .assign_reference_object import create_helper_object
+from ..tile_creation.create_tile import create_material_enums
 
 from ..utils.registration import get_prefs
 
@@ -23,12 +27,26 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
     '''Convert a mesh into a MakeTile object'''
     bl_idname = "object.convert_to_make_tile"
     bl_label = "Convert to MakeTile object"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'UNDO', 'REGISTER'}
+
+    invoked: BoolProperty(
+        default=False)
+
+    converter_material: EnumProperty(
+        items=create_material_enums,
+        name="Material"
+    )
 
     @classmethod
     def poll(cls, context):
         obj = context.object
         return obj is not None and obj.mode == 'OBJECT' and obj.type in {'MESH'}
+
+    def invoke(self, context, event):
+        self.invoked = True
+        scene_props = context.scene.mt_scene_props
+        self.converter_material = scene_props.converter_material
+        return self.execute(context)
 
     def execute(self, context):
         #TODO rewrite this to get rid of all the changes between edit and object mode
@@ -55,6 +73,7 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
         # Create tile properties
         tile_props = tile_collection.mt_tile_props
         create_common_tile_props(scene_props, tile_props, tile_collection)
+        tile_props.converter_material = self.converter_material
 
         # create empty and parent our object to it
         base = spawn_empty_base(tile_props)
@@ -119,15 +138,23 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
         else:
             textured_vertex_groups = ['All']
 
+        material = self.converter_material
         # convert our object to a displacement object
-        convert_to_displacement_core(obj, tile_props, textured_vertex_groups)
+        convert_to_displacement_core(obj, textured_vertex_groups, material)
 
         # lock all transforms so we can only move parent
         lock_all_transforms(obj)
 
+        self.invoked = False
+        ''''
         # select and activate parent
         deselect_all()
         activate(base.name)
         select(base.name)
-
+        '''
         return {'FINISHED'}
+
+    def draw(self, context):
+        """Draw the Redo panel."""
+        layout = self.layout
+        layout.prop(self, 'converter_material')

@@ -5,18 +5,13 @@ from bpy.types import Operator, Panel
 from bpy.props import (
     EnumProperty,
     FloatProperty,
-    StringProperty,
-    BoolProperty,
-    FloatVectorProperty)
+    StringProperty)
 from .. utils.registration import get_prefs
 from .. lib.utils.utils import get_all_subclasses
 from .. lib.utils.selection import activate
 from .. lib.utils.collections import (
-    add_object_to_collection,
-    create_collection,
-    activate_collection)
+    add_object_to_collection)
 from .create_tile import (
-    finalise_tile,
     spawn_empty_base,
     convert_to_displacement_core,
     spawn_prefab,
@@ -24,12 +19,8 @@ from .create_tile import (
     set_bool_props,
     finalise_core,
     MT_Tile_Generator,
-    initialise_tile_creator,
-    create_common_tile_props,
     get_subdivs,
-    tile_z_update,
-    tile_y_update,
-    tile_x_update)
+    create_material_enums)
 from ..lib.bmturtle.scripts import (
     draw_cuboid)
 from .Straight_Tiles import (
@@ -88,6 +79,9 @@ class MT_PT_Connecting_Column_Panel(Panel):
         layout.prop(scene_props, 'column_socket_style')
         layout.prop(scene_props, 'base_blueprint')
         layout.prop(scene_props, 'main_part_blueprint')
+
+        layout.label(text="Material")
+        layout.prop(scene_props, 'column_material')
 
         layout.label(text="Column Size")
         row = layout.row()
@@ -170,6 +164,10 @@ class MT_OT_Make_Connecting_Column_Tile(Operator, MT_Tile_Generator):
         name="Column type",
         default="O")
 
+    column_material: EnumProperty(
+        items=create_material_enums,
+        name="Column Material")
+
     def execute(self, context):
         """Execute the operator."""
         super().execute(context)
@@ -207,12 +205,15 @@ class MT_OT_Make_Connecting_Column_Tile(Operator, MT_Tile_Generator):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
-        layout.prop(self, 'tile_material_1')
+        layout.label(text="Blueprints")
         layout.prop(self, 'base_blueprint')
         layout.prop(self, 'main_part_blueprint')
         layout.prop(self, 'column_type')
         layout.prop(self, 'column_socket_style')
         layout.prop(self, 'displacement_thickness')
+
+        layout.label(text="Material")
+        layout.prop(self, 'column_material')
 
         layout.label(text="Column Size")
         row = layout.row()
@@ -331,41 +332,6 @@ class MT_OT_Make_Empty_Connecting_Column_Core(MT_Tile_Generator, Operator):
         return {'PASS_THROUGH'}
 
 
-def initialise_column_creator(context, scene_props):
-    """Initialise the column creator and set common properties.
-
-    Args:
-        context (bpy.context): context
-        scene_props (MakeTile.properties.MT_Scene_Properties): maketile scene properties
-
-    Returns:
-        list[3]: cursor original location
-        list[3]: cursor original rotation
-
-    """
-    tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator(context)
-    # We store tile properties in the mt_tile_props property group of
-    # the collection so we can access them from any object in this
-    # collection.
-    create_collection('Columns', tiles_collection)
-    tile_collection = bpy.data.collections.new(tile_name)
-    bpy.data.collections['Columns'].children.link(tile_collection)
-    activate_collection(tile_collection.name)
-
-    tile_props = tile_collection.mt_tile_props
-    create_common_tile_props(scene_props, tile_props, tile_collection)
-
-    tile_props.column_type = scene_props.column_type
-    tile_props.tile_type = 'CONNECTING_COLUMN'
-    tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
-    tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
-
-    tile_props.displacement_thickness = scene_props.displacement_thickness
-    tile_props.column_socket_style = scene_props.column_socket_style
-
-    return cursor_orig_loc, cursor_orig_rot
-
-
 def spawn_plain_base(tile_props):
     """Spawn a plain base into the scene.
 
@@ -432,10 +398,11 @@ def spawn_plain_connecting_column_core(self, tile_props):
             core = spawn_X_core(self, tile_props)
             textured_vertex_groups = []
 
+    material=tile_props.column_material
     convert_to_displacement_core(
         core,
-        tile_props,
-        textured_vertex_groups)
+        textured_vertex_groups,
+        material)
 
     return core
 
@@ -511,10 +478,11 @@ def spawn_openlock_connecting_column_core(self, tile_props, base):
         set_bool_obj_props(cutter, base, tile_props, 'DIFFERENCE')
         set_bool_props(cutter, core, 'DIFFERENCE')
 
+    material=tile_props.column_material
     convert_to_displacement_core(
         core,
-        tile_props,
-        textured_vertex_groups)
+        textured_vertex_groups,
+        material)
 
     return core
 

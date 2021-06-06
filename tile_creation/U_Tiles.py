@@ -33,7 +33,7 @@ from .create_tile import (
     set_bool_obj_props,
     set_bool_props,
     load_openlock_top_peg,
-    MT_Tile_Generator
+    MT_Tile_Generator,
     get_subdivs,
     create_material_enums)
 from ..properties.properties import (

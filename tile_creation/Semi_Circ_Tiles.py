@@ -25,7 +25,8 @@ from . create_tile import (
     MT_Tile_Generator,
     initialise_tile_creator,
     create_common_tile_props,
-    get_subdivs)
+    get_subdivs,
+    create_material_enums)
 
 from .. utils.registration import get_prefs
 from .. lib.utils.selection import (
@@ -87,6 +88,9 @@ class MT_PT_Semi_Circ_Floor_Panel(Panel):
         layout.label(text="Blueprints")
         layout.prop(scene_props, 'base_blueprint')
         layout.prop(scene_props, 'main_part_blueprint', text="Main")
+
+        layout.label(text="Material")
+        layout.prop(scene_props, 'floor_material')
 
         layout.label(text="Tile Properties")
         layout.prop(scene_props, 'tile_z', text="Height")
@@ -159,6 +163,9 @@ class MT_OT_Make_Semi_Circ_Floor_Tile(Operator, MT_Tile_Generator):
         precision=1
     )
 
+    floor_material: EnumProperty(
+        items=create_material_enums,
+        name="Floor Material")
 
     def execute(self, context):
         """Execute the operator."""
@@ -196,9 +203,13 @@ class MT_OT_Make_Semi_Circ_Floor_Tile(Operator, MT_Tile_Generator):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
-        layout.prop(self, 'tile_material_1')
+
+        layout.label(text="Bluperints")
         layout.prop(self, 'base_blueprint')
         layout.prop(self, 'main_part_blueprint', text="Main")
+
+        layout.label(text="Material")
+        layout.prop(self, 'floor_material')
 
         layout.label(text="Tile Properties")
         layout.prop(self, 'tile_z', text="Height")
@@ -469,11 +480,13 @@ def spawn_plain_floor_cores(self, tile_props):
     """
     core = spawn_core(self, tile_props)
     textured_vertex_groups = ['Top']
+    material = tile_props.floor_material
 
     convert_to_displacement_core(
         core,
-        tile_props,
-        textured_vertex_groups)
+        textured_vertex_groups,
+        material)
+
     return core
 
 

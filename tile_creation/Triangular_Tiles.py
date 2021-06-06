@@ -30,7 +30,8 @@ from .create_tile import (
     set_bool_props,
     MT_Tile_Generator,
     get_subdivs,
-    create_material_enums)
+    create_material_enums,
+    update_base_defaults)
 
 from ..properties.properties import (
     create_base_blueprint_enums,
@@ -95,6 +96,7 @@ class MT_OT_Make_Triangular_Floor_Tile(Operator, MT_Tile_Generator):
     mt_blueprint = "CUSTOM"
     mt_type = "TRIANGULAR_FLOOR"
 
+    '''
     def update_base_blueprint_enums(self, context):
         if not self.invoked:
             if self.base_blueprint in ("OPENLOCK", "PLAIN"):
@@ -103,6 +105,7 @@ class MT_OT_Make_Triangular_Floor_Tile(Operator, MT_Tile_Generator):
             else:
                 self.base_y = self.tile_y
                 self.base_z = 0.0
+    '''
 
     main_part_blueprint: EnumProperty(
         items=create_main_part_blueprint_enums,
@@ -110,7 +113,7 @@ class MT_OT_Make_Triangular_Floor_Tile(Operator, MT_Tile_Generator):
 
     base_blueprint: EnumProperty(
         items=create_base_blueprint_enums,
-        update=update_base_blueprint_enums,
+        update=update_base_defaults,
         name="Base"
     )
 

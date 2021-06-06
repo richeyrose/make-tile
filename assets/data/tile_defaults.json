@@ -20,6 +20,7 @@
             "x_proportionate_scale": true,
             "y_proportionate_scale": true,
             "z_proportionate_scale": false,
+            "floor_material": "Floor Tiles",
             "base_defaults": {
                 "OPENLOCK": {
                     "base_x": 2,
@@ -78,105 +79,49 @@
             "z_proportionate_scale": false,
             "floor_thickness": 0.0245,
             "wall_position": "CENTER",
+            "wall_material": "Basic Stone 1",
+            "floor_material": "Floor Tiles",
             "base_defaults": {
                 "OPENLOCK": {
                     "base_x": 2.015,
                     "base_y": 0.5,
-                    "base_z": 0.2755,
-                    "wall_position": "CENTER"
+                    "base_z": 0.2755
                 },
                 "OPENLOCK_S_WALL": {
                     "base_x": 2.015,
                     "base_y": 1,
-                    "base_z": 0.2755,
-                    "wall_position": "CENTER"
+                    "base_z": 0.2755
                 },
                 "PLAIN": {
                     "base_x": 2.015,
                     "base_y": 0.5,
-                    "base_z": 0.2755,
-                    "wall_position": "CENTER"
+                    "base_z": 0.2755
                 },
                 "PLAIN_S_WALL": {
                     "base_x": 2.015,
                     "base_y": 1,
-                    "base_z": 0.2755,
-                    "wall_position": "CENTER"
+                    "base_z": 0.2755
                 },
                 "NONE": {
                     "base_x": 2.015,
-                    "base_y": 0.5,
-                    "base_z": 0,
-                    "wall_position": "CENTER"
-                }
-            },
-            "tile_defaults": {
-                "OPENLOCK": {
-                    "tile_x": 2.015,
-                    "tile_y": 0.32,
-                    "tile_z": 2
-                },
-                "PLAIN": {
-                    "tile_x": 2.015,
-                    "tile_y": 0.32,
-                    "tile_z": 2
-                },
-                "NONE": {
-                    "tile_x": 2.015,
-                    "tile_y": 0.32,
-                    "tile_z": 0
-                }
-            }
-        }
-    },
-    {
-        "bl_idname": "object.make_straight_floor",
-        "bl_label": "Straight Wall",
-        "blueprint":"CUSTOM",
-        "type": "STRAIGHT_FLOOR",
-        "base_blueprints": {
-            "OPENLOCK": "OpenLOCK",
-            "PLAIN": "Plain",
-            "NONE": "None"
-        },
-        "main_part_blueprints": {
-            "PLAIN": "Plain",
-            "NONE": "None"
-        },
-        "defaults":
-            {
-            "base_blueprint": "OPENLOCK",
-            "main_part_blueprint": "PLAIN",
-            "subdivision_density": "MEDIUM",
-            "x_proportionate_scale": true,
-            "y_proportionate_scale": true,
-            "z_proportionate_scale": false,
-            "base_defaults": {
-                "OPENLOCK": {
-                    "base_x": 2,
-                    "base_y": 0.5,
-                    "base_z": 0.2755
-                },
-                "PLAIN": {
-                    "base_x": 2,
-                    "base_y": 0.5,
-                    "base_z": 0.2755
-                },
-                "NONE": {
-                    "base_x": 2,
                     "base_y": 0.5,
                     "base_z": 0
                 }
             },
             "tile_defaults": {
+                "OPENLOCK": {
+                    "tile_x": 2.015,
+                    "tile_y": 0.32,
+                    "tile_z": 2
+                },
                 "PLAIN": {
-                    "tile_x": 2,
-                    "tile_y": 0.5,
-                    "tile_z": 0.3
+                    "tile_x": 2.015,
+                    "tile_y": 0.32,
+                    "tile_z": 2
                 },
                 "NONE": {
-                    "tile_x": 2,
-                    "tile_y": 0.5,
+                    "tile_x": 2.015,
+                    "tile_y": 0.32,
                     "tile_z": 0
                 }
             }
@@ -202,6 +147,7 @@
             "main_part_blueprint": "PLAIN",
             "subdivision_density": "MEDIUM",
             "z_proportionate_scale": false,
+            "floor_material": "Floor Tiles",
             "base_defaults": {
                 "OPENLOCK": {
                     "leg_1_len": 2,
@@ -264,41 +210,38 @@
             "z_proportionate_scale": false,
             "floor_thickness": 0.0245,
             "wall_position": "CENTER",
+            "floor_material": "Floor Tiles",
+            "wall_material": "Basic Stone 1",
             "base_defaults": {
                 "OPENLOCK": {
                     "base_radius": 2.015,
                     "degrees_of_arc": 90,
                     "base_y": 0.5,
-                    "base_z": 0.2755,
-                    "wall_position": "CENTER"
+                    "base_z": 0.2755
                 },
                 "OPENLOCK_S_WALL": {
                     "base_radius": 2.015,
                     "degrees_of_arc": 90,
                     "base_y": 1,
-                    "base_z": 0.2755,
-                    "wall_position": "CENTER"
+                    "base_z": 0.2755
                 },
                 "PLAIN": {
                     "base_radius": 2.015,
                     "degrees_of_arc": 90,
                     "base_y": 0.5,
-                    "base_z": 0.2755,
-                    "wall_position": "CENTER"
+                    "base_z": 0.2755
                 },
                 "PLAIN_S_WALL": {
                     "base_radius": 2.015,
                     "degrees_of_arc": 90,
                     "base_y": 1,
-                    "base_z": 0.2755,
-                    "wall_position": "CENTER"
+                    "base_z": 0.2755
                 },
                 "NONE": {
                     "base_radius": 2.015,
                     "degrees_of_arc": 90,
                     "base_y": 0.5,
-                    "base_z": 0,
-                    "wall_position": "CENTER"
+                    "base_z": 0
                 }
             },
             "tile_defaults": {
@@ -344,6 +287,7 @@
             "subdivision_density": "MEDIUM",
             "y_proportionate_scale": true,
             "z_proportionate_scale": false,
+            "floor_material": "Floor Tiles",
             "base_defaults": {
                 "OPENLOCK": {
                     "base_radius": 2,
@@ -400,6 +344,7 @@
             "main_part_blueprint": "PLAIN",
             "subdivision_density": "MEDIUM",
             "z_proportionate_scale": false,
+            "floor_material": "Floor Tiles",
             "base_defaults": {
                 "OPENLOCK": {
                     "base_radius": 2,
@@ -464,6 +409,7 @@
             "subdivision_density": "MEDIUM",
             "y_proportionate_scale": false,
             "z_proportionate_scale": false,
+            "wall_material": "Basic Stone 1",
             "base_defaults": {
                 "OPENLOCK": {
                     "leg_1_len": 2.015,
@@ -533,6 +479,7 @@
             "subdivision_density": "MEDIUM",
             "y_proportionate_scale": true,
             "z_proportionate_scale": false,
+            "floor_material": "Floor Tiles",
             "base_defaults": {
                 "OPENLOCK": {
                     "leg_1_len": 2,
@@ -597,6 +544,7 @@
             "subdivision_density": "MEDIUM",
             "y_proportionate_scale": false,
             "z_proportionate_scale": false,
+            "wall_material": "Basic Stone 1",
             "base_defaults": {
                 "OPENLOCK": {
                     "base_x": 2.015,
@@ -669,6 +617,7 @@
             "x_proportionate_scale": true,
             "y_proportionate_scale": true,
             "displacement_thickness": 0.05,
+            "column_material": "Basic Stone 1",
             "base_defaults":{
                 "OPENLOCK":{
                     "base_x": 0.5,

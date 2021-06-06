@@ -35,7 +35,8 @@ from .create_tile import (
     load_openlock_top_peg,
     MT_Tile_Generator,
     get_subdivs,
-    create_material_enums)
+    create_material_enums,
+    update_base_defaults)
 
 
 class MT_PT_Straight_Wall_Panel(Panel):
@@ -169,6 +170,7 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
     mt_blueprint = "CUSTOM"
     mt_type = "STRAIGHT_WALL"
 
+    '''
     def update_base_blueprint_enums(self, context):
         if not self.invoked:
             if self.base_blueprint in ("OPENLOCK", "PLAIN"):
@@ -180,14 +182,14 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
             else:
                 self.base_y = self.tile_y
                 self.base_z = 0.0
-
+    '''
     main_part_blueprint: EnumProperty(
         items=create_main_part_blueprint_enums,
         name="Wall")
 
     base_blueprint: EnumProperty(
         items=create_base_blueprint_enums,
-        update=update_base_blueprint_enums,
+        update=update_base_defaults,
         name="Base"
     )
 
@@ -313,6 +315,7 @@ class MT_OT_Make_Rect_Floor_Tile(Operator, MT_Tile_Generator):
     mt_blueprint = "CUSTOM"
     mt_type = "RECT_FLOOR"
 
+    '''
     def update_base_blueprint_enums(self, context):
         if not self.invoked:
             if self.base_blueprint in ("OPENLOCK", "PLAIN"):
@@ -323,6 +326,7 @@ class MT_OT_Make_Rect_Floor_Tile(Operator, MT_Tile_Generator):
                 self.base_x = self.tile_x
                 self.base_y = self.tile_y
                 self.base_z = 0.0
+    '''
 
     main_part_blueprint: EnumProperty(
         items=create_main_part_blueprint_enums,
@@ -331,7 +335,7 @@ class MT_OT_Make_Rect_Floor_Tile(Operator, MT_Tile_Generator):
 
     base_blueprint: EnumProperty(
         items=create_base_blueprint_enums,
-        update=update_base_blueprint_enums,
+        #update=update_base_blueprint_enums,
         name="Base"
     )
 

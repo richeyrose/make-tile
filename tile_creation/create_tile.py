@@ -50,38 +50,23 @@ def tile_z_update(self, context):
         self.base_z = tile_props.base_size[2] + self.tile_z - tile_props.tile_size[2]
 
 
-def update_base_defaults(self, context):
-    scene_props = context.scene.mt_scene_props
-    tile_type = scene_props.tile_type
-    base_blueprint = scene_props.base_blueprint
-    tile_defaults = scene_props['tile_defaults']
-
-    for tile in tile_defaults:
-        if tile['type'] == tile_type:
-            defaults = tile['defaults']
-            base_defaults = defaults['base_defaults']
-            for key, value in base_defaults.items():
-                if key == base_blueprint:
-                    for k, v in value.items():
-                        setattr(scene_props, k, v)
-                    break
-
-
 def update_main_part_defaults(self, context):
-    scene_props = context.scene.mt_scene_props
-    tile_type = scene_props.tile_type
-    main_part_blueprint = scene_props.main_part_blueprint
-    tile_defaults = scene_props['tile_defaults']
+    if not self.invoked:
+        scene_props = context.scene.mt_scene_props
+        tile_type = self.tile_type
+        main_part_blueprint = self.main_part_blueprint
+        tile_defaults = scene_props['tile_defaults']
 
-    for tile in tile_defaults:
-        if tile['type'] == tile_type:
-            defaults = tile['defaults']
-            main_part_defaults = defaults['tile_defaults']
-            for key, value in main_part_defaults.items():
-                if key == main_part_blueprint:
-                    for k, v in value.items():
-                        setattr(scene_props, k, v)
-                    break
+        for tile in tile_defaults:
+            if tile['type'] == tile_type:
+                defaults = tile['defaults']
+                main_part_defaults = defaults['tile_defaults']
+                for key, value in main_part_defaults.items():
+                    if key == main_part_blueprint:
+                        for k, v in value.items():
+                            setattr(scene_props, k, v)
+                            setattr(self, k, v)
+                        break
 
 
 def update_scene_defaults(self, context):
@@ -102,6 +87,23 @@ def update_scene_defaults(self, context):
 
         update_main_part_defaults(self, context)
         update_base_defaults(self, context)
+
+def update_base_defaults(self, context):
+    if not self.invoked:
+        scene_props = context.scene.mt_scene_props
+        tile_type = self.tile_type
+        base_blueprint = self.base_blueprint
+        tile_defaults = scene_props['tile_defaults']
+        for tile in tile_defaults:
+            if tile['type'] == tile_type:
+                defaults = tile['defaults']
+                base_defaults = defaults['base_defaults']
+                for key, value in base_defaults.items():
+                    if key == base_blueprint:
+                        for k, v in value.items():
+                            setattr(scene_props, k, v)
+                            setattr(self, k, v)
+                        break
 
 def create_material_enums(self, context):
     """Create a list of enum items of materials compatible with the MakeTile material system.

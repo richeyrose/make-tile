@@ -25,21 +25,17 @@ from ..lib.bmturtle.helpers import (
 from .. lib.utils.utils import mode, get_all_subclasses
 from .. utils.registration import get_prefs
 from .. lib.utils.collections import (
-    add_object_to_collection,
-    create_collection,
-    activate_collection)
+    add_object_to_collection)
 from .create_tile import (
     convert_to_displacement_core,
-    finalise_tile,
     spawn_empty_base,
     spawn_prefab,
     set_bool_obj_props,
     set_bool_props,
     load_openlock_top_peg,
-    MT_Tile_Generator,
-    initialise_tile_creator,
-    create_common_tile_props,
-    get_subdivs)
+    MT_Tile_Generator
+    get_subdivs,
+    create_material_enums)
 from ..properties.properties import (
     create_base_blueprint_enums,
     create_main_part_blueprint_enums)
@@ -87,8 +83,10 @@ class MT_PT_U_Tile_Panel(Panel):
         layout.prop(scene_props, 'base_blueprint')
         layout.prop(scene_props, 'main_part_blueprint')
 
-        layout.label(text="Tile Properties")
+        layout.label(text="Material")
+        layout.prop(scene_props, 'wall_material')
 
+        layout.label(text="Tile Properties")
         layout.prop(scene_props, 'tile_z', text='Height')
         layout.prop(scene_props, 'leg_1_len', text='Leg 1 Length')
         layout.prop(scene_props, 'leg_2_len', text='Leg 2 Length')
@@ -167,6 +165,10 @@ class MT_OT_Make_U_Wall_Tile(MT_Tile_Generator, Operator):
         precision=1
     )
 
+    wall_material: EnumProperty(
+        items=create_material_enums,
+        name="Wall Material")
+
     def execute(self, context):
         """Execute the operator."""
         super().execute(context)
@@ -202,14 +204,14 @@ class MT_OT_Make_U_Wall_Tile(MT_Tile_Generator, Operator):
     def draw(self, context):
         super().draw(context)
         layout=self.layout
-        layout.prop(self, 'tile_material_1')
-
         layout.label(text="Blueprints")
         layout.prop(self, 'base_blueprint')
         layout.prop(self, 'main_part_blueprint')
 
-        layout.label(text="Tile Properties")
+        layout.label(text="Material")
+        layout.prop(self, 'wall_material')
 
+        layout.label(text="Tile Properties")
         layout.prop(self, 'tile_z', text='Height')
         layout.prop(self, 'leg_1_len', text='Leg 1 Length')
         layout.prop(self, 'leg_2_len', text='Leg 2 Length')
@@ -229,6 +231,7 @@ class MT_OT_Make_U_Wall_Tile(MT_Tile_Generator, Operator):
 
         if self.base_blueprint == 'OPENLOCK':
             layout.prop(self, 'base_socket_side', text='Base Socket Side')
+
 
 class MT_OT_Make_Openlock_U_Base(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an OpenLOCK U base."""
@@ -354,10 +357,11 @@ def spawn_openlock_wall_cores(base, tile_props):
             set_bool_props(peg, core, 'UNION')
 
     textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'End Wall Inner', 'End Wall Outer', 'Leg 2 Inner', 'Leg 2 Outer']
+    material = tile_props.wall_material
     convert_to_displacement_core(
         core,
-        tile_props,
-        textured_vertex_groups)
+        textured_vertex_groups,
+        material)
 
     return core
 
@@ -631,10 +635,11 @@ def spawn_plain_wall_cores(tile_props):
     """
     preview_core = spawn_core(tile_props)
     textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'End Wall Inner', 'End Wall Outer', 'Leg 2 Inner', 'Leg 2 Outer']
+    material = tile_props.wall_material
     convert_to_displacement_core(
         preview_core,
-        tile_props,
-        textured_vertex_groups)
+        textured_vertex_groups,
+        material)
     return preview_core
 
 
@@ -689,48 +694,6 @@ def spawn_core(tile_props):
     bpy.context.scene.cursor.location = (0, 0, 0)
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
     return core
-
-
-def initialise_wall_creator(context, scene_props):
-    """Initialise the wall creator and set common properties.
-
-    Args:
-        context (bpy.context): context
-        scene_props (MakeTile.properties.MT_Scene_Properties): maketile scene properties
-
-    Returns:
-        enum: enum in {'BLENDER_EEVEE', 'CYCLES', 'WORKBENCH'}
-        list[3]: cursor original location
-        list[3]: cursor original rotation
-
-    """
-    tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator(context)
-    # We store tile properties in the mt_tile_props property group of
-    # the collection so we can access them from any object in this
-    # collection.
-    create_collection('Walls', tiles_collection)
-    tile_collection = bpy.data.collections.new(tile_name)
-    bpy.data.collections['Walls'].children.link(tile_collection)
-    activate_collection(tile_collection.name)
-
-    tile_props = tile_collection.mt_tile_props
-    create_common_tile_props(scene_props, tile_props, tile_collection)
-
-    tile_props.tile_type = 'U_WALL'
-    tile_props.leg_1_len = scene_props.leg_1_len
-    tile_props.leg_2_len = scene_props.leg_2_len
-    tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
-    tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
-    tile_props.base_socket_side = scene_props.base_socket_side
-
-    tile_props.leg_1_native_subdivisions = scene_props.leg_1_native_subdivisions
-    tile_props.leg_2_native_subdivisions = scene_props.leg_2_native_subdivisions
-    tile_props.x_native_subdivisions = scene_props.x_native_subdivisions
-    tile_props.y_native_subdivisions = scene_props.y_native_subdivisions
-    tile_props.z_native_subdivisions = scene_props.z_native_subdivisions
-
-    return cursor_orig_loc, cursor_orig_rot
-
 
 def spawn_plain_base(tile_props):
     """Spawn a plain base into the scene.

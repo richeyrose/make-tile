@@ -320,46 +320,6 @@ class MT_OT_Make_Empty_Semi_Circ_Floor_Core(MT_Tile_Generator, Operator):
         return {'PASS_THROUGH'}
 
 
-def initialise_floor_creator(context, scene_props):
-    """Initialise the floor creator and set common properties.
-
-    Args:
-        context (bpy.context): context
-        scene_props (MakeTile.properties.MT_Scene_Properties): maketile scene properties
-
-    Returns:
-        enum: enum in {'BLENDER_EEVEE', 'CYCLES', 'WORKBENCH'}
-        list[3]: cursor original location
-        list[3]: cursor original rotation
-
-    """
-    tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator(context)
-    create_collection('Floors', tiles_collection)
-    tile_collection = bpy.data.collections.new(tile_name)
-    bpy.data.collections['Floors'].children.link(tile_collection)
-    activate_collection(tile_collection.name)
-
-    tile_props = tile_collection.mt_tile_props
-    create_common_tile_props(scene_props, tile_props, tile_collection)
-
-    tile_props.tile_type = 'SEMI_CIRC_FLOOR'
-
-    tile_props.base_radius = scene_props.base_radius
-    tile_props.angle = scene_props.angle
-    tile_props.curve_type = scene_props.curve_type
-
-    tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
-    tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
-
-    '''
-    tile_props.x_native_subdivisions = scene_props.x_native_subdivisions
-    tile_props.z_native_subdivisions = scene_props.z_native_subdivisions
-    tile_props.curve_native_subdivisions = scene_props.curve_native_subdivisions
-    '''
-
-    return cursor_orig_loc, cursor_orig_rot
-
-
 def spawn_plain_base(self, tile_props):
     """Spawn a plain base into the scene.
 

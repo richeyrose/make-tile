@@ -16,9 +16,7 @@ from ..lib.bmturtle.scripts import (
     draw_tri_slot_cutter)
 
 from .. lib.utils.collections import (
-    add_object_to_collection,
-    create_collection,
-    activate_collection)
+    add_object_to_collection)
 
 from .. lib.utils.utils import mode, get_all_subclasses
 
@@ -31,9 +29,8 @@ from .create_tile import (
     set_bool_obj_props,
     set_bool_props,
     MT_Tile_Generator,
-    initialise_tile_creator,
-    create_common_tile_props,
-    get_subdivs)
+    get_subdivs,
+    create_material_enums)
 
 from ..properties.properties import (
     create_base_blueprint_enums,
@@ -67,6 +64,9 @@ class MT_PT_Triangular_Floor_Panel(Panel):
         layout.label(text="Blueprints")
         layout.prop(scene_props, 'base_blueprint')
         layout.prop(scene_props, 'main_part_blueprint', text="Main")
+
+        layout.label(text="Material")
+        layout.prop(scene_props, 'floor_material')
 
         layout.label(text="Tile Properties")
         layout.prop(scene_props, 'tile_z', text='Tile Height')
@@ -137,6 +137,10 @@ class MT_OT_Make_Triangular_Floor_Tile(Operator, MT_Tile_Generator):
         precision=1
     )
 
+    floor_material: EnumProperty(
+        items=create_material_enums,
+        name="Floor Material")
+
     def execute(self, context):
         """Execute the operator."""
         super().execute(context)
@@ -173,10 +177,12 @@ class MT_OT_Make_Triangular_Floor_Tile(Operator, MT_Tile_Generator):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
-        layout.prop(self, 'tile_material_1')
         layout.label(text="Blueprints")
         layout.prop(self, 'base_blueprint')
         layout.prop(self, 'main_part_blueprint', text="Main")
+
+        layout.label(text="Material")
+        layout.prop(self, 'floor_material')
 
         layout.label(text="Tile Properties")
         layout.prop(self, 'tile_z', text='Tile Height')
@@ -288,45 +294,6 @@ class MT_OT_Make_Empty_Triangular_Floor_Core(MT_Tile_Generator, Operator):
     def execute(self, context):
         """Execute the operator."""
         return {'PASS_THROUGH'}
-
-
-def initialise_floor_creator(context, scene_props):
-    """Initialise the floor creator and set common properties.
-
-    Args:
-        context (bpy.context): context
-        scene_props (MakeTile.properties.MT_Scene_Properties): maketile scene properties
-
-    Returns:
-        enum: enum in {'BLENDER_EEVEE', 'CYCLES', 'WORKBENCH'}
-        list[3]: cursor original location
-        list[3]: cursor original rotation
-
-    """
-    tile_name, tiles_collection, cursor_orig_loc, cursor_orig_rot = initialise_tile_creator(context)
-    # We store tile properties in the mt_tile_props property group of
-    # the collection so we can access them from any object in this
-    # collection.
-    create_collection('Floors', tiles_collection)
-    tile_collection = bpy.data.collections.new(tile_name)
-    bpy.data.collections['Floors'].children.link(tile_collection)
-    activate_collection(tile_collection.name)
-
-    tile_props = tile_collection.mt_tile_props
-    create_common_tile_props(scene_props, tile_props, tile_collection)
-
-    tile_props.tile_type = 'TRIANGULAR_FLOOR'
-
-    tile_props.leg_1_len = scene_props.leg_1_len
-    tile_props.leg_2_len = scene_props.leg_2_len
-    tile_props.angle = scene_props.angle
-    tile_props.tile_z = scene_props.tile_z
-    tile_props.base_z = scene_props.base_z
-
-    tile_props.tile_size = (scene_props.tile_x, scene_props.tile_y, scene_props.tile_z)
-    tile_props.base_size = (scene_props.base_x, scene_props.base_y, scene_props.base_z)
-
-    return cursor_orig_loc, cursor_orig_rot
 
 
 def spawn_plain_base(tile_props):
@@ -619,10 +586,11 @@ def create_plain_triangular_floor_cores(base, tile_props):
     """
     preview_core = spawn_floor_core(tile_props)
     textured_vertex_groups = ['Top']
+    material=tile_props.floor_material
     convert_to_displacement_core(
         preview_core,
-        tile_props,
-        textured_vertex_groups)
+        textured_vertex_groups,
+        material)
 
     return preview_core
 

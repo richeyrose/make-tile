@@ -1,14 +1,9 @@
 import bpy
 from bpy.types import Panel
-from bpy.props import BoolProperty, EnumProperty
-# TODO create a Layout Mode, Preview Mode switch. Add in a triangulate modifier that can be switched on and off for layout mode.
-# Layout mode should also switch everything to 0 subdivision layers and to solid shading
-class MT_PT_Tile_Generator_Panel(Panel):
-    """The main tile generation panel.
 
-    Args:
-        Panel (bpy.types.Panel): Panel parent class
-    """
+# TODO create a Layout Mode, Preview Mode switch. Layout mode should switch everything to 0 subdivision layers and to solid shading
+class MT_PT_Tile_Generator_Panel(Panel):
+    """The main tile generation panel."""
 
     bl_order = 0
     bl_space_type = "VIEW_3D"
@@ -77,15 +72,16 @@ class MT_PT_Booleans_Panel(bpy.types.Panel):
             layout.prop(cutter, "value", text=stripped_name)
 
 
-class MT_PT_Converter_Panel(Panel):
-    '''Allows you to convert any mesh object into a MakeTile object'''
+class MT_PT_Object_Operations_Panel(Panel):
+    """Contains various operators for converting and modifying tiles and objects for use with MakeTile."""
     bl_order = 9
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "Make Tile"
-    bl_idname = "MT_PT_Panel"
-    bl_label = "Object Converter"
+    bl_idname = "MT_PT_Object_Operations_Panel"
+    bl_label = "Object Operations"
     bl_options = {"DEFAULT_CLOSED"}
+    bl_description = "Contains various operators for converting and modifying tiles and objects for use with MakeTile."
 
     @classmethod
     def poll(cls, context):

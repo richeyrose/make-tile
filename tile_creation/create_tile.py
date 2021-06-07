@@ -33,24 +33,33 @@ from ..enums.enums import (
 
 
 def tile_x_update(self, context):
+    """Update the base x size based on tile size if x_proportionate_scale is True."""
     tile_props = context.collection.mt_tile_props
     if self.x_proportionate_scale and not self.invoked:
         self.base_x = tile_props.base_size[0] + self.tile_x - tile_props.tile_size[0]
 
 
 def tile_y_update(self, context):
+    """Update the base y size based on tile size if y_proportionate_scale is True."""
     tile_props = context.collection.mt_tile_props
     if self.y_proportionate_scale and not self.invoked:
         self.base_y = tile_props.base_size[1] + self.tile_y - tile_props.tile_size[1]
 
 
 def tile_z_update(self, context):
+    """Update the base z size based on tile size if z_proportionate_scale is True."""
     tile_props = context.collection.mt_tile_props
     if self.z_proportionate_scale and not self.invoked:
         self.base_z = tile_props.base_size[2] + self.tile_z - tile_props.tile_size[2]
 
 
-def update_scene_defaults(self, context):
+def update_tile_type_defaults(self, context):
+    """Set mt_scene_props to default values based on tile_type.
+
+    Args:
+        context (bpy.Context): context
+    """
+
     if not self.invoked:
         scene_props = context.scene.mt_scene_props
         tile_type = scene_props.tile_type
@@ -60,6 +69,7 @@ def update_scene_defaults(self, context):
             tile_defaults = scene_props['tile_defaults']
         except KeyError:
             create_properties_on_load(dummy=None)
+            tile_defaults = scene_props['tile_defaults']
 
         for tile in tile_defaults:
             if tile['type'] == tile_type:
@@ -79,6 +89,7 @@ def update_scene_defaults(self, context):
 
 
 def update_main_part_defaults(self, context):
+    """Set main part defaults based on tile_type and main_part_blueprint."""
     if not self.invoked:
         scene_props = context.scene.mt_scene_props
         tile_type = self.tile_type
@@ -97,6 +108,7 @@ def update_main_part_defaults(self, context):
 
 
 def update_base_defaults(self, context):
+    """Set base defaults based on tile_type and base_blueprint."""
     scene_props = context.scene.mt_scene_props
     base_blueprint = self.base_blueprint
     tile_defaults = scene_props['tile_defaults']
@@ -146,20 +158,29 @@ class MT_OT_Reset_Tile_Defaults(Operator):
         """
         scene_props = context.scene.mt_scene_props
         tile_type = scene_props.tile_type
+        base_blueprint = scene_props.base_blueprint
+        main_part_blueprint = scene_props.main_part_blueprint
         try:
             tile_defaults = scene_props['tile_defaults']
         except KeyError:
             create_properties_on_load(dummy=None)
+            tile_defaults = scene_props['tile_defaults']
 
         for tile in tile_defaults:
             if tile['type'] == tile_type:
                 defaults = tile['defaults']
+                main_part_defaults = defaults['tile_defaults']
+                base_defaults = defaults['base_defaults']
                 for key, value in defaults.items():
                     setattr(scene_props, key, value)
-                break
-
-        update_main_part_defaults(self, context)
-        update_base_defaults(self, context)
+                for key, value in main_part_defaults.items():
+                    if key == main_part_blueprint:
+                        for k, v in value.items():
+                            setattr(scene_props, k, v)
+                for key, value in base_defaults.items():
+                    if key == base_blueprint:
+                        for k, v in value.items():
+                            setattr(scene_props, k, v)
 
         return {'FINISHED'}
 
@@ -277,7 +298,7 @@ class MT_Tile_Generator:
     tile_type: EnumProperty(
         items=create_tile_type_enums,
         name="Tile Type",
-        update=update_scene_defaults,
+        update=update_tile_type_defaults,
         description="The type of tile e.g. Straight Wall, Curved Floor"
     )
 

@@ -2,7 +2,9 @@
 ## 0.0.24 ##
 
 ### Redo Panel ###
-Immediately after creation tile properties can now be modified using the redo panel that appears on the left hand side when you click MakeTile. This panel dissapears once the tile is deselected. For complex tiles like the roof tiles you can turn off auto update by clicking on the car (auto) icon until you have made your changes and then click on the refresh icon.
+Immediately after creation tile properties can now be modified using the redo panel that appears on the left hand side when you click MakeTile. This panel disappears once the tile is deselected. Whenever you change an option in this panel it will rebuild the entire tile from scratch which can take a while for complex tiles. You can turn off auto update by clicking on the car (auto) icon until you have made your changes and then click on the refresh icon if things are slowing down.
+
+There is a known issue where if you create a tile and then change the tile type in the main MakeTile menu while the Redo panel is displayed this may change the base or main part type in the redo panel.
 
 ### Floor Blueprints ###
 Previously there was the option for OpenLOCK or Plain floor main part types which were exactly the same. There is now just the option for Plain main parts to reduce redundancy.
@@ -13,7 +15,9 @@ The Straight Floor Tile Type has also been removed as the tile generator for the
 The first set of S-Tiles (Wall on floor type tile) have been produced. Currently Straight and Curved Walls are supported and you can find the options for these by changing the base type to OpenLOCK S-Wall or Plain S-Wall in the Base Blueprints panel.
 
 ### Materials ###
-For tiles with multiple textured parts such as the Roof tiles and S-Tiles you can now set the materials for each part seperately at tile creation.
+For tiles with multiple textured parts such as the Roof tiles and S-Tiles you can now set the materials for each part seperately at tile creation. Options to set materials are now below the Blueprints options in the MakeTile menu rather than at the top of the MakeTile menu.
+
+When converting an object into a MakeTile object you can now set the material in the Object Operations (Formally Object Converter) panel in the MakeTile menu.
 
 ## 0.0.23 ##
 

@@ -31,6 +31,7 @@ from ..enums.enums import (
     units,
     collection_types)
 
+from ..app_handlers import load_tile_defaults
 
 def tile_x_update(self, context):
     tile_props = context.collection.mt_tile_props
@@ -55,7 +56,7 @@ def update_main_part_defaults(self, context):
         scene_props = context.scene.mt_scene_props
         tile_type = self.tile_type
         main_part_blueprint = self.main_part_blueprint
-        tile_defaults = scene_props['tile_defaults']
+        tile_defaults = load_tile_defaults(context)
 
         for tile in tile_defaults:
             if tile['type'] == tile_type:
@@ -68,15 +69,11 @@ def update_main_part_defaults(self, context):
                             setattr(self, k, v)
                         break
 
-
 def update_scene_defaults(self, context):
     if not self.invoked:
         scene_props = context.scene.mt_scene_props
         tile_type = scene_props.tile_type
-        try:
-            tile_defaults = scene_props['tile_defaults']
-        except KeyError:
-            create_properties_on_load(dummy=None)
+        tile_defaults = load_tile_defaults(context)
 
         for tile in tile_defaults:
             if tile['type'] == tile_type:
@@ -93,7 +90,7 @@ def update_base_defaults(self, context):
         scene_props = context.scene.mt_scene_props
         tile_type = self.tile_type
         base_blueprint = self.base_blueprint
-        tile_defaults = scene_props['tile_defaults']
+        tile_defaults = load_tile_defaults(context)
         for tile in tile_defaults:
             if tile['type'] == tile_type:
                 defaults = tile['defaults']
@@ -977,8 +974,10 @@ def set_bool_props(bool_obj, target_obj, bool_type, solver='FAST'):
 
     # add cutters to object's cutters_collection
     # so we can activate and deactivate them when necessary
+    '''
     cutter_coll_item = target_obj.mt_object_props.cutters_collection.add()
     cutter_coll_item.name = bool_obj.name
     cutter_coll_item.value = True
     bpy.context.view_layer.update()
     cutter_coll_item.parent = target_obj.name
+    '''

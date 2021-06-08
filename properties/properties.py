@@ -2,7 +2,7 @@ import bpy
 from bpy.types import PropertyGroup
 from ..tile_creation.create_tile import MT_Tile_Generator
 from ..lib.utils.utils import get_all_subclasses
-
+from ..app_handlers import load_tile_defaults
 
 # Radio buttons used in menus
 class MT_Radio_Buttons(PropertyGroup):
@@ -71,11 +71,12 @@ def create_main_part_blueprint_enums(self, context):
     if context is None:
         return enum_items
 
+    '''
     if 'tile_defaults' not in scene_props:
         return enum_items
-
+    '''
     tile_type = scene_props.tile_type
-    tile_defaults = scene_props['tile_defaults']
+    tile_defaults = load_tile_defaults(context)
 
     for default in tile_defaults:
         if default['type'] == tile_type:
@@ -94,11 +95,12 @@ def create_base_blueprint_enums(self, context):
     if context is None:
         return enum_items
 
+    '''
     if 'tile_defaults' not in scene_props:
         return enum_items
-
+    '''
     tile_type = scene_props.tile_type
-    tile_defaults = scene_props['tile_defaults']
+    tile_defaults = load_tile_defaults(context)
 
     for default in tile_defaults:
         if default['type'] == tile_type:

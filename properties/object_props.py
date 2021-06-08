@@ -6,7 +6,7 @@ from ..enums.enums import geometry_types, boolean_types
 
 class MT_Cutter_Item(PropertyGroup):
     def update_use_cutter(self, context):
-        if self.parent is not "":
+        if self.parent != "":
             parent_obj = bpy.data.objects[self.parent]
             bool_mod = parent_obj.modifiers[self.name + '.bool']
             bool_mod.show_viewport = self.value
@@ -15,8 +15,9 @@ class MT_Cutter_Item(PropertyGroup):
         name="Cutter Name")
     value: bpy.props.BoolProperty(
         name="",
-        default=True,
-        update=update_use_cutter)
+        default=True
+        #update=update_use_cutter
+        )
     parent: bpy.props.StringProperty(
         name="")
 
@@ -91,13 +92,13 @@ class MT_Object_Properties(PropertyGroup):
         name="Geometry Type",
         items=geometry_types
     )
-
+    '''
     cutters_collection: bpy.props.CollectionProperty(
         name="Cutters Collection",
         type=MT_Cutter_Item,
         description="Collection of booleans that can be turned on or off by MakeTile."
     )
-
+    '''
     disp_mod_name: bpy.props.StringProperty(
         name="Displacement Modifier Name",
         default='MT Displacement'
@@ -125,11 +126,12 @@ class MT_Object_Properties(PropertyGroup):
         default=False
     )
 
+    '''
     preview_materials: bpy.props.CollectionProperty(
         name="Preview materials",
         type=MT_Preview_Materials
     )
-
+    '''
 
 def register():
     # Property group that contains properties of an object stored on the object

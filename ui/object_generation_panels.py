@@ -1,6 +1,8 @@
 import bpy
 from bpy.types import Panel
 from bpy.props import BoolProperty, EnumProperty
+from ..app_handlers import load_tile_defaults
+
 # TODO create a Layout Mode, Preview Mode switch. Add in a triangulate modifier that can be switched on and off for layout mode.
 # Layout mode should also switch everything to 0 subdivision layers and to solid shading
 class MT_PT_Tile_Generator_Panel(Panel):
@@ -31,7 +33,8 @@ class MT_PT_Tile_Generator_Panel(Panel):
 
         # Display the appropriate operator based on tile_type
         tile_type = scene_props.tile_type
-        tile_defaults = scene_props['tile_defaults']
+        #tile_defaults = scene_props['tile_defaults']
+        tile_defaults = load_tile_defaults(context)
 
         for default in tile_defaults:
             if default['type'] == tile_type:
@@ -48,7 +51,7 @@ class MT_PT_Tile_Generator_Panel(Panel):
 
         layout.operator('scene.delete_tiles', text="Delete Tiles")
 
-
+'''
 class MT_PT_Booleans_Panel(bpy.types.Panel):
     """Show a Panel that shows any booleans that can be toggled on the current object."""
     bl_order = 2
@@ -75,7 +78,7 @@ class MT_PT_Booleans_Panel(bpy.types.Panel):
             seperator = '.'
             stripped_name = cutter.name.split(seperator, 1)[0]
             layout.prop(cutter, "value", text=stripped_name)
-
+'''
 
 class MT_PT_Converter_Panel(Panel):
     '''Allows you to convert any mesh object into a MakeTile object'''

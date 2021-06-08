@@ -10,7 +10,7 @@ from .materials.materials import (
 
 def create_properties_on_activation(dummy):
     bpy.app.handlers.depsgraph_update_pre.remove(create_properties_on_activation)
-    create_properties()
+    #create_properties()
     load_material_libraries()
 
 
@@ -22,7 +22,7 @@ def create_properties_on_load(dummy):
 
 def load_material_libraries():
     prefs = get_prefs()
-    scene_props = bpy.context.scene.mt_scene_props
+    # scene_props = bpy.context.scene.mt_scene_props
     default_materials_path = os.path.join(prefs.assets_path, "materials")
     user_materials_path = os.path.join(prefs.user_assets_path, "materials")
 
@@ -32,9 +32,9 @@ def load_material_libraries():
     blend_filenames = get_blend_filenames(user_materials_path)
     materials.extend(load_materials(user_materials_path, blend_filenames))
 
-    scene_props['mt_materials'] = [mat for mat in materials if hasattr(mat, 'mt_material') and mat['mt_material']]
+    #scene_props['mt_materials'] = [mat for mat in materials if hasattr(mat, 'mt_material') and mat['mt_material']]
 
-
+'''
 def get_tile_type(tile_type):
     scene = bpy.context.scene
     scene_props = scene.mt_scene_props
@@ -44,12 +44,13 @@ def get_tile_type(tile_type):
         if default['type'] == tile_type:
             return default['type']
     return None
-
+'''
 # TODO: Currently using scene_props['tile_defaults'] as a proxy. Should make this more robust
 # Blender's undo system also undoes actions triggered by the load_post app handler
 # when the appropriate undo step is reached.
 # Therefore here we check to see if our tile_defaults custom scene property is being
 # unloaded and if it is we rerun create_properties_on_load
+'''
 @persistent
 def recreate_properties_on_undo(dummy):
     context = bpy.context
@@ -58,7 +59,7 @@ def recreate_properties_on_undo(dummy):
         scene_props['tile_defaults']
     except KeyError:
         create_properties_on_load(dummy)
-
+'''
 
 @persistent
 def update_mt_scene_props_handler(dummy):
@@ -98,16 +99,16 @@ def update_mt_scene_props_handler(dummy):
 
 def create_properties():
     context = bpy.context
-    load_tile_defaults(context)
+    #load_tile_defaults(context)
     refresh_scene_props(context)
     scene_props = bpy.context.scene.mt_scene_props
 
-    scene_props['mt_materials'] = []  # list of MakeTile compatible displacement materials
+    #scene_props['mt_materials'] = []  # list of MakeTile compatible displacement materials
 
 
 def load_tile_defaults(context):
     """Load tile defaults into memory."""
-    scene_props = context.scene.mt_scene_props
+    #scene_props = context.scene.mt_scene_props
     addon_path = get_path()
     json_path = os.path.join(
         addon_path,
@@ -119,7 +120,9 @@ def load_tile_defaults(context):
     if os.path.exists(json_path):
         with open(json_path) as json_file:
             tile_defaults = json.load(json_file)
-        scene_props['tile_defaults'] = tile_defaults
+        #scene_props['tile_defaults'] = tile_defaults
+            return tile_defaults
+    return False
 
 
 def refresh_scene_props(context):
@@ -131,4 +134,4 @@ bpy.app.handlers.depsgraph_update_pre.append(create_properties_on_activation)
 bpy.app.handlers.load_post.append(create_properties_on_load)
 
 bpy.app.handlers.depsgraph_update_post.append(update_mt_scene_props_handler)
-bpy.app.handlers.undo_post.append(recreate_properties_on_undo)
+#bpy.app.handlers.undo_post.append(recreate_properties_on_undo)

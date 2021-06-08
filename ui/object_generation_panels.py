@@ -51,7 +51,7 @@ class MT_PT_Tile_Generator_Panel(Panel):
 
         layout.operator('scene.delete_tiles', text="Delete Tiles")
 
-'''
+
 class MT_PT_Booleans_Panel(bpy.types.Panel):
     """Show a Panel that shows any booleans that can be toggled on the current object."""
     bl_order = 2
@@ -78,7 +78,7 @@ class MT_PT_Booleans_Panel(bpy.types.Panel):
             seperator = '.'
             stripped_name = cutter.name.split(seperator, 1)[0]
             layout.prop(cutter, "value", text=stripped_name)
-'''
+
 
 class MT_PT_Converter_Panel(Panel):
     '''Allows you to convert any mesh object into a MakeTile object'''

@@ -974,10 +974,9 @@ def set_bool_props(bool_obj, target_obj, bool_type, solver='FAST'):
 
     # add cutters to object's cutters_collection
     # so we can activate and deactivate them when necessary
-    '''
     cutter_coll_item = target_obj.mt_object_props.cutters_collection.add()
     cutter_coll_item.name = bool_obj.name
     cutter_coll_item.value = True
     bpy.context.view_layer.update()
     cutter_coll_item.parent = target_obj.name
-    '''
+

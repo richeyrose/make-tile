@@ -12,14 +12,16 @@ class MT_Cutter_Item(PropertyGroup):
             bool_mod.show_viewport = self.value
 
     name: bpy.props.StringProperty(
-        name="Cutter Name")
+        name="Cutter Name",
+        default="")
     value: bpy.props.BoolProperty(
         name="",
-        default=True
-        #update=update_use_cutter
+        default=True,
+        update=update_use_cutter
         )
     parent: bpy.props.StringProperty(
-        name="")
+        name="",
+        default="")
 
 
 class MT_Preview_Materials(PropertyGroup):
@@ -34,7 +36,8 @@ class MT_Preview_Materials(PropertyGroup):
     """
 
     vertex_group: bpy.props.StringProperty(
-        name="vertex group"
+        name="vertex group",
+        default=""
     )
 
     material: bpy.props.PointerProperty(
@@ -92,13 +95,13 @@ class MT_Object_Properties(PropertyGroup):
         name="Geometry Type",
         items=geometry_types
     )
-    '''
+
     cutters_collection: bpy.props.CollectionProperty(
         name="Cutters Collection",
         type=MT_Cutter_Item,
         description="Collection of booleans that can be turned on or off by MakeTile."
     )
-    '''
+
     disp_mod_name: bpy.props.StringProperty(
         name="Displacement Modifier Name",
         default='MT Displacement'
@@ -126,19 +129,18 @@ class MT_Object_Properties(PropertyGroup):
         default=False
     )
 
-    '''
     preview_materials: bpy.props.CollectionProperty(
         name="Preview materials",
         type=MT_Preview_Materials
     )
-    '''
+
 
 def register():
     # Property group that contains properties of an object stored on the object
     bpy.types.Object.mt_object_props = bpy.props.PointerProperty(
-        type=MT_Object_Properties
-    )
+        type=MT_Object_Properties)
 
 
 def unregister():
     del bpy.types.Object.mt_object_props
+

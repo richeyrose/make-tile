@@ -12,10 +12,6 @@ from bpy.props import (
     FloatProperty,
     StringProperty)
 
-from ..properties.properties import (
-    create_base_blueprint_enums,
-    create_main_part_blueprint_enums)
-
 from . create_tile import (
     convert_to_displacement_core,
     spawn_empty_base,
@@ -23,7 +19,6 @@ from . create_tile import (
     set_bool_obj_props,
     set_bool_props,
     MT_Tile_Generator,
-    update_base_defaults,
     get_subdivs,
     create_material_enums)
 
@@ -117,26 +112,6 @@ class MT_OT_Make_Semi_Circ_Floor_Tile(Operator, MT_Tile_Generator):
     bl_options = {'UNDO', 'REGISTER'}
     mt_blueprint = "CUSTOM"
     mt_type = "SEMI_CIRC_FLOOR"
-
-    '''
-    def update_base_blueprint_enums(self, context):
-        if not self.invoked:
-            if self.base_blueprint in ("OPENLOCK", "PLAIN"):
-                self.base_y = 0.5
-                self.base_z = 0.2755
-            else:
-                self.base_y = self.tile_y
-                self.base_z = 0.0
-    '''
-    main_part_blueprint: EnumProperty(
-        items=create_main_part_blueprint_enums,
-        name="Wall")
-
-    base_blueprint: EnumProperty(
-        items=create_base_blueprint_enums,
-        update=update_base_defaults,
-        name="Base"
-    )
 
     # used for curved floors
     curve_type: EnumProperty(

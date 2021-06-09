@@ -35,11 +35,8 @@ from .create_tile import (
     load_openlock_top_peg,
     MT_Tile_Generator,
     get_subdivs,
-    create_material_enums,
-    update_base_defaults)
-from ..properties.properties import (
-    create_base_blueprint_enums,
-    create_main_part_blueprint_enums)
+    create_material_enums)
+
 from bpy.props import (
     EnumProperty,
     FloatProperty,
@@ -122,26 +119,6 @@ class MT_OT_Make_U_Wall_Tile(MT_Tile_Generator, Operator):
     bl_options = {'UNDO', 'REGISTER'}
     mt_blueprint = "CUSTOM"
     mt_type = "U_WALL"
-
-    '''
-    def update_base_blueprint_enums(self, context):
-        if not self.invoked:
-            if self.base_blueprint in ("OPENLOCK", "PLAIN"):
-                self.base_y = 0.5
-                self.base_z = 0.2755
-            else:
-                self.base_y = 0.5
-                self.base_z = 0.0
-    '''
-    main_part_blueprint: EnumProperty(
-        items=create_main_part_blueprint_enums,
-        name="Main")
-
-    base_blueprint: EnumProperty(
-        items=create_base_blueprint_enums,
-        update=update_base_defaults,
-        name="Base"
-    )
 
     base_socket_side: EnumProperty(
         items=[

@@ -12,10 +12,6 @@ from bpy.props import (
 from .. lib.utils.collections import (
     add_object_to_collection)
 
-from ..properties.properties import (
-    create_base_blueprint_enums,
-    create_main_part_blueprint_enums)
-
 from .. lib.utils.utils import mode, get_all_subclasses
 from .. utils.registration import get_prefs
 from .. lib.utils.selection import (
@@ -39,8 +35,7 @@ from . create_tile import (
     load_openlock_top_peg,
     MT_Tile_Generator,
     create_material_enums,
-    get_subdivs,
-    update_base_defaults)
+    get_subdivs)
 
 
 class MT_PT_L_Tile_Panel(Panel):
@@ -164,26 +159,6 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
     mt_blueprint = "CUSTOM"
     mt_type = "L_WALL"
 
-    '''
-    def update_base_blueprint_enums(self, context):
-        if not self.invoked:
-            if self.base_blueprint in ("OPENLOCK", "PLAIN"):
-                self.base_y = 0.5
-                self.base_z = 0.2755
-            else:
-                self.base_y = self.tile_y
-                self.base_z = 0.0
-    '''
-    main_part_blueprint: EnumProperty(
-        items=create_main_part_blueprint_enums,
-        name="Main")
-
-    base_blueprint: EnumProperty(
-        items=create_base_blueprint_enums,
-        update=update_base_defaults,
-        name="Base"
-    )
-
     wall_material: EnumProperty(
         items=create_material_enums,
         name="Wall Material")
@@ -230,26 +205,6 @@ class MT_OT_Make_L_Floor_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
     bl_options = {'UNDO', 'REGISTER'}
     mt_blueprint = "CUSTOM"
     mt_type = "L_FLOOR"
-
-    '''
-    def update_base_blueprint_enums(self, context):
-        if not self.invoked:
-            if self.base_blueprint in ("OPENLOCK", "PLAIN"):
-                self.base_y = 0.5
-                self.base_z = 0.2755
-            else:
-                self.base_y = self.tile_y
-                self.base_z = 0.0
-    '''
-    main_part_blueprint: EnumProperty(
-        items=create_main_part_blueprint_enums,
-        name="Main")
-
-    base_blueprint: EnumProperty(
-        items=create_base_blueprint_enums,
-        update=update_base_defaults,
-        name="Base"
-    )
 
     floor_material: EnumProperty(
         items=create_material_enums,

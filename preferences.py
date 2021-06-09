@@ -5,7 +5,7 @@ from bpy.props import StringProperty, EnumProperty
 from . utils.registration import get_path
 from . utils.system import makedir, abspath
 from . enums.enums import tile_blueprints, units
-from .properties.properties import (
+from .tile_creation.create_tile import (
     create_tile_type_enums,
     create_base_blueprint_enums,
     create_main_part_blueprint_enums)

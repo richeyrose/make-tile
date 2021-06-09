@@ -51,6 +51,97 @@ def tile_z_update(self, context):
         self.base_z = tile_props.base_size[2] + self.tile_z - tile_props.tile_size[2]
 
 
+def create_tile_type_enums(self, context):
+    """Create an enum of tile types out of subclasses of MT_OT_Make_Tile."""
+    enum_items = []
+    if context is None:
+        return enum_items
+
+    # blueprint = context.scene.mt_scene_props.tile_blueprint
+    subclasses = get_all_subclasses(MT_Tile_Generator)
+
+    for subclass in subclasses:
+        # if hasattr(subclass, 'mt_blueprint'):
+        if 'INTERNAL' not in subclass.bl_options:
+            enum = (subclass.mt_type, subclass.bl_label, "")
+            enum_items.append(enum)
+    return sorted(enum_items)
+
+
+def create_main_part_blueprint_enums(self, context):
+    """Dynamically creates a list of enum items depending on what is set in the tile_type defaults.
+
+    Args:
+        context (bpy.Context): scene context
+
+    Returns:
+        list[enum_item]: list of enum items
+    """
+    enum_items = []
+    scene = context.scene
+    scene_props = scene.mt_scene_props
+
+    if context is None:
+        return enum_items
+
+    '''
+    if 'tile_defaults' not in scene_props:
+        return enum_items
+    '''
+    tile_type = scene_props.tile_type
+    tile_defaults = load_tile_defaults(context)
+
+    for default in tile_defaults:
+        if default['type'] == tile_type:
+            for key, value in default['main_part_blueprints'].items():
+                enum = (key, value, "")
+                enum_items.append(enum)
+            return sorted(enum_items)
+    return enum_items
+
+
+def create_base_blueprint_enums(self, context):
+    enum_items = []
+    scene = context.scene
+    scene_props = scene.mt_scene_props
+
+    if context is None:
+        return enum_items
+
+    '''
+    if 'tile_defaults' not in scene_props:
+        return enum_items
+    '''
+    tile_type = scene_props.tile_type
+    tile_defaults = load_tile_defaults(context)
+
+    for default in tile_defaults:
+        if default['type'] == tile_type:
+            for key, value in default['base_blueprints'].items():
+                enum = (key, value, "")
+                enum_items.append(enum)
+            return sorted(enum_items)
+    return enum_items
+
+
+def update_scene_defaults(self, context):
+    if not self.invoked:
+        scene_props = context.scene.mt_scene_props
+        tile_type = scene_props.tile_type
+        tile_defaults = load_tile_defaults(context)
+        base_blueprint = self.base_blueprint
+        main_part_blueprint = self.main_part_blueprint
+
+        for tile in tile_defaults:
+            if tile['type'] == tile_type:
+                defaults = tile['defaults']
+                for key, value in defaults.items():
+                    if hasattr(scene_props, key):
+                        setattr(scene_props, key, value)
+        update_main_part_defaults(scene_props, context)
+        update_base_defaults(scene_props, context)
+
+
 def update_main_part_defaults(self, context):
     if not self.invoked:
         scene_props = context.scene.mt_scene_props
@@ -65,25 +156,9 @@ def update_main_part_defaults(self, context):
                 for key, value in main_part_defaults.items():
                     if key == main_part_blueprint:
                         for k, v in value.items():
-                            setattr(scene_props, k, v)
                             setattr(self, k, v)
                         break
 
-def update_scene_defaults(self, context):
-    if not self.invoked:
-        scene_props = context.scene.mt_scene_props
-        tile_type = scene_props.tile_type
-        tile_defaults = load_tile_defaults(context)
-
-        for tile in tile_defaults:
-            if tile['type'] == tile_type:
-                defaults = tile['defaults']
-                for key, value in defaults.items():
-                    setattr(scene_props, key, value)
-                break
-
-        update_main_part_defaults(self, context)
-        update_base_defaults(self, context)
 
 def update_base_defaults(self, context):
     if not self.invoked:
@@ -98,8 +173,8 @@ def update_base_defaults(self, context):
                 for key, value in base_defaults.items():
                     if key == base_blueprint:
                         for k, v in value.items():
-                            setattr(scene_props, k, v)
                             setattr(self, k, v)
+                            #setattr(scene_props, k, v)
                         break
 
 def create_material_enums(self, context):
@@ -187,6 +262,16 @@ class MT_Tile_Generator:
         name="Reset Defaults",
         default=False,
         description="Reset Defaults",
+    )
+
+    main_part_blueprint: EnumProperty(
+        items=create_main_part_blueprint_enums,
+        name="Main")
+
+    base_blueprint: EnumProperty(
+        items=create_base_blueprint_enums,
+        update=update_base_defaults,
+        name="Base"
     )
 
     # Tile proportions

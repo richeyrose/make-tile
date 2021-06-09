@@ -20,8 +20,7 @@ from .create_tile import (
     finalise_core,
     MT_Tile_Generator,
     get_subdivs,
-    create_material_enums,
-    update_base_defaults)
+    create_material_enums)
 from ..lib.bmturtle.scripts import (
     draw_cuboid)
 from .Straight_Tiles import (
@@ -41,9 +40,6 @@ from ..lib.bmturtle.helpers import (
     bm_select_all,
     assign_verts_to_group,
     select_verts_in_bounds)
-from ..properties.properties import (
-    create_base_blueprint_enums,
-    create_main_part_blueprint_enums)
 
 #TODO Bug with tall O colum socket generation
 #TODO #1 Ensure sockets and buffers only added to tall columns
@@ -117,29 +113,6 @@ class MT_OT_Make_Connecting_Column_Tile(Operator, MT_Tile_Generator):
     bl_options = {'UNDO', 'REGISTER'}
     mt_blueprint = "CUSTOM"
     mt_type = "CONNECTING_COLUMN"
-
-    '''
-    def update_base_blueprint_enums(self, context):
-        if not self.invoked:
-            if self.base_blueprint in ("OPENLOCK", "PLAIN"):
-                self.base_y = self.tile_x
-                self.tile_y = self.tile_y
-                self.base_z = 0.2755
-            else:
-                self.base_x = self.tile_x
-                self.base_y = self.tile_y
-                self.base_z = 0.0
-    '''
-    main_part_blueprint: EnumProperty(
-        items=create_main_part_blueprint_enums,
-        name="Core"
-    )
-
-    base_blueprint: EnumProperty(
-        items=create_base_blueprint_enums,
-        update=update_base_defaults,
-        name="Base"
-    )
 
     column_socket_style: EnumProperty(
         name="Socket Style",

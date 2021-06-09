@@ -16,11 +16,6 @@ from ..enums.enums import (
     column_socket_style,
     collection_types)
 
-from .properties import (
-    create_main_part_blueprint_enums,
-    create_tile_type_enums,
-    create_base_blueprint_enums)
-
 from ..tile_creation.create_tile import (
     MT_Tile_Generator)
 

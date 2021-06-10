@@ -123,59 +123,48 @@ def create_base_blueprint_enums(self, context):
             return sorted(enum_items)
     return enum_items
 
+def reset_scene_defaults(self, context):
+    scene_props = context.scene.mt_scene_props
+    tile_type = scene_props.tile_type
+    tile_defaults = load_tile_defaults(context)
+
+    for tile in tile_defaults:
+        if tile['type'] == tile_type:
+            defaults = tile['defaults']
+            for key, value in defaults.items():
+                if hasattr(scene_props, key):
+                    setattr(scene_props, key, value)
+            break
+    reset_part_defaults(scene_props, context)
 
 def update_scene_defaults(self, context):
     if not self.invoked:
-        scene_props = context.scene.mt_scene_props
-        tile_type = scene_props.tile_type
-        tile_defaults = load_tile_defaults(context)
-        base_blueprint = self.base_blueprint
-        main_part_blueprint = self.main_part_blueprint
+        reset_scene_defaults(self, context)
 
-        for tile in tile_defaults:
-            if tile['type'] == tile_type:
-                defaults = tile['defaults']
-                for key, value in defaults.items():
-                    if hasattr(scene_props, key):
-                        setattr(scene_props, key, value)
-        update_main_part_defaults(scene_props, context)
-        update_base_defaults(scene_props, context)
+def reset_part_defaults(self, context):
+    tile_type = self.tile_type
+    base_blueprint = self.base_blueprint
+    main_part_blueprint = self.main_part_blueprint
+    tile_defaults = load_tile_defaults(context)
+    for tile in tile_defaults:
+        if tile['type'] == tile_type:
+            defaults = tile['defaults']
+            base_defaults = defaults['base_defaults']
+            for key, value in base_defaults.items():
+                if key == base_blueprint:
+                    for k, v in value.items():
+                        setattr(self, k, v)
+                    break
+            main_part_defaults = defaults['tile_defaults']
+            for key, value in main_part_defaults.items():
+                if key == main_part_blueprint:
+                    for k, v in value.items():
+                        setattr(self, k, v)
+                    break
 
-
-def update_main_part_defaults(self, context):
+def update_part_defaults(self, context):
     if not self.invoked:
-        scene_props = context.scene.mt_scene_props
-        tile_type = self.tile_type
-        main_part_blueprint = self.main_part_blueprint
-        tile_defaults = load_tile_defaults(context)
-
-        for tile in tile_defaults:
-            if tile['type'] == tile_type:
-                defaults = tile['defaults']
-                main_part_defaults = defaults['tile_defaults']
-                for key, value in main_part_defaults.items():
-                    if key == main_part_blueprint:
-                        for k, v in value.items():
-                            setattr(self, k, v)
-                        break
-
-
-def update_base_defaults(self, context):
-    if not self.invoked:
-        scene_props = context.scene.mt_scene_props
-        tile_type = self.tile_type
-        base_blueprint = self.base_blueprint
-        tile_defaults = load_tile_defaults(context)
-        for tile in tile_defaults:
-            if tile['type'] == tile_type:
-                defaults = tile['defaults']
-                base_defaults = defaults['base_defaults']
-                for key, value in base_defaults.items():
-                    if key == base_blueprint:
-                        for k, v in value.items():
-                            setattr(self, k, v)
-                            #setattr(scene_props, k, v)
-                        break
+        reset_part_defaults(self, context)
 
 def create_material_enums(self, context):
     """Create a list of enum items of materials compatible with the MakeTile material system.
@@ -211,22 +200,7 @@ class MT_OT_Reset_Tile_Defaults(Operator):
         Args:
             context (bpy.context): Blender context
         """
-        scene_props = context.scene.mt_scene_props
-        tile_type = scene_props.tile_type
-        try:
-            tile_defaults = scene_props['tile_defaults']
-        except KeyError:
-            create_properties_on_load(dummy=None)
-
-        for tile in tile_defaults:
-            if tile['type'] == tile_type:
-                defaults = tile['defaults']
-                for key, value in defaults.items():
-                    setattr(scene_props, key, value)
-                break
-
-        update_main_part_defaults(self, context)
-        update_base_defaults(self, context)
+        reset_scene_defaults(self, context)
 
         return {'FINISHED'}
 
@@ -248,6 +222,12 @@ class MT_Tile_Generator:
                 enum_items.append(enum)
         return sorted(enum_items)
 
+    invoked: BoolProperty(
+        name="Invoked",
+        description="Set to true when operator is invoked then reset to false when operator has executed.",
+        default=False
+    )
+
     refresh: BoolProperty(
         name="Refresh",
         default=False,
@@ -264,13 +244,19 @@ class MT_Tile_Generator:
         description="Reset Defaults",
     )
 
+    defaults_upated: BoolProperty(
+        name="Defaults Updated",
+        default=False
+    )
+
     main_part_blueprint: EnumProperty(
         items=create_main_part_blueprint_enums,
+        update=update_part_defaults,
         name="Main")
 
     base_blueprint: EnumProperty(
         items=create_base_blueprint_enums,
-        update=update_base_defaults,
+        update=update_part_defaults,
         name="Base"
     )
 
@@ -418,12 +404,6 @@ class MT_Tile_Generator:
         items=units
     )
 
-    invoked: BoolProperty(
-        name="Invoked",
-        description="Set to true when operator is invoked then reset to false when operator has executed.",
-        default=False
-    )
-
     @classmethod
     def poll(cls, context):
         """Check in object mode."""
@@ -449,12 +429,7 @@ class MT_Tile_Generator:
                     setattr(self, str(k), getattr(scene_props, str(k)))
 
         self.refresh = True
-        #self.on_invoke(context, event)
         return self.execute(context)
-
-    def on_invoke(self, context, event):
-        """Call when operator is invoked from UI."""
-        self.invoked = True
 
     def execute(self, context):
         """Call when operator is executed."""
@@ -469,7 +444,7 @@ class MT_Tile_Generator:
         if self.reset_defaults:
             scene_props = scene.mt_scene_props
             tile_type = self.tile_type
-            tile_defaults = scene_props['tile_defaults']
+            tile_defaults = load_tile_defaults(context)
             for tile in tile_defaults:
                 if tile['type'] == tile_type:
                     defaults = tile['defaults']

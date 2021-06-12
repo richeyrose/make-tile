@@ -34,21 +34,18 @@ from ..enums.enums import (
 from ..app_handlers import load_tile_defaults
 
 def tile_x_update(self, context):
-    tile_props = context.collection.mt_tile_props
     if self.x_proportionate_scale and not self.invoked:
-        self.base_x = tile_props.base_size[0] + self.tile_x - tile_props.tile_size[0]
+        self.base_x = self.tile_x
 
 
 def tile_y_update(self, context):
-    tile_props = context.collection.mt_tile_props
     if self.y_proportionate_scale and not self.invoked:
-        self.base_y = tile_props.base_size[1] + self.tile_y - tile_props.tile_size[1]
+        self.base_y = self.tile_y
 
 
 def tile_z_update(self, context):
-    tile_props = context.collection.mt_tile_props
     if self.z_proportionate_scale and not self.invoked:
-        self.base_z = tile_props.base_size[2] + self.tile_z - tile_props.tile_size[2]
+        self.base_z = self.tile_z
 
 
 def create_tile_type_enums(self, context):
@@ -84,10 +81,6 @@ def create_main_part_blueprint_enums(self, context):
     if context is None:
         return enum_items
 
-    '''
-    if 'tile_defaults' not in scene_props:
-        return enum_items
-    '''
     tile_type = scene_props.tile_type
     tile_defaults = load_tile_defaults(context)
 
@@ -108,10 +101,6 @@ def create_base_blueprint_enums(self, context):
     if context is None:
         return enum_items
 
-    '''
-    if 'tile_defaults' not in scene_props:
-        return enum_items
-    '''
     tile_type = scene_props.tile_type
     tile_defaults = load_tile_defaults(context)
 

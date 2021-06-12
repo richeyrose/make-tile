@@ -6,9 +6,7 @@ from bpy.types import Operator, Panel
 from bpy.props import (
     FloatProperty,
     EnumProperty,
-    BoolProperty,
-    StringProperty,
-    FloatVectorProperty)
+    StringProperty)
 
 from .. utils.registration import get_prefs
 from .. lib.utils.collections import (

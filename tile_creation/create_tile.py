@@ -416,10 +416,9 @@ class MT_Tile_Generator:
         deselect_all()
         scene = context.scene
         scene_props = scene.mt_scene_props
+        tile_type = scene_props.tile_type
         # reset tile defaults
         if self.reset_defaults:
-
-            tile_type = scene_props.tile_type
             tile_defaults = load_tile_defaults(context)
             for tile in tile_defaults:
                 if tile['type'] == tile_type:
@@ -470,7 +469,7 @@ class MT_Tile_Generator:
 
         self_annotations = get_annotations(self.__class__)
         copy_annotation_props(self, tile_props, self_annotations)
-
+        tile_props.tile_type = tile_type
         activate_collection(tile_collection.name)
 
     def finalise_tile(self, context, base, *args):

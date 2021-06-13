@@ -21,6 +21,7 @@ from ..tile_creation.create_tile import (
 
 from ..lib.utils.utils import get_all_subclasses, get_annotations
 
+from ..tile_creation.create_tile import create_tile_type_enums
 # TODO Decide how many of these properties we actually need to be storing.
 # TODO rename to mt_collection_props
 '''
@@ -191,6 +192,14 @@ class MT_Tile_Properties(PropertyGroup):
 
 def create_tile_props():
     """Dynamically create new_mt_tile_props PropertyGroup based on properties in MT_Tile_Generator and subclasses."""
+
+    props = {
+        "tile_type": EnumProperty(
+            items=create_tile_type_enums,
+            name="Tile Type",
+            description="The type of tile e.g. Straight Wall, Curved Floor"
+        )
+    }
     subclasses = get_all_subclasses(MT_Tile_Generator)
     annotations = {}
 
@@ -198,6 +207,7 @@ def create_tile_props():
         # make sure we also get annotations of parent classes such as mixins
         annotations.update(get_annotations(subclass))
         annotations.update(subclass.__annotations__)
+        annotations.update(props)
 
     New_MT_Tile_Props = type(
         'New_MT_Tile_Props',

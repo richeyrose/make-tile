@@ -667,7 +667,6 @@
             "subdivision_density": "MEDIUM",
             "end_eaves_pos": 0.1,
             "end_eaves_neg": 0.1,
-            "side_eaves": 0.2755,
             "roof_pitch": 45,
             "roof_thickness": 0.2,
             "inset_dist": 0.09,
@@ -679,12 +678,14 @@
                 "PLAIN":{
                     "base_x": 4.0,
                     "base_y": 6.0,
-                    "base_z": 0.2755
+                    "base_z": 0.2755,
+                    "side_eaves": 0.2755
                 },
                 "NONE": {
                     "base_x": 4.0,
                     "base_y": 6.0,
-                    "base_z": 0
+                    "base_z": 0,
+                    "side_eaves": 0.0
                 }
             },
             "tile_defaults":{

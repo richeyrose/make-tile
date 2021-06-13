@@ -181,9 +181,9 @@ class MT_OT_Make_Connecting_Column_Tile(Operator, MT_Tile_Generator):
         super().draw(context)
         layout = self.layout
         layout.label(text="Blueprints")
+        layout.prop(self, 'column_type')
         layout.prop(self, 'base_blueprint')
         layout.prop(self, 'main_part_blueprint')
-        layout.prop(self, 'column_type')
         layout.prop(self, 'column_socket_style')
         layout.prop(self, 'displacement_thickness')
 

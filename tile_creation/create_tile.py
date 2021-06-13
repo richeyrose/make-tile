@@ -12,7 +12,6 @@ from bpy.props import (
 
 from ..operators.assign_reference_object import (
     create_helper_object)
-from ..app_handlers import create_properties_on_load
 
 from ..utils.registration import get_prefs
 
@@ -47,7 +46,6 @@ def tile_z_update(self, context):
     if self.z_proportionate_scale and not self.invoked:
         self.base_z = self.tile_z
 
-
 def create_tile_type_enums(self, context):
     """Create an enum of tile types out of subclasses of MT_OT_Make_Tile."""
     enum_items = []
@@ -63,7 +61,6 @@ def create_tile_type_enums(self, context):
             enum = (subclass.mt_type, subclass.bl_label, "")
             enum_items.append(enum)
     return sorted(enum_items)
-
 
 def create_main_part_blueprint_enums(self, context):
     """Dynamically creates a list of enum items depending on what is set in the tile_type defaults.
@@ -126,12 +123,9 @@ def reset_scene_defaults(self, context):
             break
     reset_part_defaults(scene_props, context)
 
-def update_scene_defaults(self, context):
-    if not self.invoked:
-        reset_scene_defaults(self, context)
-
 def reset_part_defaults(self, context):
-    tile_type = self.tile_type
+    scene_props = context.scene.mt_scene_props
+    tile_type = scene_props.tile_type
     base_blueprint = self.base_blueprint
     main_part_blueprint = self.main_part_blueprint
     tile_defaults = load_tile_defaults(context)
@@ -325,14 +319,6 @@ class MT_Tile_Generator:
         name="Base size"
     )
 
-    # Universal properties
-    tile_type: EnumProperty(
-        items=create_tile_type_enums,
-        name="Tile Type",
-        update=update_scene_defaults,
-        description="The type of tile e.g. Straight Wall, Curved Floor"
-    )
-
     collection_type: EnumProperty(
         items=collection_types,
         name="Collection Types",
@@ -406,6 +392,7 @@ class MT_Tile_Generator:
         self.cursor_orig_loc = (0, 0, 0)
         self.cursor_orig_rot = (0, 0, 0)
 
+
     def invoke(self, context, event):
         """Call when operator is invoked directly from the UI."""
         self.invoked = True
@@ -428,11 +415,11 @@ class MT_Tile_Generator:
         """Initialise operator properties."""
         deselect_all()
         scene = context.scene
-
+        scene_props = scene.mt_scene_props
         # reset tile defaults
         if self.reset_defaults:
-            scene_props = scene.mt_scene_props
-            tile_type = self.tile_type
+
+            tile_type = scene_props.tile_type
             tile_defaults = load_tile_defaults(context)
             for tile in tile_defaults:
                 if tile['type'] == tile_type:
@@ -471,7 +458,7 @@ class MT_Tile_Generator:
         collections = bpy.data.collections
         if 'Tiles' not in collections:
             create_collection('Tiles', scene.collection)
-        tile_collection = collections.new(self.tile_type.lower())
+        tile_collection = collections.new(scene_props.tile_type.lower())
         collections['Tiles'].children.link(tile_collection)
 
         # set tile_name to collection name

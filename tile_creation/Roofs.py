@@ -56,14 +56,18 @@ class MT_PT_Roof_Panel(Panel):
         layout = self.layout
         layout.label(text="Roof Type")
         layout.prop(scene_props, 'roof_type', text="")
+        layout.prop(scene_props, 'base_blueprint', text="Gable")
+        layout.prop(scene_props, 'main_part_blueprint', text="Rooftop")
+
         row = layout.row()
+        '''
         row.prop(scene_props, 'draw_gables')
         row.prop(scene_props, 'draw_rooftop')
-
+        '''
         layout.label(text="Materials")
-        if scene_props.draw_gables:
+        if scene_props.base_blueprint != "NONE":
             layout.prop(scene_props, 'gable_material')
-        if scene_props.draw_rooftop:
+        if scene_props.main_part_blueprint != "NONE":
             layout.prop(scene_props, 'rooftop_material')
 
         # layout.label(text="Socket Types")
@@ -111,13 +115,11 @@ class MT_OT_Make_Roof(Operator, MT_Tile_Generator):
     mt_type = "ROOF"
 
     roof_type: EnumProperty(
-        name="Roof Type",
         items=[
-            ("APEX", "Apex", ""),
-            ("BUTTERFLY", "Butterfly", ""),
-            ("SHED", "Shed", "")],
-        default="APEX"
-    )
+            ("APEX", "Apex", "", 1),
+            ("BUTTERFLY", "Butterfly", "", 2),
+            ("SHED", "Shed", "", 3)],
+        name="Roof Type")
 
     roof_pitch: FloatProperty(
         name="Roof Pitch",
@@ -153,7 +155,7 @@ class MT_OT_Make_Roof(Operator, MT_Tile_Generator):
         step=0.05,
         min=0
     )
-
+    '''
     draw_rooftop: BoolProperty(
         name="Draw Rooftop?",
         default=True,
@@ -165,7 +167,7 @@ class MT_OT_Make_Roof(Operator, MT_Tile_Generator):
         default=True,
         description="Whether to draw the Gables."
     )
-
+    '''
     inset_dist: FloatProperty(
         name="Inset Distance",
         description="Distance core is usually inset from the base of a wall",
@@ -224,40 +226,20 @@ class MT_OT_Make_Roof(Operator, MT_Tile_Generator):
         if not self.refresh:
             return {'PASS_THROUGH'}
 
-        scene = context.scene
-        scene_props = scene.mt_scene_props
-
-        '''
-        roof_scene_props = scene.mt_roof_scene_props
-        cursor_orig_loc, cursor_orig_rot = initialise_roof_creator(
-            context)
-        '''
+        gable_blueprint = self.base_blueprint
+        rooftop_blueprint = self.main_part_blueprint
+        gable_type = 'ROOF_BASE'
+        rooftop_type = 'ROOF_TOP'
         subclasses = get_all_subclasses(MT_Tile_Generator)
         kwargs = {"tile_name": self.tile_name}
 
-        if self.draw_rooftop:
-            rooftop_type = 'PLAIN'
-            rooftop = spawn_prefab(context, subclasses, rooftop_type, 'ROOF_TOP', **kwargs)
-        else:
+        gables = spawn_prefab(context, subclasses, gable_blueprint, gable_type, **kwargs)
+
+        if rooftop_blueprint == 'NONE':
             rooftop = None
-
-        if self.draw_gables:
-            gable_type = 'PLAIN'
         else:
-            gable_type = 'NONE'
+            rooftop = spawn_prefab(context, subclasses, rooftop_blueprint, rooftop_type, **kwargs)
 
-        kwargs['base_bottom_socket_type'] = self.base_bottom_socket_type
-        gables = spawn_prefab(context, subclasses, gable_type, 'ROOF_BASE', **kwargs)
-        '''
-        if roof_scene_props.draw_rooftop:
-            rooftop_type = 'PLAIN'
-            rooftop = spawn_prefab(context, subclasses, rooftop_type, 'ROOF_TOP')
-        else:
-            rooftop = None
-
-
-        finalise_tile(gables, rooftop, cursor_orig_loc, cursor_orig_rot)
-        '''
         self.finalise_tile(context, gables, rooftop)
 
         return {'FINISHED'}
@@ -269,7 +251,7 @@ class MT_OT_Make_Roof(Operator, MT_Tile_Generator):
         tile_props.collection_type = "TILE"
         tile_props.tile_size = (self.tile_x, self.tile_y, self.tile_z)
         tile_props.base_size = (self.base_x, self.base_y, self.base_z)
-        tile_props.tile_type = 'ROOF'
+
 
     def draw(self, context):
         super().draw(context)
@@ -277,14 +259,17 @@ class MT_OT_Make_Roof(Operator, MT_Tile_Generator):
 
         layout.label(text="Roof Type")
         layout.prop(self, 'roof_type', text="")
+        layout.prop(self, 'base_blueprint', text="Gable")
+        layout.prop(self, 'main_part_blueprint', text="Rooftop")
+        '''
         row = layout.row()
         row.prop(self, 'draw_gables')
         row.prop(self, 'draw_rooftop')
-
+        '''
         layout.label(text="Materials")
-        if self.draw_gables:
+        if self.base_blueprint != "NONE":
             layout.prop(self, 'gable_material')
-        if self.draw_rooftop:
+        if self.main_part_blueprint != "NONE":
             layout.prop(self, 'rooftop_material')
 
         # layout.label(text="Socket Types")
@@ -326,20 +311,13 @@ class MT_OT_Make_Roof_Base(MT_Tile_Generator, Operator):
     mt_blueprint = "PLAIN"
     mt_type = "ROOF_BASE"
 
-    base_bottom_socket_type: EnumProperty(
-        items=[
-            ("OPENLOCK", "OpenLOCK", ""),
-            ("NONE", "None", "")],
-        name="Base Bottom Socket",
-        default='OPENLOCK')
-
     def execute(self, context):
         """Execute the operator."""
         # roof_props = context.collection.mt_roof_tile_props
         tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         base = spawn_base(self, tile_props)
 
-        if self.base_bottom_socket_type == 'OPENLOCK':
+        if tile_props.base_bottom_socket_type == 'OPENLOCK':
             slot_cutter = spawn_openlock_base_slot_cutter(base, tile_props)
             set_bool_obj_props(slot_cutter, base, tile_props, 'DIFFERENCE')
             set_bool_props(slot_cutter, base, 'DIFFERENCE')
@@ -364,13 +342,6 @@ class MT_OT_Make_Empty_Roof_Base(MT_Tile_Generator, Operator):
     bl_options = {'INTERNAL'}
     mt_blueprint = "NONE"
     mt_type = "ROOF_BASE"
-
-    base_bottom_socket_type: EnumProperty(
-        items=[
-            ("OPENLOCK", "OpenLOCK", ""),
-            ("NONE", "None", "")],
-        name="Base Bottom Socket",
-        default='OPENLOCK')
 
     def execute(self, context):
         """Execute the operator."""

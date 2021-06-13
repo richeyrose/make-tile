@@ -190,8 +190,6 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
         if not self.refresh:
             return {'PASS_THROUGH'}
 
-        scene = context.scene
-        scene_props = scene.mt_scene_props
         base_blueprint = self.base_blueprint
         wall_blueprint = self.main_part_blueprint
         base_type = 'STRAIGHT_BASE'

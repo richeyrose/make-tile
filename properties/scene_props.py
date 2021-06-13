@@ -11,8 +11,8 @@ from ..enums.enums import (
     material_mapping)
 from ..tile_creation.create_tile import MT_Tile_Generator
 from ..lib.utils.utils import get_all_subclasses, get_annotations
-from ..tile_creation.create_tile import create_material_enums
-
+from ..tile_creation.create_tile import create_tile_type_enums
+from ..app_handlers import load_tile_defaults
 
 def update_UV_island_margin(self, context):
     '''Reruns UV smart project for preview and displacement object'''
@@ -543,9 +543,43 @@ class MT_Scene_Properties(PropertyGroup):
     )
 '''
 
+def reset_part_defaults(self, context):
+    tile_type = self.tile_type
+    base_blueprint = self.base_blueprint
+    main_part_blueprint = self.main_part_blueprint
+    tile_defaults = load_tile_defaults(context)
+    for tile in tile_defaults:
+        if tile['type'] == tile_type:
+            defaults = tile['defaults']
+            base_defaults = defaults['base_defaults']
+            for key, value in base_defaults.items():
+                if key == base_blueprint:
+                    for k, v in value.items():
+                        setattr(self, k, v)
+                    break
+            main_part_defaults = defaults['tile_defaults']
+            for key, value in main_part_defaults.items():
+                if key == main_part_blueprint:
+                    for k, v in value.items():
+                        setattr(self, k, v)
+                    break
+
+def update_scene_defaults(self, context):
+    tile_type = self.tile_type
+    tile_defaults = load_tile_defaults(context)
+    for tile in tile_defaults:
+        if tile['type'] == tile_type:
+            defaults = tile['defaults']
+            for key, value in defaults.items():
+                if hasattr(self, key):
+                    setattr(self, key, value)
+            break
+    reset_part_defaults(self, context)
+
 def create_scene_props():
     """Dynamically create MT_Scene_Props property group.
     """
+
     # Manually created properties for exporter etc.
     props = {
         "displacement_strength": FloatProperty(
@@ -641,7 +675,12 @@ def create_scene_props():
         "export_subdivs": IntProperty(
             name="Export Subdivisions",
             description="Subdivision levels of exported tile",
-            default=3
+            default=3),
+        "tile_type": EnumProperty(
+            items=create_tile_type_enums,
+            name="Tile Type",
+            update=update_scene_defaults,
+            description="The type of tile e.g. Straight Wall, Curved Floor"
         )
     }
 

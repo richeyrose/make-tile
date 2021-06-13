@@ -602,13 +602,6 @@
             "OPENLOCK": "OpenLOCK",
             "NONE": "None"
         },
-        "column_types": {
-            "I": "I",
-            "L": "L",
-            "O": "O",
-            "T": "T",
-            "X": "X"
-        },
         "defaults":{
             "base_blueprint": "NONE",
             "main_part_blueprint": "OPENLOCK",
@@ -660,23 +653,16 @@
         "blueprint":"CUSTOM",
         "type": "ROOF",
         "base_blueprints": {
-            "OPENLOCK": "OpenLOCK",
             "PLAIN": "Plain",
             "NONE": "None"
         },
         "main_part_blueprints": {
-            "OPENLOCK": "OpenLOCK",
             "PLAIN": "Plain",
             "NONE": "None"
         },
-        "roof_type": {
-            "APEX": "Apex",
-            "BUTTERFLY": "Butterfly",
-            "SHED": "Shed"
-        },
         "defaults":{
-            "base_blueprint": "OPENLOCK",
-            "main_part_blueprint": "OPENLOCK",
+            "base_blueprint": "PLAIN",
+            "main_part_blueprint": "PLAIN",
             "roof_type": "APEX",
             "subdivision_density": "MEDIUM",
             "end_eaves_pos": 0.1,
@@ -690,16 +676,26 @@
             "inset_y_neg": true,
             "inset_y_pos": true,
             "base_defaults":{
-                "OPENLOCK":{
+                "PLAIN":{
                     "base_x": 4.0,
                     "base_y": 6.0,
                     "base_z": 0.2755
+                },
+                "NONE": {
+                    "base_x": 4.0,
+                    "base_y": 6.0,
+                    "base_z": 0
                 }
             },
             "tile_defaults":{
-                "OPENLOCK": {
-                    "tile_x": 0.32,
-                    "tile_y": 0.32,
+                "PLAIN":{
+                    "tile_x": 4.0,
+                    "tile_y": 6.0,
+                    "tile_z": 4.0
+                },
+                "NONE":{
+                    "tile_x": 4.0,
+                    "tile_y": 6.0,
                     "tile_z": 4.0
                 }
             }

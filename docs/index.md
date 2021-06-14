@@ -26,6 +26,8 @@ MakeTile lives in its own tab in the right hand menu. Press **N** to show or hid
 
 To create your first tile select the default cube by left clicking and press **delete**. In the right hand menu leave the defaults as they are and click on the **MakeTile** button. Congratulations, you have just made your first tile!
 
+You can tweak the dimensions of your tile immediately after creation by expanding the **Redo** panel on the bottom left hand side of the screen.
+
 Currently your tile will be blank, so in the **Display Settings** panel click on **Create lighting setup.** Blender should think for a second or two and now your tile should be in glorious 3D!
 
 You will notice that as you rotate around the scene the viewport doesn't update instantaneously. This is because we are currently in Cycles mode, which is Blender's none real time renderer, which we need to use to preview our tiles in 3D. When we're in Cycles mode the 3D displacement is being calculated in the shader and it is not yet "real" geometry. Also while the Cycles preview gives us a good idea of what the finished tile will look like it is not 100% accurate, so if something looks wrong when in Cycles mode, always check what happens when you Make3D.
@@ -57,7 +59,7 @@ If you want to delete a tile you should use the **Delete Tiles** button in the t
 ![Outliner](images/Outliner.png)
 
 ## Creating Tiles
-When creating a tile you can choose the tile type (Straight wall, Rectangular floor, Curved wall etc.) and main material from the MakeTile panel. You can also choose what Blueprint to use for the Base and Core of your tile in the Tile Options Panel.
+When creating a tile you can choose the tile type (Straight wall, Rectangular floor, Curved wall etc.)
 
 ![Outliner](images/MainPanel.png)
 
@@ -65,39 +67,73 @@ The **Subdivisions** option controls the number of times the tile is subdivided 
 
 The **UV Margin** control is used to correct for occasional glitches that occur at the edges of tiles. If you've got strange gaps on the edges of your tile material try tweaking this number.
 
-## Tile Blueprints
-There are currently three tile blueprints supported: OpenLOCK, Plain, and "None".
-
-Bases and Cores (the none base part of a tile) created with the OpenLOCK blueprint are fully compatible with the OpenLOCK system from Printable Scenery and have sockets for joining your tiles together. Bases and Cores created with the plain blueprint have no sockets.
-
-If you create select the "None" blueprint for your tile MakeTile will create an "empty" which it will parent the rest of the tile to. This will appear as a black cross and it is this you should select in order to move your tile.
-
 ## Tile Types
-The tile type (Straight wall, Rectangular floor, Curved wall etc.) can be chosen in the **Type** drop down. Each tile type is customisable and a set of different options will appear in the **Tile Options** panel allowing you to set the size of your tile on creation, along with other parameters such as base angle and leg length for corner tiles or triangular floor tiles. Currently once you have created a tile you cannot change its dimensions.
+Each tile type is customisable and once you've selected a tile type in the top panel a set of different options will appear in the **Tile Options** panel, allowing you to set the size of your tile on creation, along with other parameters such as base angle and leg length for corner tiles or triangular floor tiles.
 
 ![Tile Options Panel](images/TileOptions.png)
 
 If you are using the OpenLOCK bluprints then the defaults wil create tiles compatible with the OpenLOCK system. You can change all of these, but be warned your tiles may not be 100% compatible if you alter the height of floor tiles or the width of wall tiles.
 
+## Tile Options
+You can chose which blueprint to use for the base and main part of your tile (or gable and rooftop for the roof tiles) here. You can also set what material you would like applied to each part of the tile on creation.
+
+Depending on the tile type and the blueprints selected there will be a number of options allowing you to control the various dimensions and properties of your tile.
+
+A couple that are common to most tiles are the **Sync Proportions** options which will ensure that the main part of the tile has the same dimensions as the base along whatever axis you chose. The **Subdivision Density** drop down allows you to select how many times the tile is subdivided on creation. Unlike the **Subdivisions** option in the top panel you can't change this after creation.
+
+You can reset the tile to it's defaults by clicking the **Reset Defaults** button.
+
+### Tile Blueprints ###
+There are currently three tile blueprints supported: OpenLOCK, Plain, and "None".
+
+Bases and Cores (the none base part of a tile) created with the OpenLOCK blueprint are fully compatible with the OpenLOCK system from Printable Scenery and have sockets for joining your tiles together. Bases and Cores created with the plain blueprint have no sockets.
+
+If you select the "None" blueprint for your tile MakeTile will create an "empty" which it will parent the rest of the tile to. This will appear as a black cross and it is this you should select in order to move your tile.
+
+## Redo Panel ##
+Immediately after creating a tile you can tweak it's properties by expanding the **Redo Panel** in the bottom left of the screen.
+
+![Collapsed Redo Panel](images/RedoCollapsed.PNG)
+
+![Expanded Redo Panel](images/RedoExpanded.PNG)
+
+Be aware that every time you make a change here the tile will be rebuilt from scratch. While this should be almost instant for simple tiles it can take a couple of seconds for the more complex tiles like roofs and corner walls. To turn off auto updating click on the Car icon and then once you have made your changes click on the Redo button to apply them.
+
+Once you have selected another object in the scene you will lose the ability to make changes to your tile.
+
 ## Booleans
 Features such as top pegs and side and base sockets can be toggled on and off after a tile has been created in the **Booleans** sub-panel by selecting the core or base and toggling the appropriate boolean. You may notice sockets look slightly distorted in preview mode. This shouldn't affect the exported tiles and will be fixed in a later result.
 
 ## Swapping Materials
-You can choose what material to add to your tile on creation in the **Main Material** drop down in the main panel. If you want to change this after creation then  make sure the main part of your tile is selected, go to the **Materials** panel, click on the name of the material that is currently on your tile and select a new material from the drop down menu.
+If you want to change material after creation and after the redo panel has disappeared then  make sure the main part of your tile is selected, go to the **Materials** panel, click on the name of the material that is currently on your tile and select a new material from the drop down menu.
 
 ![Change Material](images/ChangeMaterial.gif)
 
 ## Adding a Material to part of a tile
-Select the main bit of your tile then click **+** in the **Materials** panel. Select your material from the drop down menu and then in the **Textured Areas** panel select the area you want the material to be applied to. Click on **Assign Material**. Removing a material works in the same way.
+Select the part of your tile you would like to add a material to then click **+** in the **Materials** panel. Select your material from the drop down menu and then in the **Textured Areas** panel select the area you want the material to be applied to. Click on **Assign Material**. Removing a material works in the same way.
 
 ![Assign Material](images/AssignMaterial.gif)
 
 ## Customising your Material
-The materials in MakeTile are procedural which means you can change the parameters to alter the way they look. Clicking on the **Material Options** drop down will show all the different parameters you can change for a given material. As well as being able to change the location, rotation and scale of all the materials you will be able to change different parameters for different materials, such as the width of mortar on bricks, or the closeness of the grain on wood.
+Most of the materials in MakeTile are procedural which means you can change the parameters to alter the way they look. Clicking on the **Material Options** drop down will show all the different parameters you can change for a given material. As well as being able to change the location, rotation and scale of all the materials you will be able to change different parameters for different materials, such as the width of mortar on bricks, or the closeness of the grain on wood.
 
 All materials have at least one **Seed** parameter in the **Randomise** subheading. Changing this number will generate a new random variant of that material. Changing the **Strength** parameter will change the amount the material projects from the surface before you press the Make3D button and the **Displacement Strength** will alter this after you have made your tile 3D.
 
 ![Randomise](images/Randomise.gif)
+
+## Custom Image Material ##
+One material that is slightly different to the others is the **Custom Image** material. This material is designed to have a displacement map texture dropped into it. It will then use this displacement map to create a MakeTile material that works in the same way as the procedural materials. This is great for things like Sci Fi materials or roof tiles. Just download any displacement map ([cc0 textures / ambient cg is a great resource](https://ambientcg.com/)) or create your own. The load it into the Custom Image material in the material options.
+
+![Custom Image Material](images/CustomImageMaterial.PNG)
+
+You'll probably have to tweak the Material Mapping options and scale to get it displaying as you want but you can create some very cool materials very easily with this.
+
+![An Example of a tile made with a free displacement map](images/CustomImageExample.PNG)
+
+## Gridify ##
+The **Gridify** button in the material options panel will take any material and add a grid to it. Once you've clicked on **Gridify** you can set the grid size and other options. This is especially useful when combined with the custom image material.
+
+![Before and after using Gridify](images/Gridify.PNG)
 
 ## Duplicating and saving materials
 Before editing a material it is a good idea to duplicate it and then work on the duplicate. Don't worry if you've forgotten to do this, you can't overwrite the included materials and the originals will be there when you restart blender.
@@ -126,7 +162,7 @@ By default MakeTile will also voxelise and simplify your tiles on export. It doe
 
 You can set the Voxel size in the **Voxelise Settings** panel. Smaller voxels mean higher quality, but take longer. **Adaptivity** is the amount of post voxelisation simplification that is applied. The higher this number is the more the resulting mesh will be simplified and the lower the final polygon count will be.
 
-If you have **Randomise** unchecked and you have not clciked on **Make3D** MakeTile will export a blank tile without any material applied to it.
+If you have **Randomise** unchecked and you have not clicked on **Make3D** MakeTile will export a blank tile without any material applied to it.
 
 ## Exporting multiple tiles
 You can export multiple tiles (and multiple variants of each tile) at once by selecting multiple tiles before clicking **Export Tile.**

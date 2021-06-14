@@ -13,7 +13,7 @@ The Straight Floor Tile Type has also been removed as the tile generator for the
 The first set of S-Tiles (Wall on floor type tile) have been produced. Currently Straight and Curved Walls are supported and you can find the options for these by changing the base type to OpenLOCK S-Wall or Plain S-Wall in the Base Blueprints panel.
 
 ### Materials ###
-For tiles with multiple textured parts such as the Roof tiles and S-Tiles you can now set the materials for each part seperately at tile creation.
+For tiles with multiple textured parts such as the Roof tiles and S-Tiles you can now set the materials for each part seperately at tile creation. Because of this the material picker has now been moved from the top of the MakeTile menu to the blueprint section of the tile creators.
 
 ## 0.0.23 ##
 

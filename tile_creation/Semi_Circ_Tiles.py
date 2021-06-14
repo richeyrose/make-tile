@@ -101,6 +101,9 @@ class MT_PT_Semi_Circ_Floor_Panel(Panel):
         layout.label(text="Subdivision Density")
         layout.prop(scene_props, 'subdivision_density', text="")
 
+        layout.label(text="UV Island Margin")
+        layout.prop(scene_props, 'UV_island_margin', text="")
+
         layout.operator('scene.reset_tile_defaults')
 
 
@@ -197,6 +200,9 @@ class MT_OT_Make_Semi_Circ_Floor_Tile(Operator, MT_Tile_Generator):
 
         layout.label(text="Base Properties")
         layout.prop(self, 'base_z', text="Height")
+
+        layout.label(text="UV Island Margin")
+        layout.prop(self, 'UV_island_margin', text="")
 
 class MT_OT_Make_Openlock_Semi_Circ_Base(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an OpenLOCK semi circular base."""

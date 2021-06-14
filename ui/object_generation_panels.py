@@ -28,7 +28,6 @@ class MT_PT_Tile_Generator_Panel(Panel):
         layout = self.layout
 
         layout.prop(scene_props, 'tile_type')
-        layout.prop(scene_props, 'UV_island_margin')
         layout.prop(scene_props, 'subdivisions')
 
         # Display the appropriate operator based on tile_type

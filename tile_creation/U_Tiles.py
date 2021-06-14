@@ -108,6 +108,9 @@ class MT_PT_U_Tile_Panel(Panel):
         layout.label(text="Subdivision Density")
         layout.prop(scene_props, 'subdivision_density', text="")
 
+        layout.label(text="UV Island Margin")
+        layout.prop(scene_props, 'UV_island_margin', text="")
+
         layout.operator('scene.reset_tile_defaults')
 
 
@@ -211,6 +214,8 @@ class MT_OT_Make_U_Wall_Tile(MT_Tile_Generator, Operator):
         if self.base_blueprint == 'OPENLOCK':
             layout.prop(self, 'base_socket_side', text='Base Socket Side')
 
+        layout.label(text="UV Island Margin")
+        layout.prop(self, 'UV_island_margin', text="")
 
 class MT_OT_Make_Openlock_U_Base(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an OpenLOCK U base."""

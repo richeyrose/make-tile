@@ -104,6 +104,9 @@ class MT_PT_Curved_Wall_Tile_Panel(Panel):
         layout.label(text="Subdivision Density")
         layout.prop(scene_props, 'subdivision_density', text="")
 
+        layout.label(text="UV Island Margin")
+        layout.prop(scene_props, 'UV_island_margin', text="")
+
         layout.operator('scene.reset_tile_defaults')
 
 
@@ -159,6 +162,9 @@ class MT_PT_Curved_Floor_Tile_Panel(Panel):
 
         layout.label(text="Subdivision Density")
         layout.prop(scene_props, 'subdivision_density', text="")
+
+        layout.label(text="UV Island Margin")
+        layout.prop(scene_props, 'UV_island_margin', text="")
 
         layout.operator('scene.reset_tile_defaults')
 
@@ -370,6 +376,8 @@ class MT_OT_Make_Curved_Wall_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
         layout.prop(self, 'base_y', text="Width")
         layout.prop(self, 'base_z', text="Height")
 
+        layout.label(text="UV Island Margin")
+        layout.prop(self, 'UV_island_margin', text="")
 
 class MT_OT_Make_Curved_Floor_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
     """Create a Curved Floor Tile."""
@@ -448,7 +456,9 @@ class MT_OT_Make_Curved_Floor_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
         layout.prop(self, 'base_y', text="Width")
         layout.prop(self, 'base_z', text="Height")
 
-        layout.operator('scene.reset_tile_defaults')
+        layout.label(text="UV Island Margin")
+        layout.prop(self, 'UV_island_margin', text="")
+
 
 class MT_OT_Make_Openlock_Curved_Base(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an OpenLOCK curved base."""

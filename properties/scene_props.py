@@ -14,6 +14,7 @@ from ..lib.utils.utils import get_all_subclasses, get_annotations
 from ..tile_creation.create_tile import create_tile_type_enums
 from ..app_handlers import load_tile_defaults
 
+"""
 def update_UV_island_margin(self, context):
     '''Reruns UV smart project for preview and displacement object'''
 
@@ -42,7 +43,7 @@ def update_UV_island_margin(self, context):
                 bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
                 bpy.ops.mesh.select_all(action='DESELECT')
                 bpy.ops.object.editmode_toggle(ctx)
-
+"""
 
 def update_disp_strength(self, context):
     """Update the displacement strength of the maketile displacement modifier on active object.
@@ -63,10 +64,13 @@ def update_disp_strength(self, context):
 def update_disp_subdivisions(self, context):
     """Update the number of subdivisions used by the displacement material modifier."""
     obj = bpy.context.object
-    obj_props = obj.mt_object_props
     try:
-        obj.modifiers[obj_props.subsurf_mod_name].levels = context.scene.mt_scene_props.subdivisions
-    except KeyError:
+        obj_props = obj.mt_object_props
+        try:
+            obj.modifiers[obj_props.subsurf_mod_name].levels = context.scene.mt_scene_props.subdivisions
+        except KeyError:
+            pass
+    except AttributeError:
         pass
 
 
@@ -211,13 +215,7 @@ class MT_Scene_Properties(PropertyGroup):
         step=1024,
     )
 
-    subdivisions: IntProperty(
-        name="Subdivisions",
-        description="How many times to subdivide the displacement mesh with a subsurf modifier. Higher = better but slower.",
-        default=3,
-        soft_max=8,
-        update=update_disp_subdivisions
-    )
+
 
     texture_margin: FloatProperty(
         name="Texture Margin",
@@ -672,10 +670,14 @@ def create_scene_props():
             items=units,
             description="Export units",
             default='INCHES'),
-        "export_subdivs": IntProperty(
-            name="Export Subdivisions",
-            description="Subdivision levels of exported tile",
-            default=3),
+        "subdivisions": IntProperty(
+            name="Subdivisions",
+            description="How many times to subdivide the displacement mesh with a subsurf modifier. Higher = better but slower.",
+            default=3,
+            soft_max=8,
+            update=update_disp_subdivisions),
+        # rather than creating this in the the MT_Tile_Generator class and copying it we set it seperately here
+        # and in the tile_props to allow us to have different update functions
         "tile_type": EnumProperty(
             items=create_tile_type_enums,
             name="Tile Type",

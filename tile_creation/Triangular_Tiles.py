@@ -78,6 +78,9 @@ class MT_PT_Triangular_Floor_Panel(Panel):
         layout.label(text="Subdivision Density")
         layout.prop(scene_props, 'subdivision_density', text="")
 
+        layout.label(text="UV Island Margin")
+        layout.prop(scene_props, 'UV_island_margin', text="")
+
         layout.operator('scene.reset_tile_defaults')
 
 
@@ -171,6 +174,9 @@ class MT_OT_Make_Triangular_Floor_Tile(Operator, MT_Tile_Generator):
 
         layout.label(text="Base Properties")
         layout.prop(self, 'base_z', text='Base Height')
+
+        layout.label(text="UV Island Margin")
+        layout.prop(self, 'UV_island_margin', text="")
 
 
 class MT_OT_Make_Openlock_Triangular_Base(MT_Tile_Generator, Operator):

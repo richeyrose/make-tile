@@ -91,9 +91,6 @@ class MT_PT_Roof_Panel(Panel):
         layout.prop(scene_props, 'side_eaves', text="Side Eaves")
         layout.prop(scene_props, 'base_z', text="Base Height")
 
-        layout.label(text="Subdivision Density")
-        layout.prop(scene_props, 'subdivision_density', text="")
-
         layout.label(text="Wall Inset Correction")
         layout.prop(scene_props, 'inset_dist', text="Inset Distance")
         row = layout.row()
@@ -101,6 +98,12 @@ class MT_PT_Roof_Panel(Panel):
         row.prop(scene_props, 'inset_x_pos', text="X Pos")
         row.prop(scene_props, 'inset_y_neg', text="Y Neg")
         row.prop(scene_props, 'inset_y_pos', text="Y Pos")
+
+        layout.label(text="Subdivision Density")
+        layout.prop(scene_props, 'subdivision_density', text="")
+
+        layout.label(text="UV Island Margin")
+        layout.prop(scene_props, 'UV_island_margin', text="")
 
         layout.operator('scene.reset_tile_defaults')
 
@@ -155,19 +158,7 @@ class MT_OT_Make_Roof(Operator, MT_Tile_Generator):
         step=0.05,
         min=0
     )
-    '''
-    draw_rooftop: BoolProperty(
-        name="Draw Rooftop?",
-        default=True,
-        description="Whether to draw the rooftop portion of the roof or just the Eaves."
-    )
 
-    draw_gables: BoolProperty(
-        name="Draw Gables?",
-        default=True,
-        description="Whether to draw the Gables."
-    )
-    '''
     inset_dist: FloatProperty(
         name="Inset Distance",
         description="Distance core is usually inset from the base of a wall",
@@ -301,6 +292,8 @@ class MT_OT_Make_Roof(Operator, MT_Tile_Generator):
         row.prop(self, 'inset_y_neg', text="Y Neg")
         row.prop(self, 'inset_y_pos', text="Y Pos")
 
+        layout.label(text="UV Island Margin")
+        layout.prop(self, 'UV_island_margin', text="")
 
 class MT_OT_Make_Roof_Base(MT_Tile_Generator, Operator):
     """Internal Operator. Generate a Roof Base."""

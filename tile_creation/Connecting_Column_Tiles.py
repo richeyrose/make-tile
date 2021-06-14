@@ -101,6 +101,9 @@ class MT_PT_Connecting_Column_Panel(Panel):
         layout.label(text="Subdivision Density")
         layout.prop(scene_props, 'subdivision_density', text="")
 
+        layout.label(text="UV Island Margin")
+        layout.prop(scene_props, 'UV_island_margin', text="")
+
         layout.prop(scene_props, 'displacement_thickness')
         layout.operator('scene.reset_tile_defaults')
 
@@ -208,6 +211,8 @@ class MT_OT_Make_Connecting_Column_Tile(Operator, MT_Tile_Generator):
         row.prop(self, 'base_y')
         row.prop(self, 'base_z')
 
+        layout.label(text="UV Island Margin")
+        layout.prop(self, 'UV_island_margin', text="")
 
 class MT_OT_Make_Openlock_Connecting_Column_Base(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an OpenLOCK connecting column base."""

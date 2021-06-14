@@ -95,6 +95,9 @@ class MT_PT_Straight_Wall_Panel(Panel):
         layout.label(text="Subdivision Density")
         layout.prop(scene_props, 'subdivision_density', text="")
 
+        layout.label(text="UV Island Margin")
+        layout.prop(scene_props, 'UV_island_margin', text="")
+
         layout.operator('scene.reset_tile_defaults')
 
 
@@ -149,6 +152,9 @@ class MT_PT_Rect_Floor_Panel(Panel):
 
         layout.label(text="Subdivision Density")
         layout.prop(scene_props, 'subdivision_density', text="")
+
+        layout.label(text="UV Island Margin")
+        layout.prop(scene_props, 'UV_island_margin', text="")
 
         layout.operator('scene.reset_tile_defaults')
 
@@ -272,6 +278,9 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
             layout.label(text="Wall Position")
             layout.prop(self, 'wall_position', text="")
 
+        layout.label(text="UV Island Margin")
+        layout.prop(self, 'UV_island_margin', text="")
+
 
 class MT_OT_Make_Rect_Floor_Tile(Operator, MT_Tile_Generator):
     """Operator. Generates a rectangular floor tile with a customisable base and main part."""
@@ -347,6 +356,9 @@ class MT_OT_Make_Rect_Floor_Tile(Operator, MT_Tile_Generator):
         row.prop(self, 'base_x')
         row.prop(self, 'base_y')
         row.prop(self, 'base_z')
+
+        layout.label(text="UV Island Margin")
+        layout.prop(self, 'UV_island_margin', text="")
 
 
 class MT_OT_Make_Openlock_Straight_Base(MT_Tile_Generator, Operator):

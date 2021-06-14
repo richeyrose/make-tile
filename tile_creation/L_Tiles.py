@@ -93,6 +93,9 @@ class MT_PT_L_Tile_Panel(Panel):
         layout.label(text="Subdivision Density")
         layout.prop(scene_props, 'subdivision_density', text="")
 
+        layout.label(text="UV Island Margin")
+        layout.prop(scene_props, 'UV_island_margin', text="")
+
         layout.operator('scene.reset_tile_defaults')
 
 class MT_L_Tiles:
@@ -149,6 +152,9 @@ class MT_L_Tiles:
         layout.label(text="Base Properties")
         layout.prop(self, "base_z", text="Height")
         layout.prop(self, "base_y", text="Width")
+
+        layout.label(text="UV Island Margin")
+        layout.prop(self, 'UV_island_margin', text="")
 
 class MT_OT_Make_L_Wall_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
     """Create an L Wall Tile."""

@@ -339,6 +339,11 @@ class MT_Tile_Generator:
         name="Material",
         description="Material to apply to converted object"
     )
+    export_subdivs: IntProperty(
+        name="Export Subdivisions",
+        description="Subdivision levels of exported tile",
+        default=3
+    )
     # Native Subdivisions
     subdivision_density: EnumProperty(
         items=[
@@ -348,19 +353,12 @@ class MT_Tile_Generator:
         default="MEDIUM",
         name="Subdivision Density")
 
-    # Subsurf modifier subdivisions #
-    subdivisions: IntProperty(
-        name="Subdivisions",
-        description="Subsurf modifier subdivision levels",
-        default=3
-    )
-
     # UV smart projection correction
     UV_island_margin: FloatProperty(
         name="UV Margin",
         default=0.012,
         min=0,
-        step=0.001,
+        step=0.01,
         description="Tweak this if you have gaps at edges of tiles when you Make3D"
     )
 

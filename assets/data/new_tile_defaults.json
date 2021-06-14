@@ -1,0 +1,58 @@
+[
+    {
+        "bl_idname": "object.make_rect_floor",
+        "bl_label": "Rectangular Floor",
+        "type": "RECT_FLOOR",
+        "blueprints": {
+            "bases":{
+                "OPENLOCK": {
+                    "label": "OpenLOCK",
+                    "default": true,
+                    "material": "Plastic",
+                    "x": 2,
+                    "y": 2,
+                    "z": 0.2755
+                },
+                "PLAIN": {
+                    "label": "Plain",
+                    "default": false,
+                    "material": "Plastic",
+                    "x": 2,
+                    "y": 2,
+                    "z": 0.2755
+                },
+                "NONE": {
+                    "label": "None",
+                    "default": false,
+                    "material": false,
+                    "x": 2,
+                    "y": 2,
+                    "z": 0
+                }
+            },
+            "main":{
+                "PLAIN": {
+                    "label": "Plain",
+                    "default": true,
+                    "material": "Floor Tiles",
+                    "x": 2,
+                    "y": 2,
+                    "z": 0.3,
+                    "x_proportionate_scale": true,
+                    "y_proportionate_scale": true,
+                    "z_proportionate_scale": false,
+                    "subdivision_density": "MEDIUM"
+                },
+                "NONE": {
+                    "label": "None",
+                    "default": false,
+                    "material": false,
+                    "x": 2,
+                    "y": 2,
+                    "z": 0
+                }
+
+            }
+        }
+    }
+]

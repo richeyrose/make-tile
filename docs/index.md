@@ -63,9 +63,8 @@ When creating a tile you can choose the tile type (Straight wall, Rectangular fl
 
 ![Outliner](images/MainPanel.png)
 
-The **Subdivisions** option controls the number of times the tile is subdivided before being made 3D and controls how detailed your tile will be on export. The higher this number the more subdivisions and the more detail you will pick up, however setting this too high, especially when working on your tiles, can severely slow things down.
+The **Subdivisions** option controls the number of times the tile is subdivided after being made 3D. The higher this number the more subdivisions and the more detail you will pick up, however setting this too high, especially when working on your tiles, can severely slow things down.
 
-The **UV Margin** control is used to correct for occasional glitches that occur at the edges of tiles. If you've got strange gaps on the edges of your tile material try tweaking this number.
 
 ## Tile Types
 Each tile type is customisable and once you've selected a tile type in the top panel a set of different options will appear in the **Tile Options** panel, allowing you to set the size of your tile on creation, along with other parameters such as base angle and leg length for corner tiles or triangular floor tiles.
@@ -79,7 +78,9 @@ You can chose which blueprint to use for the base and main part of your tile (or
 
 Depending on the tile type and the blueprints selected there will be a number of options allowing you to control the various dimensions and properties of your tile.
 
-A couple that are common to most tiles are the **Sync Proportions** options which will ensure that the main part of the tile has the same dimensions as the base along whatever axis you chose. The **Subdivision Density** drop down allows you to select how many times the tile is subdivided on creation. Unlike the **Subdivisions** option in the top panel you can't change this after creation.
+A couple that are common to most tiles are the **Sync Proportions** options which will ensure that the main part of the tile has the same dimensions as the base along whatever axis you chose. The **Subdivision Density** drop down allows you to select how many times the tile is subdivided on creation, that is *before* it is made 3D.
+
+The **UV Margin** control is used to correct for occasional glitches that occur at the edges of tiles. If you've got strange gaps on the edges of your tile material try tweaking this number.
 
 You can reset the tile to it's defaults by clicking the **Reset Defaults** button.
 
@@ -152,6 +153,10 @@ The material should now display correctly. You can also change the material mapp
 ## Exporting
 MakeTile treats 1 Blender unit (one grid square) as 1 inch or cm because of how the tile generators work. Because this is a different default scale to other 3D programs you need to rescale objects on export for them to print at the correct size. Because of this you shouldn't use **File** > **Export** > **STL** but instead use MakeTile's built in exporter which will rescale your tiles and more besides. You can choose which units your exported tiles will be in using the **Units** drop down menu. By default this is inches, which is what the OpenLOCK system uses.
 
+**Export Tile** will export all tiles you have selected. **Export Active Object** will only export the last object you have selected.
+
+**Export Subdivisions** is the number of times the tile will be subdivided after being made 3D.
+
 ![Export Panel](images/ExportPanel.png)
 
 ## Random Variants
@@ -163,6 +168,12 @@ By default MakeTile will also voxelise and simplify your tiles on export. It doe
 You can set the Voxel size in the **Voxelise Settings** panel. Smaller voxels mean higher quality, but take longer. **Adaptivity** is the amount of post voxelisation simplification that is applied. The higher this number is the more the resulting mesh will be simplified and the lower the final polygon count will be.
 
 If you have **Randomise** unchecked and you have not clicked on **Make3D** MakeTile will export a blank tile without any material applied to it.
+
+## Decimating ##
+This will further decimate your tile on export making the file size smaller. You can set the options in the **Decimation Settings** Panel.
+
+## Fix Non-Manifold ##
+If you have the 3D print add-on that is included with Blender you will have the option to allow it to try and clean the mesh. To be honest this breaks the mesh as often as it fixes it but it's worth a shot if you're having difficulties printing a tile.
 
 ## Exporting multiple tiles
 You can export multiple tiles (and multiple variants of each tile) at once by selecting multiple tiles before clicking **Export Tile.**

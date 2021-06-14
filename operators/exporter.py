@@ -69,6 +69,7 @@ class MT_PT_Export_Panel(Panel):
         layout.prop(scene_props, 'voxelise_on_export')
         layout.prop(scene_props, 'randomise_on_export')
         layout.prop(scene_props, 'decimate_on_export')
+        layout.prop(scene_props, 'export_subdivs')
 
         if scene_props.randomise_on_export is True:
             layout.prop(scene_props, 'num_variants')
@@ -324,7 +325,7 @@ class MT_OT_Export_Tile_Variants(bpy.types.Operator):
                             disp_mod.mid_level = 0
                             disp_mod.strength = disp_strength
                             subsurf_mod = obj.modifiers[obj_props.subsurf_mod_name]
-                            subsurf_mod.levels = scene_props.subdivisions
+                            subsurf_mod.levels = scene_props.export_subdivs
                             subsurf_mod.show_viewport = True
                             bpy.ops.object.modifier_move_to_index(ctx, modifier=subsurf_mod.name, index=0)
                             obj_props.is_displaced = True

@@ -122,40 +122,6 @@ class MT_L_Tiles:
         precision=1
     )
 
-    def draw(self, context):
-        super().draw(context)
-        layout = self.layout
-        layout.label(text="Blueprints")
-        layout.prop(self, 'base_blueprint')
-        layout.prop(self, 'main_part_blueprint', text="Main")
-
-        layout.label(text="Materials")
-        if self.tile_type == "L_FLOOR":
-            layout.prop(self, 'floor_material')
-        if self.tile_type == "L_WALL":
-            layout.prop(self, 'wall_material')
-
-        layout.label(text="Tile Properties")
-        layout.prop(self, 'leg_1_len')
-        layout.prop(self, 'leg_2_len')
-        layout.prop(self, 'angle')
-        layout.prop(self, 'tile_z', text="Height")
-
-        layout.label(text="Core Properties")
-        layout.prop(self, 'tile_y', text="Width")
-
-        layout.label(text="Sync Proportions")
-        row = layout.row()
-        row.prop(self, 'z_proportionate_scale', text="Height")
-        row.prop(self, 'y_proportionate_scale', text="Width")
-
-        layout.label(text="Base Properties")
-        layout.prop(self, "base_z", text="Height")
-        layout.prop(self, "base_y", text="Width")
-
-        layout.label(text="UV Island Margin")
-        layout.prop(self, 'UV_island_margin', text="")
-
 class MT_OT_Make_L_Wall_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
     """Create an L Wall Tile."""
 
@@ -202,6 +168,36 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
         tile_props.tile_size = (self.tile_x, self.tile_y, self.tile_z)
         tile_props.base_size = (self.base_x, self.base_y, self.base_z)
 
+    def draw(self, context):
+        super().draw(context)
+        layout = self.layout
+        layout.label(text="Blueprints")
+        layout.prop(self, 'base_blueprint')
+        layout.prop(self, 'main_part_blueprint', text="Main")
+
+        layout.label(text="Materials")
+        layout.prop(self, 'wall_material')
+
+        layout.label(text="Tile Properties")
+        layout.prop(self, 'leg_1_len')
+        layout.prop(self, 'leg_2_len')
+        layout.prop(self, 'angle')
+        layout.prop(self, 'tile_z', text="Height")
+
+        layout.label(text="Core Properties")
+        layout.prop(self, 'tile_y', text="Width")
+
+        layout.label(text="Sync Proportions")
+        row = layout.row()
+        row.prop(self, 'z_proportionate_scale', text="Height")
+        row.prop(self, 'y_proportionate_scale', text="Width")
+
+        layout.label(text="Base Properties")
+        layout.prop(self, "base_z", text="Height")
+        layout.prop(self, "base_y", text="Width")
+
+        layout.label(text="UV Island Margin")
+        layout.prop(self, 'UV_island_margin', text="")
 
 class MT_OT_Make_L_Floor_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
     """Create an L Floor Tile."""
@@ -248,6 +244,36 @@ class MT_OT_Make_L_Floor_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
         tile_props.tile_size = (self.tile_x, self.tile_y, self.tile_z)
         tile_props.base_size = (self.base_x, self.base_y, self.base_z)
 
+    def draw(self, context):
+        super().draw(context)
+        layout = self.layout
+        layout.label(text="Blueprints")
+        layout.prop(self, 'base_blueprint')
+        layout.prop(self, 'main_part_blueprint', text="Main")
+
+        layout.label(text="Materials")
+        layout.prop(self, 'floor_material')
+
+        layout.label(text="Tile Properties")
+        layout.prop(self, 'leg_1_len')
+        layout.prop(self, 'leg_2_len')
+        layout.prop(self, 'angle')
+        layout.prop(self, 'tile_z', text="Height")
+
+        layout.label(text="Core Properties")
+        layout.prop(self, 'tile_y', text="Width")
+
+        layout.label(text="Sync Proportions")
+        row = layout.row()
+        row.prop(self, 'z_proportionate_scale', text="Height")
+        row.prop(self, 'y_proportionate_scale', text="Width")
+
+        layout.label(text="Base Properties")
+        layout.prop(self, "base_z", text="Height")
+        layout.prop(self, "base_y", text="Width")
+
+        layout.label(text="UV Island Margin")
+        layout.prop(self, 'UV_island_margin', text="")
 
 class MT_OT_Make_Openlock_L_Base(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an OpenLOCK L base."""

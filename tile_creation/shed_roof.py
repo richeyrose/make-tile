@@ -533,7 +533,7 @@ def draw_shed_roof_top(self, tile_props, margin=0.001):
     bmesh.ops.contextual_create(bm, geom=bm.verts, mat_nr=0, use_smooth=False)
 
     # loopcut edges
-    edges = [e for e in bm.edges if e.index in [1, 3]]
+    edges = [e for e in bm.edges if e.index in [1, 2]]
     bmesh.ops.subdivide_edges(
         bm,
         edges=edges,
@@ -546,6 +546,20 @@ def draw_shed_roof_top(self, tile_props, margin=0.001):
         draw_origin[0],
         draw_origin[1],
         draw_origin[2] + margin)
+
+    bmesh.ops.bisect_plane(
+        bm,
+        geom=bm.verts[:] + bm.edges[:] + bm.faces[:],
+        dist=margin / 4,
+        plane_co=plane,
+        plane_no=(0, 0, 1))
+
+    # margin cut for top of roof
+    plane = {
+        apex_loc[0],
+        apex_loc[1],
+        apex_loc[2] - margin
+    }
 
     bmesh.ops.bisect_plane(
         bm,
@@ -580,7 +594,7 @@ def draw_shed_roof_top(self, tile_props, margin=0.001):
     ylf(90 - outer_tri['A'])
     pd(top_bm)
     add_vert(top_bm)
-    fd(top_bm, outer_tri['c'] + margin * 4)
+    fd(top_bm, outer_tri['c'] - margin / 2)
     yri(90)
     top_bm.select_mode = {'EDGE'}
     bm_select_all(top_bm)

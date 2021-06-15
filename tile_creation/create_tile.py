@@ -33,17 +33,17 @@ from ..enums.enums import (
 from ..app_handlers import load_tile_defaults
 
 def tile_x_update(self, context):
-    if self.x_proportionate_scale and not self.invoked:
+    if self.x_proportionate_scale:
         self.base_x = self.tile_x
 
 
 def tile_y_update(self, context):
-    if self.y_proportionate_scale and not self.invoked:
+    if self.y_proportionate_scale:
         self.base_y = self.tile_y
 
 
 def tile_z_update(self, context):
-    if self.z_proportionate_scale and not self.invoked:
+    if self.z_proportionate_scale:
         self.base_z = self.tile_z
 
 def create_tile_type_enums(self, context):
@@ -109,6 +109,10 @@ def create_base_blueprint_enums(self, context):
             return sorted(enum_items)
     return enum_items
 
+def update_scene_defaults(self, context):
+    if not self.invoked:
+        reset_scene_defaults(self, context)
+
 def reset_scene_defaults(self, context):
     scene_props = context.scene.mt_scene_props
     tile_type = scene_props.tile_type
@@ -144,10 +148,19 @@ def reset_part_defaults(self, context):
                     for k, v in value.items():
                         setattr(self, k, v)
                     break
+            break
 
+
+# TODO: Work out why this is called twice by operator
 def update_part_defaults(self, context):
-    if not self.invoked:
+    if hasattr(self, 'is_scene_props'):
         reset_part_defaults(self, context)
+        return
+    else:
+        if self.executed:
+            reset_part_defaults(self, context)
+            return
+
 
 def create_material_enums(self, context):
     """Create a list of enum items of materials compatible with the MakeTile material system.
@@ -207,8 +220,18 @@ class MT_Tile_Generator:
 
     invoked: BoolProperty(
         name="Invoked",
-        description="Set to true when operator is invoked then reset to false when operator has executed.",
         default=False
+    )
+
+    executed: BoolProperty(
+        name="Executed",
+        default=False,
+        description="Whether the tile generator has been executed"
+    )
+
+    base_updated: BoolProperty(
+        name="Base Updated",
+        default=True
     )
 
     refresh: BoolProperty(
@@ -234,7 +257,7 @@ class MT_Tile_Generator:
 
     main_part_blueprint: EnumProperty(
         items=create_main_part_blueprint_enums,
-        update=update_part_defaults,
+        #update=update_part_defaults,
         name="Main")
 
     base_blueprint: EnumProperty(
@@ -395,13 +418,13 @@ class MT_Tile_Generator:
         """Call when operator is invoked directly from the UI."""
         self.invoked = True
         self.reset_defaults = False
+
         scene_props = context.scene.mt_scene_props
         all_annotations = get_annotations(self.__class__)
         for key in scene_props.__annotations__.keys():
             for k in all_annotations.keys():
                 if k == key:
                     setattr(self, str(k), getattr(scene_props, str(k)))
-
         self.refresh = True
         return self.execute(context)
 
@@ -412,9 +435,11 @@ class MT_Tile_Generator:
     def init(self, context):
         """Initialise operator properties."""
         deselect_all()
+        self.executed = False
         scene = context.scene
         scene_props = scene.mt_scene_props
         tile_type = scene_props.tile_type
+
         # reset tile defaults
         if self.reset_defaults:
             tile_defaults = load_tile_defaults(context)
@@ -509,6 +534,7 @@ class MT_Tile_Generator:
             self.refresh = False
 
         self.invoked = False
+        self.executed = True
 
 
     def draw(self, context):
@@ -831,7 +857,7 @@ def finalise_core(core, tile_props):
     obj_props.is_mt_object = True
     obj_props.tile_name = tile_props.tile_name
 
-
+'''
 def finalise_tile(base, core, cursor_orig_loc, cursor_orig_rot):
     """Finalise tile.
 
@@ -873,7 +899,7 @@ def finalise_tile(base, core, cursor_orig_loc, cursor_orig_rot):
 
     base.select_set(True)
     context.view_layer.objects.active = base
-
+'''
 
 def spawn_empty_base(tile_props):
     """Spawn an empty base into the scene.

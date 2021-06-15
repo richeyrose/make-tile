@@ -683,18 +683,27 @@ def create_scene_props():
             name="Tile Type",
             update=update_scene_defaults,
             description="The type of tile e.g. Straight Wall, Curved Floor"
-        )
+        ),
+        "is_scene_props": BoolProperty(
+            default=True)
     }
 
     # dynamically created properties constructed from all annotations in subclasses of MT_Tile_Generator
     subclasses = get_all_subclasses(MT_Tile_Generator)
     annotations = {}
 
+
     for subclass in subclasses:
         # make sure we also get annotations of parent classes such as mixins
         annotations.update(get_annotations(subclass))
         annotations.update(subclass.__annotations__)
         annotations.update(props)
+
+    # exclusion list
+    exclude = ["invoked", "executed"]
+    for item in exclude:
+        del annotations[item]
+
     MT_Scene_Props = type(
         'New_MT_Scene_Props',
         (PropertyGroup,),

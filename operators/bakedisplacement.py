@@ -137,7 +137,7 @@ class MT_OT_Make_3D(bpy.types.Operator):
                 disp_mod.texture = disp_texture
                 disp_mod.strength = disp_strength
                 subsurf_mod = obj.modifiers[obj_props.subsurf_mod_name]
-                subsurf_mod.levels = bpy.context.scene.mt_scene_props.subdivisions
+                #subsurf_mod.levels = bpy.context.scene.mt_scene_props.subdivisions
                 subsurf_mod.show_viewport = True
 
                 ctx = {
@@ -254,7 +254,16 @@ def bake_displacement_map(obj):
     }
 
     # bake
+    #check to see if there is a UV layer and if not make one
+    if len(obj.data.uv_layers) == 0:
+        bpy.ops.object.editmode_toggle(ctx)
+        bpy.ops.mesh.select_all(action='SELECT')
+        bpy.ops.uv.smart_project(ctx)
+        bpy.ops.mesh.select_all(action='DESELECT')
+        bpy.ops.object.editmode_toggle(ctx)
+
     bpy.ops.object.bake(ctx, type='EMIT')
+
 
     # pack image
     disp_image.pack()

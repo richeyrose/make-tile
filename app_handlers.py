@@ -32,6 +32,7 @@ def load_material_libraries():
     blend_filenames = get_blend_filenames(user_materials_path)
     materials.extend(load_materials(user_materials_path, blend_filenames))
 
+
 @persistent
 def update_mt_scene_props_handler(dummy):
     """Updates mt_scene_props based on mt_tile_props of selected object.

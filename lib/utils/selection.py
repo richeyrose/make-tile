@@ -13,7 +13,8 @@ def select_all():
             bpy.ops.mesh.select_all(action="SELECT")
             return {'FINISHED'}
         if current_mode == 'OBJECT':
-            bpy.ops.object.select_all(action="SELECT")
+            for obj in bpy.context.selectable_objects:
+                obj.select_set(True)
             return {'FINISHED'}
 
     return {'FINISHED'}
@@ -29,7 +30,8 @@ def deselect_all():
             bpy.ops.mesh.select_all(action="DESELECT")
             return {'FINISHED'}
         if current_mode == 'OBJECT':
-            bpy.ops.object.select_all(action="DESELECT")
+            for obj in bpy.context.selected_objects:
+                obj.select_set(False)
             return {'FINISHED'}
 
     return {'FINSIHED'}

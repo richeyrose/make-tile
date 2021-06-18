@@ -757,77 +757,6 @@ def convert_to_displacement_core(core, textured_vertex_groups, material):
     core.mt_object_props.is_displacement = True
     core.mt_object_props.geometry_type = 'CORE'
 
-'''
-def convert_to_displacement_core(core, textured_vertex_groups):
-    """Convert the core part of an object so it can be used by the MakeTile dispacement system.
-
-    Args:
-        core (bpy.types.Object): object to convert
-        textured_vertex_groups (list[str]): list of vertex group names that should have a texture applied
-    """
-    scene = bpy.context.scene
-    preferences = get_prefs()
-    props = core.mt_object_props
-    scene_props = scene.mt_scene_props
-    primary_material = bpy.data.materials[scene_props.tile_material_1]
-    secondary_material = bpy.data.materials[preferences.secondary_material]
-
-    # create new displacement modifier
-    disp_mod = core.modifiers.new('MT Displacement', 'DISPLACE')
-    disp_mod.strength = 0
-    disp_mod.texture_coords = 'UV'
-    disp_mod.direction = 'NORMAL'
-    disp_mod.mid_level = 0
-    disp_mod.show_render = True
-
-    # save modifier name as custom property for use my maketile
-    props.disp_mod_name = disp_mod.name
-    props.displacement_strength = scene_props.displacement_strength
-    # core['disp_mod_name'] = disp_mod.name
-
-    # create a vertex group for the displacement modifier
-    vert_group = construct_displacement_mod_vert_group(core, textured_vertex_groups)
-    disp_mod.vertex_group = vert_group
-
-    # create texture for displacement modifier
-    props.disp_texture = bpy.data.textures.new(core.name + '.texture', 'IMAGE')
-
-    # add a subsurf modifier
-    subsurf = core.modifiers.new('MT Subsurf', 'SUBSURF')
-    subsurf.subdivision_type = 'SIMPLE'
-    props.subsurf_mod_name = subsurf.name
-    core.cycles.use_adaptive_subdivision = True
-
-    # move subsurf modifier to top of stack
-    ctx = {
-        'object': core,
-        'active_object': core,
-        'selected_objects': [core],
-        'selected_editable_objects': [core]
-    }
-
-    bpy.ops.object.modifier_move_to_index(ctx, modifier=subsurf.name, index=0)
-
-    subsurf.levels = 3
-
-    # switch off subsurf modifier if we are not in cycles mode
-    if bpy.context.scene.render.engine != 'CYCLES':
-        subsurf.show_viewport = False
-
-    # assign materials
-    if secondary_material.name not in core.data.materials:
-        core.data.materials.append(secondary_material)
-
-    if primary_material.name not in core.data.materials:
-        core.data.materials.append(primary_material)
-
-    for group in textured_vertex_groups:
-        assign_mat_to_vert_group(group, core, primary_material)
-
-    # flag core as a displacement object
-    core.mt_object_props.is_displacement = True
-    core.mt_object_props.geometry_type = 'CORE'
-'''
 
 def finalise_core(core, tile_props):
     """Finalise core.
@@ -994,8 +923,6 @@ def set_bool_obj_props(bool_obj, parent_obj, tile_props, bool_type):
         MakeTile.properties.MT_Tile_Properties: tile properties
         bool_type (enum): enum in {'DIFFERENCE', 'UNION', 'INTERSECT'}
     """
-    bpy.context.view_layer.update()
-
     if bool_obj.parent:
         matrix_copy = bool_obj.matrix_world.copy()
         bool_obj.parent = None
@@ -1005,7 +932,6 @@ def set_bool_obj_props(bool_obj, parent_obj, tile_props, bool_type):
     bool_obj.matrix_parent_inverse = parent_obj.matrix_world.inverted()
 
     bool_obj.display_type = 'BOUNDS'
-    # bool_obj.hide_set(True)
     bool_obj.hide_viewport = True
     bool_obj.hide_render = True
 
@@ -1036,6 +962,6 @@ def set_bool_props(bool_obj, target_obj, bool_type, solver='FAST'):
     cutter_coll_item = target_obj.mt_object_props.cutters_collection.add()
     cutter_coll_item.name = bool_obj.name
     cutter_coll_item.value = True
-    bpy.context.view_layer.update()
+    #bpy.context.view_layer.update()
     cutter_coll_item.parent = target_obj.name
 

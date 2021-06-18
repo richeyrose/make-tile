@@ -33,7 +33,7 @@ def create_turtle(name, vert_groups=None):
     bpy.context.view_layer.objects.active = obj
 
     # update depgraph
-    bpy.context.view_layer.update()
+    #bpy.context.view_layer.update()
 
     bm = bmesh.new()
     bm.from_mesh(mesh)

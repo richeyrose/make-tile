@@ -1,5 +1,7 @@
 import os
 from math import radians
+import bmesh
+from mathutils import Matrix, Vector
 
 import bpy
 from bpy.types import Operator, Panel
@@ -558,11 +560,13 @@ def spawn_openlock_wall_cores(self, tile_props, base):
 
     wall_cutters = spawn_openlock_wall_cutters(
         core,
+        base,
         tile_props)
 
     if tile_props.tile_size[0] > 1:
         top_pegs = spawn_openlock_top_pegs(
             core,
+            base,
             tile_props)
 
         set_bool_obj_props(top_pegs, base, tile_props, 'UNION')
@@ -583,6 +587,13 @@ def spawn_openlock_wall_cores(self, tile_props, base):
     return core
 
 
+def set_origin(ob, global_origin=Vector()):
+    mw = ob.matrix_world
+    o = mw.inverted() @ Vector(global_origin)
+    ob.data.transform(Matrix.Translation(-o))
+    mw.translation = global_origin
+
+
 def spawn_wall_core(self, tile_props):
     """Return the core (vertical) part of a straight wall tile."""
     cursor = bpy.context.scene.cursor
@@ -598,6 +609,7 @@ def spawn_wall_core(self, tile_props):
 
     core = draw_straight_wall_core(
         core_size,
+        base_size,
         native_subdivisions)
 
     core.name = tile_name + '.wall_core'
@@ -621,14 +633,23 @@ def spawn_wall_core(self, tile_props):
         'selected_editable_objects': [core],
         'selected_objects': [core]
     }
+    #ctx['object'].mode = 'EDIT'
 
-    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-    bpy.ops.object.editmode_toggle(ctx)
-    bpy.ops.mesh.select_all(action='SELECT')
-    bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
-    bpy.ops.mesh.select_all(action='DESELECT')
-    bpy.ops.object.editmode_toggle(ctx)
+    #bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
 
+    #set_origin(core, cursor_start_loc)
+    #bpy.context.view_layer.update()
+    #bpy.ops.object.editmode_toggle(ctx)
+    #bpy.ops.mesh.select_all(action='SELECT')
+    #bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
+    #bpy.ops.mesh.select_all(action='DESELECT')
+    #bpy.ops.object.editmode_toggle(ctx)
+
+    #print(core.location)
+    #print(cursor.location)
+    # bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+    #set_origin(core, cursor.location)
+    #print(core.location)
     obj_props = core.mt_object_props
     obj_props.is_mt_object = True
     obj_props.tile_name = tile_props.tile_name
@@ -636,7 +657,7 @@ def spawn_wall_core(self, tile_props):
     return core
 
 
-def spawn_openlock_top_pegs(core, tile_props):
+def spawn_openlock_top_pegs(core, base, tile_props):
     """Spawn top peg(s) for stacking wall tiles and position it.
 
     Args:
@@ -658,31 +679,32 @@ def spawn_openlock_top_pegs(core, tile_props):
     array_mod.fit_type = 'FIXED_COUNT'
     array_mod.count = 2
 
-    core_location = core.location.copy()
+    #core_location = core.location.copy()
+    base_location = base.location.copy()
 
     if tile_props.wall_position == 'CENTER':
         if tile_size[0] < 4 and tile_size[0] >= 1:
             peg.location = (
-                core_location[0] + (tile_size[0] / 2) - 0.252,
-                core_location[1] + (base_size[1] / 2) + 0.08,
-                core_location[2] + tile_size[2])
+                base_location[0] + (tile_size[0] / 2) - 0.252,
+                base_location[1] + (base_size[1] / 2) + 0.08,
+                base_location[2] + tile_size[2])
         else:
             peg.location = (
-                core_location[0] + 0.756,
-                core_location[1] + (base_size[1] / 2) + 0.08,
-                core_location[2] + tile_size[2])
+                base_location[0] + 0.756,
+                base_location[1] + (base_size[1] / 2) + 0.08,
+                base_location[2] + tile_size[2])
 
     elif tile_props.wall_position == 'SIDE':
         if tile_size[0] < 4 and tile_size[0] >= 1:
             peg.location = (
-                core_location[0] + (tile_size[0] / 2) - 0.252,
-                core_location[1] + base_size[1] - 0.33,
-                core_location[2] + tile_size[2])
+                base_location[0] + (tile_size[0] / 2) - 0.252,
+                base_location[1] + base_size[1] - 0.33,
+                base_location[2] + tile_size[2])
         else:
             peg.location = (
-                core_location[0] + 0.756,
-                core_location[1] + base_size[1] - 0.33,
-                core_location[2] + tile_size[2])
+                base_location[0] + 0.756,
+                base_location[1] + base_size[1] - 0.33,
+                base_location[2] + tile_size[2])
 
     array_mod = peg.modifiers.new('Array', 'ARRAY')
     array_mod.use_relative_offset = False
@@ -693,7 +715,7 @@ def spawn_openlock_top_pegs(core, tile_props):
     return peg
 
 
-def spawn_openlock_wall_cutters(core, tile_props):
+def spawn_openlock_wall_cutters(core, base, tile_props):
     """Create the cutters for the wall and position them correctly."""
     preferences = get_prefs()
 
@@ -711,7 +733,8 @@ def spawn_openlock_wall_cutters(core, tile_props):
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
         data_to.objects = ['openlock.wall.cutter.side']
 
-    core_location = core.location.copy()
+    #core_location = core.location.copy()
+    base_location = base.location.copy()
 
     cutters = []
     # left side cutters
@@ -720,7 +743,7 @@ def spawn_openlock_wall_cutters(core, tile_props):
 
     add_object_to_collection(left_cutter_bottom, tile_name)
     # get location of bottom front left corner of tile
-    front_left = core_location
+    front_left = base_location
 
     # move cutter to bottom front left corner then up by 0.63 inches
     if tile_props.wall_position == 'CENTER':
@@ -763,9 +786,9 @@ def spawn_openlock_wall_cutters(core, tile_props):
     add_object_to_collection(right_cutter_bottom, tile_name)
     # get location of bottom front right corner of tile
     front_right = [
-        core_location[0] + (tile_size[0]),
-        core_location[1],
-        core_location[2]]
+        base_location[0] + (tile_size[0]),
+        base_location[1],
+        base_location[2]]
 
     if tile_props.wall_position == 'CENTER':
         # move cutter to bottom front right corner then up by 0.63 inches
@@ -897,7 +920,7 @@ def spawn_plain_base(tile_props):
         'active_object': base,
         'selected_objects': [base]}
 
-    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+    #bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
 
     obj_props = base.mt_object_props
     obj_props.is_mt_object = True
@@ -928,8 +951,6 @@ def spawn_openlock_base(self, tile_props):
         set_bool_obj_props(clip_cutter, base, tile_props, 'DIFFERENCE')
         set_bool_props(clip_cutter, base, 'DIFFERENCE')
 
-    mode('OBJECT')
-
     obj_props = base.mt_object_props
     obj_props.is_mt_object = True
     obj_props.geometry_type = 'BASE'
@@ -938,6 +959,25 @@ def spawn_openlock_base(self, tile_props):
 
     return base
 
+'''
+def set_origin(obj):
+    cursor_world_loc = bpy.context.scene.cursor.location
+    cursor_local_loc = obj.matrix_world.inverted() @ cursor_world_loc
+
+    mat = Matrix.Translation(-cursor_local_loc)
+
+    me = obj.data
+    if me.is_editmode:
+        bm = bmesh.from_edit_mesh(me)
+        bm.transform(mat)
+        bmesh.update_edit_mesh(me, False, False)
+    else:
+        me.transform(mat)
+
+    me.update()
+
+    obj.matrix_world.translation = cursor_world_loc
+'''
 
 def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
     """Spawn an openlock base slot cutter into scene and positions it correctly.
@@ -949,8 +989,6 @@ def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
     Returns:
         bpy.type.Object: slot cutter
     """
-    mode('OBJECT')
-
     base_location = base.location.copy()
     base_dims = base.dimensions.copy()
 
@@ -970,14 +1008,6 @@ def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
             base_location[0] + diff / 2,
             base_location[1] + offset,
             base_location[2] - 0.001)
-
-        ctx = {
-            'object': cutter,
-            'active_object': cutter,
-            'selected_objects': [cutter]
-        }
-
-        bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
 
         return cutter
 
@@ -1045,9 +1075,6 @@ def spawn_openlock_base_clip_cutters(base, tile_props):
         list[bpy.types.Object]
 
     """
-
-    mode('OBJECT')
-
     base_location = base.location.copy()
     preferences = get_prefs()
     booleans_path = os.path.join(

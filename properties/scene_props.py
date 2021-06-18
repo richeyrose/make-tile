@@ -63,15 +63,14 @@ def update_disp_strength(self, context):
 
 def update_disp_subdivisions(self, context):
     """Update the number of subdivisions used by the displacement material modifier."""
-    obj = bpy.context.object
-    try:
+
+    selected = [ob for ob in context.selected_editable_objects if ob.mt_object_props.is_displacement]
+    for obj in selected:
         obj_props = obj.mt_object_props
         try:
             obj.modifiers[obj_props.subsurf_mod_name].levels = context.scene.mt_scene_props.subdivisions
         except KeyError:
             pass
-    except AttributeError:
-        pass
 
 
 def update_material_mapping(self, context):

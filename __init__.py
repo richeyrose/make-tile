@@ -10,16 +10,18 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
+import sys
 import bpy
 from bpy.types import PropertyGroup
 from . import auto_load
+
 
 bl_info = {
     "name": "MakeTile",
     "author": "Richard Rose",
     "description": "Add on for creating 3d printable tiles",
     "blender": (2, 92, 0),
-    "version": (0, 0, 23),
+    "version": (0, 0, 25),
     "location": "View3D > UI > MakeTile",
     "warning": "",
     "doc_url": "https://maketile.readthedocs.io/en/latest/",
@@ -27,9 +29,9 @@ bl_info = {
     "category": "Object"
 }
 
+sys.path.append('C:/Users/riche/AppData/Local/Programs/Python/Python39/Lib/site-packages')
 
 auto_load.init()
-
 
 def register():
     auto_load.register()

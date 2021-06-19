@@ -35,7 +35,8 @@ from .create_tile import (
     load_openlock_top_peg,
     MT_Tile_Generator,
     get_subdivs,
-    create_material_enums)
+    create_material_enums,
+    add_subsurf_modifier)
 
 from bpy.props import (
     EnumProperty,
@@ -326,7 +327,7 @@ def spawn_openlock_wall_cores(base, tile_props):
     """
 
     core = spawn_core(tile_props)
-
+    subsurf = add_subsurf_modifier(core)
     cutters = spawn_openlock_wall_cutters(base, tile_props)
 
     for cutter in cutters:
@@ -345,7 +346,8 @@ def spawn_openlock_wall_cores(base, tile_props):
     convert_to_displacement_core(
         core,
         textured_vertex_groups,
-        material)
+        material,
+        subsurf)
 
     return core
 
@@ -617,14 +619,16 @@ def spawn_plain_wall_cores(tile_props):
     Returns:
         bpy.types.Object: preview core
     """
-    preview_core = spawn_core(tile_props)
+    core = spawn_core(tile_props)
     textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'End Wall Inner', 'End Wall Outer', 'Leg 2 Inner', 'Leg 2 Outer']
     material = tile_props.wall_material
+    subsurf = add_subsurf_modifier(core)
     convert_to_displacement_core(
-        preview_core,
+        core,
         textured_vertex_groups,
-        material)
-    return preview_core
+        material,
+        subsurf)
+    return core
 
 
 def spawn_core(tile_props):

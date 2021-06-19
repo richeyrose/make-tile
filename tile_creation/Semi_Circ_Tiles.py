@@ -20,7 +20,8 @@ from . create_tile import (
     set_bool_props,
     MT_Tile_Generator,
     get_subdivs,
-    create_material_enums)
+    create_material_enums,
+    add_subsurf_modifier)
 
 from .. utils.registration import get_prefs
 from .. lib.utils.selection import (
@@ -422,11 +423,13 @@ def spawn_plain_floor_cores(self, tile_props):
     core = spawn_core(self, tile_props)
     textured_vertex_groups = ['Top']
     material = tile_props.floor_material
+    subsurf = add_subsurf_modifier(core)
 
     convert_to_displacement_core(
         core,
         textured_vertex_groups,
-        material)
+        material,
+        subsurf)
 
     return core
 

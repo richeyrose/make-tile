@@ -38,7 +38,8 @@ from .create_tile import (
     load_openlock_top_peg,
     MT_Tile_Generator,
     get_subdivs,
-    create_material_enums)
+    create_material_enums,
+    add_subsurf_modifier)
 
 
 class MT_PT_Curved_Wall_Tile_Panel(Panel):
@@ -648,20 +649,21 @@ def spawn_plain_wall_cores(self, tile_props):
         tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
 
     Returns:
-        (bpy.types.Object): preview_core
+        (bpy.types.Object): core
     """
     offset = (tile_props.base_size[1] - tile_props.tile_size[1]) / 2
     tile_props.core_radius = tile_props.base_radius + offset
     textured_vertex_groups = ['Front', 'Back']
-    preview_core = spawn_wall_core(self, tile_props)
+    core = spawn_wall_core(self, tile_props)
     material = tile_props.wall_material
-
+    subsurf = add_subsurf_modifier(core)
     convert_to_displacement_core(
-        preview_core,
+        core,
         textured_vertex_groups,
-        material)
+        material,
+        subsurf)
 
-    return preview_core
+    return core
 
 
 def spawn_openlock_wall_cores(self, base, tile_props):
@@ -678,7 +680,7 @@ def spawn_openlock_wall_cores(self, base, tile_props):
     tile_props.core_radius = tile_props.base_radius + offset
 
     core = spawn_wall_core(self, tile_props)
-
+    subsurf = add_subsurf_modifier(core)
     cutters = spawn_openlock_wall_cutters(
         core,
         base.location,
@@ -703,7 +705,8 @@ def spawn_openlock_wall_cores(self, base, tile_props):
     convert_to_displacement_core(
         core,
         textured_vertex_groups,
-        material)
+        material,
+        subsurf)
 
     activate(core.name)
 
@@ -1098,15 +1101,16 @@ def spawn_plain_floor_cores(self, tile_props):
     """
     textured_vertex_groups = ['Top']
     tile_props.core_radius = tile_props.base_radius
-    preview_core = spawn_floor_core(self, tile_props)
+    core = spawn_floor_core(self, tile_props)
     material = tile_props.floor_material
-
+    subsurf = add_subsurf_modifier(core)
     convert_to_displacement_core(
-        preview_core,
+        core,
         textured_vertex_groups,
-        material)
+        material,
+        subsurf)
 
-    return preview_core
+    return core
 
 
 def spawn_floor_core(self, tile_props):

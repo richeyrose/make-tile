@@ -32,6 +32,10 @@ from ..enums.enums import (
 
 from ..app_handlers import load_tile_defaults
 
+from line_profiler import LineProfiler
+from os.path import splitext
+profile = LineProfiler()
+
 def tile_x_update(self, context):
     if self.x_proportionate_scale:
         self.base_x = self.tile_x
@@ -413,7 +417,6 @@ class MT_Tile_Generator:
         self.cursor_orig_loc = (0, 0, 0)
         self.cursor_orig_rot = (0, 0, 0)
 
-
     def invoke(self, context, event):
         """Call when operator is invoked directly from the UI."""
         self.invoked = True
@@ -428,9 +431,11 @@ class MT_Tile_Generator:
         self.refresh = True
         return self.execute(context)
 
+
     def execute(self, context):
         """Call when operator is executed."""
         self.init(context)
+
 
     def init(self, context):
         """Initialise operator properties."""
@@ -494,6 +499,7 @@ class MT_Tile_Generator:
         copy_annotation_props(self, tile_props, self_annotations)
         tile_props.tile_type = tile_type
         activate_collection(tile_collection.name)
+
 
     def finalise_tile(self, context, base, *args):
         """Finalise the tile.
@@ -681,14 +687,33 @@ def lock_all_transforms(obj):
     obj.lock_scale[1] = True
     obj.lock_scale[2] = True
 
+def add_subsurf_modifier(obj):
+    """Add a subsurf modifier for material system and store its name in object props.
 
-def convert_to_displacement_core(core, textured_vertex_groups, material):
+    Args:
+        obj (bpy.types.object): object
+
+    Returns:
+        str: subsurf name
+    """
+    subsurf = obj.modifiers.new('MT Subsurf', 'SUBSURF')
+    subsurf.subdivision_type = 'SIMPLE'
+    obj.mt_object_props.subsurf_mod_name = subsurf.name
+    obj.cycles.use_adaptive_subdivision = True
+
+    return subsurf.name
+
+
+def convert_to_displacement_core(core, textured_vertex_groups, material, subsurf):
     """Convert the core part of an object so it can be used by the MakeTile dispacement system.
+
+    If possible pass in an already created subsurf modifier.
 
     Args:
         core (bpy.types.Object): object to convert
         textured_vertex_groups (list[str]): list of vertex group names that should have a texture applied
         material (str): Name of material to use
+        subsurf (str): Name of subsurf modifier
     """
     context = bpy.context
     scene = context.scene
@@ -717,31 +742,13 @@ def convert_to_displacement_core(core, textured_vertex_groups, material):
 
     # create texture for displacement modifier
     props.disp_texture = bpy.data.textures.new(core.name + '.texture', 'IMAGE')
-    '''
-    # add a triangulate modifier to correct for distortion after bools
-    core.modifiers.new('MT Triangulate', 'TRIANGULATE')
-    '''
-    # add a subsurf modifier
-    subsurf = core.modifiers.new('MT Subsurf', 'SUBSURF')
-    subsurf.subdivision_type = 'SIMPLE'
-    props.subsurf_mod_name = subsurf.name
-    core.cycles.use_adaptive_subdivision = True
 
-    # move subsurf modifier to top of stack
-    ctx = {
-        'object': core,
-        'active_object': core,
-        'selected_objects': [core],
-        'selected_editable_objects': [core]
-    }
-
-    bpy.ops.object.modifier_move_to_index(ctx, modifier=subsurf.name, index=0)
-
-    subsurf.levels = 3
-
+    subsurf = core.modifiers[subsurf]
     # switch off subsurf modifier if we are not in cycles mode
     if bpy.context.scene.render.engine != 'CYCLES':
         subsurf.show_viewport = False
+
+    subsurf.levels = 3
 
     # assign materials
     if secondary_material.name not in core.data.materials:

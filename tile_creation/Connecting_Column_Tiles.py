@@ -20,7 +20,8 @@ from .create_tile import (
     finalise_core,
     MT_Tile_Generator,
     get_subdivs,
-    create_material_enums)
+    create_material_enums,
+    add_subsurf_modifier)
 from ..lib.bmturtle.scripts import (
     draw_cuboid)
 from .Straight_Tiles import (
@@ -378,11 +379,13 @@ def spawn_plain_connecting_column_core(self, tile_props):
             core = spawn_X_core(self, tile_props)
             textured_vertex_groups = []
 
+    subsurf = add_subsurf_modifier(core)
     material=tile_props.column_material
     convert_to_displacement_core(
         core,
         textured_vertex_groups,
-        material)
+        material,
+        subsurf)
 
     return core
 
@@ -401,12 +404,14 @@ def spawn_openlock_connecting_column_core(self, tile_props, base):
     buffers = []
     column_type = tile_props.column_type
     socket_style = tile_props.column_socket_style
+
     if column_type == 'I':
         if socket_style == 'TEXTURED':
             core = spawn_generic_core(self, tile_props)
         else:
             core = spawn_I_core(self, tile_props)
             textured_vertex_groups = ['Front', 'Back']
+        subsurf = add_subsurf_modifier(core)
         cutters = spawn_openlock_I_cutters(
             core,
             tile_props)
@@ -416,6 +421,7 @@ def spawn_openlock_connecting_column_core(self, tile_props, base):
         else:
             core = spawn_L_core(self, tile_props)
             textured_vertex_groups = ['Front', 'Left']
+        subsurf = add_subsurf_modifier(core)
         cutters = spawn_openlock_L_cutters(
             core,
             tile_props)
@@ -425,6 +431,7 @@ def spawn_openlock_connecting_column_core(self, tile_props, base):
         else:
             core = spawn_O_core(self, tile_props)
             textured_vertex_groups = ['Front', 'Back', 'Left']
+        subsurf = add_subsurf_modifier(core)
         cutters = spawn_openlock_O_cutters(
             core,
             tile_props)
@@ -434,6 +441,7 @@ def spawn_openlock_connecting_column_core(self, tile_props, base):
         else:
             core = spawn_T_core(self, tile_props)
             textured_vertex_groups = ['Front']
+        subsurf = add_subsurf_modifier(core)
         cutters = spawn_openlock_T_cutters(
             core,
             tile_props)
@@ -443,6 +451,7 @@ def spawn_openlock_connecting_column_core(self, tile_props, base):
         else:
             core = spawn_X_core(self, tile_props)
             textured_vertex_groups = []
+        subsurf = add_subsurf_modifier(core)
         cutters = spawn_openlock_X_cutters(
             core,
             tile_props)
@@ -462,7 +471,8 @@ def spawn_openlock_connecting_column_core(self, tile_props, base):
     convert_to_displacement_core(
         core,
         textured_vertex_groups,
-        material)
+        material,
+        subsurf)
 
     return core
 

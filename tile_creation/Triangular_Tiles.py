@@ -30,7 +30,8 @@ from .create_tile import (
     set_bool_props,
     MT_Tile_Generator,
     get_subdivs,
-    create_material_enums)
+    create_material_enums,
+    add_subsurf_modifier)
 
 class MT_PT_Triangular_Floor_Panel(Panel):
     """Draw a tile options panel in UI."""
@@ -566,15 +567,17 @@ def create_plain_triangular_floor_cores(base, tile_props):
     Returns:
         bpy.types.Object: preview core
     """
-    preview_core = spawn_floor_core(tile_props)
+    core = spawn_floor_core(tile_props)
     textured_vertex_groups = ['Top']
     material=tile_props.floor_material
+    subsurf = add_subsurf_modifier(core)
     convert_to_displacement_core(
-        preview_core,
+        core,
         textured_vertex_groups,
-        material)
+        material,
+        subsurf)
 
-    return preview_core
+    return core
 
 
 def spawn_floor_core(tile_props):

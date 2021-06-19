@@ -21,7 +21,8 @@ from .create_tile import (
     set_bool_obj_props,
     set_bool_props,
     MT_Tile_Generator,
-    create_material_enums)
+    create_material_enums,
+    add_subsurf_modifier)
 
 from .apex_roof import draw_apex_roof_top, draw_apex_base
 from .shed_roof import draw_shed_base, draw_shed_roof_top
@@ -309,6 +310,7 @@ class MT_OT_Make_Roof_Base(MT_Tile_Generator, Operator):
         # roof_props = context.collection.mt_roof_tile_props
         tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         base = spawn_base(self, tile_props)
+        subsurf = add_subsurf_modifier(base)
 
         if tile_props.base_bottom_socket_type == 'OPENLOCK':
             slot_cutter = spawn_openlock_base_slot_cutter(base, tile_props)
@@ -321,7 +323,8 @@ class MT_OT_Make_Roof_Base(MT_Tile_Generator, Operator):
         convert_to_displacement_core(
             base,
             textured_vertex_groups,
-            material)
+            material,
+            subsurf)
 
         activate(base.name)
         return{'FINISHED'}
@@ -356,13 +359,15 @@ class MT_OT_Make_Roof_Top(MT_Tile_Generator, Operator):
         """Execute the operator."""
         tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         roof = spawn_roof(self, tile_props)
+        subsurf = add_subsurf_modifier(roof)
         textured_vertex_groups = ['Left', 'Right']
         material = tile_props.rooftop_material
 
         convert_to_displacement_core(
             roof,
             textured_vertex_groups,
-            material)
+            material,
+            subsurf)
 
         return{'FINISHED'}
 

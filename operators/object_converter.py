@@ -6,7 +6,8 @@ from ..tile_creation.create_tile import (
     convert_to_displacement_core,
     lock_all_transforms,
     create_common_tile_props,
-    spawn_empty_base)
+    spawn_empty_base,
+    add_subsurf_modifier)
 from ..lib.utils.utils import mode
 from .. lib.utils.selection import (
     deselect_all,
@@ -139,8 +140,9 @@ class MT_OT_Convert_To_MT_Obj(bpy.types.Operator):
             textured_vertex_groups = ['All']
 
         material = self.converter_material
+        subsurf = add_subsurf_modifier(obj)
         # convert our object to a displacement object
-        convert_to_displacement_core(obj, textured_vertex_groups, material)
+        convert_to_displacement_core(obj, textured_vertex_groups, material, subsurf)
 
         # lock all transforms so we can only move parent
         lock_all_transforms(obj)

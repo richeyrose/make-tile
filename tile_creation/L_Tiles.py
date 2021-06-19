@@ -35,7 +35,8 @@ from . create_tile import (
     load_openlock_top_peg,
     MT_Tile_Generator,
     create_material_enums,
-    get_subdivs)
+    get_subdivs,
+    add_subsurf_modifier)
 
 
 class MT_PT_L_Tile_Panel(Panel):
@@ -432,16 +433,17 @@ def spawn_plain_wall_cores(self, tile_props):
     Returns:
         (bpy.types.Object): preview_core
     """
-    preview_core = spawn_wall_core(self, tile_props)
+    core = spawn_wall_core(self, tile_props)
     textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner']
     material = tile_props.wall_material
-
+    subsurf = add_subsurf_modifier(core)
     convert_to_displacement_core(
-        preview_core,
+        core,
         textured_vertex_groups,
-        material)
+        material,
+        subsurf)
 
-    return preview_core
+    return core
 
 
 def spawn_plain_floor_cores(self, tile_props):
@@ -454,15 +456,16 @@ def spawn_plain_floor_cores(self, tile_props):
         (bpy.types.Object): preview_core
     """
     textured_vertex_groups = ['Leg 1 Top', 'Leg 2 Top']
-    preview_core = spawn_floor_core(self, tile_props)
+    core = spawn_floor_core(self, tile_props)
     material = tile_props.floor_material
-
+    subsurf = add_subsurf_modifier(core)
     convert_to_displacement_core(
-        preview_core,
+        core,
         textured_vertex_groups,
-        material)
+        material,
+        subsurf)
 
-    return preview_core
+    return core
 
 
 def spawn_floor_core(self, tile_props):
@@ -554,6 +557,7 @@ def spawn_openlock_wall_cores(self, tile_props, base):
         (bpy.types.Object): core
     """
     core = spawn_wall_core(self, tile_props)
+    subsurf = add_subsurf_modifier(core)
     cutters = spawn_openlock_wall_cutters(core, tile_props)
 
     if tile_props.leg_1_len >= 1 or tile_props.leg_2_len >= 1:
@@ -575,7 +579,8 @@ def spawn_openlock_wall_cores(self, tile_props, base):
     convert_to_displacement_core(
         core,
         textured_vertex_groups,
-        material)
+        material,
+        subsurf)
 
     bpy.context.scene.cursor.location = (0, 0, 0)
 

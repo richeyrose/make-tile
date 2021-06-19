@@ -1,7 +1,5 @@
 import os
 from math import radians
-import bmesh
-from mathutils import Matrix, Vector
 
 import bpy
 from bpy.types import Operator, Panel
@@ -19,12 +17,9 @@ from ..lib.bmturtle.scripts import (
     draw_cuboid,
     draw_rectangular_floor_core)
 
-from .. lib.utils.utils import get_all_subclasses
-
 from .create_tile import (
     spawn_empty_base,
     convert_to_displacement_core,
-    spawn_prefab,
     set_bool_obj_props,
     set_bool_props,
     load_openlock_top_peg,
@@ -32,11 +27,11 @@ from .create_tile import (
     get_subdivs,
     create_material_enums,
     add_subsurf_modifier)
-
+'''
 from line_profiler import LineProfiler
 from os.path import splitext
 profile = LineProfiler()
-
+'''
 class MT_PT_Straight_Wall_Panel(Panel):
     """Draw a tile options panel in UI."""
 
@@ -196,49 +191,51 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
         items=create_material_enums,
         name="Wall Material")
 
+    def exec(self, context):
+        base_blueprint = self.base_blueprint
+        wall_blueprint = self.main_part_blueprint
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
+
+        if base_blueprint == 'NONE':
+            base = spawn_empty_base(tile_props)
+        elif base_blueprint in ['PLAIN', 'PLAIN_S_WALL']:
+            base = spawn_plain_base(tile_props)
+        elif base_blueprint in ['OPENLOCK', 'OPENLOCK_S_WALL']:
+            base = spawn_openlock_base(self, tile_props)
+
+        if wall_blueprint == 'NONE':
+            wall_core = None
+        elif wall_blueprint == 'PLAIN':
+            wall_core = spawn_plain_wall_cores(self, tile_props)
+        elif wall_blueprint == 'OPENLOCK':
+            wall_core = spawn_openlock_wall_cores(self, tile_props, base)
+
+        if base_blueprint in {'OPENLOCK_S_WALL', 'PLAIN_S_WALL'}:
+            # We temporarily override tile_props.base_size to generate floor core for S-Tiles.
+            # It is easier to do it this way as the PropertyGroup.copy() method produces a dict
+            tile_props = context.collection.mt_tile_props
+
+            orig_tile_size = []
+            for c, v in enumerate(tile_props.tile_size):
+                orig_tile_size.append(v)
+
+            context.collection.mt_tile_props.tile_size = (
+                tile_props.base_size[0],
+                tile_props.base_size[1],
+                tile_props.base_size[2] + self.floor_thickness)
+            floor_core = create_plain_rect_floor_cores(self, tile_props)
+            tile_props.tile_size = orig_tile_size
+            self.finalise_tile(context, base, wall_core, floor_core)
+        else:
+            self.finalise_tile(context, base, wall_core)
+
+
     def execute(self, context):
         """Execute the operator."""
         super().execute(context)
         if not self.refresh:
             return {'PASS_THROUGH'}
-
-        base_blueprint = self.base_blueprint
-        wall_blueprint = self.main_part_blueprint
-        base_type = 'STRAIGHT_BASE'
-        core_type = 'STRAIGHT_WALL_CORE'
-        subclasses = get_all_subclasses(MT_Tile_Generator)
-
-        kwargs = {"tile_name": self.tile_name}
-        base = spawn_prefab(context, subclasses, base_blueprint, base_type, **kwargs)
-
-        kwargs["base_name"] = base.name
-        if wall_blueprint == 'NONE':
-            wall_core = None
-        else:
-            wall_core = spawn_prefab(context, subclasses, wall_blueprint, core_type, **kwargs)
-
-        # We temporarily override tile_props.base_size to generate floor core for S-Tiles.
-        # It is easier to do it this way as the PropertyGroup.copy() method produces a dict
-        tile_props = context.collection.mt_tile_props
-
-        orig_tile_size = []
-        for c, v in enumerate(tile_props.tile_size):
-            orig_tile_size.append(v)
-
-        context.collection.mt_tile_props.tile_size = (
-            tile_props.base_size[0],
-            tile_props.base_size[1],
-            tile_props.base_size[2] + self.floor_thickness)
-
-        if base_blueprint in {'OPENLOCK_S_WALL', 'PLAIN_S_WALL'}:
-            floor_core = spawn_prefab(context, subclasses, 'PLAIN', 'STRAIGHT_FLOOR_CORE', **kwargs)
-            self.finalise_tile(context, base, wall_core, floor_core)
-        else:
-            self.finalise_tile(context, base, wall_core)
-
-        tile_props.tile_size = orig_tile_size
-
-
+        self.exec(context)
         return {'FINISHED'}
 
     def init(self, context):
@@ -308,24 +305,28 @@ class MT_OT_Make_Rect_Floor_Tile(Operator, MT_Tile_Generator):
         if not self.refresh:
             return {'PASS_THROUGH'}
 
+        self.exec(context)
+        #profile.dump_stats(splitext(__file__)[0] + '.prof')
+        return {'FINISHED'}
+
+    #@profile
+    def exec(self, context):
         base_blueprint = self.base_blueprint
         core_blueprint = self.main_part_blueprint
-        base_type = 'STRAIGHT_BASE'
-        core_type = 'STRAIGHT_FLOOR_CORE'
-        subclasses = get_all_subclasses(MT_Tile_Generator)
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
 
-        kwargs = {"tile_name": self.tile_name}
-        base = spawn_prefab(context, subclasses, base_blueprint, base_type, **kwargs)
+        if base_blueprint == 'NONE':
+            base = spawn_empty_base(tile_props)
+        elif base_blueprint == 'OPENLOCK':
+            base = spawn_openlock_base(self, tile_props)
+        elif base_blueprint == 'PLAIN':
+            base = spawn_plain_base(tile_props)
 
-        kwargs["base_name"] = base.name
         if core_blueprint == 'NONE':
-            preview_core = None
+            core = None
         else:
-            preview_core = spawn_prefab(context, subclasses, core_blueprint, core_type, **kwargs)
-
-        self.finalise_tile(context, base, preview_core)
-
-        return {'FINISHED'}
+            core = create_plain_rect_floor_cores(self, tile_props)
+        self.finalise_tile(context, base, core)
 
     def init(self, context):
         super().init(context)
@@ -377,10 +378,13 @@ class MT_OT_Make_Openlock_Straight_Base(MT_Tile_Generator, Operator):
     mt_blueprint = "OPENLOCK"
     mt_type = "STRAIGHT_BASE"
 
-    def execute(self, context):
-        """Execute the operator."""
+    def dummy_exec(self, context):
         tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         spawn_openlock_base(self, tile_props)
+
+    def execute(self, context):
+        """Execute the operator."""
+        self.dummy_exec(context)
         return{'FINISHED'}
 
 
@@ -530,7 +534,6 @@ class MT_OT_Make_Empty_Straight_Floor_Core(MT_Tile_Generator, Operator):
         """Execute the operator."""
         return {'PASS_THROUGH'}
 
-
 def spawn_plain_wall_cores(self, tile_props):
     """Spawn plain Core.
 
@@ -551,7 +554,6 @@ def spawn_plain_wall_cores(self, tile_props):
         material,
         subsurf)
     return core
-
 
 def spawn_openlock_wall_cores(self, tile_props, base):
     """Spawn OpenLOCK core.
@@ -856,21 +858,6 @@ def spawn_floor_core(self, tile_props):
 
     core.location[2] = core.location[2] + base_size[2]
 
-    ctx = {
-        'object': core,
-        'active_object': core,
-        'selected_editable_objects': [core],
-        'selected_objects': [core]
-    }
-
-    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-
-    bpy.ops.object.editmode_toggle(ctx)
-    bpy.ops.mesh.select_all(action='SELECT')
-    bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
-    bpy.ops.mesh.select_all(action='DESELECT')
-    bpy.ops.object.editmode_toggle(ctx)
-
     obj_props = core.mt_object_props
     obj_props.is_mt_object = True
     obj_props.tile_name = tile_props.tile_name
@@ -911,7 +898,7 @@ def spawn_plain_base(tile_props):
 
     return base
 
-@profile
+
 def spawn_openlock_base(self, tile_props):
     """Spawn an openlock base into the scene.
 
@@ -937,28 +924,8 @@ def spawn_openlock_base(self, tile_props):
     obj_props.geometry_type = 'BASE'
     obj_props.tile_name = tile_props.tile_name
     bpy.context.view_layer.objects.active = base
-    profile.dump_stats(splitext(__file__)[0] + '.prof')
+
     return base
-
-'''
-def set_origin(obj):
-    cursor_world_loc = bpy.context.scene.cursor.location
-    cursor_local_loc = obj.matrix_world.inverted() @ cursor_world_loc
-
-    mat = Matrix.Translation(-cursor_local_loc)
-
-    me = obj.data
-    if me.is_editmode:
-        bm = bmesh.from_edit_mesh(me)
-        bm.transform(mat)
-        bmesh.update_edit_mesh(me, False, False)
-    else:
-        me.transform(mat)
-
-    me.update()
-
-    obj.matrix_world.translation = cursor_world_loc
-'''
 
 def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
     """Spawn an openlock base slot cutter into scene and positions it correctly.
@@ -1044,7 +1011,7 @@ def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
 
         return cutter_d
 
-@profile
+
 def spawn_openlock_base_clip_cutters(base, tile_props):
     """Make cutters for the openlock base clips.
 

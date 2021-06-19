@@ -28,6 +28,11 @@ from .apex_roof import draw_apex_roof_top, draw_apex_base
 from .shed_roof import draw_shed_base, draw_shed_roof_top
 from .butterfly_roof import draw_butterfly_base, draw_butterfly_roof_top
 
+'''
+from line_profiler import LineProfiler
+from os.path import splitext
+profile = LineProfiler()
+'''
 
 # TODO Make side eaves seperately customisable in same way as end eaves
 # TODO Ensure UI updates to show roof options when roof is selected
@@ -212,28 +217,29 @@ class MT_OT_Make_Roof(Operator, MT_Tile_Generator):
         items=create_material_enums,
         name="Rooftop Material")
 
+    #@profile
+    def exec(self, context):
+        gable_blueprint = self.base_blueprint
+        rooftop_blueprint = self.main_part_blueprint
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
+        if gable_blueprint == 'NONE':
+            gables = spawn_empty_base(tile_props)
+        elif gable_blueprint == 'PLAIN':
+            gables = spawn_base(self, tile_props)
+
+        if rooftop_blueprint == 'NONE':
+            rooftop = None
+        else:
+            rooftop = spawn_roof(self, tile_props)
+        self.finalise_tile(context, gables, rooftop)
+
     def execute(self, context):
         """Execute the Operator."""
         super().execute(context)
         if not self.refresh:
             return {'PASS_THROUGH'}
-
-        gable_blueprint = self.base_blueprint
-        rooftop_blueprint = self.main_part_blueprint
-        gable_type = 'ROOF_BASE'
-        rooftop_type = 'ROOF_TOP'
-        subclasses = get_all_subclasses(MT_Tile_Generator)
-        kwargs = {"tile_name": self.tile_name}
-
-        gables = spawn_prefab(context, subclasses, gable_blueprint, gable_type, **kwargs)
-
-        if rooftop_blueprint == 'NONE':
-            rooftop = None
-        else:
-            rooftop = spawn_prefab(context, subclasses, rooftop_blueprint, rooftop_type, **kwargs)
-
-        self.finalise_tile(context, gables, rooftop)
-
+        self.exec(context)
+        #profile.dump_stats(splitext(__file__)[0] + '.prof')
         return {'FINISHED'}
 
     def init(self, context):
@@ -309,24 +315,7 @@ class MT_OT_Make_Roof_Base(MT_Tile_Generator, Operator):
         """Execute the operator."""
         # roof_props = context.collection.mt_roof_tile_props
         tile_props = bpy.data.collections[self.tile_name].mt_tile_props
-        base = spawn_base(self, tile_props)
-        subsurf = add_subsurf_modifier(base)
-
-        if tile_props.base_bottom_socket_type == 'OPENLOCK':
-            slot_cutter = spawn_openlock_base_slot_cutter(base, tile_props)
-            set_bool_obj_props(slot_cutter, base, tile_props, 'DIFFERENCE')
-            set_bool_props(slot_cutter, base, 'DIFFERENCE')
-
-        textured_vertex_groups = ['Base Left', 'Base Right', 'Gable Front', 'Gable Back']
-        material = tile_props.gable_material
-
-        convert_to_displacement_core(
-            base,
-            textured_vertex_groups,
-            material,
-            subsurf)
-
-        activate(base.name)
+        spawn_base(self, tile_props)
         return{'FINISHED'}
 
 
@@ -358,17 +347,7 @@ class MT_OT_Make_Roof_Top(MT_Tile_Generator, Operator):
     def execute(self, context):
         """Execute the operator."""
         tile_props = bpy.data.collections[self.tile_name].mt_tile_props
-        roof = spawn_roof(self, tile_props)
-        subsurf = add_subsurf_modifier(roof)
-        textured_vertex_groups = ['Left', 'Right']
-        material = tile_props.rooftop_material
-
-        convert_to_displacement_core(
-            roof,
-            textured_vertex_groups,
-            material,
-            subsurf)
-
+        spawn_roof(self, tile_props)
         return{'FINISHED'}
 
 
@@ -404,18 +383,27 @@ def spawn_roof(self, tile_props):
         'active_object': roof,
         'selected_objects': [roof],
         'selected_editable_objects': [roof]}
-
+    '''
     bpy.ops.object.editmode_toggle(ctx)
     bpy.ops.mesh.select_all(action='SELECT')
     bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
     bpy.ops.mesh.select_all(action='DESELECT')
     bpy.ops.object.editmode_toggle(ctx)
-
-    bpy.context.scene.cursor.location = (0, 0, 0)
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+    '''
+    bpy.context.scene.cursor.location = (0, 0, 0)
+    subsurf = add_subsurf_modifier(roof)
+    textured_vertex_groups = ['Left', 'Right']
+    material = tile_props.rooftop_material
+
+    convert_to_displacement_core(
+        roof,
+        textured_vertex_groups,
+        material,
+        subsurf)
     return roof
 
-
+#@profile
 def spawn_base(self, tile_props):
     if tile_props.roof_type == 'APEX':
         base = draw_apex_base(self, tile_props)
@@ -429,21 +417,24 @@ def spawn_base(self, tile_props):
     obj_props.is_mt_object = True
     obj_props.tile_name = tile_props.tile_name
 
-    ctx = {
-        'object': base,
-        'active_object': base,
-        'selected_objects': [base],
-        'selected_editable_objects': [base]}
-
-    bpy.ops.object.editmode_toggle(ctx)
-    bpy.ops.mesh.select_all(action='SELECT')
-    bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
-    bpy.ops.mesh.select_all(action='DESELECT')
-    bpy.ops.object.editmode_toggle(ctx)
-
     bpy.context.scene.cursor.location = (0, 0, 0)
-    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+    subsurf = add_subsurf_modifier(base)
 
+    if tile_props.base_bottom_socket_type == 'OPENLOCK':
+        slot_cutter = spawn_openlock_base_slot_cutter(base, tile_props)
+        set_bool_obj_props(slot_cutter, base, tile_props, 'DIFFERENCE')
+        set_bool_props(slot_cutter, base, 'DIFFERENCE')
+
+    textured_vertex_groups = ['Base Left', 'Base Right', 'Gable Front', 'Gable Back']
+    material = tile_props.gable_material
+
+    convert_to_displacement_core(
+        base,
+        textured_vertex_groups,
+        material,
+        subsurf)
+
+    activate(base.name)
     return base
 
 

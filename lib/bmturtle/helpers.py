@@ -5,7 +5,6 @@ from mathutils import Vector, geometry
 from mathutils.bvhtree import BVHTree
 from ..utils.selection import in_bbox
 
-
 def bm_select_all(bm):
     """Select all verts.
 
@@ -48,6 +47,14 @@ def select_verts_in_bounds(lbound, ubound, buffer, bm):
 
     return [v for v in bm.verts if v.select]
 
+def select_edges_in_bounds(lbound, ubound, buffer, bm):
+    vert_coords = []
+    [vert_coords.append([v.co.to_tuple()for v in e.verts]) for e in bm.edges]
+    to_select = []
+    [to_select.append(all(in_bbox(lbound, ubound, v, buffer)for v in e)) for e in vert_coords]
+    for edge_obj, select in zip(bm.edges, to_select):
+        edge_obj.select = select
+    return [e for e in bm.edges if e.select]
 
 def points_are_inside_bmesh(coords, bm):
     """Test whether points are inside an arbitrary manifold bmesh.
@@ -91,7 +98,6 @@ def assign_verts_to_group(verts, obj, deform_groups, group_name):
         if v.is_valid:
             groups = v[deform_groups]
             groups[group_index] = 1
-
 
 def extrude_translate(bm, local_trans, del_original=True):
     """Extrudes and translates selected verts, edges or faces
@@ -177,7 +183,6 @@ def extrude_translate(bm, local_trans, del_original=True):
             # select extruded faces
             for f in faces:
                 f.select_set(True)
-
 
 # https://blender.stackexchange.com/questions/186067/what-is-the-bmesh-equivalent-to-bpy-ops-mesh-shortest-path-select
 class Node:

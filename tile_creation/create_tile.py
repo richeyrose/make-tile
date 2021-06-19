@@ -21,7 +21,7 @@ from ..lib.utils.collections import (
     create_collection,
     activate_collection)
 
-from ..lib.utils.selection import deselect_all, activate
+from ..lib.utils.selection import deselect_all
 from ..lib.utils.multimethod import multimethod
 from ..materials.materials import assign_mat_to_vert_group
 from ..lib.utils.utils import get_all_subclasses, get_annotations
@@ -31,11 +31,11 @@ from ..enums.enums import (
     collection_types)
 
 from ..app_handlers import load_tile_defaults
-
+'''
 from line_profiler import LineProfiler
 from os.path import splitext
 profile = LineProfiler()
-
+'''
 def tile_x_update(self, context):
     if self.x_proportionate_scale:
         self.base_x = self.tile_x
@@ -541,7 +541,6 @@ class MT_Tile_Generator:
 
         self.invoked = False
         self.executed = True
-
 
     def draw(self, context):
         """Draw the Redo panel."""

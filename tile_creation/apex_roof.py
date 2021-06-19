@@ -23,10 +23,16 @@ from ..lib.bmturtle.helpers import (
     bm_deselect_all,
     assign_verts_to_group,
     select_verts_in_bounds,
+    select_edges_in_bounds,
     points_are_inside_bmesh)
 
 from .create_tile import get_subdivs
 
+from line_profiler import LineProfiler
+from os.path import splitext
+profile = LineProfiler()
+
+@profile
 def draw_apex_base(self, tile_props, margin=0.001):
     """Draw an apex style roof base."""
     #      B
@@ -124,6 +130,7 @@ def draw_apex_base(self, tile_props, margin=0.001):
     ptu(90)
     ylf(90 - A)
     fd(bm, c)
+    peak_loc = turtle.location.copy()
     yri(B * 2 + 180)
     fd(bm, c)
 
@@ -153,20 +160,52 @@ def draw_apex_base(self, tile_props, margin=0.001):
 
     # extrude along y
     fd(bm, margin, del_original=False)
-    subdiv_y_dist = (base_dims[1] - (margin * 2)) / (subdivs[1] - 1)
-
-    i = 1
-    while i < subdivs[1]:
-        fd(bm, subdiv_y_dist, del_original=True)
-        i += 1
+    loc_1 = turtle.location.copy()
+    fd(bm, base_dims[1] - (margin * 2), del_original=True)
+    loc_2 = turtle.location.copy()
     fd(bm, margin, del_original=True)
-
     bm_deselect_all(bm)
+
+    # select edges to split
+    bm.select_mode = {'EDGE'}
+    exclude_1 = select_edges_in_bounds(
+        lbound=draw_origin,
+        ubound=(
+            draw_origin[0] + base_dims[0],
+            draw_origin[0] + margin,
+            peak_loc[2]),
+        buffer=margin / 2,
+        bm=bm)
+    exclude_2 = select_edges_in_bounds(
+        lbound=(
+            draw_origin[0],
+            draw_origin[1] + base_dims[1] - margin,
+            draw_origin[2]),
+        ubound=(
+            draw_origin[0] + base_dims[0],
+            draw_origin[1] + base_dims[1] - margin,
+            peak_loc[2]),
+        buffer=margin / 2,
+        bm=bm)
+    bm_deselect_all(bm)
+    edges_to_sel = select_edges_in_bounds(
+        lbound=(
+            draw_origin[0],
+            draw_origin[1] + margin,
+            draw_origin[2]),
+        ubound=(
+            draw_origin[0] + base_dims[0],
+            draw_origin[1] + base_dims[1] - margin,
+            peak_loc[2]),
+        buffer=margin / 2,
+        bm=bm)
+    edges = [e for e in edges_to_sel if e.select and e not in exclude_1 and e not in exclude_2]
+    bmesh.ops.subdivide_edges(bm, edges=edges, cuts=subdivs[1]-1, use_grid_fill=True)
     home(obj)
 
     # slice mesh to create margins
     turtle.location = draw_origin
-
+    geo=bm.verts[:] + bm.edges[:] + bm.faces[:]
     # base left
     plane = (
         turtle.location[0] + margin,
@@ -175,7 +214,7 @@ def draw_apex_base(self, tile_props, margin=0.001):
 
     bmesh.ops.bisect_plane(
         bm,
-        geom=bm.verts[:] + bm.edges[:] + bm.faces[:],
+        geom=geo,
         dist=margin / 4,
         plane_co=plane,
         plane_no=(1, 0, 0))
@@ -188,7 +227,7 @@ def draw_apex_base(self, tile_props, margin=0.001):
 
     bmesh.ops.bisect_plane(
         bm,
-        geom=bm.verts[:] + bm.edges[:] + bm.faces[:],
+        geom=geo,
         dist=margin / 4,
         plane_co=plane,
         plane_no=(1, 0, 0))
@@ -216,7 +255,7 @@ def draw_apex_base(self, tile_props, margin=0.001):
 
     bmesh.ops.bisect_plane(
         bm,
-        geom=bm.verts[:] + bm.edges[:] + bm.faces[:],
+        geom=geo,
         dist=margin / 4,
         plane_co=plane,
         plane_no=norm)
@@ -243,7 +282,8 @@ def draw_apex_base(self, tile_props, margin=0.001):
         turtle.location[2] + base_dims[2])
 
     bmesh.ops.bisect_plane(
-        bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:],
+        bm,
+        geom=geo,
         dist=margin / 4,
         plane_co=plane,
         plane_no=norm)
@@ -358,6 +398,7 @@ def draw_apex_base(self, tile_props, margin=0.001):
     assign_verts_to_group(bottom_verts, obj, deform_groups, "Bottom")
     bm_deselect_all(bm)
 
+    # EXPENSIVE!
     verts = bottom_verts + left_verts + right_verts + front_verts + back_verts
     top_verts = [v for v in bm.verts if v not in verts]
     assign_verts_to_group(top_verts, obj, deform_groups, "Top")
@@ -373,7 +414,7 @@ def draw_apex_base(self, tile_props, margin=0.001):
 
     # finalise turtle and release bmesh
     finalise_turtle(bm, obj)
-
+    profile.dump_stats(splitext(__file__)[0] + '.prof')
     return obj
 
 

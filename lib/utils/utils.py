@@ -5,6 +5,17 @@ from mathutils import Vector, Euler, Matrix
 from . selection import select, activate, deselect_all, select_all
 from . collections import add_object_to_collection
 
+def set_origin(obj, target_coords=Vector()):
+    """Set the origin of the object.
+
+    Args:
+        ob (bpy.types.object): object
+        target_coords (tuple, optional): coordinates to set origin to. Defaults to Vector().
+    """
+    mw = obj.matrix_world
+    o = mw.inverted() @ Vector(target_coords)
+    obj.data.transform(Matrix.Translation(-o))
+    mw.translation = target_coords
 
 def get_annotations(cls):
     """Return all annotations of a class including from parent class.

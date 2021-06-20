@@ -28,11 +28,11 @@ from ..lib.bmturtle.helpers import (
 
 from .create_tile import get_subdivs
 
-from line_profiler import LineProfiler
-from os.path import splitext
-profile = LineProfiler()
+#from line_profiler import LineProfiler
+#from os.path import splitext
+#profile = LineProfiler()
 
-@profile
+#@profile
 def draw_apex_base(self, tile_props, margin=0.001):
     """Draw an apex style roof base."""
     #      B
@@ -109,8 +109,8 @@ def draw_apex_base(self, tile_props, margin=0.001):
     bm.select_mode = {'EDGE'}
     bm_select_all(bm)
 
-    subdiv_z_dist = (base_dims[2] - (margin * 2)) / subdivs[2]
-
+    #subdiv_z_dist = (base_dims[2] - (margin * 2)) / subdivs[2]
+    subdiv_z_dist = (base_dims[2] - margin) / subdivs[2]
     up(bm, margin)
 
     i = 0
@@ -118,7 +118,7 @@ def draw_apex_base(self, tile_props, margin=0.001):
         up(bm, subdiv_z_dist)
         i += 1
 
-    up(bm, margin)
+    #up(bm, margin)
 
     bm_deselect_all(bm)
 
@@ -157,12 +157,10 @@ def draw_apex_base(self, tile_props, margin=0.001):
 
     bm.select_mode = {'FACE'}
     bm_select_all(bm)
-
+    bm.select_flush(True)
     # extrude along y
     fd(bm, margin, del_original=False)
-    loc_1 = turtle.location.copy()
     fd(bm, base_dims[1] - (margin * 2), del_original=True)
-    loc_2 = turtle.location.copy()
     fd(bm, margin, del_original=True)
     bm_deselect_all(bm)
 
@@ -172,7 +170,7 @@ def draw_apex_base(self, tile_props, margin=0.001):
         lbound=draw_origin,
         ubound=(
             draw_origin[0] + base_dims[0],
-            draw_origin[0] + margin,
+            draw_origin[1] + margin,
             peak_loc[2]),
         buffer=margin / 2,
         bm=bm)
@@ -183,12 +181,12 @@ def draw_apex_base(self, tile_props, margin=0.001):
             draw_origin[2]),
         ubound=(
             draw_origin[0] + base_dims[0],
-            draw_origin[1] + base_dims[1] - margin,
+            draw_origin[1] + base_dims[1],
             peak_loc[2]),
         buffer=margin / 2,
         bm=bm)
     bm_deselect_all(bm)
-    edges_to_sel = select_edges_in_bounds(
+    edges_to_split = select_edges_in_bounds(
         lbound=(
             draw_origin[0],
             draw_origin[1] + margin,
@@ -199,13 +197,17 @@ def draw_apex_base(self, tile_props, margin=0.001):
             peak_loc[2]),
         buffer=margin / 2,
         bm=bm)
-    edges = [e for e in edges_to_sel if e.select and e not in exclude_1 and e not in exclude_2]
-    bmesh.ops.subdivide_edges(bm, edges=edges, cuts=subdivs[1]-1, use_grid_fill=True)
+    edges = [e for e in edges_to_split if e.select and e not in exclude_1 and e not in exclude_2]
+    bmesh.ops.subdivide_edges(bm, edges=edges, cuts=subdivs[1] - 1, use_grid_fill=True)
+    bm_deselect_all(bm)
+    bm.select_mode = {'VERT'}
     home(obj)
 
     # slice mesh to create margins
     turtle.location = draw_origin
-    geo=bm.verts[:] + bm.edges[:] + bm.faces[:]
+    geo = bm.verts[:] + bm.edges[:] + bm.faces[:]
+
+
     # base left
     plane = (
         turtle.location[0] + margin,
@@ -232,6 +234,7 @@ def draw_apex_base(self, tile_props, margin=0.001):
         plane_co=plane,
         plane_no=(1, 0, 0))
 
+
     # roof left
     v1 = (
         turtle.location[0],
@@ -253,6 +256,7 @@ def draw_apex_base(self, tile_props, margin=0.001):
         turtle.location[1],
         turtle.location[2] + base_dims[2])
 
+    geo = bm.verts[:] + bm.edges[:] + bm.faces[:]
     bmesh.ops.bisect_plane(
         bm,
         geom=geo,
@@ -281,6 +285,7 @@ def draw_apex_base(self, tile_props, margin=0.001):
         turtle.location[1],
         turtle.location[2] + base_dims[2])
 
+    geo = bm.verts[:] + bm.edges[:] + bm.faces[:]
     bmesh.ops.bisect_plane(
         bm,
         geom=geo,
@@ -411,13 +416,12 @@ def draw_apex_base(self, tile_props, margin=0.001):
     assign_verts_to_group(back_verts, obj, deform_groups, "Gable Back")
 
     turtle.location = (0, 0, 0)
-
     # finalise turtle and release bmesh
     finalise_turtle(bm, obj)
-    profile.dump_stats(splitext(__file__)[0] + '.prof')
+    #profile.dump_stats(splitext(__file__)[0] + '.prof')
     return obj
 
-
+#@profile
 def draw_apex_roof_top(self, tile_props, margin=0.001):
     """Draw an apex type roof top.
 
@@ -593,6 +597,8 @@ def draw_apex_roof_top(self, tile_props, margin=0.001):
     turtle.rotation_euler = (0, 0, 0)
     # vert 3
     ri(bm, eave_end_tri['c'])
+    bm.verts.ensure_lookup_table()
+    vert_3_loc = bm.verts[-1].co.copy()
     ptu(90)
     ylf(90 - inner_tri['A'])
     # vert 4
@@ -603,6 +609,8 @@ def draw_apex_roof_top(self, tile_props, margin=0.001):
     yri(outer_tri['B'] * 2 + 180)
     # vert 5
     fd(bm, outer_tri['c'])
+    bm.verts.ensure_lookup_table()
+    vert_5_loc = bm.verts[-1].co.copy()
     turtle.location = (0, 0, 0)
     turtle.rotation_euler = (0, 0, 0)
 
@@ -649,18 +657,48 @@ def draw_apex_roof_top(self, tile_props, margin=0.001):
     # extrude along y
     bm.select_mode = {'FACE'}
     bm_select_all(bm)
-
     fd(bm, margin, del_original=False)
-    subdiv_y_dist = (
-        base_dims[1] - (margin * 2) + tile_props.end_eaves_neg + tile_props.end_eaves_pos) / (subdivs[1] - 1)
-
-    i = 1
-    while i < subdivs[1]:
-        fd(bm, subdiv_y_dist, del_original=True)
-        i += 1
+    fd(bm, base_dims[1] - (margin * 2) + tile_props.end_eaves_neg + tile_props.end_eaves_pos)
     fd(bm, margin, del_original=True)
     bm_deselect_all(bm)
 
+    bm.select_mode = {'EDGE'}
+    exclude_1 = select_edges_in_bounds(
+        lbound=vert_5_loc,
+        ubound=(
+            vert_3_loc[0],
+            vert_5_loc[1] + margin,
+            apex_loc[2]),
+        buffer=margin / 2,
+        bm=bm)
+    exclude_2 = select_edges_in_bounds(
+        lbound=(
+            vert_5_loc[0],
+            vert_5_loc[1] + base_dims[1] - margin + tile_props.end_eaves_neg + tile_props.end_eaves_pos,
+            vert_5_loc[2]),
+        ubound=(
+            vert_3_loc[0],
+            vert_5_loc[1] + base_dims[1] + tile_props.end_eaves_neg + tile_props.end_eaves_pos,
+            apex_loc[2]),
+        buffer=margin / 2,
+        bm=bm)
+    bm_deselect_all(bm)
+    edges_to_split = select_edges_in_bounds(
+        lbound=(
+            vert_5_loc[0],
+            vert_5_loc[1] + margin,
+            vert_5_loc[2]),
+        ubound=(
+            vert_3_loc[0],
+            vert_5_loc[1] + base_dims[1] + tile_props.end_eaves_neg + tile_props.end_eaves_pos,
+            apex_loc[2]),
+        buffer=margin / 2,
+        bm=bm)
+
+    edges = [e for e in edges_to_split if e.select and e not in exclude_1 and e not in exclude_2]
+    bmesh.ops.subdivide_edges(bm, edges=edges, cuts=subdivs[1] - 1, use_grid_fill=True)
+    bm_deselect_all(bm)
+    bm.select_mode = {'VERT'}
     # create bmesh for selecting left roof
     left_bm = bmesh.new()
     turtle.location = draw_origin
@@ -733,6 +771,7 @@ def draw_apex_roof_top(self, tile_props, margin=0.001):
 
     # finalise turtle and release bmesh
     left_bm.free()
-    finalise_turtle(bm, obj)
 
+    finalise_turtle(bm, obj)
+    #profile.dump_stats(splitext(__file__)[0] + '.prof')
     return obj

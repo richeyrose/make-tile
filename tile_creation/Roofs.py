@@ -28,11 +28,10 @@ from .apex_roof import draw_apex_roof_top, draw_apex_base
 from .shed_roof import draw_shed_base, draw_shed_roof_top
 from .butterfly_roof import draw_butterfly_base, draw_butterfly_roof_top
 
-'''
 from line_profiler import LineProfiler
 from os.path import splitext
 profile = LineProfiler()
-'''
+
 
 # TODO Make side eaves seperately customisable in same way as end eaves
 # TODO Ensure UI updates to show roof options when roof is selected
@@ -217,7 +216,7 @@ class MT_OT_Make_Roof(Operator, MT_Tile_Generator):
         items=create_material_enums,
         name="Rooftop Material")
 
-    #@profile
+    @profile
     def exec(self, context):
         gable_blueprint = self.base_blueprint
         rooftop_blueprint = self.main_part_blueprint
@@ -233,13 +232,14 @@ class MT_OT_Make_Roof(Operator, MT_Tile_Generator):
             rooftop = spawn_roof(self, tile_props)
         self.finalise_tile(context, gables, rooftop)
 
+
     def execute(self, context):
         """Execute the Operator."""
         super().execute(context)
         if not self.refresh:
             return {'PASS_THROUGH'}
         self.exec(context)
-        #profile.dump_stats(splitext(__file__)[0] + '.prof')
+        profile.dump_stats(splitext(__file__)[0] + '.prof')
         return {'FINISHED'}
 
     def init(self, context):

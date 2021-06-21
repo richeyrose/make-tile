@@ -38,6 +38,9 @@ from . create_tile import (
     get_subdivs,
     add_subsurf_modifier)
 
+from line_profiler import LineProfiler
+from os.path import splitext
+profile = LineProfiler()
 
 class MT_PT_L_Tile_Panel(Panel):
     """Draw a tile options panel in UI."""
@@ -136,14 +139,27 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
         items=create_material_enums,
         name="Wall Material")
 
-    def execute(self, context):
-        """Execute the operator."""
-        super().execute(context)
-        if not self.refresh:
-            return {'PASS_THROUGH'}
-
+    @profile
+    def exec(self, context):
         base_blueprint = self.base_blueprint
-        core_blueprint = self.main_part_blueprint
+        wall_blueprint = self.main_part_blueprint
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
+
+        if base_blueprint == 'NONE':
+            base = spawn_empty_base(tile_props)
+        elif base_blueprint == 'PLAIN':
+            base = spawn_plain_base(tile_props)
+        elif base_blueprint == 'OPENLOCK':
+            base = spawn_openlock_base(self, tile_props)
+
+        if wall_blueprint == 'NONE':
+            wall_core = None
+        elif wall_blueprint == 'PLAIN':
+            wall_core = spawn_plain_wall_cores(self, tile_props)
+        elif wall_blueprint == 'OPENLOCK':
+            wall_core = spawn_openlock_wall_cores(self, tile_props, base)
+
+        '''
         base_type = 'L_BASE'
         core_type = 'L_WALL_CORE'
         subclasses = get_all_subclasses(MT_Tile_Generator)
@@ -156,9 +172,16 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
             preview_core = None
         else:
             preview_core = spawn_prefab(context, subclasses, core_blueprint, core_type, **kwargs)
+        '''
+        self.finalise_tile(context, base, wall_core)
 
-        self.finalise_tile(context, base, preview_core)
-
+    def execute(self, context):
+        """Execute the operator."""
+        super().execute(context)
+        if not self.refresh:
+            return {'PASS_THROUGH'}
+        self.exec(context)
+        profile.dump_stats(splitext(__file__)[0] + '.prof')
         return {'FINISHED'}
 
     def init(self, context):
@@ -545,7 +568,7 @@ def spawn_floor_core(self, tile_props):
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
     return core
 
-
+@profile
 def spawn_openlock_wall_cores(self, tile_props, base):
     """Spawn openlock wall cores into scene.
 
@@ -815,7 +838,7 @@ def spawn_openlock_wall_cutters(core, tile_props):
 
     return cutters
 
-
+@profile
 def spawn_wall_core(self, tile_props):
     """Spawn core into scene.
 
@@ -876,6 +899,7 @@ def spawn_wall_core(self, tile_props):
     obj_props = core.mt_object_props
     obj_props.is_mt_object = True
     obj_props.tile_name = tile_props.tile_name
+
 
     ctx = {
         'object': core,

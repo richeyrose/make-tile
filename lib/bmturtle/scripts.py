@@ -23,6 +23,10 @@ from .helpers import (
     select_verts_in_bounds,
     bm_shortest_path)
 
+from line_profiler import LineProfiler
+from os.path import splitext
+profile = LineProfiler()
+
 def draw_cuboid(dimensions):
     """Draw a cuboid.
 
@@ -786,7 +790,7 @@ def draw_corner_floor_core(
 
     return core
 
-
+@profile
 def draw_corner_wall_core(
         dimensions,
         native_subdivisions,
@@ -861,10 +865,10 @@ def draw_corner_wall_core(
     assign_verts_to_group(leg_2_bottom_verts, core, deform_groups, 'Leg 2 Bottom')
 
     finalise_turtle(bm, core)
-
+    profile.dump_stats(splitext(__file__)[0] + '.prof')
     return core
 
-
+@profile
 def create_corner_vert_groups_vert_lists(bm, height, margin, vert_locs):
     """Return a dict containing lists of BMVerts to be added to vert groups
 

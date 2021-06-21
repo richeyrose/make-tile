@@ -24,7 +24,12 @@ from ..lib.bmturtle.helpers import (
     points_are_inside_bmesh)
 
 from .create_tile import get_subdivs
-
+'''
+from line_profiler import LineProfiler
+from os.path import splitext
+profile = LineProfiler()
+'''
+#@profile
 def draw_butterfly_base(self, tile_props, margin=0.001):
     """Draw a butterfly style roof base.
 
@@ -482,9 +487,10 @@ def draw_butterfly_base(self, tile_props, margin=0.001):
 
     # finalise turtle and release bmesh
     finalise_turtle(bm, obj)
+    #profile.dump_stats(splitext(__file__)[0] + '.prof')
     return obj
 
-
+#@profile
 def draw_butterfly_roof_top(self, tile_props, margin=0.001):
     """Draw a butterfly type roof top.
 
@@ -733,5 +739,7 @@ def draw_butterfly_roof_top(self, tile_props, margin=0.001):
 
     # finalise turtle and release bmesh
     left_bm.free()
+
     finalise_turtle(bm, obj)
+    #profile.dump_stats(splitext(__file__)[0] + '.prof')
     return obj

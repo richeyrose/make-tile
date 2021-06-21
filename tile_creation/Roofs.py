@@ -28,10 +28,11 @@ from .apex_roof import draw_apex_roof_top, draw_apex_base
 from .shed_roof import draw_shed_base, draw_shed_roof_top
 from .butterfly_roof import draw_butterfly_base, draw_butterfly_roof_top
 
+'''
 from line_profiler import LineProfiler
 from os.path import splitext
 profile = LineProfiler()
-
+'''
 
 # TODO Make side eaves seperately customisable in same way as end eaves
 # TODO Ensure UI updates to show roof options when roof is selected
@@ -216,7 +217,7 @@ class MT_OT_Make_Roof(Operator, MT_Tile_Generator):
         items=create_material_enums,
         name="Rooftop Material")
 
-    @profile
+    #@profile
     def exec(self, context):
         gable_blueprint = self.base_blueprint
         rooftop_blueprint = self.main_part_blueprint
@@ -239,7 +240,7 @@ class MT_OT_Make_Roof(Operator, MT_Tile_Generator):
         if not self.refresh:
             return {'PASS_THROUGH'}
         self.exec(context)
-        profile.dump_stats(splitext(__file__)[0] + '.prof')
+        #profile.dump_stats(splitext(__file__)[0] + '.prof')
         return {'FINISHED'}
 
     def init(self, context):
@@ -377,13 +378,13 @@ def spawn_roof(self, tile_props):
     obj_props = roof.mt_object_props
     obj_props.is_mt_object = True
     obj_props.tile_name = tile_props.tile_name
-
+    '''
     ctx = {
         'object': roof,
         'active_object': roof,
         'selected_objects': [roof],
         'selected_editable_objects': [roof]}
-    '''
+
     bpy.ops.object.editmode_toggle(ctx)
     bpy.ops.mesh.select_all(action='SELECT')
     bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
@@ -437,7 +438,7 @@ def spawn_base(self, tile_props):
     activate(base.name)
     return base
 
-
+#@profile
 def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
     """Spawn an openlock base slot cutter into scene and positions it correctly.
 
@@ -448,7 +449,7 @@ def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
     Returns:
         bpy.type.Object: slot cutter
     """
-    mode('OBJECT')
+    #mode('OBJECT')
 
     base_location = base.location.copy()
     base_dims = base.dimensions.copy()

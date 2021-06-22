@@ -1,8 +1,9 @@
 import os
 from math import radians
 import bpy
+import bmesh
 from bpy.types import Panel, Operator
-from mathutils import Vector
+from mathutils import Vector, Matrix
 
 from bpy.props import (
     EnumProperty,
@@ -222,6 +223,30 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
 
         layout.label(text="UV Island Margin")
         layout.prop(self, 'UV_island_margin', text="")
+
+
+class Rotation_testOperator(bpy.types.Operator):
+    bl_idname = "object.rotation_test"
+    bl_label = "rotation_test"
+
+    def execute(self, context):
+        obj = context.object
+        loc = context.scene.cursor.location
+        obj.location = (2.0, 1.5, 0)
+        me = obj.data
+        bm = bmesh.new()
+        bm.from_mesh(me)
+
+        bmesh.ops.rotate(
+            bm,
+            verts=bm.verts,
+            cent=loc,
+            matrix=Matrix.Rotation(radians(-120) *-1, 3, 'Z'),
+            space=obj.matrix_world)
+        bm.to_mesh(me)
+        bm.free()
+        me.update()
+        return {'FINISHED'}
 
 class MT_OT_Make_L_Floor_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
     """Create an L Floor Tile."""
@@ -609,7 +634,7 @@ def spawn_openlock_wall_cores(self, tile_props, base):
 
     return core
 
-
+@profile
 def spawn_openlock_top_pegs(core, tile_props):
     """Spawn top peg(s) for stacking wall tiles and position it.
 
@@ -654,6 +679,19 @@ def spawn_openlock_top_pegs(core, tile_props):
             array_mod.fit_type = 'FIT_LENGTH'
             array_mod.fit_length = leg_1_len - 1.3
 
+        me = peg.data
+        bm = bmesh.new()
+        bm.from_mesh(me)
+
+        bmesh.ops.rotate(
+            bm,
+            verts=bm.verts,
+            cent=cursor.location,
+            matrix=Matrix.Rotation(radians(tile_props.angle - 90), 3, 'Z'))
+        bm.to_mesh(peg.data)
+        bm.free()
+        pegs.append(peg)
+        '''
         ctx = {
             'object': peg,
             'active_object': peg,
@@ -665,6 +703,7 @@ def spawn_openlock_top_pegs(core, tile_props):
             orient_axis='Z',
             center_override=cursor.location)
         pegs.append(peg)
+        '''
 
     # leg 2
     if leg_2_len >= 1:
@@ -711,7 +750,7 @@ def spawn_openlock_top_pegs(core, tile_props):
         pegs.append(peg_2)
     return pegs
 
-
+@profile
 def spawn_openlock_wall_cutters(core, tile_props):
     """Create the cutters for the wall and position them correctly.
 
@@ -742,7 +781,7 @@ def spawn_openlock_wall_cutters(core, tile_props):
 
     cutters = []
     # left side cutters
-    left_cutter_bottom = data_to.objects[0].copy()
+    left_cutter_bottom = data_to.objects[0]
     left_cutter_bottom.name = 'Leg 2 Bottom.' + tile_name
 
     add_object_to_collection(left_cutter_bottom, tile_name)
@@ -752,9 +791,26 @@ def spawn_openlock_wall_cutters(core, tile_props):
     # move cutter to bottom front left corner then up by 0.63 inches
     left_cutter_bottom.location = [
         front_left[0],
-        front_left[1] + (base_size[1] / 2),
+        front_left[1] + 5,
         front_left[2] + 0.63]
 
+    left_cutter_bottom.data = left_cutter_bottom.data.copy()
+    me = left_cutter_bottom.data
+    me.update()
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    loc = bpy.context.scene.cursor.location.copy()
+
+    bmesh.ops.rotate(
+        bm,
+        verts=bm.verts,
+        cent=loc,
+        matrix=Matrix.Rotation(radians(tile_props.angle - 90) *-1, 3, 'Z'),
+        space=left_cutter_bottom.matrix_world)
+
+    bm.to_mesh(me)
+    bm.free()
+    '''
     array_mod = left_cutter_bottom.modifiers.new('Array', 'ARRAY')
     array_mod.use_relative_offset = False
     array_mod.use_constant_offset = True
@@ -821,13 +877,26 @@ def spawn_openlock_wall_cutters(core, tile_props):
 
     for cutter in right_cutters:
         select(cutter.name)
-    bpy.ops.transform.rotate(
-        value=radians(tile_props.angle - 90) * 1,
-        orient_type='GLOBAL',
-        orient_axis='Z',
-        center_override=cursor.location)
 
-    deselect_all()
+    #bpy.context.view_layer.update()
+    #right_cutter_bottom.update_tag()
+    right_cutter_bottom.data = right_cutter_bottom.data.copy()
+    me = right_cutter_bottom.data
+    me.update()
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    loc = cursor.location.copy()
+
+    bmesh.ops.rotate(
+        bm,
+        verts=bm.verts,
+        cent=loc,
+        matrix=Matrix.Rotation(radians(tile_props.angle - 90) *-1, 3, 'Z'),
+        space=right_cutter_bottom.matrix_world)
+
+    bm.to_mesh(me)
+    bm.free()
+
 
     for cutter in left_cutters:
         cutter.location = (
@@ -835,10 +904,11 @@ def spawn_openlock_wall_cutters(core, tile_props):
             cutter.location[1] + tile_props.leg_2_len - (tile_props.base_size[1] / 2),
             cutter.location[2])
         cutter.rotation_euler = (0, 0, radians(-90))
-
+    '''
+    cutters = [left_cutter_bottom]
     return cutters
 
-@profile
+#@profile
 def spawn_wall_core(self, tile_props):
     """Spawn core into scene.
 
@@ -900,7 +970,7 @@ def spawn_wall_core(self, tile_props):
     obj_props.is_mt_object = True
     obj_props.tile_name = tile_props.tile_name
 
-
+    '''
     ctx = {
         'object': core,
         'active_object': core,
@@ -916,7 +986,8 @@ def spawn_wall_core(self, tile_props):
 
     bpy.context.scene.cursor.location = (0, 0, 0)
     bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-
+    '''
+    bpy.context.scene.cursor.location = (0, 0, 0)
     return core
 
 

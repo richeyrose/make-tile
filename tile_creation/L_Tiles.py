@@ -2,6 +2,7 @@ import os
 from math import radians
 import bpy
 import bmesh
+from bpy import context
 from bpy.types import Panel, Operator
 from mathutils import Vector, Matrix
 
@@ -956,7 +957,7 @@ def spawn_plain_base(tile_props):
 
     return base
 
-
+@profile
 def spawn_openlock_base(self, tile_props):
     """Spawn a plain base into the scene.
 
@@ -986,9 +987,104 @@ def spawn_openlock_base(self, tile_props):
     # clip cutters - leg 1
     leg_len = base_triangles['a_adj']
     corner_loc = base.location
-    clip_cutter_1 = create_openlock_base_clip_cutter(leg_len, corner_loc, 0.25, tile_props)
-    clip_cutter_1.name = 'Clip Leg 1.' + base.name
 
+    preferences = get_prefs()
+    booleans_path = os.path.join(
+        preferences.assets_path,
+        "meshes",
+        "booleans",
+        "openlock.blend")
+
+    # load base cutters
+    with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
+        data_to.objects = [
+            'openlock.wall.base.cutter.clip.001',
+            'openlock.wall.base.cutter.clip.cap.start.001',
+            'openlock.wall.base.cutter.clip.cap.end.001']
+
+    clip_cutter = data_to.objects[0]
+    cutter_start_cap = data_to.objects[1]
+    cutter_end_cap = data_to.objects[2]
+
+    #cutter_start_cap.hide_viewport = True
+    #cutter_end_cap.hide_viewport = True
+
+    #clip_cutter_1 = create_openlock_base_clip_cutter(leg_len, corner_loc, 0.25, tile_props)
+    #clip_cutter_1.name = 'Clip Leg 1.' + base.name
+
+    #context = bpy.context
+    #depsgraph = context.evaluated_depsgraph_get()
+    #object_eval = clip_cutter_1.evaluated_get(depsgraph)
+    #mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
+    new_clip_cutter = bpy.data.objects.new('Clip Leg 1 New', clip_cutter.data)
+    dims = new_clip_cutter.dimensions.copy()
+    add_object_to_collection(new_clip_cutter, tile_props.tile_name)
+    '''
+    array_mod = new_clip_cutter.modifiers.new('Array', 'ARRAY')
+    array_mod.start_cap = cutter_start_cap
+    array_mod.end_cap = cutter_end_cap
+    array_mod.use_merge_vertices = True
+    array_mod.fit_type = 'FIT_LENGTH'
+    array_mod.fit_length = leg_len - 1
+    '''
+    me = new_clip_cutter.data
+    bm = bmesh.new()
+    bm.from_mesh(me)
+
+    #array
+    ret = bmesh.ops.duplicate(
+        bm,
+        geom=bm.verts[:] + bm.edges[:] + bm.faces[:])
+    geom=ret["geom"]
+    dupe_verts = [ele for ele in geom if isinstance(ele, bmesh.types.BMVert)]
+    del ret
+    bmesh.ops.translate(
+        bm,
+        verts=dupe_verts,
+        vec=(dims[0], 0, 0),
+        space=new_clip_cutter.matrix_world)
+    
+    #insert start cap
+    me_2 = cutter_start_cap.data
+    bm.from_mesh(me_2)
+
+    #insert end cap
+    me_3 = cutter_end_cap.data
+    bm_2 = bmesh.new()
+    bm_2.from_mesh(me_3)
+    bmesh.ops.translate(
+        bm_2,
+        verts=bm_2.verts,
+        vec=(dims[0], 0, 0),
+        space=new_clip_cutter.matrix_world)
+    # create temp mesh because copying from one bmesh to another is broken
+    temp = bpy.data.meshes.new(".temp")    
+    bm_2.to_mesh(temp)
+    bm_2.free()
+    bm.from_mesh(temp)
+    bpy.data.meshes.remove(temp)
+
+    # move arrayed clipper
+    bmesh.ops.translate(
+        bm, 
+        verts=bm.verts,
+        vec=(0.5, 0.25, 0),
+        space=new_clip_cutter.matrix_world)
+    
+    # merge verts
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0001)   
+
+    #rotate
+    bmesh.ops.rotate(
+        bm,
+        verts=bm.verts,
+        cent=corner_loc,
+        matrix=Matrix.Rotation(radians(tile_props.angle - 90) * -1, 3, 'Z'),
+        space=new_clip_cutter.matrix_world
+    )
+    bm.to_mesh(me)
+    bm.free()
+    '''
     ctx = {
         'object': clip_cutter_1,
         'active_object': clip_cutter_1,
@@ -1002,7 +1098,7 @@ def spawn_openlock_base(self, tile_props):
         orient_axis='Z',
         orient_type='GLOBAL',
         center_override=corner_loc)
-
+    
     # clip cutters - leg 2
     leg_len = base_triangles['c_adj']
     corner_loc = base.location
@@ -1033,8 +1129,11 @@ def spawn_openlock_base(self, tile_props):
         constraint_axis=(False, True, False))
 
     clip_cutter_2.location[0] = clip_cutter_2.location[0] + 0.5
-
-    cutters = [clip_cutter_1, clip_cutter_2]
+    '''
+    bpy.data.objects.remove(clip_cutter)
+    bpy.data.objects.remove(cutter_start_cap)
+    bpy.data.objects.remove(cutter_end_cap)
+    cutters = [new_clip_cutter]
     for cutter in cutters:
         set_bool_obj_props(cutter, base, tile_props, 'DIFFERENCE')
         set_bool_props(cutter, base, 'DIFFERENCE')
@@ -1091,13 +1190,13 @@ def create_openlock_base_clip_cutter(
     # cutter_end_cap.hide_set(True)
     cutter_start_cap.hide_viewport = True
     cutter_end_cap.hide_viewport = True
-
+    '''
     clip_cutter.location = Vector((
         corner_loc[0] + 0.5,
         corner_loc[1] + offset,
         corner_loc[2]
     ))
-
+    '''
     array_mod = clip_cutter.modifiers.new('Array', 'ARRAY')
     array_mod.start_cap = cutter_start_cap
     array_mod.end_cap = cutter_end_cap

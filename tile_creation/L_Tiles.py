@@ -160,20 +160,6 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
         elif wall_blueprint == 'OPENLOCK':
             wall_core = spawn_openlock_wall_cores(self, tile_props, base)
 
-        '''
-        base_type = 'L_BASE'
-        core_type = 'L_WALL_CORE'
-        subclasses = get_all_subclasses(MT_Tile_Generator)
-
-        kwargs = {"tile_name": self.tile_name}
-        base = spawn_prefab(context, subclasses, base_blueprint, base_type, **kwargs)
-
-        kwargs["base_name"] = base.name
-        if core_blueprint == 'NONE':
-            preview_core = None
-        else:
-            preview_core = spawn_prefab(context, subclasses, core_blueprint, core_type, **kwargs)
-        '''
         self.finalise_tile(context, base, wall_core)
 
     def execute(self, context):
@@ -713,7 +699,7 @@ def spawn_openlock_top_pegs(core, tile_props):
         pegs.append(peg_2)
     return pegs
 
-
+@profile
 def spawn_openlock_wall_cutters(core, tile_props):
     """Create the cutters for the wall and position them correctly.
 
@@ -739,8 +725,6 @@ def spawn_openlock_wall_cutters(core, tile_props):
     # load side cutter
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
         data_to.objects = ['openlock.wall.cutter.side']
-
-    core_location = core.location.copy()
     
     cutters = []
     cutter_mesh = data_to.objects[0].data.copy()
@@ -751,6 +735,8 @@ def spawn_openlock_wall_cutters(core, tile_props):
     left_cutter_bottom.name = 'Leg 2 Bottom.' + tile_name
 
     add_object_to_collection(left_cutter_bottom, tile_name)
+
+    core_location = core.location.copy()
     # get location of bottom front left corner of tile
     front_left = core_location
 
@@ -758,7 +744,7 @@ def spawn_openlock_wall_cutters(core, tile_props):
     left_cutter_bottom.location = [
         front_left[0],
         front_left[1] + (base_size[1] / 2),
-        front_left[2] + 0.63]
+        front_left[2] + 0.63]#
 
     array_mod = left_cutter_bottom.modifiers.new('Array', 'ARRAY')
     array_mod.use_relative_offset = False
@@ -792,15 +778,36 @@ def spawn_openlock_wall_cutters(core, tile_props):
         core_location[0] + (tile_props.leg_1_len),
         core_location[1],
         core_location[2]]
-    # move cutter to bottom front right corner then up by 0.63 inches
-    '''
-    right_cutter_bottom.location = [
-        front_right[0],
-        front_right[1] + (base_size[1] / 2),
-        front_right[2] + 0.63]
-    '''
+    
     # rotate cutter 180 degrees around Z
     right_cutter_bottom.rotation_euler[2] = radians(180)
+
+    right_cutter_bottom.data = right_cutter_bottom.data.copy()
+    left_cutter_bottom.data = left_cutter_bottom.data.copy()
+
+    me = right_cutter_bottom.data
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    loc = bpy.context.scene.cursor.location.copy()
+
+    # move cutter to position
+    bmesh.ops.translate(
+        bm,
+        vec=(-tile_props.leg_1_len,
+        (base_size[1] / 2)*-1,
+        0.63),
+        space=right_cutter_bottom.matrix_world,
+        verts=bm.verts)
+    
+    # rotate cutter
+    bmesh.ops.rotate(
+        bm,
+        verts=bm.verts,
+        cent=loc,
+        matrix=Matrix.Rotation(radians(tile_props.angle - 90)*-1, 3, 'Z'),
+        space=right_cutter_bottom.matrix_world)
+    bm.to_mesh(me)
+    bm.free()
 
     array_mod = right_cutter_bottom.modifiers.new('Array', 'ARRAY')
     array_mod.use_relative_offset = False
@@ -821,55 +828,13 @@ def spawn_openlock_wall_cutters(core, tile_props):
     cutters.extend([right_cutter_bottom, right_cutter_top])
 
     left_cutters = [cutters[0], cutters[1]]
-    right_cutters = [cutters[2], cutters[3]]
-
-    deselect_all()
-    cursor = bpy.context.scene.cursor
-    right_cutter_bottom.data = right_cutter_bottom.data.copy()
-    left_cutter_bottom.data = left_cutter_bottom.data.copy()
-
-    me = right_cutter_bottom.data
-
-    #bpy.context.view_layer.update()
-    bm = bmesh.new()
-    bm.from_mesh(me)
-    loc = bpy.context.scene.cursor.location.copy()
-
-
-    bmesh.ops.translate(
-        bm,
-        vec=(-tile_props.leg_1_len,
-        0,
-        0),
-        space=right_cutter_bottom.matrix_world,
-        verts=bm.verts)
-    bmesh.ops.rotate(
-        bm,
-        verts=bm.verts,
-        cent=loc,
-        matrix=Matrix.Rotation(radians(tile_props.angle - 90)*-1, 3, 'Z'),
-        space=right_cutter_bottom.matrix_world)
-    bm.to_mesh(me)
-    bm.free()
-
-    for cutter in right_cutters:
-        select(cutter.name)
-    '''
-    bpy.ops.transform.rotate(
-        value=radians(tile_props.angle - 90) * 1,
-        orient_type='GLOBAL',
-        orient_axis='Z',
-        center_override=cursor.location)
-    '''
-    deselect_all()
-
     for cutter in left_cutters:
         cutter.location = (
             cutter.location[0] + (tile_props.base_size[1] / 2),
             cutter.location[1] + tile_props.leg_2_len - (tile_props.base_size[1] / 2),
             cutter.location[2])
         cutter.rotation_euler = (0, 0, radians(-90))
-
+    deselect_all()
     return cutters
 
 @profile

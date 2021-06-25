@@ -1,5 +1,5 @@
 import os
-from math import radians
+from math import radians, modf
 import bpy
 import bmesh
 from bpy import context
@@ -957,6 +957,89 @@ def spawn_plain_base(tile_props):
 
     return base
 
+def bmesh_array(
+    source_obj,
+    start_cap,
+    end_cap,
+    count=0,
+    use_relative_offset=True,
+    relative_offset_displace=(0, 0, 0),
+    use_constant_offset=False,
+    constant_offset_displace=(0, 0, 0),
+    use_merge_vertices=True,
+    merge_threshold=0,
+    fit_type='FIT_LENGTH',
+    fit_length=0):
+
+    offset = Vector((0, 0, 0))
+    
+    if use_relative_offset:
+        dims = source_obj.dimensions.copy()
+        offset = Vector(relative_offset_displace) * Vector(dims)
+
+    if use_constant_offset:
+        offset = offset + Vector((constant_offset_displace))
+
+    if fit_type == 'FIT_LENGTH':
+        dupes=[]
+        if offset[0]:
+            dupes.append(modf(fit_length / offset[0])[1])
+        if offset[1]:
+            dupes.append(modf(fit_length / offset[1])[1])
+        if offset[2]:
+            dupes.append(modf(fit_length / offset[2])[1])
+        if dupes:
+            count = min(dupes)
+
+    if count:
+        mesh = source_obj.data
+        bm = bmesh.new()
+        bm.from_mesh(mesh)
+
+        source_geom = bm.verts[:] + bm.edges[:] + bm.faces[:]
+
+        i = 0
+        while i < count:
+            ret = bmesh.ops.duplicate(
+                bm,
+                geom=source_geom)
+            geom=ret["geom"]
+            dupe_verts = [ele for ele in geom if isinstance(ele, bmesh.types.BMVert)]
+            del ret
+            bmesh.ops.translate(
+                bm,
+                verts=dupe_verts,
+                vec=offset * (i + 1),
+                space=source_obj.matrix_world)
+            i += 1
+        
+        if start_cap:
+            me_2 = start_cap.data
+            bm.from_mesh(me_2)
+
+        if end_cap:
+            me_3 = end_cap.data
+            bm_2 = bmesh.new()
+            bm_2.from_mesh(me_3)
+            bmesh.ops.translate(
+                bm_2,
+                verts=bm_2.verts,
+                vec=offset * count,
+                space=source_obj.matrix_world)
+        
+        # create temp mesh because copying from one bmesh to another is fubared
+        temp = bpy.data.meshes.new("temp")
+        bm_2.to_mesh(temp)
+        bm_2.free()
+        bm.from_mesh(temp)
+        bpy.data.meshes.remove(temp)
+
+        if use_merge_vertices:
+            bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=merge_threshold)
+        
+    return bm
+    
+
 @profile
 def spawn_openlock_base(self, tile_props):
     """Spawn a plain base into the scene.
@@ -1016,17 +1099,18 @@ def spawn_openlock_base(self, tile_props):
     #depsgraph = context.evaluated_depsgraph_get()
     #object_eval = clip_cutter_1.evaluated_get(depsgraph)
     #mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
+    '''
     new_clip_cutter = bpy.data.objects.new('Clip Leg 1 New', clip_cutter.data)
     dims = new_clip_cutter.dimensions.copy()
     add_object_to_collection(new_clip_cutter, tile_props.tile_name)
-    '''
+    
     array_mod = new_clip_cutter.modifiers.new('Array', 'ARRAY')
     array_mod.start_cap = cutter_start_cap
     array_mod.end_cap = cutter_end_cap
     array_mod.use_merge_vertices = True
     array_mod.fit_type = 'FIT_LENGTH'
     array_mod.fit_length = leg_len - 1
-    '''
+    
     me = new_clip_cutter.data
     bm = bmesh.new()
     bm.from_mesh(me)
@@ -1063,7 +1147,19 @@ def spawn_openlock_base(self, tile_props):
     bm_2.free()
     bm.from_mesh(temp)
     bpy.data.meshes.remove(temp)
+    '''
+    me = bpy.data.meshes.new("Clip Leg 1 Mesh")
+    new_clip_cutter = bpy.data.objects.new('Clip Leg 1 New', me)
+    add_object_to_collection(new_clip_cutter, tile_props.tile_name)
 
+    bm = bmesh_array(
+        clip_cutter,
+        cutter_start_cap,
+        cutter_end_cap,relative_offset_displace=(1, 0, 0),
+        use_merge_vertices=True,
+        merge_threshold=0.0001,
+        fit_length=leg_len-1)
+    
     # move arrayed clipper
     bmesh.ops.translate(
         bm, 
@@ -1072,7 +1168,7 @@ def spawn_openlock_base(self, tile_props):
         space=new_clip_cutter.matrix_world)
     
     # merge verts
-    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0001)   
+    #bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0001)   
 
     #rotate
     bmesh.ops.rotate(

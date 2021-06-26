@@ -26,7 +26,9 @@ from ..lib.bmturtle.scripts import (
     draw_corner_wall_core,
     draw_corner_slot_cutter)
 
-from ..lib.bmturtle.helpers import calculate_corner_wall_triangles
+from ..lib.bmturtle.helpers import (
+    calculate_corner_wall_triangles,
+    bmesh_array)
 
 from . create_tile import (
     convert_to_displacement_core,
@@ -957,89 +959,6 @@ def spawn_plain_base(tile_props):
 
     return base
 
-def bmesh_array(
-    source_obj,
-    start_cap,
-    end_cap,
-    count=0,
-    use_relative_offset=True,
-    relative_offset_displace=(0, 0, 0),
-    use_constant_offset=False,
-    constant_offset_displace=(0, 0, 0),
-    use_merge_vertices=True,
-    merge_threshold=0,
-    fit_type='FIT_LENGTH',
-    fit_length=0):
-
-    offset = Vector((0, 0, 0))
-    
-    if use_relative_offset:
-        dims = source_obj.dimensions.copy()
-        offset = Vector(relative_offset_displace) * Vector(dims)
-
-    if use_constant_offset:
-        offset = offset + Vector((constant_offset_displace))
-
-    if fit_type == 'FIT_LENGTH':
-        dupes=[]
-        if offset[0]:
-            dupes.append(modf(fit_length / offset[0])[1])
-        if offset[1]:
-            dupes.append(modf(fit_length / offset[1])[1])
-        if offset[2]:
-            dupes.append(modf(fit_length / offset[2])[1])
-        if dupes:
-            count = min(dupes)
-
-    if count:
-        mesh = source_obj.data
-        bm = bmesh.new()
-        bm.from_mesh(mesh)
-
-        source_geom = bm.verts[:] + bm.edges[:] + bm.faces[:]
-
-        i = 0
-        while i < count:
-            ret = bmesh.ops.duplicate(
-                bm,
-                geom=source_geom)
-            geom=ret["geom"]
-            dupe_verts = [ele for ele in geom if isinstance(ele, bmesh.types.BMVert)]
-            del ret
-            bmesh.ops.translate(
-                bm,
-                verts=dupe_verts,
-                vec=offset * (i + 1),
-                space=source_obj.matrix_world)
-            i += 1
-        
-        if start_cap:
-            me_2 = start_cap.data
-            bm.from_mesh(me_2)
-
-        if end_cap:
-            me_3 = end_cap.data
-            bm_2 = bmesh.new()
-            bm_2.from_mesh(me_3)
-            bmesh.ops.translate(
-                bm_2,
-                verts=bm_2.verts,
-                vec=offset * count,
-                space=source_obj.matrix_world)
-        
-        # create temp mesh because copying from one bmesh to another is fubared
-        temp = bpy.data.meshes.new("temp")
-        bm_2.to_mesh(temp)
-        bm_2.free()
-        bm.from_mesh(temp)
-        bpy.data.meshes.remove(temp)
-
-        if use_merge_vertices:
-            bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=merge_threshold)
-        
-    return bm
-    
-
 @profile
 def spawn_openlock_base(self, tile_props):
     """Spawn a plain base into the scene.
@@ -1089,148 +1008,80 @@ def spawn_openlock_base(self, tile_props):
     cutter_start_cap = data_to.objects[1]
     cutter_end_cap = data_to.objects[2]
 
-    #cutter_start_cap.hide_viewport = True
-    #cutter_end_cap.hide_viewport = True
+    # we copy the mesh from clip_cutter into a new object to 
+    # avoid having to update the view_layer before using bmesh.ops
+    # for transformation
 
-    #clip_cutter_1 = create_openlock_base_clip_cutter(leg_len, corner_loc, 0.25, tile_props)
-    #clip_cutter_1.name = 'Clip Leg 1.' + base.name
-
-    #context = bpy.context
-    #depsgraph = context.evaluated_depsgraph_get()
-    #object_eval = clip_cutter_1.evaluated_get(depsgraph)
-    #mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
-    '''
-    new_clip_cutter = bpy.data.objects.new('Clip Leg 1 New', clip_cutter.data)
-    dims = new_clip_cutter.dimensions.copy()
-    add_object_to_collection(new_clip_cutter, tile_props.tile_name)
-    
-    array_mod = new_clip_cutter.modifiers.new('Array', 'ARRAY')
-    array_mod.start_cap = cutter_start_cap
-    array_mod.end_cap = cutter_end_cap
-    array_mod.use_merge_vertices = True
-    array_mod.fit_type = 'FIT_LENGTH'
-    array_mod.fit_length = leg_len - 1
-    
-    me = new_clip_cutter.data
-    bm = bmesh.new()
-    bm.from_mesh(me)
-
-    #array
-    ret = bmesh.ops.duplicate(
-        bm,
-        geom=bm.verts[:] + bm.edges[:] + bm.faces[:])
-    geom=ret["geom"]
-    dupe_verts = [ele for ele in geom if isinstance(ele, bmesh.types.BMVert)]
-    del ret
-    bmesh.ops.translate(
-        bm,
-        verts=dupe_verts,
-        vec=(dims[0], 0, 0),
-        space=new_clip_cutter.matrix_world)
-    
-    #insert start cap
-    me_2 = cutter_start_cap.data
-    bm.from_mesh(me_2)
-
-    #insert end cap
-    me_3 = cutter_end_cap.data
-    bm_2 = bmesh.new()
-    bm_2.from_mesh(me_3)
-    bmesh.ops.translate(
-        bm_2,
-        verts=bm_2.verts,
-        vec=(dims[0], 0, 0),
-        space=new_clip_cutter.matrix_world)
-    # create temp mesh because copying from one bmesh to another is broken
-    temp = bpy.data.meshes.new(".temp")    
-    bm_2.to_mesh(temp)
-    bm_2.free()
-    bm.from_mesh(temp)
-    bpy.data.meshes.remove(temp)
-    '''
     me = bpy.data.meshes.new("Clip Leg 1 Mesh")
-    new_clip_cutter = bpy.data.objects.new('Clip Leg 1 New', me)
-    add_object_to_collection(new_clip_cutter, tile_props.tile_name)
+    clip_cutter_1 = bpy.data.objects.new('Clip Leg 1', me)
+    add_object_to_collection(clip_cutter_1, tile_props.tile_name)
 
+    # use a bmesh version of array modifier to avoid having to call
+    # evaluated_depsgraph_get() prior to bmesh transforms to apply the
+    # modifier
     bm = bmesh_array(
         clip_cutter,
         cutter_start_cap,
-        cutter_end_cap,relative_offset_displace=(1, 0, 0),
+        cutter_end_cap,
+        relative_offset_displace=(1, 0, 0),
         use_merge_vertices=True,
         merge_threshold=0.0001,
         fit_length=leg_len-1)
     
+    # use bmesh to avoid bpy.ops
     # move arrayed clipper
     bmesh.ops.translate(
         bm, 
         verts=bm.verts,
         vec=(0.5, 0.25, 0),
-        space=new_clip_cutter.matrix_world)
+        space=clip_cutter_1.matrix_world)
     
-    # merge verts
-    #bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0001)   
-
     #rotate
     bmesh.ops.rotate(
         bm,
         verts=bm.verts,
         cent=corner_loc,
         matrix=Matrix.Rotation(radians(tile_props.angle - 90) * -1, 3, 'Z'),
-        space=new_clip_cutter.matrix_world
-    )
+        space=clip_cutter_1.matrix_world)
+
     bm.to_mesh(me)
     bm.free()
-    '''
-    ctx = {
-        'object': clip_cutter_1,
-        'active_object': clip_cutter_1,
-        'selected_editable_objects': [clip_cutter_1],
-        'selected_objects': [clip_cutter_1]
-    }
+ 
+    me = bpy.data.meshes.new("Clip Leg 2 Mesh")
+    clip_cutter_2 = bpy.data.objects.new("Clip Leg 2", me)
+    add_object_to_collection(clip_cutter_2, tile_props.tile_name)
 
-    bpy.ops.transform.rotate(
-        ctx,
-        value=radians(tile_props.angle - 90) * 1,
-        orient_axis='Z',
-        orient_type='GLOBAL',
-        center_override=corner_loc)
-    
-    # clip cutters - leg 2
     leg_len = base_triangles['c_adj']
-    corner_loc = base.location
-    clip_cutter_2 = create_openlock_base_clip_cutter(
-        leg_len,
-        corner_loc,
-        0.25,
-        tile_props)
-    clip_cutter_2.name = 'Clip Leg 2.' + base.name
+    bm = bmesh_array(
+        clip_cutter,
+        cutter_start_cap,
+        cutter_end_cap,
+        relative_offset_displace=(1, 0, 0),
+        use_merge_vertices=True,
+        merge_threshold=0.0001,
+        fit_length=leg_len-1)
+    
+    bmesh.ops.rotate(
+        bm,
+        verts=bm.verts,
+        cent=corner_loc,
+        matrix=Matrix.Rotation(radians(-90), 3, 'Z'),
+        space=clip_cutter_2.matrix_world)
 
-    ctx = {
-        'object': clip_cutter_2,
-        'active_object': clip_cutter_2,
-        'selected_editable_objects': [clip_cutter_2],
-        'selected_objects': [clip_cutter_2]
-    }
+    bmesh.ops.translate(
+        bm,
+        verts=bm.verts,
+        vec=(0.25, leg_len-0.5, 0),
+        space=clip_cutter_2.matrix_world)
+    
+    bm.to_mesh(me)
+    bm.free()
 
-    bpy.ops.transform.rotate(
-        ctx,
-        value=radians(-90) * 1,
-        orient_axis='Z',
-        orient_type='GLOBAL',
-        center_override=corner_loc)
-
-    bpy.ops.transform.mirror(
-        ctx,
-        orient_type='LOCAL',
-        constraint_axis=(False, True, False))
-
-    clip_cutter_2.location[0] = clip_cutter_2.location[0] + 0.5
-    '''
     bpy.data.objects.remove(clip_cutter)
     bpy.data.objects.remove(cutter_start_cap)
     bpy.data.objects.remove(cutter_end_cap)
-    cutters = [new_clip_cutter]
-    for cutter in cutters:
+    
+    for cutter in (clip_cutter_1, clip_cutter_2):
         set_bool_obj_props(cutter, base, tile_props, 'DIFFERENCE')
         set_bool_props(cutter, base, 'DIFFERENCE')
 

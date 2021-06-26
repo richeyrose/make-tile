@@ -1,9 +1,113 @@
-from math import inf, tan, radians, acos, pi
+from math import inf, tan, radians, acos, pi, modf
 import bmesh
 import bpy
 from mathutils import Vector, geometry
 from mathutils.bvhtree import BVHTree
 from ..utils.selection import in_bbox
+
+def bmesh_array(
+    source_obj,
+    start_cap=None,
+    end_cap=None,
+    count=0,
+    use_relative_offset=True,
+    relative_offset_displace=(0, 0, 0),
+    use_constant_offset=False,
+    constant_offset_displace=(0, 0, 0),
+    use_merge_vertices=True,
+    merge_threshold=0.0001,
+    fit_type='FIT_LENGTH',
+    fit_length=0):
+    """A bmesh version of the array modifier. 
+    
+    Produces a bmesh that has the modifier applied. This is much faster
+    than calling depsgraph_update_get() on scenes with more than a few polys.
+
+    Args:
+        source_obj (bpy.types.Object): Source object to generate bmesh from
+        start_cap (bpy.types.Object, optional): Object to use as start cap.Defaults to None.
+        end_cap (bpy.types.Object, optional): Object to use as end cap. Defaults to None.
+        count (int, optional): Number of times to array item if using Fixed Count. Defaults to 0.
+        use_relative_offset (bool, optional): Offset relative to the object's bounding box. Defaults to True.
+        relative_offset_displace (tuple, optional): Offset amount. Defaults to (0, 0, 0).
+        use_constant_offset (bool, optional): Offset by a fixed amount. Defaults to False.
+        constant_offset_displace (tuple, optional): Offset amount. Defaults to (0, 0, 0).
+        use_merge_vertices (bool, optional): Merge vertices. Defaults to True.
+        merge_threshold (int, optional): [description]. Defaults to 0.0001.
+        fit_type (Enum in ['FIT_LENGTH', 'FIXED'], optional): Array length calculation method. Defaults to 'FIT_LENGTH'.
+        fit_length (int, optional): Length to fit array within if using 'FIT_LENGTH'. Defaults to 0.
+
+    Returns:
+        bpy.types.bmesh: Bmesh
+    """
+
+    offset = Vector((0, 0, 0))
+    
+    if use_relative_offset:
+        dims = source_obj.dimensions.copy()
+        offset = Vector(relative_offset_displace) * Vector(dims)
+
+    if use_constant_offset:
+        offset = offset + Vector((constant_offset_displace))
+
+    if fit_type == 'FIT_LENGTH':
+        dupes=[]
+        if offset[0]:
+            dupes.append(modf(fit_length / offset[0])[1])
+        if offset[1]:
+            dupes.append(modf(fit_length / offset[1])[1])
+        if offset[2]:
+            dupes.append(modf(fit_length / offset[2])[1])
+        if dupes:
+            count = min(dupes)
+
+    if count:
+        mesh = source_obj.data
+        bm = bmesh.new()
+        bm.from_mesh(mesh)
+
+        source_geom = bm.verts[:] + bm.edges[:] + bm.faces[:]
+
+        i = 0
+        while i < count:
+            ret = bmesh.ops.duplicate(
+                bm,
+                geom=source_geom)
+            geom=ret["geom"]
+            dupe_verts = [ele for ele in geom if isinstance(ele, bmesh.types.BMVert)]
+            del ret
+            bmesh.ops.translate(
+                bm,
+                verts=dupe_verts,
+                vec=offset * (i + 1),
+                space=source_obj.matrix_world)
+            i += 1
+        
+        if start_cap:
+            me_2 = start_cap.data
+            bm.from_mesh(me_2)
+
+        if end_cap:
+            me_3 = end_cap.data
+            bm_2 = bmesh.new()
+            bm_2.from_mesh(me_3)
+            bmesh.ops.translate(
+                bm_2,
+                verts=bm_2.verts,
+                vec=offset * count,
+                space=source_obj.matrix_world)
+        
+        # create temp mesh because copying from one bmesh to another is fubared
+        temp = bpy.data.meshes.new("temp")
+        bm_2.to_mesh(temp)
+        bm_2.free()
+        bm.from_mesh(temp)
+        bpy.data.meshes.remove(temp)
+
+        if use_merge_vertices:
+            bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=merge_threshold)
+        
+    return bm
 
 def bm_select_all(bm):
     """Select all verts.

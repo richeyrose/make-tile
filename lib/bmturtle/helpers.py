@@ -209,7 +209,7 @@ def assign_verts_to_group(verts, obj, deform_groups, group_name):
             groups = v[deform_groups]
             groups[group_index] = 1
 
-def extrude_translate(bm, local_trans, del_original=True):
+def extrude_translate(bm, local_trans, del_original=True, extrude=True):
     """Extrudes and translates selected verts, edges or faces
 
     Args:
@@ -230,69 +230,80 @@ def extrude_translate(bm, local_trans, del_original=True):
             bm.select_flush(True)
             # get selected verts
             selected = [v for v in bm.verts if v.select]
-            ret = bmesh.ops.extrude_vert_indiv(bm, verts=selected)
-            verts = ret['verts']
+            if extrude:
+                ret = bmesh.ops.extrude_vert_indiv(bm, verts=selected)
+                verts = ret['verts']
+                # translate along turtle's local Y
+                bmesh.ops.translate(bm, vec=(world_trans), verts=verts)
 
-            # translate along turtle's local Y
-            bmesh.ops.translate(bm, vec=(world_trans), verts=verts)
+                # deselect original verts
+                for v in bm.verts:
+                    v.select_set(False)
+                bm.select_flush(False)
 
-            # deselect original verts
-            for v in bm.verts:
-                v.select_set(False)
-            bm.select_flush(False)
+                # select extruded verts
+                for v in verts:
+                    v.select_set(True)
+                bm.select_flush(True)
+            else:
+                verts = selected
+                bmesh.ops.translate(bm, vec=(world_trans), verts=verts)
 
-            # select extruded verts
-            for v in verts:
-                v.select_set(True)
-            bm.select_flush(True)
 
         if bm.select_mode == {'EDGE'}:
             bm.select_flush(True)
             selected = [e for e in bm.edges if e.select]
-            ret = bmesh.ops.extrude_edge_only(bm, edges=selected)
-            geom = ret["geom"]
-            edges = [e for e in geom
-                     if isinstance(e, bmesh.types.BMEdge)]
-            verts = [v for v in geom
-                     if isinstance(v, bmesh.types.BMVert)]
-            bmesh.ops.translate(bm, vec=(world_trans), verts=verts)
+            if extrude:
+                ret = bmesh.ops.extrude_edge_only(bm, edges=selected)
+                geom = ret["geom"]
+                edges = [e for e in geom
+                        if isinstance(e, bmesh.types.BMEdge)]
+                verts = [v for v in geom
+                        if isinstance(v, bmesh.types.BMVert)]
+            
+                bmesh.ops.translate(bm, vec=(world_trans), verts=verts)
 
-            # deselect original edges
-            for e in bm.edges:
-                e.select_set(False)
-            for v in bm.verts:
-                v.select_set(False)
-            bm.select_flush(False)
+                # deselect original edges
+                for e in bm.edges:
+                    e.select_set(False)
+                for v in bm.verts:
+                    v.select_set(False)
+                bm.select_flush(False)
 
-            # select extruded edges
-            for e in edges:
-                e.select_set(True)
-            bm.select_flush(True)
+                # select extruded edges
+                for e in edges:
+                    e.select_set(True)
+                bm.select_flush(True)
+            else:
+                bmesh.ops.translate(bm, vec=(world_trans), verts = [v for v in bm.verts if v.select])
 
         if bm.select_mode == {'FACE'}:
             bm.select_flush(True)
             sel_f = [f for f in bm.faces if f.select]
-            ret = bmesh.ops.extrude_face_region(bm, geom=sel_f)
-            geom = ret["geom"]
+            if extrude:
+                ret = bmesh.ops.extrude_face_region(bm, geom=sel_f)
+                geom = ret["geom"]
 
-            faces = [f for f in geom
-                     if isinstance(f, bmesh.types.BMFace)]
-            edges = [e for e in geom
-                     if isinstance(e, bmesh.types.BMEdge)]
-            verts = [v for v in geom
-                     if isinstance(v, bmesh.types.BMVert)]
+                faces = [f for f in geom
+                        if isinstance(f, bmesh.types.BMFace)]
+                edges = [e for e in geom
+                        if isinstance(e, bmesh.types.BMEdge)]
+                verts = [v for v in geom
+                        if isinstance(v, bmesh.types.BMVert)]
 
-            bmesh.ops.translate(bm, vec=(world_trans), verts=verts)
+                bmesh.ops.translate(bm, vec=(world_trans), verts=verts)
 
-            if del_original is True:
-                bmesh.ops.delete(bm, geom=sel_f, context='FACES')
+                if del_original is True:
+                    bmesh.ops.delete(bm, geom=sel_f, context='FACES')
 
-            # deselect original faces and edges
-            bm_deselect_all(bm)
+                # deselect original faces and edges
+                bm_deselect_all(bm)
 
-            # select extruded faces
-            for f in faces:
-                f.select_set(True)
+                # select extruded faces
+                for f in faces:
+                    f.select_set(True)
+            else:
+                bmesh.ops.translate(bm, vec=(world_trans), verts=[v for v in bm.verts if v.select])
 
 # https://blender.stackexchange.com/questions/186067/what-is-the-bmesh-equivalent-to-bpy-ops-mesh-shortest-path-select
 class Node:

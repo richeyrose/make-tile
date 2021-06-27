@@ -2,7 +2,7 @@ import os
 from math import radians, modf
 import bpy
 import bmesh
-from bpy import context
+
 from bpy.types import Panel, Operator
 from mathutils import Vector, Matrix
 
@@ -549,14 +549,8 @@ def spawn_floor_core(self, tile_props):
         'selected_objects': [core],
         'selected_editable_objects': [core]}
 
-    bpy.ops.object.editmode_toggle(ctx)
-    bpy.ops.mesh.select_all(action='SELECT')
-    bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
-    bpy.ops.mesh.select_all(action='DESELECT')
-    bpy.ops.object.editmode_toggle(ctx)
-
     bpy.context.scene.cursor.location = (0, 0, 0)
-    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+    
     return core
 
 @profile
@@ -619,87 +613,107 @@ def spawn_openlock_top_pegs(core, tile_props):
     cursor = bpy.context.scene.cursor
     peg = load_openlock_top_peg(tile_props)
 
-    core_location = core.location.copy()
     pegs = []
-
-    # leg 1
-    if leg_1_len >= 1:
-        peg.location = (
-            core_location[0] + 0.756,
-            core_location[1] + (base_size[1] / 2) + 0.08,
-            core_location[2] + tile_size[2])
-
+    
+    if leg_1_len >=1:
+        peg_mesh = peg.data.copy()
+        peg_1 = bpy.data.objects.new("Leg 1 Peg", peg_mesh)
+        add_object_to_collection(peg_1, tile_props.tile_name)
+        bm = bmesh.new()
+        bm.from_mesh(peg_mesh)
         if leg_1_len >= 2:
-            array_mod = peg.modifiers.new('Array', 'ARRAY')
-            array_mod.use_relative_offset = False
-            array_mod.use_constant_offset = True
-            array_mod.constant_offset_displace[0] = 0.505
-            array_mod.fit_type = 'FIXED_COUNT'
-            array_mod.count = 2
-
+            bm = bmesh_array(
+                source_obj=peg_1,
+                source_bm=bm,
+                count=1,
+                use_relative_offset=False,
+                use_constant_offset=True,
+                constant_offset_displace=(0.505, 0, 0),
+                use_merge_vertices=False,
+                fit_type='FIXED_COUNT')
+        
         if leg_1_len >= 4:
-            array_mod = peg.modifiers.new('Array', 'ARRAY')
-            array_mod.use_relative_offset = False
-            array_mod.use_constant_offset = True
-            array_mod.constant_offset_displace[0] = 2.017
-            array_mod.fit_type = 'FIT_LENGTH'
-            array_mod.fit_length = leg_1_len - 1.3
+            bm = bmesh_array(
+                source_obj=peg_1,
+                source_bm=bm,
+                use_relative_offset=False,
+                use_constant_offset=True,
+                constant_offset_displace=(2.017, 0, 0),
+                use_merge_vertices=False,
+                fit_type= 'FIT_LENGTH',
+                fit_length=leg_1_len - 1.3)
+        
+        bmesh.ops.translate(
+            bm,
+            verts=bm.verts,
+            vec=(
+                0.756,
+                (base_size[1] / 2) + 0.08,
+                tile_size[2]),
+            space=peg_1.matrix_world)
 
-        ctx = {
-            'object': peg,
-            'active_object': peg,
-            'selected_objects': [peg]
-        }
-        bpy.ops.transform.rotate(
-            ctx,
-            value=radians(tile_props.angle - 90) * 1,
-            orient_axis='Z',
-            center_override=cursor.location)
-        pegs.append(peg)
+        bmesh.ops.rotate(
+            bm,
+            cent=cursor.location,
+            verts=bm.verts,
+            matrix=Matrix.Rotation(radians(tile_props.angle-90)*-1, 3, 'Z'),
+            space=peg_1.matrix_world)
+        bm.to_mesh(peg_mesh)
+        bm.free()
+        pegs.append(peg_1)
+
 
     # leg 2
     if leg_2_len >= 1:
-        peg_2 = load_openlock_top_peg(tile_props)
-        peg_2.rotation_euler[2] = radians(-90)
-        ctx = {
-            'object': peg_2,
-            'active_object': peg_2,
-            'selected_objects': [peg_2],
-            'selectable_objects': [peg_2],
-            'selected_editable_objects': [peg_2]
-        }
-
-        bpy.ops.object.transform_apply(
-            ctx,
-            location=False,
-            rotation=True,
-            scale=False,
-            properties=True)
-
-        peg_2.location = (
-            core_location[0] + (base_size[1] / 2) + 0.08,
-            core_location[1] + 0.756,
-            core_location[2] + tile_size[2])
+        peg_mesh = peg.data.copy()
+        peg_2 = bpy.data.objects.new("Leg 2 Peg", peg_mesh)
+        add_object_to_collection(peg_2, tile_props.tile_name)
+        bm = bmesh.new()
+        bm.from_mesh(peg_mesh)
 
         if leg_2_len >= 2:
-            array_mod = peg_2.modifiers.new('Array', 'ARRAY')
-            array_mod.use_relative_offset = False
-            array_mod.use_constant_offset = True
-            array_mod.constant_offset_displace[0] = 0
-            array_mod.constant_offset_displace[1] = 0.505
-            array_mod.fit_type = 'FIXED_COUNT'
-            array_mod.count = 2
+            bm = bmesh_array(
+                source_obj=peg_2,
+                source_bm=bm,
+                count=1,
+                use_relative_offset=False,
+                use_constant_offset=True,
+                constant_offset_displace=(0.505, 0, 0),
+                use_merge_vertices=False,
+                fit_type='FIXED_LENGTH')
 
         if leg_2_len >= 4:
-            array_mod = peg_2.modifiers.new('Array', 'ARRAY')
-            array_mod.use_relative_offset = False
-            array_mod.use_constant_offset = True
-            array_mod.constant_offset_displace[0] = 0
-            array_mod.constant_offset_displace[1] = 2.017
-            array_mod.fit_type = 'FIT_LENGTH'
-            array_mod.fit_length = leg_2_len - 1.3
+            bm = bmesh_array(
+                source_obj=peg_2,
+                source_bm=bm,
+                use_relative_offset=False,
+                use_constant_offset=True,
+                constant_offset_displace=(2.017, 0, 0),
+                fit_type='FIT_LENGTH',
+                fit_length=leg_2_len - 1.3,
+                use_merge_vertices=False )
+              
+        bmesh.ops.rotate(
+            bm,
+            cent=cursor.location,
+            verts=bm.verts,
+            matrix=Matrix.Rotation(radians(-90), 3, 'Z'),
+            space=peg_2.matrix_world)
 
+        bmesh.ops.translate(
+            bm,
+            verts=bm.verts,
+            vec=(
+                (base_size[1] / 2) + 0.08,
+                (base_size[1] / 2) + leg_2_len - 1,
+                tile_size[2]),
+            space=peg_2.matrix_world)
+
+        bm.to_mesh(peg_mesh)
+        bm.free()
         pegs.append(peg_2)
+
+        bpy.data.objects.remove(peg)
     return pegs
 
 @profile
@@ -902,22 +916,7 @@ def spawn_wall_core(self, tile_props):
     obj_props.is_mt_object = True
     obj_props.tile_name = tile_props.tile_name
 
-
-    ctx = {
-        'object': core,
-        'active_object': core,
-        'selected_objects': [core],
-        'selected_editable_objects': [core]
-    }
-
-    bpy.ops.object.editmode_toggle(ctx)
-    bpy.ops.mesh.select_all(action='SELECT')
-    bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
-    bpy.ops.mesh.select_all(action='DESELECT')
-    bpy.ops.object.editmode_toggle(ctx)
-
     bpy.context.scene.cursor.location = (0, 0, 0)
-    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
 
     return core
 
@@ -1008,7 +1007,7 @@ def spawn_openlock_base(self, tile_props):
     cutter_start_cap = data_to.objects[1]
     cutter_end_cap = data_to.objects[2]
 
-    # we copy the mesh from clip_cutter into a new object to 
+    # we copy the mesh from clip_cutter into a new object in bmesh array to 
     # avoid having to update the view_layer before using bmesh.ops
     # for transformation
 
@@ -1020,9 +1019,9 @@ def spawn_openlock_base(self, tile_props):
     # evaluated_depsgraph_get() prior to bmesh transforms to apply the
     # modifier
     bm = bmesh_array(
-        clip_cutter,
-        cutter_start_cap,
-        cutter_end_cap,
+        source_obj=clip_cutter,
+        start_cap=cutter_start_cap,
+        end_cap=cutter_end_cap,
         relative_offset_displace=(1, 0, 0),
         use_merge_vertices=True,
         merge_threshold=0.0001,
@@ -1053,9 +1052,9 @@ def spawn_openlock_base(self, tile_props):
 
     leg_len = base_triangles['c_adj']
     bm = bmesh_array(
-        clip_cutter,
-        cutter_start_cap,
-        cutter_end_cap,
+        source_obj=clip_cutter,
+        start_cap=cutter_start_cap,
+        end_cap=cutter_end_cap,
         relative_offset_displace=(1, 0, 0),
         use_merge_vertices=True,
         merge_threshold=0.0001,
@@ -1077,6 +1076,7 @@ def spawn_openlock_base(self, tile_props):
     bm.to_mesh(me)
     bm.free()
 
+    # remove source meshes
     bpy.data.objects.remove(clip_cutter)
     bpy.data.objects.remove(cutter_start_cap)
     bpy.data.objects.remove(cutter_end_cap)
@@ -1089,70 +1089,6 @@ def spawn_openlock_base(self, tile_props):
     bpy.context.view_layer.objects.active = base
 
     return base
-
-
-def create_openlock_base_clip_cutter(
-        leg_len,
-        corner_loc,
-        offset,
-        tile_props):
-    """Create clip cutters for OpenLOCK base
-
-    Args:
-        leg_len (float): outer length
-        corner_loc (Vector[3]): cloaction of corner
-        offset (float): offset from corner to start clip
-        tile_props (bpy.types.MT_Tile_Properties): tile properties
-
-    Returns:
-        bpy.type.Object: Clip cutter
-    """
-
-    mode('OBJECT')
-    # load cutter
-    # Get cutter
-    deselect_all()
-    preferences = get_prefs()
-    booleans_path = os.path.join(
-        preferences.assets_path,
-        "meshes",
-        "booleans",
-        "openlock.blend")
-
-    # load base cutters
-    with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
-        data_to.objects = [
-            'openlock.wall.base.cutter.clip',
-            'openlock.wall.base.cutter.clip.cap.start',
-            'openlock.wall.base.cutter.clip.cap.end']
-
-    for obj in data_to.objects:
-        add_object_to_collection(obj, tile_props.tile_name)
-
-    clip_cutter = data_to.objects[0]
-    cutter_start_cap = data_to.objects[1]
-    cutter_end_cap = data_to.objects[2]
-
-    # cutter_start_cap.hide_set(True)
-    # cutter_end_cap.hide_set(True)
-    cutter_start_cap.hide_viewport = True
-    cutter_end_cap.hide_viewport = True
-    '''
-    clip_cutter.location = Vector((
-        corner_loc[0] + 0.5,
-        corner_loc[1] + offset,
-        corner_loc[2]
-    ))
-    '''
-    array_mod = clip_cutter.modifiers.new('Array', 'ARRAY')
-    array_mod.start_cap = cutter_start_cap
-    array_mod.end_cap = cutter_end_cap
-    array_mod.use_merge_vertices = True
-
-    array_mod.fit_type = 'FIT_LENGTH'
-    array_mod.fit_length = leg_len - 1
-
-    return clip_cutter
 
 
 def create_openlock_base_slot_cutter(tile_props):

@@ -1,0 +1,97 @@
+[
+    {
+        "Name": "Collections",
+        "Slug": "collections",
+        "Parent": "",
+        "Contains": "COLLECTIONS",
+        "Children": [
+            {
+                "Name": "Tiles",
+                "Slug": "collections\\tiles",
+                "Parent": "collections",
+                "Contains": "COLLECTIONS",
+                "Children": [
+                    {
+                        "Name": "Walls",
+                        "Slug": "collections\\tiles\\walls",
+                        "Parent": "collections\\tiles",
+                        "Contains": "COLLECTIONS",
+                        "Children": []
+                    },
+                    {
+                        "Name": "Columns",
+                        "Slug": "collections\\tiles\\columns",
+                        "Parent": "collections\\tiles",
+                        "Contains": "COLLECTIONS",
+                        "Children": []
+                    },
+                    {
+                        "Name": "Floors",
+                        "Slug": "collections\\tiles\\floors",
+                        "Parent": "collections\\tiles",
+                        "Contains": "COLLECTIONS",
+                        "Children": []
+                    },
+                    {
+                        "Name": "Example",
+                        "Slug": "collections\\tiles\\example",
+                        "Parent": "collections\\tiles",
+                        "Contains": "COLLECTIONS",
+                        "Children": []
+                    }
+                ]
+            },
+            {
+                "Name": "Architectural Elements",
+                "Slug": "collections\\architectural_elements",
+                "Parent": "collections",
+                "Contains": "COLLECTIONS",
+                "Children": []
+            }
+        ]
+    },
+    {
+        "Name": "Objects",
+        "Slug": "objects",
+        "Parent": "",
+        "Contains": "OBJECTS",
+        "Children": [
+            {
+                "Name": "Doors",
+                "Slug": "objects\\doors",
+                "Parent": "objects",
+                "Contains": "OBJECTS",
+                "Children": []
+            }
+        ]
+    },
+    {
+        "Name": "Materials",
+        "Slug": "materials",
+        "Parent": "",
+        "Contains": "MATERIALS",
+        "Children": [
+            {
+                "Name": "Special",
+                "Slug": "materials\\special",
+                "Parent": "materials",
+                "Contains": "MATERIALS",
+                "Children": []
+            },
+            {
+                "Name": "Wall",
+                "Slug": "materials\\wall",
+                "Parent": "materials",
+                "Contains": "MATERIALS",
+                "Children": []
+            },
+            {
+                "Name": "Floor",
+                "Slug": "materials\\floor",
+                "Parent": "materials",
+                "Contains": "MATERIALS",
+                "Children": []
+            }
+        ]
+    }
+]

@@ -6,7 +6,8 @@ from mathutils.bvhtree import BVHTree
 from ..utils.selection import in_bbox
 
 def bmesh_array(
-    source_obj,
+    source_obj=None,
+    source_bm=None,
     start_cap=None,
     end_cap=None,
     count=0,
@@ -24,7 +25,8 @@ def bmesh_array(
     than calling depsgraph_update_get() on scenes with more than a few polys.
 
     Args:
-        source_obj (bpy.types.Object): Source object to generate bmesh from
+        source_obj (bpy.types.Object): Source object to generate bmesh from. Defaults to None.
+        source_bm (bmesh): Source bmesh. Defaults to None.
         start_cap (bpy.types.Object, optional): Object to use as start cap.Defaults to None.
         end_cap (bpy.types.Object, optional): Object to use as end cap. Defaults to None.
         count (int, optional): Number of times to array item if using Fixed Count. Defaults to 0.
@@ -34,7 +36,7 @@ def bmesh_array(
         constant_offset_displace (tuple, optional): Offset amount. Defaults to (0, 0, 0).
         use_merge_vertices (bool, optional): Merge vertices. Defaults to True.
         merge_threshold (int, optional): [description]. Defaults to 0.0001.
-        fit_type (Enum in ['FIT_LENGTH', 'FIXED'], optional): Array length calculation method. Defaults to 'FIT_LENGTH'.
+        fit_type (Enum in ['FIT_LENGTH', 'FIXED_COUNT'], optional): Array length calculation method. Defaults to 'FIT_LENGTH'.
         fit_length (int, optional): Length to fit array within if using 'FIT_LENGTH'. Defaults to 0.
 
     Returns:
@@ -61,11 +63,14 @@ def bmesh_array(
         if dupes:
             count = min(dupes)
 
-    if count:
+    if source_bm:    
+        bm = source_bm
+    else:
         mesh = source_obj.data
-        bm = bmesh.new()
+        bm = bmesh.new()      
         bm.from_mesh(mesh)
-
+        
+    if count:
         source_geom = bm.verts[:] + bm.edges[:] + bm.faces[:]
 
         i = 0
@@ -76,6 +81,7 @@ def bmesh_array(
             geom=ret["geom"]
             dupe_verts = [ele for ele in geom if isinstance(ele, bmesh.types.BMVert)]
             del ret
+
             bmesh.ops.translate(
                 bm,
                 verts=dupe_verts,
@@ -97,12 +103,12 @@ def bmesh_array(
                 vec=offset * count,
                 space=source_obj.matrix_world)
         
-        # create temp mesh because copying from one bmesh to another is fubared
-        temp = bpy.data.meshes.new("temp")
-        bm_2.to_mesh(temp)
-        bm_2.free()
-        bm.from_mesh(temp)
-        bpy.data.meshes.remove(temp)
+            # create temp mesh because copying from one bmesh to another is fubared
+            temp = bpy.data.meshes.new("temp")
+            bm_2.to_mesh(temp)
+            bm_2.free()
+            bm.from_mesh(temp)
+            bpy.data.meshes.remove(temp)
 
         if use_merge_vertices:
             bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=merge_threshold)

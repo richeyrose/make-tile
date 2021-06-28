@@ -1,12 +1,16 @@
 import os
-from math import radians, cos, sqrt
+from math import radians, cos, sqrt, modf
 import bpy
+import bmesh
+from mathutils import Vector
+from bpy import context
 from bpy.types import Panel, Operator
 
 from bpy.props import (
     EnumProperty,
     FloatProperty,
     StringProperty)
+from mathutils import Matrix
 
 from .. utils.registration import get_prefs
 
@@ -14,6 +18,10 @@ from ..lib.bmturtle.scripts import (
     draw_tri_prism,
     draw_tri_floor_core,
     draw_tri_slot_cutter)
+from ..lib.bmturtle.helpers import (
+    bm_select_all,
+    bmesh_array,
+    extrude_translate)
 
 from .. lib.utils.collections import (
     add_object_to_collection)
@@ -32,6 +40,10 @@ from .create_tile import (
     get_subdivs,
     create_material_enums,
     add_subsurf_modifier)
+
+from line_profiler import LineProfiler
+from os.path import splitext
+profile = LineProfiler()
 
 class MT_PT_Triangular_Floor_Panel(Panel):
     """Draw a tile options panel in UI."""
@@ -121,12 +133,8 @@ class MT_OT_Make_Triangular_Floor_Tile(Operator, MT_Tile_Generator):
         items=create_material_enums,
         name="Floor Material")
 
-    def execute(self, context):
-        """Execute the operator."""
-        super().execute(context)
-        if not self.refresh:
-            return {'PASS_THROUGH'}
-
+    @profile
+    def exec(self, context):
         base_blueprint = self.base_blueprint
         core_blueprint = self.main_part_blueprint
         base_type = 'TRIANGULAR_BASE'
@@ -143,6 +151,14 @@ class MT_OT_Make_Triangular_Floor_Tile(Operator, MT_Tile_Generator):
             preview_core = spawn_prefab(context, subclasses, core_blueprint, core_type, **kwargs)
 
         self.finalise_tile(context, base, preview_core)
+    
+    def execute(self, context):
+        """Execute the operator."""
+        super().execute(context)
+        if not self.refresh:
+            return {'PASS_THROUGH'}
+        self.exec(context)
+        profile.dump_stats(splitext(__file__)[0] + '.prof')
 
         return {'FINISHED'}
 
@@ -305,7 +321,7 @@ def spawn_plain_base(tile_props):
         'selected_objects': [base]
     }
 
-    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+    #bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
 
     obj_props = base.mt_object_props
     obj_props.is_mt_object = True
@@ -344,7 +360,7 @@ def spawn_openlock_base(tile_props):
         'selected_editable_objects': [base]
     }
 
-    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+    #bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
 
     clip_cutters = spawn_openlock_base_clip_cutters(dimensions, tile_props)
 
@@ -363,7 +379,7 @@ def spawn_openlock_base(tile_props):
     bpy.context.view_layer.objects.active = base
     return base
 
-
+@profile
 def spawn_openlock_base_clip_cutters(dimensions, tile_props):
     """Make cutters for the openlock base clips.
 
@@ -406,30 +422,13 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
         cutters = []
         with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
             data_to.objects = [
-                'openlock.wall.base.cutter.clip',
-                'openlock.wall.base.cutter.clip.cap.start',
-                'openlock.wall.base.cutter.clip.cap.end']
+                'openlock.wall.base.cutter.clip.001',
+                'openlock.wall.base.cutter.clip.cap.start.001',
+                'openlock.wall.base.cutter.clip.cap.end.001']
 
-        for obj in data_to.objects:
-            add_object_to_collection(obj, tile_props.tile_name)
-
-        b_cutter = data_to.objects[0]
-
-        b_cutter.name = "Leg 1 Clip."
+        cutter = data_to.objects[0]
         cutter_start_cap = data_to.objects[1]
         cutter_end_cap = data_to.objects[2]
-
-        # cutter_start_cap.hide_set(True)
-        # cutter_end_cap.hide_set(True)
-        cutter_start_cap.hide_viewport = True
-        cutter_end_cap.hide_viewport = True
-
-        array_mod = b_cutter.modifiers.new('Array', 'ARRAY')
-        array_mod.start_cap = cutter_start_cap
-        array_mod.end_cap = cutter_end_cap
-        array_mod.use_merge_vertices = True
-
-        array_mod.fit_type = 'FIT_LENGTH'
 
         # for cutters the number of cutters and start and end location has to take into account
         # the angles of the triangle in order to prevent overlaps between cutters
@@ -437,80 +436,272 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
 
         # b cutter
         if b >= 2:
+            me = cutter.data.copy()
+            b_cutter = bpy.data.objects.new("Leg 1 Cutter", me)
+            bm = bmesh.new()
+            bm.from_mesh(me)
+            add_object_to_collection(b_cutter, tile_props.tile_name)
             if A >= 90:
-                b_cutter.location = (
-                    loc_A[0] + 0.5,
-                    loc_A[1] + 0.25,
-                    loc_A[2])
                 if C >= 90:
-                    array_mod.fit_length = b - 1
+                    bm=bmesh_array(
+                        source_obj=cutter,
+                        source_bm=bm,
+                        start_cap=cutter_start_cap,
+                        end_cap=cutter_end_cap,
+                        relative_offset_displace=(1, 0, 0),
+                        fit_type='FIT_LENGTH',
+                        fit_length=b-1)
+                    #array_mod.fit_length = b - 1
                 else:
-                    array_mod.fit_length = b - 1.5
+                    bm=bmesh_array(
+                        source_obj=cutter,
+                        source_bm=bm,
+                        start_cap=cutter_start_cap,
+                        end_cap=cutter_end_cap,
+                        relative_offset_displace=(1, 0, 0),
+                        fit_type='FIT_LENGTH',
+                        fit_length=b-1.5)
+                    #array_mod.fit_length = b - 1.5
+                bmesh.ops.translate(
+                    bm,
+                    verts=bm.verts,
+                    vec=(0.5, 0.25, 0),
+                    space=b_cutter.matrix_world)
 
             elif A < 90:
-                b_cutter.location = (
-                    loc_A[0] + 1,
-                    loc_A[1] + 0.25,
-                    loc_A[2])
                 if C >= 90:
-                    array_mod.fit_length = b - 1.5
+                    bm=bmesh_array(
+                        source_obj=cutter,
+                        source_bm=bm,
+                        start_cap=cutter_start_cap,
+                        end_cap=cutter_end_cap,
+                        relative_offset_displace=(1, 0, 0),
+                        fit_type='FIT_LENGTH',
+                        fit_length=b-1.5)
+                    #array_mod.fit_length = b - 1.5
                 else:
-                    array_mod.fit_length = b - 2
+                    bm=bmesh_array(
+                        source_obj=cutter,
+                        source_bm=bm,
+                        start_cap=cutter_start_cap,
+                        end_cap=cutter_end_cap,
+                        relative_offset_displace=(1, 0, 0),
+                        fit_type='FIT_LENGTH',
+                        fit_length=b-2)
+                    #array_mod.fit_length = b - 2
+                bmesh.ops.translate(
+                    bm,
+                    verts=bm.verts,
+                    vec=(0.5, 0.25, 0),
+                    space=b_cutter.matrix_world)
 
-            ctx = {
-                'object': b_cutter,
-                'active_object': b_cutter,
-                'selected_objects': [b_cutter],
-                'selected_editable_objects': [b_cutter]}
+            bmesh.ops.rotate(
+                bm,
+                cent=loc_A,
+                verts=bm.verts,
+                matrix=Matrix.Rotation(radians(A - 90)*-1, 3, 'Z'),
+                space=b_cutter.matrix_world
+            )
 
-            bpy.ops.transform.rotate(
-                ctx,
-                value=radians(A - 90) * 1,
-                orient_axis='Z',
-                orient_type='GLOBAL',
-                center_override=loc_A)
-
-            c_cutter = b_cutter.copy()
-            c_cutter.name = "Leg 2 Clip"
-            add_object_to_collection(c_cutter, tile_props.tile_name)
+            bm.to_mesh(me)
+            bm.free()
             cutters.append(b_cutter)
-        else:
-            c_cutter = b_cutter
 
         if c >= 2:
-            array_mod = c_cutter.modifiers['Array']
-            c_cutter.rotation_euler = (0, 0, radians(-90))
+            me = cutter.data.copy()
+            c_cutter = bpy.data.objects.new("Leg 2 Cutter", me)
+            bm = bmesh.new()
+            bm.from_mesh(me)
+            add_object_to_collection(c_cutter, tile_props.tile_name)
 
             if B >= 90:
-                c_cutter.location = (
-                    loc_B[0] + 0.25,
-                    loc_B[1] - 0.5,
-                    loc_B[2] + 0.0001)
                 if A >= 90:
-                    array_mod.fit_length = c - 1
+                    bmesh_array(
+                        source_obj=c_cutter,
+                        source_bm=bm,
+                        start_cap=cutter_start_cap,
+                        end_cap=cutter_end_cap,
+                        relative_offset_displace=(1, 0, 0),
+                        fit_type='FIT_LENGTH',
+                        fit_length= c-1)
                 else:
-                    array_mod.fit_length = c - 1.5
+                    bmesh_array(
+                        source_obj=c_cutter,
+                        source_bm=bm,
+                        start_cap=cutter_start_cap,
+                        end_cap=cutter_end_cap,
+                        relative_offset_displace=(1, 0, 0),
+                        fit_type='FIT_LENGTH',
+                        fit_length= c-1.5)
+                bmesh.ops.rotate(
+                    bm,
+                    cent=loc_A,
+                    verts=bm.verts,
+                    matrix=Matrix.Rotation(radians(-90), 3, 'Z'),
+                    space=c_cutter.matrix_world)
+                bmesh.ops.translate(
+                    bm,
+                    verts=bm.verts,
+                    vec=(0.25, c-1, 0.0001),
+                    space=c_cutter.matrix_world)
+            elif b < 90:
+                if A >= 90:
+                    bmesh_array(
+                        source_obj=c_cutter,
+                        source_bm=bm,
+                        start_cap=cutter_start_cap,
+                        end_cap=cutter_end_cap,
+                        relative_offset_displace=(1, 0, 0),
+                        fit_type='FIT_LENGTH',
+                        fit_length= c-1.5)
+                else:
+                    bmesh_array(
+                        source_obj=c_cutter,
+                        source_bm=bm,
+                        start_cap=cutter_start_cap,
+                        end_cap=cutter_end_cap,
+                        relative_offset_displace=(1, 0, 0),
+                        fit_type='FIT_LENGTH',
+                        fit_length= c-2)
+                
+                bmesh.ops.rotate(
+                    bm,
+                    cent=loc_A,
+                    verts=bm.verts,
+                    matrix=Matrix.Rotation(radians(-90), 3, 'Z'),
+                    space=c_cutter.matrix_world)
 
-            elif B < 90:
-                c_cutter.location = (
-                    loc_B[0] + 0.25,
-                    loc_B[1] - 1,
-                    loc_B[2] + 0.0001)
-                if A >= 90:
-                    array_mod.fit_length = c - 1.5
-                else:
-                    array_mod.fit_length = c - 2
+                bmesh.ops.translate(
+                    bm,
+                    verts=bm.verts,
+                    vec=(0.25, c-1, 0.0001),
+                    space=c_cutter.matrix_world)
+            bm.to_mesh(me)
+            bm.free()
             cutters.append(c_cutter)
 
-            if a >= 2:
-                a_cutter = c_cutter.copy()
-                a_cutter.name = "Opposite Clip."
-                add_object_to_collection(a_cutter, tile_props.tile_name)
-            else:
-                bpy.ops.object.make_single_user(type='ALL', object=True, obdata=True)
-                return cutters
-        else:
-            a_cutter = c_cutter
+        if a >= 2:
+            me = cutter.data.copy()
+            a_cutter = bpy.data.objects.new("Leg 3 Cutter", me)
+            bm = bmesh.new()
+            bm.from_mesh(me)
+            add_object_to_collection(a_cutter, tile_props.tile_name)
+
+            turtle = bpy.context.scene.cursor
+            turtle.location = loc_C
+            turtle.rotation_euler = (0, 0, 0)
+            bm.select_mode = {'VERT'}
+            bm_select_all(bm)
+            dims = cutter.dimensions.copy()
+            offset = Vector((1, 0, 0)) * Vector(dims)
+            if C >= 90:
+                if B >= 90:
+                    bm = bmesh_array(
+                        source_obj=a_cutter,
+                        source_bm=bm,
+                        start_cap=cutter_start_cap,
+                        end_cap=cutter_end_cap,
+                        relative_offset_displace=(1, 0, 0),
+                        fit_length=(a-1),
+                        fit_type='FIT_LENGTH')
+                    count = modf((a-1) / offset[0])[1]
+                    #print(count)
+                else:
+                    bm = bmesh_array(
+                        source_obj=a_cutter,
+                        source_bm=bm,
+                        start_cap=cutter_start_cap,
+                        end_cap=cutter_end_cap,
+                        relative_offset_displace=(1, 0, 0),
+                        fit_length=(a-1.5),
+                        fit_type='FIT_LENGTH')
+                    count = modf((a-1.5) / offset[0])[1]
+                    #print(count)
+                bm.select_mode = {'VERT'}
+                bm_select_all(bm)
+                turtle.rotation_euler = (0, 0, -radians(A))
+                extrude_translate(bm, (0, b, 0), del_original=False, extrude=False)
+                turtle.rotation_euler = (0, 0, 0)
+                extrude_translate(bm, (0.5, 0.25, 0.0002), extrude=False)
+                bmesh.ops.rotate(
+                    bm=bm,
+                    verts=bm.verts,
+                    cent=loc_C,
+                    matrix=Matrix.Rotation(radians(-90-B)*-1, 3, 'Z'),
+                    space=a_cutter.matrix_world)
+
+            elif C < 90:
+
+                if B >= 90:
+                    bm = bmesh_array(
+                        source_obj=a_cutter,
+                        source_bm=bm,
+                        start_cap=cutter_start_cap,
+                        end_cap=cutter_end_cap,
+                        relative_offset_displace=(1, 0, 0),
+                        fit_length=(a-1.5),
+                        fit_type='FIT_LENGTH')
+                    count = modf((a-1.5) / offset[0])[1]
+                    #print(count)
+                else:
+                    bm = bmesh_array(
+                        source_obj=a_cutter,
+                        source_bm=bm,
+                        start_cap=cutter_start_cap,
+                        end_cap=cutter_end_cap,
+                        relative_offset_displace=(1, 0, 0),
+                        fit_length=(a-2),
+                        fit_type='FIT_LENGTH')
+                    count = modf((a-2) / offset[0])[1]
+                    #print(count)
+                bm.select_mode = {'VERT'}
+                bm_select_all(bm)
+                turtle.rotation_euler = (0, 0, -radians(A))
+                extrude_translate(bm, (0, b, 0), del_original=False, extrude=False)
+                turtle.rotation_euler = (0, 0, 0)
+                extrude_translate(bm, (1, 0.25, 0.0002), extrude=False)
+                bmesh.ops.rotate(
+                    bm,
+                    verts=bm.verts,
+                    cent=loc_C,
+                    matrix=Matrix.Rotation(radians(-90-B)*-1, 3, 'Z'),
+                    space=a_cutter.matrix_world)
+                
+                caps = 0.083333
+                turtle.rotation_euler = (0, 0, radians(C))
+                extrude_translate(bm, (0, (caps * (count + 1)), 0), del_original=False, extrude=False)
+            '''
+            bmesh.ops.rotate(
+                bm,
+                cent=a_cutter.location,
+                matrix=Matrix.Rotation(radians(-90 - B)*-1, 3, 'Z'),
+                space=a_cutter.matrix_world,
+                verts=bm.verts)
+            '''
+
+            
+
+            '''
+            ctx = {
+                'selected_objects': [a_cutter],
+                'object': a_cutter,
+                'active_object': a_cutter,
+                'selected_editable_objects': [a_cutter]}
+            bpy.ops.transform.rotate(
+                ctx,
+                value=radians(-90 - B) * 1,
+                orient_axis='Z',
+                orient_type='GLOBAL',
+                center_override=loc_C)
+            '''
+            
+            bm.to_mesh(me)
+            bm.free()
+            cutters.append(a_cutter)
+        bpy.data.objects.remove(cutter)
+        bpy.data.objects.remove(cutter_start_cap)
+        bpy.data.objects.remove(cutter_end_cap)
+        '''
 
         # clip cutter 3
         if a >= 2:
@@ -552,6 +743,7 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
             cutters.append(a_cutter)
 
             bpy.ops.object.make_single_user(type='ALL', object=True, obdata=True)
+        '''            
         return cutters
     else:
         return None
@@ -621,13 +813,13 @@ def spawn_floor_core(tile_props):
         'selected_editable_objects': [core]
     }
 
-    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+    #bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
 
-    bpy.ops.object.editmode_toggle(ctx)
-    bpy.ops.mesh.select_all(action='SELECT')
-    bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
-    bpy.ops.mesh.select_all(action='DESELECT')
-    bpy.ops.object.editmode_toggle(ctx)
+    #bpy.ops.object.editmode_toggle(ctx)
+    #bpy.ops.mesh.select_all(action='SELECT')
+    #bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
+    #bpy.ops.mesh.select_all(action='DESELECT')
+    #bpy.ops.object.editmode_toggle(ctx)
 
     obj_props = core.mt_object_props
     obj_props.is_mt_object = True

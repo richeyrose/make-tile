@@ -888,8 +888,6 @@ def spawn_plain_base(tile_props):
         'active_object': base,
         'selected_objects': [base]}
 
-    #bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-
     obj_props = base.mt_object_props
     obj_props.is_mt_object = True
     obj_props.geometry_type = 'BASE'

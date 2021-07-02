@@ -42,9 +42,6 @@ from . create_tile import (
     get_subdivs,
     add_subsurf_modifier)
 
-from line_profiler import LineProfiler
-from os.path import splitext
-profile = LineProfiler()
 
 class MT_PT_L_Tile_Panel(Panel):
     """Draw a tile options panel in UI."""
@@ -143,7 +140,6 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
         items=create_material_enums,
         name="Wall Material")
 
-    @profile
     def exec(self, context):
         base_blueprint = self.base_blueprint
         wall_blueprint = self.main_part_blueprint
@@ -171,7 +167,7 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
         if not self.refresh:
             return {'PASS_THROUGH'}
         self.exec(context)
-        profile.dump_stats(splitext(__file__)[0] + '.prof')
+        
         return {'FINISHED'}
 
     def init(self, context):
@@ -553,7 +549,7 @@ def spawn_floor_core(self, tile_props):
     
     return core
 
-@profile
+
 def spawn_openlock_wall_cores(self, tile_props, base):
     """Spawn openlock wall cores into scene.
 
@@ -716,7 +712,7 @@ def spawn_openlock_top_pegs(core, tile_props):
         bpy.data.objects.remove(peg)
     return pegs
 
-@profile
+
 def spawn_openlock_wall_cutters(core, tile_props):
     """Create the cutters for the wall and position them correctly.
 
@@ -854,7 +850,7 @@ def spawn_openlock_wall_cutters(core, tile_props):
     deselect_all()
     return cutters
 
-@profile
+
 def spawn_wall_core(self, tile_props):
     """Spawn core into scene.
 
@@ -958,7 +954,6 @@ def spawn_plain_base(tile_props):
 
     return base
 
-@profile
 def spawn_openlock_base(self, tile_props):
     """Spawn a plain base into the scene.
 

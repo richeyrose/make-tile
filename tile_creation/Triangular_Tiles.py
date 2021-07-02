@@ -40,11 +40,11 @@ from .create_tile import (
     get_subdivs,
     create_material_enums,
     add_subsurf_modifier)
-
+'''
 from line_profiler import LineProfiler
 from os.path import splitext
 profile = LineProfiler()
-
+'''
 class MT_PT_Triangular_Floor_Panel(Panel):
     """Draw a tile options panel in UI."""
 
@@ -133,7 +133,7 @@ class MT_OT_Make_Triangular_Floor_Tile(Operator, MT_Tile_Generator):
         items=create_material_enums,
         name="Floor Material")
 
-    @profile
+    #@profile
     def exec(self, context):
         base_blueprint = self.base_blueprint
         core_blueprint = self.main_part_blueprint
@@ -158,7 +158,7 @@ class MT_OT_Make_Triangular_Floor_Tile(Operator, MT_Tile_Generator):
         if not self.refresh:
             return {'PASS_THROUGH'}
         self.exec(context)
-        profile.dump_stats(splitext(__file__)[0] + '.prof')
+        #profile.dump_stats(splitext(__file__)[0] + '.prof')
 
         return {'FINISHED'}
 
@@ -379,7 +379,7 @@ def spawn_openlock_base(tile_props):
     bpy.context.view_layer.objects.active = base
     return base
 
-@profile
+#@profile
 def spawn_openlock_base_clip_cutters(dimensions, tile_props):
     """Make cutters for the openlock base clips.
 
@@ -602,9 +602,9 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
                         start_cap=cutter_start_cap,
                         end_cap=cutter_end_cap,
                         relative_offset_displace=(1, 0, 0),
-                        fit_length=(a-1),
+                        fit_length=(a-2),
                         fit_type='FIT_LENGTH')
-                    count = modf((a-1) / offset[0])[1]
+                    count = modf((a-2) / offset[0])[1]
                     #print(count)
                 else:
                     bm = bmesh_array(
@@ -613,9 +613,9 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
                         start_cap=cutter_start_cap,
                         end_cap=cutter_end_cap,
                         relative_offset_displace=(1, 0, 0),
-                        fit_length=(a-1.5),
+                        fit_length=(a-2),
                         fit_type='FIT_LENGTH')
-                    count = modf((a-1.5) / offset[0])[1]
+                    count = modf((a-2) / offset[0])[1]
                     #print(count)
                 bm.select_mode = {'VERT'}
                 bm_select_all(bm)
@@ -631,7 +631,6 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
                     space=a_cutter.matrix_world)
 
             elif C < 90:
-
                 if B >= 90:
                     bm = bmesh_array(
                         source_obj=a_cutter,
@@ -639,9 +638,9 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
                         start_cap=cutter_start_cap,
                         end_cap=cutter_end_cap,
                         relative_offset_displace=(1, 0, 0),
-                        fit_length=(a-1.5),
+                        fit_length=(a-2),
                         fit_type='FIT_LENGTH')
-                    count = modf((a-1.5) / offset[0])[1]
+                    count = modf((a-2) / offset[0])[1]
                     #print(count)
                 else:
                     bm = bmesh_array(

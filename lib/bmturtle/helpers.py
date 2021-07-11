@@ -19,8 +19,8 @@ def bmesh_array(
     merge_threshold=0.0001,
     fit_type='FIT_LENGTH',
     fit_length=0):
-    """A bmesh version of the array modifier. 
-    
+    """A bmesh version of the array modifier.
+
     Produces a bmesh that has the modifier applied. This is much faster
     than calling depsgraph_update_get() on scenes with more than a few polys.
 
@@ -44,7 +44,7 @@ def bmesh_array(
     """
 
     offset = Vector((0, 0, 0))
-    
+
     if use_relative_offset:
         dims = source_obj.dimensions.copy()
         offset = Vector(relative_offset_displace) * Vector(dims)
@@ -63,56 +63,55 @@ def bmesh_array(
         if dupes:
             count = min(dupes)
 
-    if source_bm:    
+    if source_bm:
         bm = source_bm
     else:
         mesh = source_obj.data
-        bm = bmesh.new()      
+        bm = bmesh.new()
         bm.from_mesh(mesh)
-        
-    if count:
-        source_geom = bm.verts[:] + bm.edges[:] + bm.faces[:]
 
-        i = 0
-        while i < count:
-            ret = bmesh.ops.duplicate(
-                bm,
-                geom=source_geom)
-            geom=ret["geom"]
-            dupe_verts = [ele for ele in geom if isinstance(ele, bmesh.types.BMVert)]
-            del ret
+    source_geom = bm.verts[:] + bm.edges[:] + bm.faces[:]
 
-            bmesh.ops.translate(
-                bm,
-                verts=dupe_verts,
-                vec=offset * (i + 1),
-                space=source_obj.matrix_world)
-            i += 1
-        
-        if start_cap:
-            me_2 = start_cap.data
-            bm.from_mesh(me_2)
+    i = 0
+    while i < count:
+        ret = bmesh.ops.duplicate(
+            bm,
+            geom=source_geom)
+        geom=ret["geom"]
+        dupe_verts = [ele for ele in geom if isinstance(ele, bmesh.types.BMVert)]
+        del ret
 
-        if end_cap:
-            me_3 = end_cap.data
-            bm_2 = bmesh.new()
-            bm_2.from_mesh(me_3)
-            bmesh.ops.translate(
-                bm_2,
-                verts=bm_2.verts,
-                vec=offset * count,
-                space=source_obj.matrix_world)
-        
-            # create temp mesh because copying from one bmesh to another is fubared
-            temp = bpy.data.meshes.new("temp")
-            bm_2.to_mesh(temp)
-            bm_2.free()
-            bm.from_mesh(temp)
-            bpy.data.meshes.remove(temp)
+        bmesh.ops.translate(
+            bm,
+            verts=dupe_verts,
+            vec=offset * (i + 1),
+            space=source_obj.matrix_world)
+        i += 1
 
-        if use_merge_vertices:
-            bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=merge_threshold)
-        
+    if start_cap:
+        me_2 = start_cap.data
+        bm.from_mesh(me_2)
+
+    if end_cap:
+        me_3 = end_cap.data
+        bm_2 = bmesh.new()
+        bm_2.from_mesh(me_3)
+        bmesh.ops.translate(
+            bm_2,
+            verts=bm_2.verts,
+            vec=offset * count,
+            space=source_obj.matrix_world)
+
+        # create temp mesh because copying from one bmesh to another is fubared
+        temp = bpy.data.meshes.new("temp")
+        bm_2.to_mesh(temp)
+        bm_2.free()
+        bm.from_mesh(temp)
+        bpy.data.meshes.remove(temp)
+
+    if use_merge_vertices:
+        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=merge_threshold)
+
     return bm
 
 def bm_select_all(bm):
@@ -260,7 +259,7 @@ def extrude_translate(bm, local_trans, del_original=True, extrude=True):
                         if isinstance(e, bmesh.types.BMEdge)]
                 verts = [v for v in geom
                         if isinstance(v, bmesh.types.BMVert)]
-            
+
                 bmesh.ops.translate(bm, vec=(world_trans), verts=verts)
 
                 # deselect original edges

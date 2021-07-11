@@ -40,11 +40,11 @@ from .create_tile import (
     get_subdivs,
     create_material_enums,
     add_subsurf_modifier)
-'''
+
 from line_profiler import LineProfiler
 from os.path import splitext
 profile = LineProfiler()
-'''
+
 class MT_PT_Triangular_Floor_Panel(Panel):
     """Draw a tile options panel in UI."""
 
@@ -133,32 +133,32 @@ class MT_OT_Make_Triangular_Floor_Tile(Operator, MT_Tile_Generator):
         items=create_material_enums,
         name="Floor Material")
 
-    #@profile
+    @profile
     def exec(self, context):
         base_blueprint = self.base_blueprint
         core_blueprint = self.main_part_blueprint
-        base_type = 'TRIANGULAR_BASE'
-        core_type = 'TRIANGULAR_FLOOR_CORE'
-        subclasses = get_all_subclasses(MT_Tile_Generator)
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
 
-        kwargs = {"tile_name": self.tile_name}
-        base = spawn_prefab(context, subclasses, base_blueprint, base_type, **kwargs)
+        if base_blueprint == 'NONE':
+            base = spawn_empty_base(tile_props)
+        elif base_blueprint == 'OPENLOCK':
+            base = spawn_openlock_base(tile_props)
+        elif base_blueprint == 'PLAIN':
+            base = spawn_plain_base(tile_props)
 
-        kwargs["base_name"] = base.name
         if core_blueprint == 'NONE':
-            preview_core = None
+            core = None
         else:
-            preview_core = spawn_prefab(context, subclasses, core_blueprint, core_type, **kwargs)
+            core = create_plain_triangular_floor_cores(base, tile_props)
+        self.finalise_tile(context, base, core)
 
-        self.finalise_tile(context, base, preview_core)
-    
     def execute(self, context):
         """Execute the operator."""
         super().execute(context)
         if not self.refresh:
             return {'PASS_THROUGH'}
         self.exec(context)
-        #profile.dump_stats(splitext(__file__)[0] + '.prof')
+        profile.dump_stats(splitext(__file__)[0] + '.prof')
 
         return {'FINISHED'}
 
@@ -411,6 +411,10 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
     loc_B = dimensions['loc_B']
     loc_C = dimensions['loc_C']
 
+    cursor = bpy.context.scene.cursor
+    cursor_orig_loc = cursor.location.copy()
+    cursor_orig_rot = cursor.rotation_euler.copy()
+
     if a or b or c >= 2:
         preferences = get_prefs()
         booleans_path = os.path.join(
@@ -563,7 +567,7 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
                         relative_offset_displace=(1, 0, 0),
                         fit_type='FIT_LENGTH',
                         fit_length= c-2)
-                
+
                 bmesh.ops.rotate(
                     bm,
                     cent=loc_A,
@@ -665,7 +669,7 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
                     cent=loc_C,
                     matrix=Matrix.Rotation(radians(-90-B)*-1, 3, 'Z'),
                     space=a_cutter.matrix_world)
-                
+
                 caps = 0.083333
                 turtle.rotation_euler = (0, 0, radians(C))
                 extrude_translate(bm, (0, (caps * (count + 1)), 0), del_original=False, extrude=False)
@@ -678,7 +682,7 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
                 verts=bm.verts)
             '''
 
-            
+
 
             '''
             ctx = {
@@ -693,7 +697,7 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
                 orient_type='GLOBAL',
                 center_override=loc_C)
             '''
-            
+
             bm.to_mesh(me)
             bm.free()
             cutters.append(a_cutter)
@@ -742,7 +746,9 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
             cutters.append(a_cutter)
 
             bpy.ops.object.make_single_user(type='ALL', object=True, obdata=True)
-        '''            
+        '''
+        cursor.location = cursor_orig_loc
+        cursor.rotation_euler = cursor_orig_rot
         return cutters
     else:
         return None

@@ -21,7 +21,8 @@ from ..lib.bmturtle.helpers import (
     bm_deselect_all,
     assign_verts_to_group,
     select_verts_in_bounds,
-    bm_shortest_path)
+    bm_shortest_path,
+    bmesh_array)
 from .. lib.utils.utils import mode, get_all_subclasses
 from .. utils.registration import get_prefs
 from .. lib.utils.collections import (
@@ -43,6 +44,10 @@ from bpy.props import (
     FloatProperty,
     StringProperty)
 
+from line_profiler import LineProfiler
+from os.path import splitext
+profile = LineProfiler()
+
 # leg_1_len and leg_2_len are the inner lengths of the legs
 #             ||           ||
 #             ||leg_1 leg_2||
@@ -51,7 +56,6 @@ from bpy.props import (
 #      origin x--------------
 #                 outer
 #
-
 
 class MT_PT_U_Tile_Panel(Panel):
     """Draw a tile options panel in the UI."""
@@ -152,29 +156,42 @@ class MT_OT_Make_U_Wall_Tile(MT_Tile_Generator, Operator):
         items=create_material_enums,
         name="Wall Material")
 
+    @profile
+    def exec(self, context):
+        base_blueprint = self.base_blueprint
+        wall_blueprint = self.main_part_blueprint
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
+        '''
+        base_type = 'U_BASE'
+        core_type = 'U_WALL_CORE'
+        subclasses = get_all_subclasses(MT_Tile_Generator)
+        kwargs = {"tile_name": self.tile_name}
+        '''
+        if base_blueprint == 'NONE':
+            base = spawn_empty_base(tile_props)
+        elif base_blueprint == 'OPENLOCK':
+            base = spawn_openlock_base(tile_props)
+        elif base_blueprint == 'PLAIN':
+            base = spawn_plain_base(tile_props)
+
+        if wall_blueprint == 'NONE':
+            wall_core = None
+        elif wall_blueprint == 'PLAIN':
+            wall_core = spawn_plain_wall_cores(tile_props)
+        elif wall_blueprint == 'OPENLOCK':
+            wall_core = spawn_openlock_wall_cores(base, tile_props)
+        self.finalise_tile(context, base, wall_core)
+        profile.dump_stats(splitext(__file__)[0] + '.prof')
+        return {'FINISHED'}
+
     def execute(self, context):
         """Execute the operator."""
         super().execute(context)
         if not self.refresh:
             return {'PASS_THROUGH'}
 
-        base_blueprint = self.base_blueprint
-        core_blueprint = self.main_part_blueprint
-        base_type = 'U_BASE'
-        core_type = 'U_WALL_CORE'
-        subclasses = get_all_subclasses(MT_Tile_Generator)
-        kwargs = {"tile_name": self.tile_name}
+        return self.exec(context)
 
-        base = spawn_prefab(context, subclasses, base_blueprint, base_type, **kwargs)
-
-        kwargs["base_name"] = base.name
-        if core_blueprint == 'NONE':
-            preview_core = None
-        else:
-            preview_core = spawn_prefab(context, subclasses, core_blueprint, core_type, **kwargs)
-
-        self.finalise_tile(context, base, preview_core)
-        return {'FINISHED'}
 
     def init(self, context):
         super().init(context)
@@ -314,7 +331,7 @@ class MT_OT_Make_Empty_U_Wall_Core(MT_Tile_Generator, Operator):
         """Execute the operator."""
         return {'PASS_THROUGH'}
 
-
+@profile
 def spawn_openlock_wall_cores(base, tile_props):
     """Spawn preview and displacement cores into scene.
 
@@ -446,7 +463,7 @@ def spawn_openlock_wall_cutters(base, tile_props):
 
     return cutters
 
-
+@profile
 def spawn_openlock_top_pegs(core, tile_props):
     """Spawn top peg(s) for stacking wall tiles and position it.
 
@@ -469,10 +486,12 @@ def spawn_openlock_top_pegs(core, tile_props):
     leg_2_outer_len = leg_2_inner_len + thickness
     x_outer_len = x_inner_len + (thickness * 2)
 
-    peg = load_openlock_top_peg(tile_props)
-    peg.name = 'Base Wall Top Peg.' + tile_props.tile_name
+    source_peg = load_openlock_top_peg(tile_props)
+    pegs = []
+    peg_1 = bpy.data.objects.new('Base Wall Top Peg.' + tile_props.tile_name, source_peg.data.copy())
+    add_object_to_collection(peg_1, tile_props.tile_name)
 
-    array_mod = peg.modifiers.new('Array', 'ARRAY')
+    array_mod = peg_1.modifiers.new('Array', 'ARRAY')
     array_mod.use_relative_offset = False
     array_mod.use_constant_offset = True
     array_mod.constant_offset_displace[0] = 0.505
@@ -481,32 +500,30 @@ def spawn_openlock_top_pegs(core, tile_props):
 
     core_location = core.location.copy()
 
-    pegs = []
-
     # Back wall
     if x_outer_len < 4 and x_outer_len >= 1:
-        peg.location = (
+        peg_1.location = (
             core_location[0] + (x_outer_len / 2) - 0.252,
             core_location[1] + (base_size[1] / 2) + 0.08,
             core_location[2] + tile_size[2])
     else:
-        peg.location = (
+        peg_1.location = (
             core_location[0] + 0.756 + thickness,
             core_location[1] + (base_size[1] / 2) + 0.08,
             core_location[2] + tile_size[2])
-        array_mod = peg.modifiers.new('Array', 'ARRAY')
+        array_mod = peg_1.modifiers.new('Array', 'ARRAY')
         array_mod.use_relative_offset = False
         array_mod.use_constant_offset = True
         array_mod.constant_offset_displace[0] = 2.017
         array_mod.fit_type = 'FIT_LENGTH'
         array_mod.fit_length = tile_size[0] - 1.3
 
-    pegs.append(peg)
+    pegs.append(peg_1)
 
     # leg 1
     if leg_1_outer_len >= 1:
-        peg_2 = load_openlock_top_peg(tile_props)
-        peg_2.name = 'Leg 1 Top Peg.' + tile_props.tile_name
+        peg_2 = bpy.data.objects.new('Leg 1 Top Peg.' + tile_props.tile_name, source_peg.data.copy())
+        add_object_to_collection(peg_2, tile_props.tile_name)
 
         peg_2.rotation_euler[2] = radians(-90)
         ctx = {
@@ -516,14 +533,14 @@ def spawn_openlock_top_pegs(core, tile_props):
             'selectable_objects': [peg_2],
             'selected_editable_objects': [peg_2]
         }
-
+        '''
         bpy.ops.object.transform_apply(
             ctx,
             location=False,
             rotation=True,
             scale=False,
             properties=True)
-
+        '''
         if leg_1_outer_len < 4 and leg_1_outer_len >= 1:
             peg_2.location = (
                 core_location[0] + (thickness / 2) + 0.08,
@@ -539,8 +556,8 @@ def spawn_openlock_top_pegs(core, tile_props):
             array_mod = peg_2.modifiers.new('Array', 'ARRAY')
             array_mod.use_relative_offset = False
             array_mod.use_constant_offset = True
-            array_mod.constant_offset_displace[1] = 0.505
-            array_mod.constant_offset_displace[0] = 0
+            array_mod.constant_offset_displace[0] = -0.505
+            array_mod.constant_offset_displace[1] = 0
             array_mod.fit_type = 'FIXED_COUNT'
             array_mod.count = 2
 
@@ -548,19 +565,20 @@ def spawn_openlock_top_pegs(core, tile_props):
             array_mod = peg_2.modifiers.new('Array', 'ARRAY')
             array_mod.use_relative_offset = False
             array_mod.use_constant_offset = True
-            array_mod.constant_offset_displace[1] = 2.017
-            array_mod.constant_offset_displace[0] = 0
+            array_mod.constant_offset_displace[0] = -2.017
+            array_mod.constant_offset_displace[1] = 0
             array_mod.fit_type = 'FIT_LENGTH'
             array_mod.fit_length = leg_1_outer_len - 1.3
 
+        peg_2.rotation_euler[2] = radians(-90)
         pegs.append(peg_2)
 
     # leg 2
     if leg_2_outer_len >= 1:
-        peg_3 = load_openlock_top_peg(tile_props)
-        peg_3.name = 'Leg 2 Top Peg.' + tile_props.tile_name
+        peg_3 = bpy.data.objects.new('Leg 2 Top Peg.' + tile_props.tile_name, source_peg.data.copy())
+        add_object_to_collection(peg_3, tile_props.tile_name)
 
-        peg_3.rotation_euler[2] = radians(90)
+
         ctx = {
             'object': peg_3,
             'active_object': peg_3,
@@ -568,14 +586,14 @@ def spawn_openlock_top_pegs(core, tile_props):
             'selectable_objects': [peg_3],
             'selected_editable_objects': [peg_3]
         }
-
+        '''
         bpy.ops.object.transform_apply(
             ctx,
             location=False,
             rotation=True,
             scale=False,
             properties=True)
-
+        '''
         if leg_2_outer_len < 4 and leg_2_outer_len >= 1:
             peg_3.location = (
                 core_location[0] + x_outer_len - (thickness / 2) - 0.08,
@@ -591,8 +609,8 @@ def spawn_openlock_top_pegs(core, tile_props):
             array_mod = peg_3.modifiers.new('Array', 'ARRAY')
             array_mod.use_relative_offset = False
             array_mod.use_constant_offset = True
-            array_mod.constant_offset_displace[1] = 0.505
-            array_mod.constant_offset_displace[0] = 0
+            array_mod.constant_offset_displace[0] = 0.505
+            array_mod.constant_offset_displace[1] = 0
             array_mod.fit_type = 'FIXED_COUNT'
             array_mod.count = 2
 
@@ -600,13 +618,14 @@ def spawn_openlock_top_pegs(core, tile_props):
             array_mod = peg_3.modifiers.new('Array', 'ARRAY')
             array_mod.use_relative_offset = False
             array_mod.use_constant_offset = True
-            array_mod.constant_offset_displace[1] = 2.017
-            array_mod.constant_offset_displace[0] = 0
+            array_mod.constant_offset_displace[0] = 2.017
+            array_mod.constant_offset_displace[1] = 0
             array_mod.fit_type = 'FIT_LENGTH'
             array_mod.fit_length = leg_2_outer_len - 1.3
 
+        peg_3.rotation_euler[2] = radians(90)
         pegs.append(peg_3)
-
+    bpy.data.objects.remove(source_peg)
     return pegs
 
 
@@ -630,7 +649,7 @@ def spawn_plain_wall_cores(tile_props):
         subsurf)
     return core
 
-
+@profile
 def spawn_core(tile_props):
     """Spawn core into scene.
 
@@ -671,16 +690,7 @@ def spawn_core(tile_props):
         'selected_editable_objects': [core]
     }
 
-    mode('OBJECT')
-
-    bpy.ops.object.editmode_toggle(ctx)
-    bpy.ops.mesh.select_all(action='SELECT')
-    bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
-    bpy.ops.mesh.select_all(action='DESELECT')
-    bpy.ops.object.editmode_toggle(ctx)
-
     bpy.context.scene.cursor.location = (0, 0, 0)
-    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
     return core
 
 def spawn_plain_base(tile_props):
@@ -1231,7 +1241,7 @@ def draw_u_core(dimensions, subdivs, margin=0.001):
 
     return bm, obj, deform_groups, vert_locs
 
-
+@profile
 def draw_u_wall_core(dimensions, subdivs, margin=0.001):
     """Return a U wall core
 
@@ -1310,7 +1320,7 @@ def draw_u_wall_core(dimensions, subdivs, margin=0.001):
     finalise_turtle(bm, core)
     return core
 
-
+@profile
 def create_u_core_vert_groups_vert_lists_2(bm, dimensions, margin, vert_locs, subdivs):
     """Create vertex group vertex lists for U core sides
 
@@ -1431,6 +1441,7 @@ def create_u_core_vert_groups_vert_lists_2(bm, dimensions, margin, vert_locs, su
         v1 = bm.verts[v1_index]
         v2 = bm.verts[v2_index]
 
+        #TODO This is really expensive. See if we can find an alternative
         nodes = bm_shortest_path(bm, v1, v2)
         node = nodes[v2]
 

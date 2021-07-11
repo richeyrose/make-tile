@@ -41,9 +41,11 @@ from .create_tile import (
     create_material_enums,
     add_subsurf_modifier)
 
+'''
 from line_profiler import LineProfiler
 from os.path import splitext
 profile = LineProfiler()
+'''
 
 class MT_PT_Triangular_Floor_Panel(Panel):
     """Draw a tile options panel in UI."""
@@ -133,7 +135,7 @@ class MT_OT_Make_Triangular_Floor_Tile(Operator, MT_Tile_Generator):
         items=create_material_enums,
         name="Floor Material")
 
-    @profile
+    #@profile
     def exec(self, context):
         base_blueprint = self.base_blueprint
         core_blueprint = self.main_part_blueprint
@@ -158,7 +160,7 @@ class MT_OT_Make_Triangular_Floor_Tile(Operator, MT_Tile_Generator):
         if not self.refresh:
             return {'PASS_THROUGH'}
         self.exec(context)
-        profile.dump_stats(splitext(__file__)[0] + '.prof')
+        #profile.dump_stats(splitext(__file__)[0] + '.prof')
 
         return {'FINISHED'}
 

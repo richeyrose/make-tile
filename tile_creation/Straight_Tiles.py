@@ -213,8 +213,6 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
         if base_blueprint in {'OPENLOCK_S_WALL', 'PLAIN_S_WALL'}:
             # We temporarily override tile_props.base_size to generate floor core for S-Tiles.
             # It is easier to do it this way as the PropertyGroup.copy() method produces a dict
-            tile_props = context.collection.mt_tile_props
-
             orig_tile_size = []
             for c, v in enumerate(tile_props.tile_size):
                 orig_tile_size.append(v)
@@ -613,7 +611,6 @@ def spawn_wall_core(self, tile_props):
 
     core = draw_straight_wall_core(
         core_size,
-        base_size,
         native_subdivisions)
 
     core.name = tile_name + '.wall_core'

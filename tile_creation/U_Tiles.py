@@ -44,10 +44,11 @@ from bpy.props import (
     FloatProperty,
     StringProperty)
 
+'''
 from line_profiler import LineProfiler
 from os.path import splitext
 profile = LineProfiler()
-
+'''
 # leg_1_len and leg_2_len are the inner lengths of the legs
 #             ||           ||
 #             ||leg_1 leg_2||
@@ -156,7 +157,7 @@ class MT_OT_Make_U_Wall_Tile(MT_Tile_Generator, Operator):
         items=create_material_enums,
         name="Wall Material")
 
-    @profile
+    #@profile
     def exec(self, context):
         base_blueprint = self.base_blueprint
         wall_blueprint = self.main_part_blueprint
@@ -181,7 +182,7 @@ class MT_OT_Make_U_Wall_Tile(MT_Tile_Generator, Operator):
         elif wall_blueprint == 'OPENLOCK':
             wall_core = spawn_openlock_wall_cores(base, tile_props)
         self.finalise_tile(context, base, wall_core)
-        profile.dump_stats(splitext(__file__)[0] + '.prof')
+        #profile.dump_stats(splitext(__file__)[0] + '.prof')
         return {'FINISHED'}
 
     def execute(self, context):
@@ -331,7 +332,7 @@ class MT_OT_Make_Empty_U_Wall_Core(MT_Tile_Generator, Operator):
         """Execute the operator."""
         return {'PASS_THROUGH'}
 
-@profile
+#@profile
 def spawn_openlock_wall_cores(base, tile_props):
     """Spawn preview and displacement cores into scene.
 
@@ -463,7 +464,7 @@ def spawn_openlock_wall_cutters(base, tile_props):
 
     return cutters
 
-@profile
+#@profile
 def spawn_openlock_top_pegs(core, tile_props):
     """Spawn top peg(s) for stacking wall tiles and position it.
 
@@ -649,7 +650,7 @@ def spawn_plain_wall_cores(tile_props):
         subsurf)
     return core
 
-@profile
+#@profile
 def spawn_core(tile_props):
     """Spawn core into scene.
 
@@ -1241,7 +1242,7 @@ def draw_u_core(dimensions, subdivs, margin=0.001):
 
     return bm, obj, deform_groups, vert_locs
 
-@profile
+#@profile
 def draw_u_wall_core(dimensions, subdivs, margin=0.001):
     """Return a U wall core
 
@@ -1320,7 +1321,7 @@ def draw_u_wall_core(dimensions, subdivs, margin=0.001):
     finalise_turtle(bm, core)
     return core
 
-@profile
+#@profile
 def create_u_core_vert_groups_vert_lists_2(bm, dimensions, margin, vert_locs, subdivs):
     """Create vertex group vertex lists for U core sides
 

@@ -41,6 +41,9 @@ from .create_tile import (
     create_material_enums,
     add_subsurf_modifier)
 
+from line_profiler import LineProfiler
+from os.path import splitext
+profile = LineProfiler()
 
 class MT_PT_Curved_Wall_Tile_Panel(Panel):
     """Draw a tile options panel in the UI."""
@@ -285,51 +288,55 @@ class MT_OT_Make_Curved_Wall_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
         items=create_material_enums,
         name="Wall Material")
 
+    @profile
+    def exec(self, context):
+        scene = context.scene
+        scene_props = scene.mt_scene_props
+        base_blueprint = self.base_blueprint
+        wall_blueprint = self.main_part_blueprint
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
+
+        if base_blueprint == 'NONE':
+            base = spawn_empty_base(tile_props)
+        elif base_blueprint in ['PLAIN', 'PLAIN_S_WALL']:
+            base = spawn_plain_base(tile_props)
+        elif base_blueprint in ['OPENLOCK', 'OPENLOCK_S_WALL']:
+            base = spawn_openlock_base(self, tile_props)
+
+        if wall_blueprint == 'NONE':
+            wall_core = None
+        elif wall_blueprint == 'PLAIN':
+            wall_core = spawn_plain_wall_cores(self, tile_props)
+        elif wall_blueprint == 'OPENLOCK':
+            wall_core = spawn_openlock_wall_cores(self, base, tile_props)
+
+        if base_blueprint in {'OPENLOCK_S_WALL', 'PLAIN_S_WALL'}:
+            # We temporarily override tile_props.base_size to generate floor core for S-Tiles.
+            # It is easier to do it this way as the PropertyGroup.copy() method produces a dict
+            orig_tile_size = []
+            for c, v in enumerate(tile_props.tile_size):
+                orig_tile_size.append(v)
+
+            tile_props.tile_size = (
+                tile_props.base_size[0],
+                tile_props.base_size[1],
+                scene_props.base_z + self.floor_thickness)
+            floor_core = spawn_plain_floor_cores(self, tile_props)
+            tile_props.tile_size = orig_tile_size
+            self.finalise_tile(context, base, wall_core, floor_core)
+        else:
+            self.finalise_tile(context, base, wall_core)
+        profile.dump_stats(splitext(__file__)[0] + '.prof')
+        return {'FINISHED'}
+
+
     def execute(self, context):
         """Execute the operator."""
         super().execute(context)
         if not self.refresh:
             return{'PASS_THROUGH'}
+        return self.exec(context)
 
-        scene = context.scene
-        scene_props = scene.mt_scene_props
-        base_blueprint = self.base_blueprint
-        core_blueprint = self.main_part_blueprint
-        base_type = 'CURVED_BASE'
-        core_type = 'CURVED_WALL_CORE'
-        subclasses = get_all_subclasses(MT_Tile_Generator)
-
-        kwargs = {"tile_name": self.tile_name}
-        base = spawn_prefab(context, subclasses, base_blueprint, base_type, **kwargs)
-
-        kwargs["base_name"] = base.name
-        if core_blueprint == 'NONE':
-            wall_core = None
-        else:
-            wall_core = spawn_prefab(context, subclasses, core_blueprint, core_type, **kwargs)
-
-        # We temporarily override tile_props.base_size to generate floor core for S-Tiles.
-        # It is easier to do it this way as the PropertyGroup.copy() method produces a dict
-        tile_props = context.collection.mt_tile_props
-
-        orig_tile_size = []
-        for c, v in enumerate(tile_props.tile_size):
-            orig_tile_size.append(v)
-
-        tile_props.tile_size = (
-            tile_props.base_size[0],
-            tile_props.base_size[1],
-            scene_props.base_z + self.floor_thickness)
-
-        if base_blueprint in {'OPENLOCK_S_WALL', 'PLAIN_S_WALL'}:
-            floor_core = spawn_prefab(context, subclasses, 'PLAIN', 'CURVED_FLOOR_CORE', **kwargs)
-            self.finalise_tile(context, base, wall_core, floor_core)
-        else:
-            self.finalise_tile(context, base, wall_core)
-
-        tile_props.tile_size = orig_tile_size
-
-        return {'FINISHED'}
 
     def init(self, context):
         super().init(context)
@@ -393,31 +400,32 @@ class MT_OT_Make_Curved_Floor_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
         items=create_material_enums,
         name="Floor Material")
 
+    def exec(self, context):
+        base_blueprint = self.base_blueprint
+        core_blueprint = self.main_part_blueprint
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
+
+        if base_blueprint == 'NONE':
+            base = spawn_empty_base(tile_props)
+        elif base_blueprint == 'OPENLOCK':
+            base = spawn_openlock_base(self, tile_props)
+        elif base_blueprint == 'PLAIN':
+            base = spawn_plain_base(tile_props)
+
+        if core_blueprint == 'NONE':
+            core = None
+        else:
+            core = spawn_plain_floor_cores(self, tile_props)
+
+        self.finalise_tile(context, base, core)
+        return {'FINISHED'}
+
     def execute(self, context):
         """Execute the operator."""
         super().execute(context)
         if not self.refresh:
             return{'PASS_THROUGH'}
-
-        scene = context.scene
-        base_blueprint = self.base_blueprint
-        core_blueprint = self.main_part_blueprint
-        base_type = 'CURVED_BASE'
-        core_type = 'CURVED_FLOOR_CORE'
-        subclasses = get_all_subclasses(MT_Tile_Generator)
-
-        kwargs = {"tile_name": self.tile_name}
-        base = spawn_prefab(context, subclasses, base_blueprint, base_type, **kwargs)
-
-        kwargs["base_name"] = base.name
-        if core_blueprint == 'NONE':
-            preview_core = None
-        else:
-            preview_core = spawn_prefab(context, subclasses, core_blueprint, core_type, **kwargs)
-
-        self.finalise_tile(context, base, preview_core)
-
-        return {'FINISHED'}
+        return self.exec(context)
 
     def init(self, context):
         super().init(context)

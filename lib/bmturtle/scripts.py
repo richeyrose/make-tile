@@ -368,7 +368,7 @@ def draw_tri_slot_cutter(dimensions):
     return obj
 
 
-def draw_straight_wall_core(dims, base_size, subdivs, margin=0.001):
+def draw_straight_wall_core(dims, subdivs, margin=0.001):
     """Draws a Straight Wall Core and assigns Verts to appropriate groups
 
     Args:

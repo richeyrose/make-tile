@@ -41,9 +41,11 @@ from ..lib.bmturtle.helpers import (
     bm_select_all,
     assign_verts_to_group,
     select_verts_in_bounds)
-
-#TODO Bug with tall O colum socket generation
-#TODO #1 Ensure sockets and buffers only added to tall columns
+'''
+from line_profiler import LineProfiler
+from os.path import splitext
+profile = LineProfiler()
+'''
 class MT_PT_Connecting_Column_Panel(Panel):
     """Draw a tile options panel in UI."""
 
@@ -147,31 +149,36 @@ class MT_OT_Make_Connecting_Column_Tile(Operator, MT_Tile_Generator):
         items=create_material_enums,
         name="Column Material")
 
+    #@profile
+    def exec(self, context):
+        base_blueprint = self.base_blueprint
+        core_blueprint = self.main_part_blueprint
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
+
+        if base_blueprint == 'NONE':
+            base = spawn_empty_base(tile_props)
+        elif base_blueprint == 'OPENLOCK':
+            base = spawn_openlock_base(tile_props)
+        elif base_blueprint == 'PLAIN':
+            base = spawn_plain_base(tile_props)
+
+        if core_blueprint == 'NONE':
+            core = None
+        elif core_blueprint == 'OPENLOCK':
+            core = spawn_openlock_connecting_column_core(self, tile_props, base)
+        elif core_blueprint == 'PLAIN':
+            core = spawn_plain_connecting_column_core(self, tile_props)
+
+        self.finalise_tile(context, base, core)
+        #profile.dump_stats(splitext(__file__)[0] + '.prof')
+        return {'FINISHED'}
+
     def execute(self, context):
         """Execute the operator."""
         super().execute(context)
         if not self.refresh:
             return {'PASS_THROUGH'}
-
-        scene = context.scene
-        base_blueprint = self.base_blueprint
-        core_blueprint = self.main_part_blueprint
-        base_type = 'CONNECTING_COLUMN_BASE'
-        core_type = 'CONNECTING_COLUMN_CORE'
-        subclasses = get_all_subclasses(MT_Tile_Generator)
-        kwargs = {"tile_name": self.tile_name}
-
-        base = spawn_prefab(context, subclasses, base_blueprint, base_type, **kwargs)
-        kwargs["base_name"] = base.name
-
-        if core_blueprint == 'NONE':
-            preview_core = None
-        else:
-            preview_core = spawn_prefab(context, subclasses, core_blueprint, core_type, **kwargs)
-
-        self.finalise_tile(context, base, preview_core)
-
-        return {'FINISHED'}
+        return self.exec(context)
 
     def init(self, context):
         super().init(context)
@@ -337,7 +344,7 @@ def spawn_plain_base(tile_props):
         'selected_objects': [base]
     }
 
-    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+    #bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
 
     obj_props = base.mt_object_props
     obj_props.is_mt_object = True
@@ -389,7 +396,7 @@ def spawn_plain_connecting_column_core(self, tile_props):
 
     return core
 
-
+#@profile
 def spawn_openlock_connecting_column_core(self, tile_props, base):
     """Return the column core.
 

@@ -167,7 +167,7 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
         if not self.refresh:
             return {'PASS_THROUGH'}
         self.exec(context)
-        
+
         return {'FINISHED'}
 
     def init(self, context):
@@ -223,29 +223,34 @@ class MT_OT_Make_L_Floor_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
         items=create_material_enums,
         name="Floor Material")
 
+    def exec(self, context):
+        base_blueprint = self.base_blueprint
+        core_blueprint = self.main_part_blueprint
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
+
+        if base_blueprint == 'NONE':
+            base = spawn_empty_base(tile_props)
+        elif base_blueprint == 'OPENLOCK':
+            base = spawn_openlock_base(self, tile_props)
+        elif base_blueprint == 'PLAIN':
+            base = spawn_plain_base(tile_props)
+
+        if core_blueprint == 'NONE':
+            floor_core = None
+        else:
+            floor_core = spawn_plain_floor_cores(self, tile_props)
+
+        self.finalise_tile(context, base, floor_core)
+
+        return {'FINISHED'}
+
     def execute(self, context):
         """Execute the operator."""
         super().execute(context)
         if not self.refresh:
             return {'PASS_THROUGH'}
 
-        base_blueprint = self.base_blueprint
-        core_blueprint = self.main_part_blueprint
-        base_type = 'L_BASE'
-        core_type = 'L_FLOOR_CORE'
-        subclasses = get_all_subclasses(MT_Tile_Generator)
-        kwargs = {"tile_name": self.tile_name}
-
-        base = spawn_prefab(context, subclasses, base_blueprint, base_type, **kwargs)
-
-        kwargs["base_name"] = base.name
-        if core_blueprint == 'NONE':
-            preview_core = None
-        else:
-            preview_core = spawn_prefab(context, subclasses, core_blueprint, core_type, **kwargs)
-
-        self.finalise_tile(context, base, preview_core)
-        return {'FINISHED'}
+        return self.exec(context)
 
     def init(self, context):
         super().init(context)
@@ -546,7 +551,7 @@ def spawn_floor_core(self, tile_props):
         'selected_editable_objects': [core]}
 
     bpy.context.scene.cursor.location = (0, 0, 0)
-    
+
     return core
 
 
@@ -610,7 +615,7 @@ def spawn_openlock_top_pegs(core, tile_props):
     peg = load_openlock_top_peg(tile_props)
 
     pegs = []
-    
+
     if leg_1_len >=1:
         peg_mesh = peg.data.copy()
         peg_1 = bpy.data.objects.new("Leg 1 Peg", peg_mesh)
@@ -627,7 +632,7 @@ def spawn_openlock_top_pegs(core, tile_props):
                 constant_offset_displace=(0.505, 0, 0),
                 use_merge_vertices=False,
                 fit_type='FIXED_COUNT')
-        
+
         if leg_1_len >= 4:
             bm = bmesh_array(
                 source_obj=peg_1,
@@ -638,7 +643,7 @@ def spawn_openlock_top_pegs(core, tile_props):
                 use_merge_vertices=False,
                 fit_type= 'FIT_LENGTH',
                 fit_length=leg_1_len - 1.3)
-        
+
         bmesh.ops.translate(
             bm,
             verts=bm.verts,
@@ -688,7 +693,7 @@ def spawn_openlock_top_pegs(core, tile_props):
                 fit_type='FIT_LENGTH',
                 fit_length=leg_2_len - 1.3,
                 use_merge_vertices=False )
-              
+
         bmesh.ops.rotate(
             bm,
             cent=cursor.location,
@@ -738,7 +743,7 @@ def spawn_openlock_wall_cutters(core, tile_props):
     # load side cutter
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
         data_to.objects = ['openlock.wall.cutter.side']
-    
+
     cutters = []
     cutter_mesh = data_to.objects[0].data.copy()
     left_cutter_bottom = bpy.data.objects.new("cutter", cutter_mesh)
@@ -791,7 +796,7 @@ def spawn_openlock_wall_cutters(core, tile_props):
         core_location[0] + (tile_props.leg_1_len),
         core_location[1],
         core_location[2]]
-    
+
     # rotate cutter 180 degrees around Z
     right_cutter_bottom.rotation_euler[2] = radians(180)
 
@@ -811,7 +816,7 @@ def spawn_openlock_wall_cutters(core, tile_props):
         0.63),
         space=right_cutter_bottom.matrix_world,
         verts=bm.verts)
-    
+
     # rotate cutter
     bmesh.ops.rotate(
         bm,
@@ -1002,7 +1007,7 @@ def spawn_openlock_base(self, tile_props):
     cutter_start_cap = data_to.objects[1]
     cutter_end_cap = data_to.objects[2]
 
-    # we copy the mesh from clip_cutter into a new object in bmesh array to 
+    # we copy the mesh from clip_cutter into a new object in bmesh array to
     # avoid having to update the view_layer before using bmesh.ops
     # for transformation
 
@@ -1021,15 +1026,15 @@ def spawn_openlock_base(self, tile_props):
         use_merge_vertices=True,
         merge_threshold=0.0001,
         fit_length=leg_len-1)
-    
+
     # use bmesh to avoid bpy.ops
     # move arrayed clipper
     bmesh.ops.translate(
-        bm, 
+        bm,
         verts=bm.verts,
         vec=(0.5, 0.25, 0),
         space=clip_cutter_1.matrix_world)
-    
+
     #rotate
     bmesh.ops.rotate(
         bm,
@@ -1040,7 +1045,7 @@ def spawn_openlock_base(self, tile_props):
 
     bm.to_mesh(me)
     bm.free()
- 
+
     me = bpy.data.meshes.new("Clip Leg 2 Mesh")
     clip_cutter_2 = bpy.data.objects.new("Clip Leg 2", me)
     add_object_to_collection(clip_cutter_2, tile_props.tile_name)
@@ -1054,7 +1059,7 @@ def spawn_openlock_base(self, tile_props):
         use_merge_vertices=True,
         merge_threshold=0.0001,
         fit_length=leg_len-1)
-    
+
     bmesh.ops.rotate(
         bm,
         verts=bm.verts,
@@ -1067,7 +1072,7 @@ def spawn_openlock_base(self, tile_props):
         verts=bm.verts,
         vec=(0.25, leg_len-0.5, 0),
         space=clip_cutter_2.matrix_world)
-    
+
     bm.to_mesh(me)
     bm.free()
 
@@ -1075,7 +1080,7 @@ def spawn_openlock_base(self, tile_props):
     bpy.data.objects.remove(clip_cutter)
     bpy.data.objects.remove(cutter_start_cap)
     bpy.data.objects.remove(cutter_end_cap)
-    
+
     for cutter in (clip_cutter_1, clip_cutter_2):
         set_bool_obj_props(cutter, base, tile_props, 'DIFFERENCE')
         set_bool_props(cutter, base, 'DIFFERENCE')

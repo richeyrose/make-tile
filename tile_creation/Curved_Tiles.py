@@ -1,7 +1,8 @@
 import os
-from math import radians, pi, modf, degrees
-from mathutils import Vector
 import bpy
+import bmesh
+from math import radians, pi, modf, degrees
+from mathutils import Vector, Matrix
 from bpy.types import Operator, Panel
 from bpy.props import (
     FloatProperty,
@@ -18,6 +19,8 @@ from ..lib.bmturtle.scripts import (
     draw_straight_wall_core,
     draw_rectangular_floor_core,
     draw_curved_cuboid)
+
+from ..lib.bmturtle.helpers import bmesh_array
 
 from ..lib.utils.selection import (
     deselect_all,
@@ -736,58 +739,75 @@ def spawn_openlock_top_pegs(base, **kwargs):
     base_size = tile_props.base_size
     tile_size = tile_props.tile_size
     base_radius = tile_props.base_radius
-    peg = load_openlock_top_peg(tile_props)
-
-    array_mod = peg.modifiers.new('Array', 'ARRAY')
-    array_mod.use_relative_offset = False
-    array_mod.use_constant_offset = True
-    array_mod.constant_offset_displace[0] = 0.505
-    array_mod.fit_type = 'FIXED_COUNT'
-    array_mod.count = 2
+    peg_source = load_openlock_top_peg(tile_props)
+    peg_mesh = peg_source.data.copy()
+    peg = bpy.data.objects.new("Top Peg", peg_mesh)
+    add_object_to_collection(peg, tile_props.tile_name)
+    bm = bmesh.new()
+    bm.from_mesh(peg_mesh)
+    bm = bmesh_array(
+        source_obj=peg,
+        source_bm=bm,
+        count=1,
+        use_relative_offset=False,
+        use_constant_offset=True,
+        constant_offset_displace=(0.505, 0, 0),
+        use_merge_vertices=False,
+        fit_type='FIXED_COUNT')
 
     base_location = base.location.copy()
 
     if tile_props.wall_position == 'CENTER':
         if base_radius >= 1:
             if tile_props.base_socket_side == 'INNER':
-                peg.location = (
-                    base_location[0] - 0.25,
-                    base_location[1] + base_radius + (base_size[1] / 2) + 0.075,
-                    base_location[2] + tile_size[2])
+                bmesh.ops.translate(
+                    bm,
+                    verts=bm.verts,
+                    vec=(
+                        -0.25,
+                        base_radius + (base_size[1] / 2) + 0.06,
+                        tile_size[2]),
+                    space=peg.matrix_world)
             else:
-                peg.location = (
-                    base_location[0] - 0.25,
-                    base_location[1] + base_radius + (base_size[1] / 2) - 0.075,
-                    base_location[2] + tile_size[2])
+                bmesh.ops.translate(
+                    bm,
+                    verts=bm.verts,
+                    vec=(
+                        -0.25,
+                        base_radius + (base_size[1] / 2) - 0.075,
+                        tile_size[2]),
+                    space=peg.matrix_world)
 
     elif tile_props.wall_position == 'SIDE':
         if base_radius >= 1:
             if tile_props.base_socket_side == 'INNER':
-                peg.location = (
-                    base_location[0] - 0.25,
-                    base_location[1] + base_radius + base_size[1] - 0.33,
-                    base_location[2] + tile_size[2])
+                bmesh.ops.translate(
+                    bm,
+                    verts=bm.verts,
+                    vec=(
+                        -0.25,
+                        base_radius + base_size[1] - 0.33,
+                        tile_size[2]),
+                    space=peg.matrix_world)
             else:
-                peg.location = (
-                    base_location[0] - 0.25,
-                    base_location[1] + base_radius + base_size[1] - 0.33,
-                    base_location[2] + tile_size[2])
-    ctx = {
-        'object': peg,
-        'active_object': peg,
-        'selected_objects': [peg],
-        'selected_editable_objects': [peg]
-    }
+                bmesh.ops.translate(
+                    bm,
+                    verts=bm.verts,
+                    vec=(
+                        -0.25,
+                        base_radius + base_size[1] - 0.235,
+                        tile_size[2]),
+                    space=peg.matrix_world)
 
-    bpy.ops.transform.rotate(
-        ctx,
-        value=radians(tile_props.degrees_of_arc / 2) * 1,
-        orient_axis='Z',
-        orient_type='GLOBAL',
-        orient_matrix_type='GLOBAL',
-        orient_matrix=((1, 0, 0), (0, 1, 0), (0, 0, 1)),
-        center_override=base_location)
-
+    bmesh.ops.rotate(
+        bm,
+        cent=base_location,
+        verts=bm.verts,
+        matrix=Matrix.Rotation(radians(tile_props.degrees_of_arc / 2) * -1, 3, 'Z'),
+        space=peg.matrix_world)
+    bm.to_mesh(peg_mesh)
+    bm.free()
+    bpy.data.objects.remove(peg_source)
     return peg
 
 
@@ -965,15 +985,7 @@ def spawn_openlock_base_slot_cutter(self, base, tile_props, offset=0.236):
     slot_cutter.location[2] = slot_cutter.location[2] - bool_overlap
     slot_cutter.rotation_euler[2] = slot_cutter.rotation_euler[2] - radians((base_degrees - central_angle) / 2)
 
-    ctx = {
-        'object': slot_cutter,
-        'active_object': slot_cutter,
-        'selected_editable_objects': [slot_cutter],
-        'selected_objects': [slot_cutter]
-    }
-
     base.select_set(False)
-    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
 
     return slot_cutter
 
@@ -1059,14 +1071,28 @@ def spawn_openlock_base_clip_cutter(base, tile_props):
     if clip_side == 'OUTER':
         clip_cutter.rotation_euler[2] = radians(180)
 
-    num_cutters = modf((tile_props.degrees_of_arc - 22.5) / 22.5)
+    num_cutters = modf((tile_props.degrees_of_arc - 22.5) / 22.5)[1]
     circle_center = cursor_orig_loc
 
-    if num_cutters[1] == 1:
+    '''
+    if num_cutters == 1:
         initial_rot = (tile_props.degrees_of_arc / 2)
 
     else:
         initial_rot = 22.5
+
+    initial_rot = (tile_props.degrees_of_arc / 2)
+    mesh = clip_cutter.data.copy()
+    bm = bmesh.new()
+    bm.from_mesh(mesh)
+
+
+    bmesh.ops.rotate(
+        bm,
+        cent=circle_center,
+        verts=bm.verts,
+        matrix=Matrix.Rotation(radians(initial_rot) * -1, 3, 'Z'),
+        space=clip_cutter.matrix_world)
 
     bpy.ops.transform.rotate(
         value=radians(initial_rot) * 1,
@@ -1079,6 +1105,10 @@ def spawn_openlock_base_clip_cutter(base, tile_props):
         rotation=True,
         properties=False)
 
+    bm.to_mesh(mesh)
+    bm.free()
+    clip_cutter.data = mesh
+
     array_name, empty = add_circle_array(
         clip_cutter,
         tile_props.tile_name,
@@ -1088,9 +1118,9 @@ def spawn_openlock_base_clip_cutter(base, tile_props):
         22.5 * -1)
 
     empty.parent = base
-
+    '''
     #empty.hide_set(True)
-    empty.hide_viewport = True
+    #empty.hide_viewport = True
     clip_cutter.name = 'Clip.' + base.name
     set_bool_obj_props(clip_cutter, base, tile_props, 'DIFFERENCE')
     set_bool_props(clip_cutter, base, 'DIFFERENCE')
@@ -1161,14 +1191,6 @@ def spawn_floor_core(self, tile_props):
         'selected_objects': [core]
     }
 
-    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-
-    bpy.ops.object.editmode_toggle(ctx)
-    bpy.ops.mesh.select_all(action='SELECT')
-    bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
-    bpy.ops.mesh.select_all(action='DESELECT')
-    bpy.ops.object.editmode_toggle(ctx)
-
     tile_props.tile_size[0] = floor_length
 
     core.location = (
@@ -1238,13 +1260,6 @@ def spawn_wall_core(self, tile_props):
         'selected_objects': [core]
     }
 
-    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-    bpy.ops.object.editmode_toggle(ctx)
-    bpy.ops.mesh.select_all(action='SELECT')
-    bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
-    bpy.ops.mesh.select_all(action='DESELECT')
-    bpy.ops.object.editmode_toggle(ctx)
-
     tile_props.tile_size[0] = wall_length
 
     core.location = (
@@ -1256,13 +1271,20 @@ def spawn_wall_core(self, tile_props):
         cursor = bpy.context.scene.cursor
         orig_cursor_loc = cursor.location.copy()
         cursor.location = core.location
-        core.location = (
-            core.location[0],
-            core.location[1] + (tile_props.base_size[1] / 2) - (tile_props.tile_size[1] / 2) - 0.09,
-            core.location[2])
-
-
-        bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
+        bm = bmesh.new()
+        mesh = core.data.copy()
+        bm.from_mesh(mesh)
+        bmesh.ops.translate(
+            bm,
+            verts=bm.verts,
+            vec=(
+                0,
+                (tile_props.base_size[1] / 2) - (tile_props.tile_size[1] / 2) - 0.09,
+                0),
+            space=core.matrix_world)
+        bm.to_mesh(mesh)
+        bm.free()
+        core.data = mesh
         cursor.location = orig_cursor_loc
 
     mod = core.modifiers.new('Simple_Deform', type='SIMPLE_DEFORM')

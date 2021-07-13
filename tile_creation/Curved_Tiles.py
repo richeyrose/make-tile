@@ -1065,26 +1065,32 @@ def spawn_openlock_base_clip_cutter(base, tile_props):
     else:
         radius = tile_props.base_radius + tile_props.base_size[1] - 0.25
 
-    clip_cutter.location[1] = radius
-
+    mesh = clip_cutter.data.copy()
+    bm = bmesh.new()
+    bm.from_mesh(mesh)
 
     if clip_side == 'OUTER':
-        clip_cutter.rotation_euler[2] = radians(180)
+        bmesh.ops.rotate(
+            bm,
+            verts=bm.verts,
+            cent=clip_cutter.location,
+            matrix=Matrix.Rotation(radians(180), 3, 'Z'),
+            space=clip_cutter.matrix_world)
+
+    bmesh.ops.translate(
+        bm,
+        verts=bm.verts,
+        vec=(0, radius, 0),
+        space=clip_cutter.matrix_world)
 
     num_cutters = modf((tile_props.degrees_of_arc - 22.5) / 22.5)[1]
     circle_center = cursor_orig_loc
 
-    '''
     if num_cutters == 1:
         initial_rot = (tile_props.degrees_of_arc / 2)
 
     else:
         initial_rot = 22.5
-
-    initial_rot = (tile_props.degrees_of_arc / 2)
-    mesh = clip_cutter.data.copy()
-    bm = bmesh.new()
-    bm.from_mesh(mesh)
 
 
     bmesh.ops.rotate(
@@ -1094,33 +1100,29 @@ def spawn_openlock_base_clip_cutter(base, tile_props):
         matrix=Matrix.Rotation(radians(initial_rot) * -1, 3, 'Z'),
         space=clip_cutter.matrix_world)
 
-    bpy.ops.transform.rotate(
-        value=radians(initial_rot) * 1,
-        orient_axis='Z',
-        center_override=circle_center)
+    i = 1
+    source_geom = bm.verts[:] + bm.edges[:] + bm.faces[:]
+    while i < num_cutters:
+        # duplicate
+        ret = bmesh.ops.duplicate(
+            bm,
+            geom=source_geom)
+        geom = ret["geom"]
+        dupe_verts = [ele for ele in  geom if isinstance(ele, bmesh.types.BMVert)]
+        del ret
 
-    bpy.ops.object.transform_apply(
-        location=False,
-        scale=False,
-        rotation=True,
-        properties=False)
+        bmesh.ops.rotate(
+            bm,
+            cent=circle_center,
+            verts=dupe_verts,
+            matrix=Matrix.Rotation(radians(22.5 * i) * -1, 3, 'Z'),
+            space=clip_cutter.matrix_world)
+        i += 1
+        #rotate
 
-    bm.to_mesh(mesh)
+    bm.to_mesh(clip_cutter.data)
     bm.free()
-    clip_cutter.data = mesh
 
-    array_name, empty = add_circle_array(
-        clip_cutter,
-        tile_props.tile_name,
-        circle_center,
-        num_cutters[1],
-        'Z',
-        22.5 * -1)
-
-    empty.parent = base
-    '''
-    #empty.hide_set(True)
-    #empty.hide_viewport = True
     clip_cutter.name = 'Clip.' + base.name
     set_bool_obj_props(clip_cutter, base, tile_props, 'DIFFERENCE')
     set_bool_props(clip_cutter, base, 'DIFFERENCE')

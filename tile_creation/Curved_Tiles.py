@@ -837,7 +837,6 @@ def spawn_openlock_wall_cutters(core, base_location, tile_props):
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
         data_to.objects = ['openlock.wall.cutter.side']
 
-    core_location = core.location.copy()
 
     cutters = []
 
@@ -918,73 +917,6 @@ def spawn_openlock_wall_cutters(core, base_location, tile_props):
         array_mod = cutter.modifiers['Array']
         array_mod.fit_length = tile_props.tile_size[2] - 1.8
         cutters.append(cutter)
-
-    '''
-    # move cutter to origin up by 0.63 inches - base height
-    left_cutter_bottom.location = (
-        core_location[0],
-        core_location[1] + (tile_props.tile_size[1] / 2),
-        core_location[2] + 0.63 - tile_props.base_size[2])
-    if tile_props.wall_position == 'SIDE':
-        left_cutter_bottom.location = (
-            left_cutter_bottom.location[0],
-            left_cutter_bottom.location[1] + (tile_props.base_size[1] / 2) - (tile_props.tile_size[1] / 2) - 0.09,
-            left_cutter_bottom.location[2])
-    '''
-
-
-    '''
-    # add array mod
-    array_mod = left_cutter_bottom.modifiers.new('Array', 'ARRAY')
-    array_mod.use_relative_offset = False
-    array_mod.use_constant_offset = True
-    array_mod.constant_offset_displace = [0, 0, 2]
-    array_mod.fit_type = 'FIT_LENGTH'
-    array_mod.fit_length = tile_props.tile_size[2] - 1
-
-
-    # make a copy of left cutter bottom
-    left_cutter_top = left_cutter_bottom.copy()
-    add_object_to_collection(left_cutter_top, tile_props.tile_name)
-    left_cutter_top.name = 'X Neg Top.' + tile_name
-
-    # move cutter up by 0.75 inches
-    left_cutter_top.location[2] = left_cutter_top.location[2] + 0.75
-
-    # modify array
-    array_mod = left_cutter_top.modifiers[array_mod.name]
-    array_mod.fit_length = tile_props.tile_size[2] - 1.8
-
-    cutters.extend([left_cutter_bottom, left_cutter_top])
-    '''
-
-    '''
-    # right side cutters
-    right_cutter_bottom = left_cutter_bottom.copy()
-    right_cutter_bottom.rotation_euler[2] = radians(180)
-    add_object_to_collection(right_cutter_bottom, tile_props.tile_name)
-
-    right_cutter_bottom.name = 'X Pos Bottom.' + tile_name
-    circle_center = base_location
-    select(right_cutter_bottom.name)
-    activate(right_cutter_bottom.name)
-
-    bpy.ops.transform.rotate(
-        value=radians(tile_props.degrees_of_arc) * 1,
-        orient_axis='Z',
-        orient_type='GLOBAL',
-        center_override=circle_center)
-
-    right_cutter_top = right_cutter_bottom.copy()
-    add_object_to_collection(right_cutter_top, tile_props.tile_name)
-    right_cutter_top.name = 'X Pos Top.' + tile_name
-
-    right_cutter_top.location[2] = right_cutter_top.location[2] + 0.75
-    # modify array
-    array_mod = right_cutter_top.modifiers[array_mod.name]
-    array_mod.fit_length = tile_props.tile_size[2] - 1.8
-    '''
-
 
     return cutters
 
@@ -1331,14 +1263,8 @@ def spawn_wall_core(self, tile_props):
         native_subdivisions)
 
     core.name = tile_name + '.core'
-    add_object_to_collection(core, tile_props.tile_name)
 
-    ctx = {
-        'object': core,
-        'active_object': core,
-        'selected_editable_objects': [core],
-        'selected_objects': [core]
-    }
+    add_object_to_collection(core, tile_props.tile_name)
 
     tile_props.tile_size[0] = wall_length
 

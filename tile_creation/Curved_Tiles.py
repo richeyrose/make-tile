@@ -43,11 +43,11 @@ from .create_tile import (
     get_subdivs,
     create_material_enums,
     add_subsurf_modifier)
-
+'''
 from line_profiler import LineProfiler
 from os.path import splitext
 profile = LineProfiler()
-
+'''
 class MT_PT_Curved_Wall_Tile_Panel(Panel):
     """Draw a tile options panel in the UI."""
 
@@ -219,8 +219,8 @@ class MT_Curved_Tile:
     degrees_of_arc: FloatProperty(
         name="Degrees of arc",
         default=90,
-        step=45,
-        precision=1,
+        step=4500,
+        precision=0,
         max=359.999,
         min=0
     )
@@ -291,7 +291,7 @@ class MT_OT_Make_Curved_Wall_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
         items=create_material_enums,
         name="Wall Material")
 
-    @profile
+    #@profile
     def exec(self, context):
         scene = context.scene
         scene_props = scene.mt_scene_props
@@ -329,7 +329,7 @@ class MT_OT_Make_Curved_Wall_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
             self.finalise_tile(context, base, wall_core, floor_core)
         else:
             self.finalise_tile(context, base, wall_core)
-        profile.dump_stats(splitext(__file__)[0] + '.prof')
+        #profile.dump_stats(splitext(__file__)[0] + '.prof')
         return {'FINISHED'}
 
 
@@ -844,9 +844,82 @@ def spawn_openlock_wall_cutters(core, base_location, tile_props):
     # left side cutters
     left_cutter_bottom = data_to.objects[0].copy()
     left_cutter_bottom.name = 'X Neg Bottom.' + tile_name
-
     add_object_to_collection(left_cutter_bottom, tile_props.tile_name)
 
+    right_cutter_bottom = left_cutter_bottom.copy()
+    right_cutter_bottom.data = right_cutter_bottom.data.copy()
+    right_cutter_bottom.name = 'X Pos Bottom.' + tile_name
+    add_object_to_collection(right_cutter_bottom, tile_props.tile_name)
+
+    cutters.extend([left_cutter_bottom, right_cutter_bottom])
+
+    if tile_props.wall_position == 'SIDE':
+        radius = tile_props.base_radius + (tile_props.base_size[1]) - (tile_props.tile_size[1] / 2) - 0.09
+    else:
+        radius = tile_props.base_radius + (tile_props.base_size[1] / 2)
+
+    me = right_cutter_bottom.data.copy()
+    bm = bmesh.new()
+    bm.from_mesh(me)
+
+    bmesh.ops.rotate(
+        bm,
+        verts=bm.verts,
+        cent=right_cutter_bottom.location,
+        matrix=Matrix.Rotation(radians(180), 3, 'Z'),
+        space=right_cutter_bottom.matrix_world)
+
+    bmesh.ops.translate(
+        bm,
+        verts=bm.verts,
+        vec=(0, radius, 0.63),
+        space=right_cutter_bottom.matrix_world)
+
+    bmesh.ops.rotate(
+        bm,
+        verts=bm.verts,
+        cent=right_cutter_bottom.location,
+        matrix=Matrix.Rotation(radians(tile_props.degrees_of_arc) * -1, 3, 'Z'),
+        space=right_cutter_bottom.matrix_world)
+
+    bm.to_mesh(right_cutter_bottom.data)
+    bm.free()
+
+    me = left_cutter_bottom.data.copy()
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    bmesh.ops.translate(
+        bm,
+        verts=bm.verts,
+        vec=(0, radius, 0.63),
+        space=left_cutter_bottom.matrix_world)
+    bm.to_mesh(left_cutter_bottom.data)
+    bm.free()
+
+    for cutter in cutters:
+        array_mod = cutter.modifiers.new('Array', 'ARRAY')
+        array_mod.use_relative_offset = False
+        array_mod.use_constant_offset = True
+        array_mod.constant_offset_displace = [0, 0, 2]
+        array_mod.fit_type = 'FIT_LENGTH'
+        array_mod.fit_length = tile_props.tile_size[2] - 1
+
+    left_cutter_top = left_cutter_bottom.copy()
+    left_cutter_top.name = 'X Neg Top.' + tile_name
+
+    right_cutter_top = right_cutter_bottom.copy()
+    right_cutter_top.name = 'X Pos Top.' + tile_name
+
+    top_cutters = (left_cutter_top, right_cutter_top)
+
+    for cutter in top_cutters:
+        add_object_to_collection(cutter, tile_name)
+        cutter.location[2] = cutter.location[2] + 0.75
+        array_mod = cutter.modifiers['Array']
+        array_mod.fit_length = tile_props.tile_size[2] - 1.8
+        cutters.append(cutter)
+
+    '''
     # move cutter to origin up by 0.63 inches - base height
     left_cutter_bottom.location = (
         core_location[0],
@@ -857,7 +930,10 @@ def spawn_openlock_wall_cutters(core, base_location, tile_props):
             left_cutter_bottom.location[0],
             left_cutter_bottom.location[1] + (tile_props.base_size[1] / 2) - (tile_props.tile_size[1] / 2) - 0.09,
             left_cutter_bottom.location[2])
+    '''
 
+
+    '''
     # add array mod
     array_mod = left_cutter_bottom.modifiers.new('Array', 'ARRAY')
     array_mod.use_relative_offset = False
@@ -865,6 +941,7 @@ def spawn_openlock_wall_cutters(core, base_location, tile_props):
     array_mod.constant_offset_displace = [0, 0, 2]
     array_mod.fit_type = 'FIT_LENGTH'
     array_mod.fit_length = tile_props.tile_size[2] - 1
+
 
     # make a copy of left cutter bottom
     left_cutter_top = left_cutter_bottom.copy()
@@ -879,7 +956,9 @@ def spawn_openlock_wall_cutters(core, base_location, tile_props):
     array_mod.fit_length = tile_props.tile_size[2] - 1.8
 
     cutters.extend([left_cutter_bottom, left_cutter_top])
+    '''
 
+    '''
     # right side cutters
     right_cutter_bottom = left_cutter_bottom.copy()
     right_cutter_bottom.rotation_euler[2] = radians(180)
@@ -904,8 +983,8 @@ def spawn_openlock_wall_cutters(core, base_location, tile_props):
     # modify array
     array_mod = right_cutter_top.modifiers[array_mod.name]
     array_mod.fit_length = tile_props.tile_size[2] - 1.8
+    '''
 
-    cutters.extend([right_cutter_bottom, right_cutter_top])
 
     return cutters
 
@@ -1091,7 +1170,6 @@ def spawn_openlock_base_clip_cutter(base, tile_props):
 
     else:
         initial_rot = 22.5
-
 
     bmesh.ops.rotate(
         bm,

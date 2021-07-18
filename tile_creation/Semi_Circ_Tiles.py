@@ -3,6 +3,8 @@ from math import (
     radians,
     floor,
     pi)
+from mathutils import Matrix
+
 from mathutils.geometry import intersect_line_line
 import bpy
 import bmesh
@@ -39,6 +41,7 @@ from .. lib.utils.collections import (
     activate_collection)
 from ..lib.bmturtle.helpers import (
     bm_select_all,
+    bmesh_array,
     select_verts_in_bounds,
     assign_verts_to_group,
     calculate_corner_wall_triangles)
@@ -55,6 +58,10 @@ from ..lib.bmturtle.commands import (
     up,
     dn,
     arc)
+
+from line_profiler import LineProfiler
+from os.path import splitext
+profile = LineProfiler()
 
 class MT_PT_Semi_Circ_Floor_Panel(Panel):
     """Draw a tile options panel in UI."""
@@ -146,30 +153,36 @@ class MT_OT_Make_Semi_Circ_Floor_Tile(Operator, MT_Tile_Generator):
         items=create_material_enums,
         name="Floor Material")
 
+    @profile
+    def exec(self, context):
+        base_blueprint = self.base_blueprint
+        core_blueprint = self.main_part_blueprint
+        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
+
+        if base_blueprint == 'NONE':
+            base = spawn_empty_base(tile_props)
+        elif base_blueprint == 'OPENLOCK':
+            base = spawn_openlock_base(self, tile_props)
+        elif base_blueprint == 'PLAIN':
+            base = spawn_plain_base(self, tile_props)
+
+        if core_blueprint == 'NONE':
+            preview_core = None
+        else:
+            preview_core = spawn_plain_floor_cores(self, tile_props)
+
+        self.finalise_tile(context, base, preview_core)
+        profile.dump_stats(splitext(__file__)[0] + '.prof')
+        return {'FINISHED'}
+
     def execute(self, context):
         """Execute the operator."""
         super().execute(context)
         if not self.refresh:
             return {'PASS_THROUGH'}
-
-        base_blueprint = self.base_blueprint
-        core_blueprint = self.main_part_blueprint
-        base_type = 'SEMI_CIRC_BASE'
-        core_type = 'SEMI_CIRC_FLOOR_CORE'
-        subclasses = get_all_subclasses(MT_Tile_Generator)
-
-        kwargs = {"tile_name": self.tile_name}
-        base = spawn_prefab(context, subclasses, base_blueprint, base_type, **kwargs)
-        kwargs["base_name"] = base.name
-
-        if core_blueprint == 'NONE':
-            preview_core = None
-        else:
-            preview_core = spawn_prefab(context, subclasses, core_blueprint, core_type, **kwargs)
-
-        self.finalise_tile(context, base, preview_core)
-
-        return {'FINISHED'}
+        
+        return self.exec(context)
+        
 
     def init(self, context):
         super().init(context)
@@ -334,7 +347,6 @@ def spawn_plain_base(self, tile_props):
         'active_object': base
     }
 
-    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
 
     base.name = tile_props.tile_name + '.base'
     props = base.mt_object_props
@@ -381,7 +393,6 @@ def spawn_openlock_base(self, tile_props):
         'active_object': base,
         'selected_editable_objects': [base]}
 
-    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
     base.name = tile_props.tile_name + '.base'
     props = base.mt_object_props
     props.is_mt_object = True
@@ -482,14 +493,6 @@ def spawn_core(self, tile_props):
         'active_object': core
     }
 
-    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-
-    bpy.ops.object.editmode_toggle(ctx)
-    bpy.ops.mesh.select_all(action='SELECT')
-    bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
-    bpy.ops.mesh.select_all(action='DESELECT')
-    bpy.ops.object.editmode_toggle(ctx)
-
     obj_props = core.mt_object_props
     obj_props.is_mt_object = True
     obj_props.tile_name = tile_props.tile_name
@@ -509,7 +512,7 @@ def create_openlock_base_clip_cutters(tile_props):
 
     cursor = bpy.context.scene.cursor
     cursor_orig_loc = cursor.location.copy()
-
+    cursor.location = (0, 0, 0)
     radius = tile_props.base_radius
     angle = tile_props.angle
     curve_type = tile_props.curve_type
@@ -525,101 +528,156 @@ def create_openlock_base_clip_cutters(tile_props):
 
         with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
             data_to.objects = [
-                'openlock.wall.base.cutter.clip',
-                'openlock.wall.base.cutter.clip.cap.start',
-                'openlock.wall.base.cutter.clip.cap.end']
-
+                'openlock.wall.base.cutter.clip.001',
+                'openlock.wall.base.cutter.clip.cap.start.001',
+                'openlock.wall.base.cutter.clip.cap.end.001']
+        '''
         for obj in data_to.objects:
             add_object_to_collection(obj, tile_props.tile_name)
-
-        clip_cutter_1 = data_to.objects[0]
-        clip_cutter_1.name = "Clip Cutter 1"
+        '''
+        cutter = data_to.objects[0]
         cutter_start_cap = data_to.objects[1]
         cutter_end_cap = data_to.objects[2]
 
-        # cutter_start_cap.hide_set(True)
-        # cutter_end_cap.hide_set(True)
-        cutter_start_cap.hide_viewport = True
-        cutter_end_cap.hide_viewport = True
+        clip_cutter_1 = bpy.data.objects.new("Clip Cutter 1", cutter.data.copy())
+        add_object_to_collection(clip_cutter_1, tile_props.tile_name)
 
-        array_mod = clip_cutter_1.modifiers.new('Array', 'ARRAY')
-        array_mod.start_cap = cutter_start_cap
-        array_mod.end_cap = cutter_end_cap
-        array_mod.use_merge_vertices = True
-
-        array_mod.fit_type = 'FIT_LENGTH'
+        me = clip_cutter_1.data.copy()
+        bm = bmesh.new()
+        bm.from_mesh(me)
 
         if angle >= 90:
-            clip_cutter_1.location = (
-                cursor_orig_loc[0] + 0.5,
-                cursor_orig_loc[1] + 0.25,
-                cursor_orig_loc[2]
-            )
-            array_mod.fit_length = radius - 1
+            bm=bmesh_array(
+                source_obj=clip_cutter_1,
+                source_bm=bm,
+                start_cap=cutter_start_cap,
+                end_cap=cutter_end_cap,
+                relative_offset_displace=(1, 0, 0),
+                fit_type='FIT_LENGTH',
+                fit_length=radius-1)
+
+            bmesh.ops.translate(
+                bm,
+                verts=bm.verts,
+                vec=(0.5, 0.25, 0),
+                space=clip_cutter_1.matrix_world)
+
         else:
-            clip_cutter_1.location = (
-                cursor_orig_loc[0] + 1,
-                cursor_orig_loc[1] + 0.25,
-                cursor_orig_loc[2]
-            )
-            array_mod.fit_length = radius - 1.5
+            bm=bmesh_array(
+                source_obj=clip_cutter_1,
+                source_bm=bm,
+                start_cap=cutter_start_cap,
+                end_cap=cutter_end_cap,
+                relative_offset_displace=(1, 0, 0),
+                fit_type='FIT_LENGTH',
+                fit_length=radius-1.5)
 
-        deselect_all()
-        select(clip_cutter_1.name)
+            bmesh.ops.translate(
+                bm,
+                verts=bm.verts,
+                vec=(1, 0.25, 0),
+                space=clip_cutter_1.matrix_world)
 
-        bpy.ops.transform.rotate(
-            value=(radians(angle - 90) * 1),
-            orient_axis='Z',
-            orient_type='GLOBAL',
-            center_override=cursor_orig_loc)
+        bmesh.ops.rotate(
+            bm,
+            verts=bm.verts,
+            cent=cursor_orig_loc,
+            matrix=Matrix.Rotation(radians(angle-90)*-1, 3, 'Z'),
+            space=clip_cutter_1.matrix_world)
+
+        bm.to_mesh(clip_cutter_1.data)
+        bm.free()
 
         cutters.append(clip_cutter_1)
-        # cutter 2
-        clip_cutter_2 = clip_cutter_1.copy()
-        clip_cutter_2.name = "Clip Cutter 2"
+
+        clip_cutter_2 = bpy.data.objects.new("Clip Cutter 2", cutter.data.copy())
         add_object_to_collection(clip_cutter_2, tile_props.tile_name)
 
-        array_mod = clip_cutter_2.modifiers['Array']
+        me = clip_cutter_2.data.copy()
+        bm = bmesh.new()
+        bm.from_mesh(me)
 
         if angle >= 90:
-            clip_cutter_2.location = (
-                cursor_orig_loc[0] + 0.25,
-                cursor_orig_loc[1] + radius - 0.5,
-                cursor_orig_loc[2]
-            )
-            array_mod.fit_length = radius - 1
+            bm=bmesh_array(
+                source_obj=clip_cutter_2,
+                source_bm=bm,
+                start_cap=cutter_start_cap,
+                end_cap=cutter_end_cap,
+                relative_offset_displace=(1, 0, 0),
+                fit_type='FIT_LENGTH',
+                fit_length=radius-1)
+
         else:
-            clip_cutter_2.location = (
-                cursor_orig_loc[0] + 0.25,
-                cursor_orig_loc[1] + radius - 0.5,
-                cursor_orig_loc[2]
-            )
-            array_mod.fit_length = radius - 1.5
+            bm=bmesh_array(
+                source_obj=clip_cutter_2,
+                source_bm=bm,
+                start_cap=cutter_start_cap,
+                end_cap=cutter_end_cap,
+                relative_offset_displace=(1, 0, 0),
+                fit_type='FIT_LENGTH',
+                fit_length=radius-1.5)
 
-        clip_cutter_2.rotation_euler = (0, 0, radians(-90))
-        cutters.append(clip_cutter_2)
+        bmesh.ops.rotate(
+            bm,
+            verts=bm.verts,
+            cent=cursor_orig_loc,
+            matrix=Matrix.Rotation(radians(270), 3, 'Z'),
+            space=clip_cutter_1.matrix_world)
 
-        deselect_all()
+        bmesh.ops.translate(
+            bm,
+            verts=bm.verts,
+            vec=(0.25, radius - 0.5, 0),
+            space=clip_cutter_2.matrix_world)
+
+        bm.to_mesh(clip_cutter_2.data)
+        bm.free()
+        cutters.append(clip_cutter_2)        
+
+    bpy.data.objects.remove(cutter)
+    bpy.data.objects.remove(cutter_end_cap)
+    bpy.data.objects.remove(cutter_start_cap)
 
     if tile_props.curve_type == 'POS':
         with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
             data_to.objects = ['openlock.wall.base.cutter.clip_single']
-        clip_cutter_3 = data_to.objects[0]
-        clip_cutter_3.name = "Clip Cutter 3"
+        cutter = data_to.objects[0]
+
+        clip_cutter_3 = bpy.data.objects.new("Clip Cutter 3", cutter.data.copy())
         add_object_to_collection(clip_cutter_3, tile_props.tile_name)
 
-        deselect_all()
-        select(clip_cutter_3.name)
+        me = clip_cutter_3.data.copy()
+        bm = bmesh.new()
+        bm.from_mesh(me)
+
+        bmesh.ops.rotate(
+            bm,
+            verts=bm.verts,
+            cent=clip_cutter_3.location,
+            matrix=Matrix.Rotation(radians(180), 3, 'Z'),
+            space=clip_cutter_3.matrix_world)
+        '''
 
         clip_cutter_3.rotation_euler = (0, 0, radians(180))
         clip_cutter_3.location[1] = cursor_orig_loc[1] + radius - 0.25
-        bpy.ops.transform.rotate(
-            value=radians(angle / 2) * 1,
-            orient_axis='Z',
-            orient_type='GLOBAL',
-            center_override=cursor_orig_loc)
+        '''
+        bmesh.ops.translate(
+            bm,
+            verts=bm.verts,
+            vec=(0, radius - 0.25, 0),
+            space=clip_cutter_3.matrix_world)
+        
+        bmesh.ops.rotate(
+            bm,
+            cent=cursor_orig_loc,
+            verts=bm.verts,
+            matrix=Matrix.Rotation(radians(angle / 2) * -1, 3, 'Z'),
+            space=clip_cutter_3.matrix_world)
 
+        bm.to_mesh(clip_cutter_3.data)
+        bm.free()
         cutters.append(clip_cutter_3)
+        bpy.data.objects.remove(cutter)
 
     for cutter in cutters:
         props = cutter.mt_object_props
@@ -847,7 +905,7 @@ def draw_pos_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
 
     # bmesh.ops.grid_fill doesn't work as well as bpy.ops.grid_fill so we use that instead despite
     # it being slower and requiring us to rebuild our bmesh
-
+    
     bm_select_all(bm)
     bm.select_flush(True)
     mesh = obj.data

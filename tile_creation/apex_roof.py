@@ -28,11 +28,12 @@ from ..lib.bmturtle.helpers import (
 
 from .create_tile import get_subdivs
 
-#from line_profiler import LineProfiler
-#from os.path import splitext
-#profile = LineProfiler()
+# from line_profiler import LineProfiler
+# from os.path import splitext
+# profile = LineProfiler()
 
-#@profile
+
+# @profile
 def draw_apex_base(self, tile_props, margin=0.001):
     """Draw an apex style roof base."""
     #      B
@@ -109,7 +110,6 @@ def draw_apex_base(self, tile_props, margin=0.001):
     bm.select_mode = {'EDGE'}
     bm_select_all(bm)
 
-    #subdiv_z_dist = (base_dims[2] - (margin * 2)) / subdivs[2]
     subdiv_z_dist = (base_dims[2] - margin) / subdivs[2]
     up(bm, margin)
 
@@ -117,8 +117,6 @@ def draw_apex_base(self, tile_props, margin=0.001):
     while i < subdivs[2]:
         up(bm, subdiv_z_dist)
         i += 1
-
-    #up(bm, margin)
 
     bm_deselect_all(bm)
 
@@ -207,7 +205,6 @@ def draw_apex_base(self, tile_props, margin=0.001):
     turtle.location = draw_origin
     geo = bm.verts[:] + bm.edges[:] + bm.faces[:]
 
-
     # base left
     plane = (
         turtle.location[0] + margin,
@@ -233,7 +230,6 @@ def draw_apex_base(self, tile_props, margin=0.001):
         dist=margin / 4,
         plane_co=plane,
         plane_no=(1, 0, 0))
-
 
     # roof left
     v1 = (
@@ -418,10 +414,11 @@ def draw_apex_base(self, tile_props, margin=0.001):
     turtle.location = (0, 0, 0)
     # finalise turtle and release bmesh
     finalise_turtle(bm, obj)
-    #profile.dump_stats(splitext(__file__)[0] + '.prof')
+    # profile.dump_stats(splitext(__file__)[0] + '.prof')
     return obj
 
-#@profile
+
+# @profile
 def draw_apex_roof_top(self, tile_props, margin=0.001):
     """Draw an apex type roof top.
 
@@ -773,5 +770,5 @@ def draw_apex_roof_top(self, tile_props, margin=0.001):
     left_bm.free()
 
     finalise_turtle(bm, obj)
-    #profile.dump_stats(splitext(__file__)[0] + '.prof')
+    # profile.dump_stats(splitext(__file__)[0] + '.prof')
     return obj

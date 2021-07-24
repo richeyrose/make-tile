@@ -1,8 +1,8 @@
 import os
+from math import radians, pi, modf, degrees
 import bpy
 import bmesh
-from math import radians, pi, modf, degrees
-from mathutils import Vector, Matrix
+from mathutils import Matrix
 from bpy.types import Operator, Panel
 from bpy.props import (
     FloatProperty,
@@ -27,15 +27,9 @@ from ..lib.utils.selection import (
     select,
     activate)
 
-from ..lib.utils.utils import (
-    add_circle_array,
-    get_all_subclasses)
-
-
 from .create_tile import (
     convert_to_displacement_core,
     spawn_empty_base,
-    spawn_prefab,
     set_bool_obj_props,
     set_bool_props,
     load_openlock_top_peg,
@@ -48,6 +42,8 @@ from line_profiler import LineProfiler
 from os.path import splitext
 profile = LineProfiler()
 '''
+
+
 class MT_PT_Curved_Wall_Tile_Panel(Panel):
     """Draw a tile options panel in the UI."""
 
@@ -291,7 +287,7 @@ class MT_OT_Make_Curved_Wall_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
         items=create_material_enums,
         name="Wall Material")
 
-    #@profile
+    # @profile
     def exec(self, context):
         scene = context.scene
         scene_props = scene.mt_scene_props
@@ -329,9 +325,8 @@ class MT_OT_Make_Curved_Wall_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
             self.finalise_tile(context, base, wall_core, floor_core)
         else:
             self.finalise_tile(context, base, wall_core)
-        #profile.dump_stats(splitext(__file__)[0] + '.prof')
+        # profile.dump_stats(splitext(__file__)[0] + '.prof')
         return {'FINISHED'}
-
 
     def execute(self, context):
         """Execute the operator."""
@@ -339,7 +334,6 @@ class MT_OT_Make_Curved_Wall_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
         if not self.refresh:
             return{'PASS_THROUGH'}
         return self.exec(context)
-
 
     def init(self, context):
         super().init(context)
@@ -389,6 +383,7 @@ class MT_OT_Make_Curved_Wall_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
 
         layout.label(text="UV Island Margin")
         layout.prop(self, 'UV_island_margin', text="")
+
 
 class MT_OT_Make_Curved_Floor_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
     """Create a Curved Floor Tile."""
@@ -692,10 +687,7 @@ def spawn_openlock_wall_cores(self, base, tile_props):
 
     core = spawn_wall_core(self, tile_props)
     subsurf = add_subsurf_modifier(core)
-    cutters = spawn_openlock_wall_cutters(
-        core,
-        base.location,
-        tile_props)
+    cutters = spawn_openlock_wall_cutters(tile_props)
 
     kwargs = {
         "tile_props": tile_props}
@@ -811,12 +803,10 @@ def spawn_openlock_top_pegs(base, **kwargs):
     return peg
 
 
-def spawn_openlock_wall_cutters(core, base_location, tile_props):
+def spawn_openlock_wall_cutters(tile_props):
     """Spawn OpenLOCK wall cutters into scene and position them.
 
     Args:
-        core (bpy.types.Object): tile core
-        base_location (Vector[3]): base location
         tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
 
     Returns:
@@ -836,7 +826,6 @@ def spawn_openlock_wall_cutters(core, base_location, tile_props):
     # load side cutter
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
         data_to.objects = ['openlock.wall.cutter.side']
-
 
     cutters = []
 
@@ -955,7 +944,7 @@ def spawn_plain_base(self, tile_props):
 
 
 def spawn_openlock_base_slot_cutter(self, base, tile_props, offset=0.236):
-    """Spawns an openlock base slot cutter into the scene and positions it correctly
+    """Spawns an openlock base slot cutter into the scene and positions it correctly.
 
     Args:
         base (bpy.types.Object): base
@@ -1118,7 +1107,7 @@ def spawn_openlock_base_clip_cutter(base, tile_props):
             bm,
             geom=source_geom)
         geom = ret["geom"]
-        dupe_verts = [ele for ele in  geom if isinstance(ele, bmesh.types.BMVert)]
+        dupe_verts = [ele for ele in geom if isinstance(ele, bmesh.types.BMVert)]
         del ret
 
         bmesh.ops.rotate(
@@ -1128,7 +1117,6 @@ def spawn_openlock_base_clip_cutter(base, tile_props):
             matrix=Matrix.Rotation(radians(22.5 * i) * -1, 3, 'Z'),
             space=clip_cutter.matrix_world)
         i += 1
-        #rotate
 
     bm.to_mesh(clip_cutter.data)
     bm.free()
@@ -1196,13 +1184,6 @@ def spawn_floor_core(self, tile_props):
     core.name = tile_name + '.core'
     add_object_to_collection(core, tile_props.tile_name)
 
-    ctx = {
-        'object': core,
-        'active_object': core,
-        'selected_editable_objects': [core],
-        'selected_objects': [core]
-    }
-
     tile_props.tile_size[0] = floor_length
 
     core.location = (
@@ -1249,7 +1230,6 @@ def spawn_wall_core(self, tile_props):
     tile_name = tile_props.tile_name
     arc = (angle / 360) * (2 * pi) * radius
     native_subdivisions = get_subdivs(tile_props.subdivision_density, [arc, width, height])
-
 
     # Rather than creating our cores as curved objects we create them as straight cuboids
     # and then add a deform modifier. This allows us to not use the modifier when baking the

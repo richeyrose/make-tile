@@ -12,12 +12,11 @@ from ..utils.registration import get_prefs
 from .. lib.utils.collections import (
     add_object_to_collection)
 from .. lib.bmturtle.scripts import draw_cuboid
-from .. lib.utils.utils import mode, get_all_subclasses
+
 from ..lib.utils.selection import activate
 from .create_tile import (
     spawn_empty_base,
     convert_to_displacement_core,
-    spawn_prefab,
     set_bool_obj_props,
     set_bool_props,
     MT_Tile_Generator,
@@ -34,8 +33,7 @@ from os.path import splitext
 profile = LineProfiler()
 '''
 
-# TODO Make side eaves seperately customisable in same way as end eaves
-# TODO Ensure UI updates to show roof options when roof is selected
+
 class MT_PT_Roof_Panel(Panel):
     """Draw a tile options panel in UI."""
 
@@ -217,7 +215,7 @@ class MT_OT_Make_Roof(Operator, MT_Tile_Generator):
         items=create_material_enums,
         name="Rooftop Material")
 
-    #@profile
+    # @profile
     def exec(self, context):
         gable_blueprint = self.base_blueprint
         rooftop_blueprint = self.main_part_blueprint
@@ -233,14 +231,13 @@ class MT_OT_Make_Roof(Operator, MT_Tile_Generator):
             rooftop = spawn_roof(self, tile_props)
         self.finalise_tile(context, gables, rooftop)
 
-
     def execute(self, context):
         """Execute the Operator."""
         super().execute(context)
         if not self.refresh:
             return {'PASS_THROUGH'}
         self.exec(context)
-        #profile.dump_stats(splitext(__file__)[0] + '.prof')
+        # profile.dump_stats(splitext(__file__)[0] + '.prof')
         return {'FINISHED'}
 
     def init(self, context):
@@ -250,7 +247,6 @@ class MT_OT_Make_Roof(Operator, MT_Tile_Generator):
         tile_props.collection_type = "TILE"
         tile_props.tile_size = (self.tile_x, self.tile_y, self.tile_z)
         tile_props.base_size = (self.base_x, self.base_y, self.base_z)
-
 
     def draw(self, context):
         super().draw(context)
@@ -302,6 +298,7 @@ class MT_OT_Make_Roof(Operator, MT_Tile_Generator):
 
         layout.label(text="UV Island Margin")
         layout.prop(self, 'UV_island_margin', text="")
+
 
 class MT_OT_Make_Roof_Base(MT_Tile_Generator, Operator):
     """Internal Operator. Generate a Roof Base."""
@@ -378,20 +375,7 @@ def spawn_roof(self, tile_props):
     obj_props = roof.mt_object_props
     obj_props.is_mt_object = True
     obj_props.tile_name = tile_props.tile_name
-    '''
-    ctx = {
-        'object': roof,
-        'active_object': roof,
-        'selected_objects': [roof],
-        'selected_editable_objects': [roof]}
 
-    bpy.ops.object.editmode_toggle(ctx)
-    bpy.ops.mesh.select_all(action='SELECT')
-    bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
-    bpy.ops.mesh.select_all(action='DESELECT')
-    bpy.ops.object.editmode_toggle(ctx)
-    bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-    '''
     bpy.context.scene.cursor.location = (0, 0, 0)
     subsurf = add_subsurf_modifier(roof)
     textured_vertex_groups = ['Left', 'Right']
@@ -404,7 +388,8 @@ def spawn_roof(self, tile_props):
         subsurf)
     return roof
 
-#@profile
+
+# @profile
 def spawn_base(self, tile_props):
     if tile_props.roof_type == 'APEX':
         base = draw_apex_base(self, tile_props)
@@ -438,7 +423,8 @@ def spawn_base(self, tile_props):
     activate(base.name)
     return base
 
-#@profile
+
+# @profile
 def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
     """Spawn an openlock base slot cutter into scene and positions it correctly.
 
@@ -449,7 +435,6 @@ def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
     Returns:
         bpy.type.Object: slot cutter
     """
-    #mode('OBJECT')
 
     base_location = base.location.copy()
     base_dims = base.dimensions.copy()
@@ -481,14 +466,6 @@ def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
             base_location[0] + diff / 2,
             base_location[1] + offset,
             base_location[2] - 0.001)
-
-        ctx = {
-            'object': cutter,
-            'active_object': cutter,
-            'selected_objects': [cutter]
-        }
-
-        bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
 
         return cutter
 

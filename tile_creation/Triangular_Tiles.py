@@ -3,7 +3,6 @@ from math import radians, cos, sqrt, modf
 import bpy
 import bmesh
 from mathutils import Vector
-from bpy import context
 from bpy.types import Panel, Operator
 
 from bpy.props import (
@@ -26,14 +25,11 @@ from ..lib.bmturtle.helpers import (
 from .. lib.utils.collections import (
     add_object_to_collection)
 
-from .. lib.utils.utils import mode, get_all_subclasses
-
-from .. lib.utils.selection import select
+from .. lib.utils.utils import mode
 
 from .create_tile import (
     convert_to_displacement_core,
     spawn_empty_base,
-    spawn_prefab,
     set_bool_obj_props,
     set_bool_props,
     MT_Tile_Generator,
@@ -46,6 +42,7 @@ from line_profiler import LineProfiler
 from os.path import splitext
 profile = LineProfiler()
 '''
+
 
 class MT_PT_Triangular_Floor_Panel(Panel):
     """Draw a tile options panel in UI."""
@@ -135,7 +132,7 @@ class MT_OT_Make_Triangular_Floor_Tile(Operator, MT_Tile_Generator):
         items=create_material_enums,
         name="Floor Material")
 
-    #@profile
+    # @profile
     def exec(self, context):
         base_blueprint = self.base_blueprint
         core_blueprint = self.main_part_blueprint
@@ -160,7 +157,7 @@ class MT_OT_Make_Triangular_Floor_Tile(Operator, MT_Tile_Generator):
         if not self.refresh:
             return {'PASS_THROUGH'}
         self.exec(context)
-        #profile.dump_stats(splitext(__file__)[0] + '.prof')
+        # profile.dump_stats(splitext(__file__)[0] + '.prof')
 
         return {'FINISHED'}
 
@@ -317,14 +314,6 @@ def spawn_plain_base(tile_props):
     base.name = tile_name + '.base'
     add_object_to_collection(base, tile_name)
 
-    ctx = {
-        'object': base,
-        'active_object': base,
-        'selected_objects': [base]
-    }
-
-    #bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-
     obj_props = base.mt_object_props
     obj_props.is_mt_object = True
     obj_props.geometry_type = 'BASE'
@@ -355,15 +344,6 @@ def spawn_openlock_base(tile_props):
     base.name = tile_name + '.base'
     add_object_to_collection(base, tile_name)
 
-    ctx = {
-        'object': base,
-        'active_object': base,
-        'selected_objects': [base],
-        'selected_editable_objects': [base]
-    }
-
-    #bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-
     clip_cutters = spawn_openlock_base_clip_cutters(dimensions, tile_props)
 
     for clip_cutter in clip_cutters:
@@ -381,7 +361,8 @@ def spawn_openlock_base(tile_props):
     bpy.context.view_layer.objects.active = base
     return base
 
-#@profile
+
+# @profile
 def spawn_openlock_base_clip_cutters(dimensions, tile_props):
     """Make cutters for the openlock base clips.
 
@@ -449,25 +430,23 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
             add_object_to_collection(b_cutter, tile_props.tile_name)
             if A >= 90:
                 if C >= 90:
-                    bm=bmesh_array(
+                    bm = bmesh_array(
                         source_obj=cutter,
                         source_bm=bm,
                         start_cap=cutter_start_cap,
                         end_cap=cutter_end_cap,
                         relative_offset_displace=(1, 0, 0),
                         fit_type='FIT_LENGTH',
-                        fit_length=b-1)
-                    #array_mod.fit_length = b - 1
+                        fit_length=b - 1)
                 else:
-                    bm=bmesh_array(
+                    bm = bmesh_array(
                         source_obj=cutter,
                         source_bm=bm,
                         start_cap=cutter_start_cap,
                         end_cap=cutter_end_cap,
                         relative_offset_displace=(1, 0, 0),
                         fit_type='FIT_LENGTH',
-                        fit_length=b-1.5)
-                    #array_mod.fit_length = b - 1.5
+                        fit_length=b - 1.5)
                 bmesh.ops.translate(
                     bm,
                     verts=bm.verts,
@@ -476,25 +455,23 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
 
             elif A < 90:
                 if C >= 90:
-                    bm=bmesh_array(
+                    bm = bmesh_array(
                         source_obj=cutter,
                         source_bm=bm,
                         start_cap=cutter_start_cap,
                         end_cap=cutter_end_cap,
                         relative_offset_displace=(1, 0, 0),
                         fit_type='FIT_LENGTH',
-                        fit_length=b-1.5)
-                    #array_mod.fit_length = b - 1.5
+                        fit_length=b - 1.5)
                 else:
-                    bm=bmesh_array(
+                    bm = bmesh_array(
                         source_obj=cutter,
                         source_bm=bm,
                         start_cap=cutter_start_cap,
                         end_cap=cutter_end_cap,
                         relative_offset_displace=(1, 0, 0),
                         fit_type='FIT_LENGTH',
-                        fit_length=b-2)
-                    #array_mod.fit_length = b - 2
+                        fit_length=b - 2)
                 bmesh.ops.translate(
                     bm,
                     verts=bm.verts,
@@ -505,7 +482,7 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
                 bm,
                 cent=loc_A,
                 verts=bm.verts,
-                matrix=Matrix.Rotation(radians(A - 90)*-1, 3, 'Z'),
+                matrix=Matrix.Rotation(radians(A - 90) * -1, 3, 'Z'),
                 space=b_cutter.matrix_world
             )
 
@@ -529,7 +506,7 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
                         end_cap=cutter_end_cap,
                         relative_offset_displace=(1, 0, 0),
                         fit_type='FIT_LENGTH',
-                        fit_length= c-1)
+                        fit_length=c - 1)
                 else:
                     bmesh_array(
                         source_obj=c_cutter,
@@ -538,7 +515,7 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
                         end_cap=cutter_end_cap,
                         relative_offset_displace=(1, 0, 0),
                         fit_type='FIT_LENGTH',
-                        fit_length= c-1.5)
+                        fit_length=c - 1.5)
                 bmesh.ops.rotate(
                     bm,
                     cent=loc_A,
@@ -548,7 +525,7 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
                 bmesh.ops.translate(
                     bm,
                     verts=bm.verts,
-                    vec=(0.25, c-1, 0.0001),
+                    vec=(0.25, c - 1, 0.0001),
                     space=c_cutter.matrix_world)
             elif b < 90:
                 if A >= 90:
@@ -559,7 +536,7 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
                         end_cap=cutter_end_cap,
                         relative_offset_displace=(1, 0, 0),
                         fit_type='FIT_LENGTH',
-                        fit_length= c-1.5)
+                        fit_length=c - 1.5)
                 else:
                     bmesh_array(
                         source_obj=c_cutter,
@@ -568,7 +545,7 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
                         end_cap=cutter_end_cap,
                         relative_offset_displace=(1, 0, 0),
                         fit_type='FIT_LENGTH',
-                        fit_length= c-2)
+                        fit_length=c - 2)
 
                 bmesh.ops.rotate(
                     bm,
@@ -580,7 +557,7 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
                 bmesh.ops.translate(
                     bm,
                     verts=bm.verts,
-                    vec=(0.25, c-1, 0.0001),
+                    vec=(0.25, c - 1, 0.0001),
                     space=c_cutter.matrix_world)
             bm.to_mesh(me)
             bm.free()
@@ -608,10 +585,9 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
                         start_cap=cutter_start_cap,
                         end_cap=cutter_end_cap,
                         relative_offset_displace=(1, 0, 0),
-                        fit_length=(a-2),
+                        fit_length=(a - 2),
                         fit_type='FIT_LENGTH')
-                    count = modf((a-2) / offset[0])[1]
-                    #print(count)
+                    count = modf((a - 2) / offset[0])[1]
                 else:
                     bm = bmesh_array(
                         source_obj=a_cutter,
@@ -619,10 +595,9 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
                         start_cap=cutter_start_cap,
                         end_cap=cutter_end_cap,
                         relative_offset_displace=(1, 0, 0),
-                        fit_length=(a-2),
+                        fit_length=(a - 2),
                         fit_type='FIT_LENGTH')
-                    count = modf((a-2) / offset[0])[1]
-                    #print(count)
+                    count = modf((a - 2) / offset[0])[1]
                 bm.select_mode = {'VERT'}
                 bm_select_all(bm)
                 turtle.rotation_euler = (0, 0, -radians(A))
@@ -633,7 +608,7 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
                     bm=bm,
                     verts=bm.verts,
                     cent=loc_C,
-                    matrix=Matrix.Rotation(radians(-90-B)*-1, 3, 'Z'),
+                    matrix=Matrix.Rotation(radians(-90 - B) * -1, 3, 'Z'),
                     space=a_cutter.matrix_world)
 
             elif C < 90:
@@ -644,10 +619,9 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
                         start_cap=cutter_start_cap,
                         end_cap=cutter_end_cap,
                         relative_offset_displace=(1, 0, 0),
-                        fit_length=(a-2),
+                        fit_length=(a - 2),
                         fit_type='FIT_LENGTH')
-                    count = modf((a-2) / offset[0])[1]
-                    #print(count)
+                    count = modf((a - 2) / offset[0])[1]
                 else:
                     bm = bmesh_array(
                         source_obj=a_cutter,
@@ -655,10 +629,9 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
                         start_cap=cutter_start_cap,
                         end_cap=cutter_end_cap,
                         relative_offset_displace=(1, 0, 0),
-                        fit_length=(a-2),
+                        fit_length=(a - 2),
                         fit_type='FIT_LENGTH')
-                    count = modf((a-2) / offset[0])[1]
-                    #print(count)
+                    count = modf((a - 2) / offset[0])[1]
                 bm.select_mode = {'VERT'}
                 bm_select_all(bm)
                 turtle.rotation_euler = (0, 0, -radians(A))
@@ -669,36 +642,12 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
                     bm,
                     verts=bm.verts,
                     cent=loc_C,
-                    matrix=Matrix.Rotation(radians(-90-B)*-1, 3, 'Z'),
+                    matrix=Matrix.Rotation(radians(-90 - B) * -1, 3, 'Z'),
                     space=a_cutter.matrix_world)
 
                 caps = 0.083333
                 turtle.rotation_euler = (0, 0, radians(C))
                 extrude_translate(bm, (0, (caps * (count + 1)), 0), del_original=False, extrude=False)
-            '''
-            bmesh.ops.rotate(
-                bm,
-                cent=a_cutter.location,
-                matrix=Matrix.Rotation(radians(-90 - B)*-1, 3, 'Z'),
-                space=a_cutter.matrix_world,
-                verts=bm.verts)
-            '''
-
-
-
-            '''
-            ctx = {
-                'selected_objects': [a_cutter],
-                'object': a_cutter,
-                'active_object': a_cutter,
-                'selected_editable_objects': [a_cutter]}
-            bpy.ops.transform.rotate(
-                ctx,
-                value=radians(-90 - B) * 1,
-                orient_axis='Z',
-                orient_type='GLOBAL',
-                center_override=loc_C)
-            '''
 
             bm.to_mesh(me)
             bm.free()
@@ -706,49 +655,7 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
         bpy.data.objects.remove(cutter)
         bpy.data.objects.remove(cutter_start_cap)
         bpy.data.objects.remove(cutter_end_cap)
-        '''
 
-        # clip cutter 3
-        if a >= 2:
-            a_cutter.rotation_euler = (0, 0, 0)
-            array_mod = a_cutter.modifiers['Array']
-
-            if C >= 90:
-                a_cutter.location = (
-                    loc_C[0] + 0.5,
-                    loc_C[1] + 0.25,
-                    loc_C[2] + 0.0002)
-                if B >= 90:
-                    array_mod.fit_length = a - 1
-                else:
-                    array_mod.fit_length = a - 1.5
-
-            elif C < 90:
-                a_cutter.location = (
-                    loc_C[0] + 1,
-                    loc_C[1] + 0.25,
-                    loc_C[2] + 0.0002)
-                if B >= 90:
-                    array_mod.fit_length = a - 1.5
-                else:
-                    array_mod.fit_length = a - 2
-            ctx = {
-                'object': a_cutter,
-                'active_object': a_cutter,
-                'selected_objects': [a_cutter],
-                'selected_editable_objects': [a_cutter]}
-
-            bpy.ops.transform.rotate(
-                ctx,
-                value=radians(-90 - B) * 1,
-                orient_axis='Z',
-                orient_type='GLOBAL',
-                center_override=loc_C)
-
-            cutters.append(a_cutter)
-
-            bpy.ops.object.make_single_user(type='ALL', object=True, obdata=True)
-        '''
         cursor.location = cursor_orig_loc
         cursor.rotation_euler = cursor_orig_rot
         return cutters
@@ -768,7 +675,7 @@ def create_plain_triangular_floor_cores(base, tile_props):
     """
     core = spawn_floor_core(tile_props)
     textured_vertex_groups = ['Top']
-    material=tile_props.floor_material
+    material = tile_props.floor_material
     subsurf = add_subsurf_modifier(core)
     convert_to_displacement_core(
         core,
@@ -811,22 +718,6 @@ def spawn_floor_core(tile_props):
     mode('OBJECT')
 
     core.location[2] = core.location[2] + tile_props.base_size[2]
-
-    #TODO Factor the below out as duplicated in each tile generator
-    ctx = {
-        'object': core,
-        'active_object': core,
-        'selected_objects': [core],
-        'selected_editable_objects': [core]
-    }
-
-    #bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
-
-    #bpy.ops.object.editmode_toggle(ctx)
-    #bpy.ops.mesh.select_all(action='SELECT')
-    #bpy.ops.uv.smart_project(ctx, island_margin=tile_props.UV_island_margin)
-    #bpy.ops.mesh.select_all(action='DESELECT')
-    #bpy.ops.object.editmode_toggle(ctx)
 
     obj_props = core.mt_object_props
     obj_props.is_mt_object = True

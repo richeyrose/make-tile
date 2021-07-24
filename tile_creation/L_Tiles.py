@@ -1,24 +1,20 @@
 import os
-from math import radians, modf
+from math import radians
 import bpy
 import bmesh
-
+from mathutils import Matrix
 from bpy.types import Panel, Operator
-from mathutils import Vector, Matrix
-
 from bpy.props import (
     EnumProperty,
     FloatProperty,
     StringProperty)
 
-from .. lib.utils.collections import (
+from ..lib.utils.collections import (
     add_object_to_collection)
 
-from .. lib.utils.utils import mode, get_all_subclasses
-from .. utils.registration import get_prefs
-from .. lib.utils.selection import (
-    deselect_all,
-    select)
+from ..utils.registration import get_prefs
+from ..lib.utils.selection import (
+    deselect_all)
 
 from ..lib.bmturtle.scripts import (
     draw_corner_3D as draw_corner_3D_bm,
@@ -30,10 +26,9 @@ from ..lib.bmturtle.helpers import (
     calculate_corner_wall_triangles,
     bmesh_array)
 
-from . create_tile import (
+from .create_tile import (
     convert_to_displacement_core,
     spawn_empty_base,
-    spawn_prefab,
     set_bool_props,
     set_bool_obj_props,
     load_openlock_top_peg,
@@ -103,12 +98,13 @@ class MT_PT_L_Tile_Panel(Panel):
 
         layout.operator('scene.reset_tile_defaults')
 
+
 class MT_L_Tiles:
     angle: FloatProperty(
         name="Base Angle",
         default=90,
-        step=5,
-        precision=1
+        step=500,
+        precision=0
     )
 
     leg_1_len: FloatProperty(
@@ -126,6 +122,7 @@ class MT_L_Tiles:
         step=50,
         precision=1
     )
+
 
 class MT_OT_Make_L_Wall_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
     """Create an L Wall Tile."""
@@ -290,6 +287,7 @@ class MT_OT_Make_L_Floor_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
 
         layout.label(text="UV Island Margin")
         layout.prop(self, 'UV_island_margin', text="")
+
 
 class MT_OT_Make_Openlock_L_Base(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an OpenLOCK L base."""
@@ -544,12 +542,6 @@ def spawn_floor_core(self, tile_props):
     obj_props.is_mt_object = True
     obj_props.tile_name = tile_props.tile_name
 
-    ctx = {
-        'object': core,
-        'active_object': core,
-        'selected_objects': [core],
-        'selected_editable_objects': [core]}
-
     bpy.context.scene.cursor.location = (0, 0, 0)
 
     return core
@@ -606,7 +598,6 @@ def spawn_openlock_top_pegs(core, tile_props):
     Returns:
         bpy.types.Object: top peg(s)
     """
-
     tile_size = tile_props.tile_size
     base_size = tile_props.base_size
     leg_1_len = tile_props.leg_1_len
@@ -616,7 +607,7 @@ def spawn_openlock_top_pegs(core, tile_props):
 
     pegs = []
 
-    if leg_1_len >=1:
+    if leg_1_len >= 1:
         peg_mesh = peg.data.copy()
         peg_1 = bpy.data.objects.new("Leg 1 Peg", peg_mesh)
         add_object_to_collection(peg_1, tile_props.tile_name)
@@ -641,7 +632,7 @@ def spawn_openlock_top_pegs(core, tile_props):
                 use_constant_offset=True,
                 constant_offset_displace=(2.017, 0, 0),
                 use_merge_vertices=False,
-                fit_type= 'FIT_LENGTH',
+                fit_type='FIT_LENGTH',
                 fit_length=leg_1_len - 1.3)
 
         bmesh.ops.translate(
@@ -657,12 +648,11 @@ def spawn_openlock_top_pegs(core, tile_props):
             bm,
             cent=cursor.location,
             verts=bm.verts,
-            matrix=Matrix.Rotation(radians(tile_props.angle-90)*-1, 3, 'Z'),
+            matrix=Matrix.Rotation(radians(tile_props.angle - 90) * -1, 3, 'Z'),
             space=peg_1.matrix_world)
         bm.to_mesh(peg_mesh)
         bm.free()
         pegs.append(peg_1)
-
 
     # leg 2
     if leg_2_len >= 1:
@@ -692,7 +682,7 @@ def spawn_openlock_top_pegs(core, tile_props):
                 constant_offset_displace=(2.017, 0, 0),
                 fit_type='FIT_LENGTH',
                 fit_length=leg_2_len - 1.3,
-                use_merge_vertices=False )
+                use_merge_vertices=False)
 
         bmesh.ops.rotate(
             bm,
@@ -749,7 +739,6 @@ def spawn_openlock_wall_cutters(core, tile_props):
     left_cutter_bottom = bpy.data.objects.new("cutter", cutter_mesh)
 
     # left side cutters
-    #left_cutter_bottom = data_to.objects[0].copy()
     left_cutter_bottom.name = 'Leg 2 Bottom.' + tile_name
 
     add_object_to_collection(left_cutter_bottom, tile_name)
@@ -762,7 +751,7 @@ def spawn_openlock_wall_cutters(core, tile_props):
     left_cutter_bottom.location = [
         front_left[0],
         front_left[1] + (base_size[1] / 2),
-        front_left[2] + 0.63]#
+        front_left[2] + 0.63]
 
     array_mod = left_cutter_bottom.modifiers.new('Array', 'ARRAY')
     array_mod.use_relative_offset = False
@@ -812,8 +801,8 @@ def spawn_openlock_wall_cutters(core, tile_props):
     bmesh.ops.translate(
         bm,
         vec=(-tile_props.leg_1_len,
-        (base_size[1] / 2)*-1,
-        0.63),
+             (base_size[1] / 2) * -1,
+             0.63),
         space=right_cutter_bottom.matrix_world,
         verts=bm.verts)
 
@@ -822,7 +811,7 @@ def spawn_openlock_wall_cutters(core, tile_props):
         bm,
         verts=bm.verts,
         cent=loc,
-        matrix=Matrix.Rotation(radians(tile_props.angle - 90)*-1, 3, 'Z'),
+        matrix=Matrix.Rotation(radians(tile_props.angle - 90) * -1, 3, 'Z'),
         space=right_cutter_bottom.matrix_world)
     bm.to_mesh(me)
     bm.free()
@@ -959,6 +948,7 @@ def spawn_plain_base(tile_props):
 
     return base
 
+
 def spawn_openlock_base(self, tile_props):
     """Spawn a plain base into the scene.
 
@@ -1025,9 +1015,8 @@ def spawn_openlock_base(self, tile_props):
         relative_offset_displace=(1, 0, 0),
         use_merge_vertices=True,
         merge_threshold=0.0001,
-        fit_length=leg_len-1)
+        fit_length=leg_len - 1)
 
-    # use bmesh to avoid bpy.ops
     # move arrayed clipper
     bmesh.ops.translate(
         bm,
@@ -1035,7 +1024,6 @@ def spawn_openlock_base(self, tile_props):
         vec=(0.5, 0.25, 0),
         space=clip_cutter_1.matrix_world)
 
-    #rotate
     bmesh.ops.rotate(
         bm,
         verts=bm.verts,
@@ -1058,7 +1046,7 @@ def spawn_openlock_base(self, tile_props):
         relative_offset_displace=(1, 0, 0),
         use_merge_vertices=True,
         merge_threshold=0.0001,
-        fit_length=leg_len-1)
+        fit_length=leg_len - 1)
 
     bmesh.ops.rotate(
         bm,
@@ -1070,7 +1058,7 @@ def spawn_openlock_base(self, tile_props):
     bmesh.ops.translate(
         bm,
         verts=bm.verts,
-        vec=(0.25, leg_len-0.5, 0),
+        vec=(0.25, leg_len - 0.5, 0),
         space=clip_cutter_2.matrix_world)
 
     bm.to_mesh(me)
@@ -1092,7 +1080,7 @@ def spawn_openlock_base(self, tile_props):
 
 
 def create_openlock_base_slot_cutter(tile_props):
-    """Creates the base slot cutter for OpenLOCK tiles
+    """Create the base slot cutter for OpenLOCK tiles.
 
     Args:
         tile_props (bpy.types.MT_Tile_Props): tile properties

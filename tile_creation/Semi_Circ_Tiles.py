@@ -145,8 +145,8 @@ class MT_OT_Make_Semi_Circ_Floor_Tile(Operator, MT_Tile_Generator):
     angle: FloatProperty(
         name="Base Angle",
         default=90,
-        step=5,
-        precision=1
+        step=500,
+        precision=0
     )
 
     floor_material: EnumProperty(
@@ -180,9 +180,9 @@ class MT_OT_Make_Semi_Circ_Floor_Tile(Operator, MT_Tile_Generator):
         super().execute(context)
         if not self.refresh:
             return {'PASS_THROUGH'}
-        
+
         return self.exec(context)
-        
+
 
     def init(self, context):
         super().init(context)
@@ -632,7 +632,7 @@ def create_openlock_base_clip_cutters(tile_props):
 
         bm.to_mesh(clip_cutter_2.data)
         bm.free()
-        cutters.append(clip_cutter_2)        
+        cutters.append(clip_cutter_2)
 
     bpy.data.objects.remove(cutter)
     bpy.data.objects.remove(cutter_end_cap)
@@ -666,7 +666,7 @@ def create_openlock_base_clip_cutters(tile_props):
             verts=bm.verts,
             vec=(0, radius - 0.25, 0),
             space=clip_cutter_3.matrix_world)
-        
+
         bmesh.ops.rotate(
             bm,
             cent=cursor_orig_loc,
@@ -905,7 +905,7 @@ def draw_pos_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
 
     # bmesh.ops.grid_fill doesn't work as well as bpy.ops.grid_fill so we use that instead despite
     # it being slower and requiring us to rebuild our bmesh
-    
+
     bm_select_all(bm)
     bm.select_flush(True)
     mesh = obj.data

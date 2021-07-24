@@ -3,6 +3,10 @@ from math import radians
 from mathutils import kdtree, Vector
 import bpy
 import bmesh
+from bpy.props import (
+    EnumProperty,
+    FloatProperty,
+    StringProperty)
 from bpy.types import Panel, Operator
 from ..lib.bmturtle.commands import (
     pd,
@@ -21,16 +25,13 @@ from ..lib.bmturtle.helpers import (
     bm_deselect_all,
     assign_verts_to_group,
     select_verts_in_bounds,
-    bm_shortest_path,
-    bmesh_array)
-from .. lib.utils.utils import mode, get_all_subclasses
+    bm_shortest_path)
 from .. utils.registration import get_prefs
 from .. lib.utils.collections import (
     add_object_to_collection)
 from .create_tile import (
     convert_to_displacement_core,
     spawn_empty_base,
-    spawn_prefab,
     set_bool_obj_props,
     set_bool_props,
     load_openlock_top_peg,
@@ -39,10 +40,6 @@ from .create_tile import (
     create_material_enums,
     add_subsurf_modifier)
 
-from bpy.props import (
-    EnumProperty,
-    FloatProperty,
-    StringProperty)
 
 '''
 from line_profiler import LineProfiler
@@ -57,6 +54,7 @@ profile = LineProfiler()
 #      origin x--------------
 #                 outer
 #
+
 
 class MT_PT_U_Tile_Panel(Panel):
     """Draw a tile options panel in the UI."""
@@ -157,7 +155,7 @@ class MT_OT_Make_U_Wall_Tile(MT_Tile_Generator, Operator):
         items=create_material_enums,
         name="Wall Material")
 
-    #@profile
+    # @profile
     def exec(self, context):
         base_blueprint = self.base_blueprint
         wall_blueprint = self.main_part_blueprint
@@ -182,7 +180,7 @@ class MT_OT_Make_U_Wall_Tile(MT_Tile_Generator, Operator):
         elif wall_blueprint == 'OPENLOCK':
             wall_core = spawn_openlock_wall_cores(base, tile_props)
         self.finalise_tile(context, base, wall_core)
-        #profile.dump_stats(splitext(__file__)[0] + '.prof')
+        # profile.dump_stats(splitext(__file__)[0] + '.prof')
         return {'FINISHED'}
 
     def execute(self, context):
@@ -192,7 +190,6 @@ class MT_OT_Make_U_Wall_Tile(MT_Tile_Generator, Operator):
             return {'PASS_THROUGH'}
 
         return self.exec(context)
-
 
     def init(self, context):
         super().init(context)
@@ -204,7 +201,7 @@ class MT_OT_Make_U_Wall_Tile(MT_Tile_Generator, Operator):
 
     def draw(self, context):
         super().draw(context)
-        layout=self.layout
+        layout = self.layout
         layout.label(text="Blueprints")
         layout.prop(self, 'base_blueprint')
         layout.prop(self, 'main_part_blueprint')
@@ -235,6 +232,7 @@ class MT_OT_Make_U_Wall_Tile(MT_Tile_Generator, Operator):
 
         layout.label(text="UV Island Margin")
         layout.prop(self, 'UV_island_margin', text="")
+
 
 class MT_OT_Make_Openlock_U_Base(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an OpenLOCK U base."""
@@ -332,7 +330,8 @@ class MT_OT_Make_Empty_U_Wall_Core(MT_Tile_Generator, Operator):
         """Execute the operator."""
         return {'PASS_THROUGH'}
 
-#@profile
+
+# @profile
 def spawn_openlock_wall_cores(base, tile_props):
     """Spawn preview and displacement cores into scene.
 
@@ -343,7 +342,6 @@ def spawn_openlock_wall_cores(base, tile_props):
     Returns:
         bpy.types.Object: preview core
     """
-
     core = spawn_core(tile_props)
     subsurf = add_subsurf_modifier(core)
     cutters = spawn_openlock_wall_cutters(base, tile_props)
@@ -464,7 +462,8 @@ def spawn_openlock_wall_cutters(base, tile_props):
 
     return cutters
 
-#@profile
+
+# @profile
 def spawn_openlock_top_pegs(core, tile_props):
     """Spawn top peg(s) for stacking wall tiles and position it.
 
@@ -527,21 +526,7 @@ def spawn_openlock_top_pegs(core, tile_props):
         add_object_to_collection(peg_2, tile_props.tile_name)
 
         peg_2.rotation_euler[2] = radians(-90)
-        ctx = {
-            'object': peg_2,
-            'active_object': peg_2,
-            'selected_objects': [peg_2],
-            'selectable_objects': [peg_2],
-            'selected_editable_objects': [peg_2]
-        }
-        '''
-        bpy.ops.object.transform_apply(
-            ctx,
-            location=False,
-            rotation=True,
-            scale=False,
-            properties=True)
-        '''
+
         if leg_1_outer_len < 4 and leg_1_outer_len >= 1:
             peg_2.location = (
                 core_location[0] + (thickness / 2) + 0.08,
@@ -579,22 +564,6 @@ def spawn_openlock_top_pegs(core, tile_props):
         peg_3 = bpy.data.objects.new('Leg 2 Top Peg.' + tile_props.tile_name, source_peg.data.copy())
         add_object_to_collection(peg_3, tile_props.tile_name)
 
-
-        ctx = {
-            'object': peg_3,
-            'active_object': peg_3,
-            'selected_objects': [peg_3],
-            'selectable_objects': [peg_3],
-            'selected_editable_objects': [peg_3]
-        }
-        '''
-        bpy.ops.object.transform_apply(
-            ctx,
-            location=False,
-            rotation=True,
-            scale=False,
-            properties=True)
-        '''
         if leg_2_outer_len < 4 and leg_2_outer_len >= 1:
             peg_3.location = (
                 core_location[0] + x_outer_len - (thickness / 2) - 0.08,
@@ -650,7 +619,8 @@ def spawn_plain_wall_cores(tile_props):
         subsurf)
     return core
 
-#@profile
+
+# @profile
 def spawn_core(tile_props):
     """Spawn core into scene.
 
@@ -684,15 +654,9 @@ def spawn_core(tile_props):
     obj_props.is_mt_object = True
     obj_props.tile_name = tile_props.tile_name
 
-    ctx = {
-        'object': core,
-        'active_object': core,
-        'selected_objects': [core],
-        'selected_editable_objects': [core]
-    }
-
     bpy.context.scene.cursor.location = (0, 0, 0)
     return core
+
 
 def spawn_plain_base(tile_props):
     """Spawn a plain base into the scene.
@@ -1163,7 +1127,7 @@ def draw_u_core(dimensions, subdivs, margin=0.001):
     bm.verts.ensure_lookup_table()
     leg_2_inner_vert_locs.append(verts[-1].co.copy())
 
-    #leg 2 end
+    # leg 2 end
     leg_2_end_vert_locs.append(verts[-1].co.copy())
     pu(bm)
     rt(90)
@@ -1242,7 +1206,8 @@ def draw_u_core(dimensions, subdivs, margin=0.001):
 
     return bm, obj, deform_groups, vert_locs
 
-#@profile
+
+# @profile
 def draw_u_wall_core(dimensions, subdivs, margin=0.001):
     """Return a U wall core
 
@@ -1321,9 +1286,10 @@ def draw_u_wall_core(dimensions, subdivs, margin=0.001):
     finalise_turtle(bm, core)
     return core
 
-#@profile
+
+# @profile
 def create_u_core_vert_groups_vert_lists_2(bm, dimensions, margin, vert_locs, subdivs):
-    """Create vertex group vertex lists for U core sides
+    """Create vertex group vertex lists for U core sides.
 
     Args:
         bm (bmesh): bmesh
@@ -1442,7 +1408,7 @@ def create_u_core_vert_groups_vert_lists_2(bm, dimensions, margin, vert_locs, su
         v1 = bm.verts[v1_index]
         v2 = bm.verts[v2_index]
 
-        #TODO This is really expensive. See if we can find an alternative
+        # TODO This is really expensive. See if we can find an alternative
         nodes = bm_shortest_path(bm, v1, v2)
         node = nodes[v2]
 

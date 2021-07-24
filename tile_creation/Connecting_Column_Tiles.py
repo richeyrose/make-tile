@@ -14,10 +14,8 @@ from .. lib.utils.collections import (
 from .create_tile import (
     spawn_empty_base,
     convert_to_displacement_core,
-    spawn_prefab,
     set_bool_obj_props,
     set_bool_props,
-    finalise_core,
     MT_Tile_Generator,
     get_subdivs,
     create_material_enums,
@@ -333,18 +331,9 @@ def spawn_plain_base(tile_props):
     tile_name = tile_props.tile_name
 
     # make base
-    # base = draw_cuboid(base_size)
     base = draw_cuboid(base_size)
     base.name = tile_name + '.base'
     add_object_to_collection(base, tile_name)
-
-    ctx = {
-        'object': base,
-        'active_object': base,
-        'selected_objects': [base]
-    }
-
-    #bpy.ops.object.origin_set(ctx, type='ORIGIN_CURSOR', center='MEDIAN')
 
     obj_props = base.mt_object_props
     obj_props.is_mt_object = True
@@ -420,7 +409,7 @@ def spawn_openlock_connecting_column_core(self, tile_props, base):
             textured_vertex_groups = ['Front', 'Back']
         subsurf = add_subsurf_modifier(core)
         cutters = spawn_openlock_I_cutters(
-            core,
+            base,
             tile_props)
     elif column_type == 'L':
         if socket_style == 'TEXTURED':
@@ -430,7 +419,7 @@ def spawn_openlock_connecting_column_core(self, tile_props, base):
             textured_vertex_groups = ['Front', 'Left']
         subsurf = add_subsurf_modifier(core)
         cutters = spawn_openlock_L_cutters(
-            core,
+            base,
             tile_props)
     elif column_type == 'O':
         if socket_style == 'TEXTURED':
@@ -440,7 +429,7 @@ def spawn_openlock_connecting_column_core(self, tile_props, base):
             textured_vertex_groups = ['Front', 'Back', 'Left']
         subsurf = add_subsurf_modifier(core)
         cutters = spawn_openlock_O_cutters(
-            core,
+            base,
             tile_props)
     elif column_type == 'T':
         if socket_style == 'TEXTURED':
@@ -450,7 +439,7 @@ def spawn_openlock_connecting_column_core(self, tile_props, base):
             textured_vertex_groups = ['Front']
         subsurf = add_subsurf_modifier(core)
         cutters = spawn_openlock_T_cutters(
-            core,
+            base,
             tile_props)
     elif column_type == 'X':
         if socket_style == 'TEXTURED':
@@ -460,7 +449,7 @@ def spawn_openlock_connecting_column_core(self, tile_props, base):
             textured_vertex_groups = []
         subsurf = add_subsurf_modifier(core)
         cutters = spawn_openlock_X_cutters(
-            core,
+            base,
             tile_props)
 
     if socket_style == 'TEXTURED':
@@ -484,11 +473,11 @@ def spawn_openlock_connecting_column_core(self, tile_props, base):
     return core
 
 
-def spawn_openlock_L_cutters(core, tile_props):
+def spawn_openlock_L_cutters(base, tile_props):
     """Return openlock cutter objects.
 
     Args:
-        core (bpy.types.Object): core
+        base (bpy.types.Object): base
         tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
 
     Returns:
@@ -515,7 +504,7 @@ def spawn_openlock_L_cutters(core, tile_props):
     add_object_to_collection(bottom_right_cutter, tile_name)
 
     # move cutter to position
-    front_left = core.location.copy()
+    front_left = base.location.copy()
 
     bottom_right_cutter.rotation_euler[2] = radians(180)
 
@@ -578,11 +567,11 @@ def spawn_openlock_L_cutters(core, tile_props):
     return cutters
 
 
-def spawn_openlock_T_cutters(core, tile_props):
+def spawn_openlock_T_cutters(base, tile_props):
     """Return openlock cutter objects.
 
     Args:
-        core (bpy.types.Object): core
+        base (bpy.types.Object): base
         tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
 
     Returns:
@@ -609,7 +598,7 @@ def spawn_openlock_T_cutters(core, tile_props):
     add_object_to_collection(bottom_left_cutter, tile_name)
 
     # move cutter to position
-    front_left = core.location.copy()
+    front_left = base.location.copy()
     # bottom_left_cutter.rotation_euler[2] = radians(180)
     bottom_left_cutter.location = [
         front_left[0],
@@ -696,11 +685,11 @@ def spawn_openlock_T_cutters(core, tile_props):
     return cutters
 
 
-def spawn_openlock_X_cutters(core, tile_props):
+def spawn_openlock_X_cutters(base, tile_props):
     """Return openlock cutter objects.
 
     Args:
-        core (bpy.types.Object): core
+        base (bpy.types.Object): base
         tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
 
     Returns:
@@ -727,7 +716,7 @@ def spawn_openlock_X_cutters(core, tile_props):
     add_object_to_collection(bottom_left_cutter, tile_name)
 
     # move cutter to position
-    front_left = core.location.copy()
+    front_left = base.location.copy()
     # bottom_left_cutter.rotation_euler[2] = radians(180)
     bottom_left_cutter.location = [
         front_left[0],
@@ -879,11 +868,11 @@ def spawn_socket_buffers(cutters, tile_props):
     return buffers
 
 
-def spawn_openlock_I_cutters(core, tile_props):
+def spawn_openlock_I_cutters(base, tile_props):
     """Return openlock cutter objects.
 
     Args:
-        core (bpy.types.Object): core
+        base (bpy.types.Object): base
         tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
 
     Returns:
@@ -910,7 +899,7 @@ def spawn_openlock_I_cutters(core, tile_props):
     add_object_to_collection(bottom_left_cutter, tile_name)
 
     # move cutter to position
-    front_left = core.location.copy()
+    front_left = base.location.copy()
     # bottom_left_cutter.rotation_euler[2] = radians(180)
     bottom_left_cutter.location = [
         front_left[0],
@@ -961,11 +950,11 @@ def spawn_openlock_I_cutters(core, tile_props):
     return cutters
 
 
-def spawn_openlock_O_cutters(core, tile_props):
+def spawn_openlock_O_cutters(base, tile_props):
     """Return openlock cutter objects.
 
     Args:
-        core (bpy.types.Object): core
+        base (bpy.types.Object): base
         tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
 
     Returns:
@@ -992,7 +981,7 @@ def spawn_openlock_O_cutters(core, tile_props):
     add_object_to_collection(bottom_cutter, tile_name)
 
     # move cutter to position
-    front_left = core.location.copy()
+    front_left = base.location.copy()
     bottom_cutter.rotation_euler[2] = radians(180)
     bottom_cutter.location = [
         front_left[0] + (base_size[0]),
@@ -1721,3 +1710,17 @@ def make_T_core_vert_groups(obj, bm, dims, margin, top_verts, bottom_verts, defo
     finalise_turtle(bm, obj)
 
     return obj
+
+def finalise_core(core, tile_props):
+    """Finalise core.
+
+    Set origin, UV project, set object props
+
+    Args:
+        core (bpy.types.Object): core
+        tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
+    """
+
+    obj_props = core.mt_object_props
+    obj_props.is_mt_object = True
+    obj_props.tile_name = tile_props.tile_name

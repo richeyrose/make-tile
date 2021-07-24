@@ -32,6 +32,8 @@ from line_profiler import LineProfiler
 from os.path import splitext
 profile = LineProfiler()
 '''
+
+
 class MT_PT_Straight_Wall_Panel(Panel):
     """Draw a tile options panel in UI."""
 
@@ -227,7 +229,6 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
         else:
             self.finalise_tile(context, base, wall_core)
 
-
     def execute(self, context):
         """Execute the operator."""
         super().execute(context)
@@ -304,10 +305,10 @@ class MT_OT_Make_Rect_Floor_Tile(Operator, MT_Tile_Generator):
             return {'PASS_THROUGH'}
 
         self.exec(context)
-        #profile.dump_stats(splitext(__file__)[0] + '.prof')
+        # profile.dump_stats(splitext(__file__)[0] + '.prof')
         return {'FINISHED'}
 
-    #@profile
+    # @profile
     def exec(self, context):
         base_blueprint = self.base_blueprint
         core_blueprint = self.main_part_blueprint
@@ -532,6 +533,7 @@ class MT_OT_Make_Empty_Straight_Floor_Core(MT_Tile_Generator, Operator):
         """Execute the operator."""
         return {'PASS_THROUGH'}
 
+
 def spawn_plain_wall_cores(self, tile_props):
     """Spawn plain Core.
 
@@ -552,6 +554,7 @@ def spawn_plain_wall_cores(self, tile_props):
         material,
         subsurf)
     return core
+
 
 def spawn_openlock_wall_cores(self, tile_props, base):
     """Spawn OpenLOCK core.
@@ -657,7 +660,7 @@ def spawn_openlock_top_pegs(core, base, tile_props):
     array_mod.fit_type = 'FIXED_COUNT'
     array_mod.count = 2
 
-    #core_location = core.location.copy()
+    # core_location = core.location.copy()
     base_location = base.location.copy()
 
     if tile_props.wall_position == 'CENTER':
@@ -711,7 +714,7 @@ def spawn_openlock_wall_cutters(core, base, tile_props):
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
         data_to.objects = ['openlock.wall.cutter.side']
 
-    #core_location = core.location.copy()
+    # core_location = core.location.copy()
     base_location = base.location.copy()
 
     cutters = []
@@ -880,11 +883,6 @@ def spawn_plain_base(tile_props):
     base.name = tile_name + '.base'
     add_object_to_collection(base, tile_name)
 
-    ctx = {
-        'object': base,
-        'active_object': base,
-        'selected_objects': [base]}
-
     obj_props = base.mt_object_props
     obj_props.is_mt_object = True
     obj_props.geometry_type = 'BASE'
@@ -921,6 +919,7 @@ def spawn_openlock_base(self, tile_props):
     bpy.context.view_layer.objects.active = base
 
     return base
+
 
 def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
     """Spawn an openlock base slot cutter into scene and positions it correctly.

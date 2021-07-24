@@ -1,7 +1,6 @@
 import os
 from math import (
     radians,
-    floor,
     pi)
 from mathutils import Matrix
 
@@ -17,7 +16,6 @@ from bpy.props import (
 from . create_tile import (
     convert_to_displacement_core,
     spawn_empty_base,
-    spawn_prefab,
     set_bool_obj_props,
     set_bool_props,
     MT_Tile_Generator,
@@ -27,18 +25,13 @@ from . create_tile import (
 
 from .. utils.registration import get_prefs
 from .. lib.utils.selection import (
-    select,
-    deselect_all,
     activate)
 from .. lib.utils.utils import (
     mode,
-    get_all_subclasses,
     distance_between_two_points,
     calc_tri)
 from .. lib.utils.collections import (
-    add_object_to_collection,
-    create_collection,
-    activate_collection)
+    add_object_to_collection)
 from ..lib.bmturtle.helpers import (
     bm_select_all,
     bmesh_array,
@@ -59,9 +52,12 @@ from ..lib.bmturtle.commands import (
     dn,
     arc)
 
+'''
 from line_profiler import LineProfiler
 from os.path import splitext
 profile = LineProfiler()
+'''
+
 
 class MT_PT_Semi_Circ_Floor_Panel(Panel):
     """Draw a tile options panel in UI."""
@@ -97,7 +93,7 @@ class MT_PT_Semi_Circ_Floor_Panel(Panel):
         layout.label(text="Tile Properties")
         layout.prop(scene_props, 'tile_z', text="Height")
         layout.prop(scene_props, 'base_radius', text="Radius")
-        layout.prop(scene_props, 'angle', text="Angle")
+        layout.prop(scene_props, 'semi_circ_angle', text="Angle")
         layout.prop(scene_props, 'curve_type', text="Curve Type")
 
         layout.label(text="Sync Proportions")
@@ -124,7 +120,6 @@ class MT_OT_Make_Semi_Circ_Floor_Tile(Operator, MT_Tile_Generator):
     mt_blueprint = "CUSTOM"
     mt_type = "SEMI_CIRC_FLOOR"
 
-    # used for curved floors
     curve_type: EnumProperty(
         items=[
             ("POS", "Positive", ""),
@@ -142,18 +137,20 @@ class MT_OT_Make_Semi_Circ_Floor_Tile(Operator, MT_Tile_Generator):
         min=0,
     )
 
-    angle: FloatProperty(
-        name="Base Angle",
+    semi_circ_angle: FloatProperty(
+        name="Angle",
         default=90,
         step=500,
-        precision=0
+        precision=0,
+        max=179.999,
+        min=45
     )
 
     floor_material: EnumProperty(
         items=create_material_enums,
         name="Floor Material")
 
-    @profile
+    # @profile
     def exec(self, context):
         base_blueprint = self.base_blueprint
         core_blueprint = self.main_part_blueprint
@@ -172,7 +169,7 @@ class MT_OT_Make_Semi_Circ_Floor_Tile(Operator, MT_Tile_Generator):
             preview_core = spawn_plain_floor_cores(self, tile_props)
 
         self.finalise_tile(context, base, preview_core)
-        profile.dump_stats(splitext(__file__)[0] + '.prof')
+        # profile.dump_stats(splitext(__file__)[0] + '.prof')
         return {'FINISHED'}
 
     def execute(self, context):
@@ -182,7 +179,6 @@ class MT_OT_Make_Semi_Circ_Floor_Tile(Operator, MT_Tile_Generator):
             return {'PASS_THROUGH'}
 
         return self.exec(context)
-
 
     def init(self, context):
         super().init(context)
@@ -206,7 +202,7 @@ class MT_OT_Make_Semi_Circ_Floor_Tile(Operator, MT_Tile_Generator):
         layout.label(text="Tile Properties")
         layout.prop(self, 'tile_z', text="Height")
         layout.prop(self, 'base_radius', text="Radius")
-        layout.prop(self, 'angle', text="Angle")
+        layout.prop(self, 'semi_circ_angle', text="Angle")
         layout.prop(self, 'curve_type', text="Curve Type")
 
         layout.label(text="Sync Proportions")
@@ -217,6 +213,7 @@ class MT_OT_Make_Semi_Circ_Floor_Tile(Operator, MT_Tile_Generator):
 
         layout.label(text="UV Island Margin")
         layout.prop(self, 'UV_island_margin', text="")
+
 
 class MT_OT_Make_Openlock_Semi_Circ_Base(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an OpenLOCK semi circular base."""
@@ -324,7 +321,7 @@ def spawn_plain_base(self, tile_props):
     Returns:
         bpy.types.Object: tile base
     """
-    angle = tile_props.angle
+    angle = tile_props.semi_circ_angle
     radius = tile_props.base_radius
     subdivs = {
         'arc': (angle / 360) * (2 * pi) * radius}
@@ -341,12 +338,6 @@ def spawn_plain_base(self, tile_props):
         base = draw_pos_curved_semi_circ_base(dimensions, subdivs)
     else:
         base = draw_neg_curved_semi_circ_base(dimensions, subdivs)
-
-    ctx = {
-        'selected_objects': [base],
-        'active_object': base
-    }
-
 
     base.name = tile_props.tile_name + '.base'
     props = base.mt_object_props
@@ -369,7 +360,7 @@ def spawn_openlock_base(self, tile_props):
     """
     curve_type = tile_props.curve_type
 
-    angle = tile_props.angle
+    angle = tile_props.semi_circ_angle
     radius = tile_props.base_radius
 
     dimensions = {
@@ -387,11 +378,6 @@ def spawn_openlock_base(self, tile_props):
     base = spawn_plain_base(self, tile_props)
 
     base.mt_object_props.geometry_type = 'BASE'
-    ctx = {
-        'selected_objects': [base],
-        'object': base,
-        'active_object': base,
-        'selected_editable_objects': [base]}
 
     base.name = tile_props.tile_name + '.base'
     props = base.mt_object_props
@@ -458,7 +444,7 @@ def spawn_core(self, tile_props):
     curve_type = tile_props.curve_type
 
     radius = tile_props.base_radius
-    angle = tile_props.angle
+    angle = tile_props.semi_circ_angle
     height = tile_props.tile_size[2] - tile_props.base_size[2]
     dimensions = {
         'radius': radius,
@@ -477,7 +463,6 @@ def spawn_core(self, tile_props):
     if vert_sum % 2 > 0:
         subdivs['arc'] = subdivs['arc'] - 1
 
-
     if curve_type == 'POS':
         core = draw_pos_curved_semi_circ_core(dimensions, subdivs)
     else:
@@ -485,13 +470,6 @@ def spawn_core(self, tile_props):
 
     core.location[2] = core.location[2] + base_size[2]
     core.name = tile_props.tile_name + '.core'
-
-    ctx = {
-        'selected_editable_objects': [core],
-        'selected_objects': [core],
-        'object': core,
-        'active_object': core
-    }
 
     obj_props = core.mt_object_props
     obj_props.is_mt_object = True
@@ -514,7 +492,7 @@ def create_openlock_base_clip_cutters(tile_props):
     cursor_orig_loc = cursor.location.copy()
     cursor.location = (0, 0, 0)
     radius = tile_props.base_radius
-    angle = tile_props.angle
+    angle = tile_props.semi_circ_angle
     curve_type = tile_props.curve_type
     cutters = []
     if curve_type == 'NEG':
@@ -547,14 +525,14 @@ def create_openlock_base_clip_cutters(tile_props):
         bm.from_mesh(me)
 
         if angle >= 90:
-            bm=bmesh_array(
+            bm = bmesh_array(
                 source_obj=clip_cutter_1,
                 source_bm=bm,
                 start_cap=cutter_start_cap,
                 end_cap=cutter_end_cap,
                 relative_offset_displace=(1, 0, 0),
                 fit_type='FIT_LENGTH',
-                fit_length=radius-1)
+                fit_length=radius - 1)
 
             bmesh.ops.translate(
                 bm,
@@ -563,14 +541,14 @@ def create_openlock_base_clip_cutters(tile_props):
                 space=clip_cutter_1.matrix_world)
 
         else:
-            bm=bmesh_array(
+            bm = bmesh_array(
                 source_obj=clip_cutter_1,
                 source_bm=bm,
                 start_cap=cutter_start_cap,
                 end_cap=cutter_end_cap,
                 relative_offset_displace=(1, 0, 0),
                 fit_type='FIT_LENGTH',
-                fit_length=radius-1.5)
+                fit_length=radius - 1.5)
 
             bmesh.ops.translate(
                 bm,
@@ -582,7 +560,7 @@ def create_openlock_base_clip_cutters(tile_props):
             bm,
             verts=bm.verts,
             cent=cursor_orig_loc,
-            matrix=Matrix.Rotation(radians(angle-90)*-1, 3, 'Z'),
+            matrix=Matrix.Rotation(radians(angle - 90) * -1, 3, 'Z'),
             space=clip_cutter_1.matrix_world)
 
         bm.to_mesh(clip_cutter_1.data)
@@ -598,24 +576,24 @@ def create_openlock_base_clip_cutters(tile_props):
         bm.from_mesh(me)
 
         if angle >= 90:
-            bm=bmesh_array(
+            bm = bmesh_array(
                 source_obj=clip_cutter_2,
                 source_bm=bm,
                 start_cap=cutter_start_cap,
                 end_cap=cutter_end_cap,
                 relative_offset_displace=(1, 0, 0),
                 fit_type='FIT_LENGTH',
-                fit_length=radius-1)
+                fit_length=radius - 1)
 
         else:
-            bm=bmesh_array(
+            bm = bmesh_array(
                 source_obj=clip_cutter_2,
                 source_bm=bm,
                 start_cap=cutter_start_cap,
                 end_cap=cutter_end_cap,
                 relative_offset_displace=(1, 0, 0),
                 fit_type='FIT_LENGTH',
-                fit_length=radius-1.5)
+                fit_length=radius - 1.5)
 
         bmesh.ops.rotate(
             bm,
@@ -820,7 +798,6 @@ def draw_pos_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
     Returns:
         bpy.type.Object: core
     """
-
     #   B
     #   |\
     # c |   \ a
@@ -996,7 +973,6 @@ def draw_neg_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
     Returns:
         bpy.type.Object: core
     """
-
     #   B
     #   |\
     # c |   \ a

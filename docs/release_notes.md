@@ -1,4 +1,12 @@
 # Release Notes
+## 0.0.25 ##
+
+### Optimisation ###
+The tile generators have all been optimised. Adding a new tile to a scene with a lot of geometry such as where you have already made several tile 3D should now be much quicker.
+
+### Semi Circular Tiles ###
+Semi circular tiles are now limited to angles between 45 and 179.999 degrees to prevent the tile generator from breaking.
+
 ## 0.0.24 ##
 
 ### Redo Panel ###

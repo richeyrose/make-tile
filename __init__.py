@@ -29,7 +29,7 @@ bl_info = {
     "category": "Object"
 }
 
-sys.path.append('C:/Users/riche/AppData/Local/Programs/Python/Python39/Lib/site-packages')
+# sys.path.append('C:/Users/riche/AppData/Local/Programs/Python/Python39/Lib/site-packages')
 
 auto_load.init()
 

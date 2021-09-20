@@ -65,6 +65,8 @@ class MT_PT_L_Tile_Panel(Panel):
         layout.label(text="Blueprints")
         layout.prop(scene_props, 'base_blueprint')
         layout.prop(scene_props, 'main_part_blueprint', text="Main")
+        if scene_props.base_blueprint not in ('PLAIN', 'NONE'):
+            layout.prop(scene_props, 'base_socket_type')
 
         layout.label(text="Materials")
         if scene_props.tile_type == "L_FLOOR":
@@ -181,7 +183,8 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
         layout.label(text="Blueprints")
         layout.prop(self, 'base_blueprint')
         layout.prop(self, 'main_part_blueprint', text="Main")
-
+        if self.base_blueprint not in ('PLAIN', 'NONE'):
+            layout.prop(self, 'base_socket_type')
         layout.label(text="Materials")
         layout.prop(self, 'wall_material')
 
@@ -263,7 +266,8 @@ class MT_OT_Make_L_Floor_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
         layout.label(text="Blueprints")
         layout.prop(self, 'base_blueprint')
         layout.prop(self, 'main_part_blueprint', text="Main")
-
+        if self.base_blueprint not in ('PLAIN', 'NONE'):
+            layout.prop(self, 'base_socket_type')
         layout.label(text="Materials")
         layout.prop(self, 'floor_material')
 
@@ -447,7 +451,8 @@ def spawn_plain_wall_cores(self, tile_props):
         (bpy.types.Object): preview_core
     """
     core = spawn_wall_core(self, tile_props)
-    textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner']
+    textured_vertex_groups = ['Leg 1 Outer',
+                              'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner']
     material = tile_props.wall_material
     subsurf = add_subsurf_modifier(core)
     convert_to_displacement_core(
@@ -504,7 +509,8 @@ def spawn_floor_core(self, tile_props):
         'width': core_thickness,
         'height': floor_height - base_height}
 
-    native_subdivisions = get_subdivs(tile_props.subdivision_density, native_subdivisions)
+    native_subdivisions = get_subdivs(
+        tile_props.subdivision_density, native_subdivisions)
     thickness_diff = base_thickness - core_thickness
 
     # first work out where we're going to start drawing our wall
@@ -574,7 +580,8 @@ def spawn_openlock_wall_cores(self, tile_props, base):
         set_bool_obj_props(cutter, base, tile_props, 'DIFFERENCE')
         set_bool_props(cutter, core, 'DIFFERENCE')
 
-    textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner']
+    textured_vertex_groups = ['Leg 1 Outer',
+                              'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner']
     material = tile_props.wall_material
 
     convert_to_displacement_core(
@@ -648,7 +655,8 @@ def spawn_openlock_top_pegs(core, tile_props):
             bm,
             cent=cursor.location,
             verts=bm.verts,
-            matrix=Matrix.Rotation(radians(tile_props.angle - 90) * -1, 3, 'Z'),
+            matrix=Matrix.Rotation(
+                radians(tile_props.angle - 90) * -1, 3, 'Z'),
             space=peg_1.matrix_world)
         bm.to_mesh(peg_mesh)
         bm.free()
@@ -838,7 +846,8 @@ def spawn_openlock_wall_cutters(core, tile_props):
     for cutter in left_cutters:
         cutter.location = (
             cutter.location[0] + (tile_props.base_size[1] / 2),
-            cutter.location[1] + tile_props.leg_2_len - (tile_props.base_size[1] / 2),
+            cutter.location[1] + tile_props.leg_2_len -
+            (tile_props.base_size[1] / 2),
             cutter.location[2])
         cutter.rotation_euler = (0, 0, radians(-90))
     deselect_all()
@@ -868,7 +877,8 @@ def spawn_wall_core(self, tile_props):
         'width': wall_thickness,
         'height': wall_height - base_height}
 
-    native_subdivisions = get_subdivs(tile_props.subdivision_density, native_subdivisions)
+    native_subdivisions = get_subdivs(
+        tile_props.subdivision_density, native_subdivisions)
     thickness_diff = base_thickness - wall_thickness
 
     # first work out where we're going to start drawing our wall
@@ -978,13 +988,13 @@ def spawn_openlock_base(self, tile_props):
     # clip cutters - leg 1
     leg_len = base_triangles['a_adj']
     corner_loc = base.location
-
     preferences = get_prefs()
+    cutter_file = self.get_base_socket_filename()
     booleans_path = os.path.join(
         preferences.assets_path,
         "meshes",
         "booleans",
-        "openlock.blend")
+        cutter_file)
 
     # load base cutters
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):

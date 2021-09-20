@@ -44,6 +44,8 @@ from line_profiler import LineProfiler
 from os.path import splitext
 profile = LineProfiler()
 '''
+
+
 class MT_PT_Connecting_Column_Panel(Panel):
     """Draw a tile options panel in UI."""
 
@@ -77,6 +79,9 @@ class MT_PT_Connecting_Column_Panel(Panel):
         layout.prop(scene_props, 'column_socket_style')
         layout.prop(scene_props, 'base_blueprint')
         layout.prop(scene_props, 'main_part_blueprint')
+
+        if scene_props.base_blueprint not in ('PLAIN', 'NONE'):
+            layout.prop(scene_props, 'base_socket_type')
 
         layout.label(text="Material")
         layout.prop(scene_props, 'column_material')
@@ -147,7 +152,7 @@ class MT_OT_Make_Connecting_Column_Tile(Operator, MT_Tile_Generator):
         items=create_material_enums,
         name="Column Material")
 
-    #@profile
+    # @profile
     def exec(self, context):
         base_blueprint = self.base_blueprint
         core_blueprint = self.main_part_blueprint
@@ -156,14 +161,15 @@ class MT_OT_Make_Connecting_Column_Tile(Operator, MT_Tile_Generator):
         if base_blueprint == 'NONE':
             base = spawn_empty_base(tile_props)
         elif base_blueprint == 'OPENLOCK':
-            base = spawn_openlock_base(tile_props)
+            base = spawn_openlock_base(self, tile_props)
         elif base_blueprint == 'PLAIN':
             base = spawn_plain_base(tile_props)
 
         if core_blueprint == 'NONE':
             core = None
         elif core_blueprint == 'OPENLOCK':
-            core = spawn_openlock_connecting_column_core(self, tile_props, base)
+            core = spawn_openlock_connecting_column_core(
+                self, tile_props, base)
         elif core_blueprint == 'PLAIN':
             core = spawn_plain_connecting_column_core(self, tile_props)
 
@@ -194,6 +200,9 @@ class MT_OT_Make_Connecting_Column_Tile(Operator, MT_Tile_Generator):
         layout.prop(self, 'base_blueprint')
         layout.prop(self, 'main_part_blueprint')
         layout.prop(self, 'column_socket_style')
+        if self.base_blueprint not in ('PLAIN', 'NONE'):
+            layout.prop(self, 'base_socket_type')
+
         layout.prop(self, 'displacement_thickness')
 
         layout.label(text="Material")
@@ -219,6 +228,7 @@ class MT_OT_Make_Connecting_Column_Tile(Operator, MT_Tile_Generator):
 
         layout.label(text="UV Island Margin")
         layout.prop(self, 'UV_island_margin', text="")
+
 
 class MT_OT_Make_Openlock_Connecting_Column_Base(MT_Tile_Generator, Operator):
     """Internal Operator. Generate an OpenLOCK connecting column base."""
@@ -376,7 +386,7 @@ def spawn_plain_connecting_column_core(self, tile_props):
             textured_vertex_groups = []
 
     subsurf = add_subsurf_modifier(core)
-    material=tile_props.column_material
+    material = tile_props.column_material
     convert_to_displacement_core(
         core,
         textured_vertex_groups,
@@ -385,7 +395,9 @@ def spawn_plain_connecting_column_core(self, tile_props):
 
     return core
 
-#@profile
+# @profile
+
+
 def spawn_openlock_connecting_column_core(self, tile_props, base):
     """Return the column core.
 
@@ -463,7 +475,7 @@ def spawn_openlock_connecting_column_core(self, tile_props, base):
         set_bool_obj_props(cutter, base, tile_props, 'DIFFERENCE')
         set_bool_props(cutter, core, 'DIFFERENCE')
 
-    material=tile_props.column_material
+    material = tile_props.column_material
     convert_to_displacement_core(
         core,
         textured_vertex_groups,
@@ -629,7 +641,8 @@ def spawn_openlock_T_cutters(base, tile_props):
     # bottom right
     bottom_right_cutter = bottom_left_cutter.copy()
     bottom_right_cutter.rotation_euler[2] = radians(180)
-    bottom_right_cutter.location[0] = bottom_left_cutter.location[0] + (base_size[0])
+    bottom_right_cutter.location[0] = bottom_left_cutter.location[0] + \
+        (base_size[0])
 
     # offset to prevent boolean error
     bottom_right_cutter.location[1] = bottom_right_cutter.location[1] + 0.001
@@ -653,7 +666,8 @@ def spawn_openlock_T_cutters(base, tile_props):
     # Back bottom
     back_bottom_cutter = bottom_left_cutter.copy()
     back_bottom_cutter.rotation_euler[2] = radians(-90)
-    back_bottom_cutter.location[0] = back_bottom_cutter.location[0] + (base_size[0] / 2)
+    back_bottom_cutter.location[0] = back_bottom_cutter.location[0] + \
+        (base_size[0] / 2)
     back_bottom_cutter.location[1] = front_left[1] + base_size[1]
     # offset
     back_bottom_cutter.location[2] = back_bottom_cutter.location[2] - 0.001
@@ -665,7 +679,8 @@ def spawn_openlock_T_cutters(base, tile_props):
     # Back top
     back_top_cutter = top_left_cutter.copy()
     back_top_cutter.rotation_euler[2] = radians(-90)
-    back_top_cutter.location[0] = back_top_cutter.location[0] + (base_size[0] / 2)
+    back_top_cutter.location[0] = back_top_cutter.location[0] + \
+        (base_size[0] / 2)
     back_top_cutter.location[1] = front_left[1] + base_size[1]
     # offset
     back_top_cutter.location[2] = back_top_cutter.location[2] - 0.001
@@ -747,7 +762,8 @@ def spawn_openlock_X_cutters(base, tile_props):
     # bottom right
     bottom_right_cutter = bottom_left_cutter.copy()
     bottom_right_cutter.rotation_euler[2] = radians(180)
-    bottom_right_cutter.location[0] = bottom_left_cutter.location[0] + (base_size[0])
+    bottom_right_cutter.location[0] = bottom_left_cutter.location[0] + \
+        (base_size[0])
 
     # offset to prevent boolean error
     bottom_right_cutter.location[1] = bottom_right_cutter.location[1] + 0.001
@@ -771,7 +787,8 @@ def spawn_openlock_X_cutters(base, tile_props):
     # Front bottom
     front_bottom_cutter = bottom_left_cutter.copy()
     front_bottom_cutter.rotation_euler[2] = radians(90)
-    front_bottom_cutter.location[0] = front_bottom_cutter.location[0] + (base_size[0] / 2)
+    front_bottom_cutter.location[0] = front_bottom_cutter.location[0] + \
+        (base_size[0] / 2)
     front_bottom_cutter.location[1] = front_left[1]
 
     # Offset
@@ -785,7 +802,8 @@ def spawn_openlock_X_cutters(base, tile_props):
     # Front top
     front_top_cutter = top_left_cutter.copy()
     front_top_cutter.rotation_euler[2] = radians(90)
-    front_top_cutter.location[0] = front_top_cutter.location[0] + (base_size[0] / 2)
+    front_top_cutter.location[0] = front_top_cutter.location[0] + \
+        (base_size[0] / 2)
     front_top_cutter.location[1] = front_left[1]
 
     # Offset
@@ -799,7 +817,8 @@ def spawn_openlock_X_cutters(base, tile_props):
     # Back bottom
     back_bottom_cutter = bottom_left_cutter.copy()
     back_bottom_cutter.rotation_euler[2] = radians(-90)
-    back_bottom_cutter.location[0] = back_bottom_cutter.location[0] + (base_size[0] / 2)
+    back_bottom_cutter.location[0] = back_bottom_cutter.location[0] + \
+        (base_size[0] / 2)
     back_bottom_cutter.location[1] = front_left[1] + base_size[1]
     # offset
     back_bottom_cutter.location[2] = back_bottom_cutter.location[2] - 0.001
@@ -811,7 +830,8 @@ def spawn_openlock_X_cutters(base, tile_props):
     # Back top
     back_top_cutter = top_left_cutter.copy()
     back_top_cutter.rotation_euler[2] = radians(-90)
-    back_top_cutter.location[0] = back_top_cutter.location[0] + (base_size[0] / 2)
+    back_top_cutter.location[0] = back_top_cutter.location[0] + \
+        (base_size[0] / 2)
     back_top_cutter.location[1] = front_left[1] + base_size[1]
     # offset
     back_top_cutter.location[2] = back_top_cutter.location[2] - 0.001
@@ -930,7 +950,8 @@ def spawn_openlock_I_cutters(base, tile_props):
     # bottom right
     bottom_right_cutter = bottom_left_cutter.copy()
     bottom_right_cutter.rotation_euler[2] = radians(180)
-    bottom_right_cutter.location[0] = bottom_left_cutter.location[0] + (base_size[0])
+    bottom_right_cutter.location[0] = bottom_left_cutter.location[0] + \
+        (base_size[0])
     # offset to prevent boolean error
     bottom_right_cutter.location[1] = bottom_right_cutter.location[1] + 0.001
     bottom_right_cutter.location[2] = bottom_right_cutter.location[2] + 0.001
@@ -946,7 +967,8 @@ def spawn_openlock_I_cutters(base, tile_props):
     top_right_cutter.name = 'Right Top.' + tile_name
     add_object_to_collection(top_right_cutter, tile_name)
 
-    cutters = [bottom_left_cutter, top_left_cutter, bottom_right_cutter, top_right_cutter]
+    cutters = [bottom_left_cutter, top_left_cutter,
+               bottom_right_cutter, top_right_cutter]
     return cutters
 
 
@@ -1044,15 +1066,18 @@ def spawn_generic_core(self, tile_props):
         native_subdivisions,
         margin)
 
-    make_generic_core_vert_groups(core, bm, dims, margin, top_verts, bottom_verts, deform_groups)
+    make_generic_core_vert_groups(
+        core, bm, dims, margin, top_verts, bottom_verts, deform_groups)
 
     core.name = tile_name + '.core'
     add_object_to_collection(core, tile_name)
 
     # move core so centred, move up so on top of base and set origin to world origin
     core.location = (
-        core.location[0] + ((base_size[0] - tile_size[0]) / 2) + disp_thickness,
-        core.location[1] + ((base_size[1] - tile_size[1]) / 2) + disp_thickness,
+        core.location[0] +
+        ((base_size[0] - tile_size[0]) / 2) + disp_thickness,
+        core.location[1] +
+        ((base_size[1] - tile_size[1]) / 2) + disp_thickness,
         cursor_start_loc[2] + base_size[2])
 
     finalise_core(core, tile_props)
@@ -1090,7 +1115,8 @@ def spawn_I_core(self, tile_props):
         native_subdivisions,
         margin)
 
-    make_I_core_vert_groups(core, bm, dims, margin, top_verts, bottom_verts, deform_groups)
+    make_I_core_vert_groups(core, bm, dims, margin,
+                            top_verts, bottom_verts, deform_groups)
 
     core.name = tile_name + '.core'
     add_object_to_collection(core, tile_name)
@@ -1098,7 +1124,8 @@ def spawn_I_core(self, tile_props):
     # move core so centred, move up so on top of base and set origin to world origin
     core.location = (
         core.location[0] + ((base_size[0] - tile_size[0]) / 2),
-        core.location[1] + ((base_size[1] - tile_size[1]) / 2) + (disp_thickness),
+        core.location[1] + ((base_size[1] - tile_size[1]) /
+                            2) + (disp_thickness),
         cursor_start_loc[2] + base_size[2])
 
     finalise_core(core, tile_props)
@@ -1136,15 +1163,18 @@ def spawn_L_core(self, tile_props):
         native_subdivisions,
         margin)
 
-    make_L_core_vert_groups(core, bm, dims, margin, top_verts, bottom_verts, deform_groups)
+    make_L_core_vert_groups(core, bm, dims, margin,
+                            top_verts, bottom_verts, deform_groups)
 
     core.name = tile_name + '.core'
     add_object_to_collection(core, tile_name)
 
     # move core so centred, move up so on top of base and set origin to world origin
     core.location = (
-        core.location[0] + ((base_size[0] - tile_size[0]) / 2) + disp_thickness,
-        core.location[1] + ((base_size[1] - tile_size[1]) / 2) + disp_thickness,
+        core.location[0] +
+        ((base_size[0] - tile_size[0]) / 2) + disp_thickness,
+        core.location[1] +
+        ((base_size[1] - tile_size[1]) / 2) + disp_thickness,
         cursor_start_loc[2] + base_size[2])
 
     finalise_core(core, tile_props)
@@ -1182,15 +1212,18 @@ def spawn_O_core(self, tile_props):
         native_subdivisions,
         margin)
 
-    make_O_core_vert_groups(core, bm, dims, margin, top_verts, bottom_verts, deform_groups)
+    make_O_core_vert_groups(core, bm, dims, margin,
+                            top_verts, bottom_verts, deform_groups)
 
     core.name = tile_name + '.core'
     add_object_to_collection(core, tile_name)
 
     # move core so centred, move up so on top of base and set origin to world origin
     core.location = (
-        core.location[0] + ((base_size[0] - tile_size[0]) / 2) + disp_thickness,
-        core.location[1] + ((base_size[1] - tile_size[1]) / 2) + disp_thickness,
+        core.location[0] +
+        ((base_size[0] - tile_size[0]) / 2) + disp_thickness,
+        core.location[1] +
+        ((base_size[1] - tile_size[1]) / 2) + disp_thickness,
         cursor_start_loc[2] + base_size[2])
 
     finalise_core(core, tile_props)
@@ -1228,7 +1261,8 @@ def spawn_T_core(self, tile_props):
         native_subdivisions,
         margin)
 
-    make_T_core_vert_groups(core, bm, dims, margin, top_verts, bottom_verts, deform_groups)
+    make_T_core_vert_groups(core, bm, dims, margin,
+                            top_verts, bottom_verts, deform_groups)
 
     core.name = tile_name + '.core'
     add_object_to_collection(core, tile_name)
@@ -1236,7 +1270,8 @@ def spawn_T_core(self, tile_props):
     # move core so centred, move up so on top of base and set origin to world origin
     core.location = (
         core.location[0] + ((base_size[0] - tile_size[0]) / 2),
-        core.location[1] + ((base_size[1] - tile_size[1]) / 2) + disp_thickness,
+        core.location[1] +
+        ((base_size[1] - tile_size[1]) / 2) + disp_thickness,
         cursor_start_loc[2] + base_size[2])
 
     finalise_core(core, tile_props)
@@ -1479,7 +1514,8 @@ def make_L_core_vert_groups(obj, bm, dims, margin, top_verts, bottom_verts, defo
                   and v not in right_verts_orig
                   and v not in bottom_verts]
 
-    side_verts = front_verts_orig + back_verts_orig + left_verts_orig + right_verts_orig
+    side_verts = front_verts_orig + back_verts_orig + \
+        left_verts_orig + right_verts_orig
     top_verts = [v for v in top_verts if v not in side_verts]
 
     assign_verts_to_group(front_verts, obj, deform_groups, 'Front')
@@ -1710,6 +1746,7 @@ def make_T_core_vert_groups(obj, bm, dims, margin, top_verts, bottom_verts, defo
     finalise_turtle(bm, obj)
 
     return obj
+
 
 def finalise_core(core, tile_props):
     """Finalise core.

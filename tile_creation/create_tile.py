@@ -36,6 +36,8 @@ from line_profiler import LineProfiler
 from os.path import splitext
 profile = LineProfiler()
 '''
+
+
 def tile_x_update(self, context):
     if self.x_proportionate_scale:
         self.base_x = self.tile_x
@@ -49,6 +51,7 @@ def tile_y_update(self, context):
 def tile_z_update(self, context):
     if self.z_proportionate_scale:
         self.base_z = self.tile_z
+
 
 def create_tile_type_enums(self, context):
     """Create an enum of tile types out of subclasses of MT_OT_Make_Tile."""
@@ -65,6 +68,7 @@ def create_tile_type_enums(self, context):
             enum = (subclass.mt_type, subclass.bl_label, "")
             enum_items.append(enum)
     return sorted(enum_items)
+
 
 def create_main_part_blueprint_enums(self, context):
     """Dynamically creates a list of enum items depending on what is set in the tile_type defaults.
@@ -113,9 +117,11 @@ def create_base_blueprint_enums(self, context):
             return sorted(enum_items)
     return enum_items
 
+
 def update_scene_defaults(self, context):
     if not self.invoked:
         reset_scene_defaults(self, context)
+
 
 def reset_scene_defaults(self, context):
     scene_props = context.scene.mt_scene_props
@@ -130,6 +136,7 @@ def reset_scene_defaults(self, context):
                     setattr(scene_props, key, value)
             break
     reset_part_defaults(scene_props, context)
+
 
 def reset_part_defaults(self, context):
     scene_props = context.scene.mt_scene_props
@@ -187,6 +194,7 @@ def create_material_enums(self, context):
                 enum_items.append(enum)
     return enum_items
 
+
 class MT_OT_Reset_Tile_Defaults(Operator):
     """Reset mt_scene_props of current tile_type."""
 
@@ -207,6 +215,7 @@ class MT_OT_Reset_Tile_Defaults(Operator):
 
 class MT_Tile_Generator:
     """Subclass this to create your tile operator."""
+
     def create_tile_type_enums(self, context):
         """Create an enum of tile types out of subclasses of MT_OT_Make_Tile."""
         enum_items = []
@@ -261,7 +270,7 @@ class MT_Tile_Generator:
 
     main_part_blueprint: EnumProperty(
         items=create_main_part_blueprint_enums,
-        #update=update_part_defaults,
+        # update=update_part_defaults,
         name="Main")
 
     base_blueprint: EnumProperty(
@@ -404,6 +413,15 @@ class MT_Tile_Generator:
         items=units
     )
 
+    base_socket_type: EnumProperty(
+        items=[
+            ("OPENLOCK", "OpenLOCK", ""),
+            ("LASTLOCK", "LastLOCK", "")],
+        default="OPENLOCK",
+        name="Base socket type",
+        description="What type of base socket to use."
+    )
+
     @classmethod
     def poll(cls, context):
         """Check in object mode."""
@@ -431,11 +449,9 @@ class MT_Tile_Generator:
         self.refresh = True
         return self.execute(context)
 
-
     def execute(self, context):
         """Call when operator is executed."""
         self.init(context)
-
 
     def init(self, context):
         """Initialise operator properties."""
@@ -500,6 +516,21 @@ class MT_Tile_Generator:
         tile_props.tile_type = tile_type
         activate_collection(tile_collection.name)
 
+    def get_base_socket_filename(self):
+        """Return the filename where booleans are stored for the tile's base_socket_type.
+
+        Returns:
+            str: filename
+        """
+        sockets = [
+            {'socket_type': 'OPENLOCK',
+             'filename': 'openlock.blend'},
+            {'socket_type': 'LASTLOCK',
+             'filename': 'lastlock.blend'}]
+        for socket in sockets:
+            if socket['socket_type'] == self.base_socket_type:
+                return socket['filename']
+        return False
 
     def finalise_tile(self, context, base, *args):
         """Finalise the tile.
@@ -515,7 +546,8 @@ class MT_Tile_Generator:
         # assign secondary material to base if it is a mesh
         prefs = get_prefs()
         if base.type == 'MESH' and prefs.secondary_material not in base.material_slots:
-            base.data.materials.append(bpy.data.materials[prefs.secondary_material])
+            base.data.materials.append(
+                bpy.data.materials[prefs.secondary_material])
 
         # Reset location of base
         base.location = self.cursor_orig_loc
@@ -554,8 +586,10 @@ class MT_Tile_Generator:
         row = layout.box().row()
         split = row.split()
         split.scale_y = 1.5
-        split.prop(self, "auto_refresh", toggle=True, icon_only=True, icon='AUTO')
-        split.prop(self, "refresh", toggle=True, icon_only=True, icon='FILE_REFRESH')
+        split.prop(self, "auto_refresh", toggle=True,
+                   icon_only=True, icon='AUTO')
+        split.prop(self, "refresh", toggle=True,
+                   icon_only=True, icon='FILE_REFRESH')
         layout.prop(self, 'reset_defaults', toggle=True, icon='LOOP_BACK')
         layout.prop(self, 'subdivision_density')
 
@@ -586,6 +620,7 @@ def get_subdivs(density, dims):
         subdivs[k] = v
     return subdivs
 
+
 @multimethod(str, list)
 def get_subdivs(density, base_dims):
     """Get the number of times to subdivide each side when drawing.
@@ -610,6 +645,7 @@ def get_subdivs(density, base_dims):
         subdivs.append(x)
     subdivs = [x + 1 if x == 0 else x for x in subdivs]
     return subdivs
+
 
 def initialise_tile_creator(context):
     deselect_all()
@@ -686,6 +722,7 @@ def lock_all_transforms(obj):
     obj.lock_scale[1] = True
     obj.lock_scale[2] = True
 
+
 def add_subsurf_modifier(obj):
     """Add a subsurf modifier for material system and store its name in object props.
 
@@ -736,7 +773,8 @@ def convert_to_displacement_core(core, textured_vertex_groups, material, subsurf
     # core['disp_mod_name'] = disp_mod.name
 
     # create a vertex group for the displacement modifier
-    vert_group = construct_displacement_mod_vert_group(core, textured_vertex_groups)
+    vert_group = construct_displacement_mod_vert_group(
+        core, textured_vertex_groups)
     disp_mod.vertex_group = vert_group
 
     # create texture for displacement modifier
@@ -762,8 +800,6 @@ def convert_to_displacement_core(core, textured_vertex_groups, material, subsurf
     # flag core as a displacement object
     core.mt_object_props.is_displacement = True
     core.mt_object_props.geometry_type = 'CORE'
-
-
 
 
 '''
@@ -809,6 +845,7 @@ def finalise_tile(base, core, cursor_orig_loc, cursor_orig_rot):
     base.select_set(True)
     context.view_layer.objects.active = base
 '''
+
 
 def spawn_empty_base(tile_props):
     """Spawn an empty base into the scene.
@@ -894,6 +931,8 @@ def load_openlock_top_peg(tile_props):
     return peg
 
 # TODO: #3 Fix bug where toggling booleans in UI doesn't work if core or base have been renamed
+
+
 def set_bool_obj_props(bool_obj, parent_obj, tile_props, bool_type):
     """Set properties for boolean object used for e.g. clip cutters.
 
@@ -942,6 +981,5 @@ def set_bool_props(bool_obj, target_obj, bool_type, solver='FAST'):
     cutter_coll_item = target_obj.mt_object_props.cutters_collection.add()
     cutter_coll_item.name = bool_obj.name
     cutter_coll_item.value = True
-    #bpy.context.view_layer.update()
+    # bpy.context.view_layer.update()
     cutter_coll_item.parent = target_obj.name
-

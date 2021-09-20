@@ -40,11 +40,10 @@ def update_mt_scene_props_handler(dummy):
     This means that when the user selects an existing tile they can easily
     create one with the same properties.
     """
-    context = bpy.context
-    obj = context.object
-    scene_props = context.scene.mt_scene_props
-
     try:
+        context = bpy.context
+        obj = context.object
+        scene_props = context.scene.mt_scene_props
         obj_props = obj.mt_object_props
         tile_props = bpy.data.collections[obj.mt_object_props.tile_name].mt_tile_props
 

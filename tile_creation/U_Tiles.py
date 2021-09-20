@@ -84,7 +84,8 @@ class MT_PT_U_Tile_Panel(Panel):
         layout.label(text="Blueprints")
         layout.prop(scene_props, 'base_blueprint')
         layout.prop(scene_props, 'main_part_blueprint')
-
+        if scene_props.base_blueprint not in ('PLAIN', 'NONE'):
+            layout.prop(scene_props, 'base_socket_type')
         layout.label(text="Material")
         layout.prop(scene_props, 'wall_material')
 
@@ -107,7 +108,8 @@ class MT_PT_U_Tile_Panel(Panel):
         layout.prop(scene_props, 'base_z', text="Height")
 
         if scene_props.base_blueprint == 'OPENLOCK':
-            layout.prop(scene_props, 'base_socket_side', text='Base Socket Side')
+            layout.prop(scene_props, 'base_socket_side',
+                        text='Base Socket Side')
 
         layout.label(text="Subdivision Density")
         layout.prop(scene_props, 'subdivision_density', text="")
@@ -169,7 +171,7 @@ class MT_OT_Make_U_Wall_Tile(MT_Tile_Generator, Operator):
         if base_blueprint == 'NONE':
             base = spawn_empty_base(tile_props)
         elif base_blueprint == 'OPENLOCK':
-            base = spawn_openlock_base(tile_props)
+            base = spawn_openlock_base(self, tile_props)
         elif base_blueprint == 'PLAIN':
             base = spawn_plain_base(tile_props)
 
@@ -205,7 +207,8 @@ class MT_OT_Make_U_Wall_Tile(MT_Tile_Generator, Operator):
         layout.label(text="Blueprints")
         layout.prop(self, 'base_blueprint')
         layout.prop(self, 'main_part_blueprint')
-
+        if self.base_blueprint not in ('PLAIN', 'NONE'):
+            layout.prop(self, 'base_socket_type')
         layout.label(text="Material")
         layout.prop(self, 'wall_material')
 
@@ -246,7 +249,7 @@ class MT_OT_Make_Openlock_U_Base(MT_Tile_Generator, Operator):
     def execute(self, context):
         """Execute the operator."""
         tile_props = bpy.data.collections[self.tile_name].mt_tile_props
-        spawn_openlock_base(tile_props)
+        spawn_openlock_base(self, tile_props)
         return{'FINISHED'}
 
 
@@ -357,7 +360,8 @@ def spawn_openlock_wall_cores(base, tile_props):
             set_bool_obj_props(peg, base, tile_props, 'UNION')
             set_bool_props(peg, core, 'UNION')
 
-    textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'End Wall Inner', 'End Wall Outer', 'Leg 2 Inner', 'Leg 2 Outer']
+    textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner',
+                              'End Wall Inner', 'End Wall Outer', 'Leg 2 Inner', 'Leg 2 Outer']
     material = tile_props.wall_material
     convert_to_displacement_core(
         core,
@@ -443,10 +447,12 @@ def spawn_openlock_wall_cutters(base, tile_props):
     top_cutters = [leg_1_top_cutter, leg_2_top_cutter]
 
     for cutter in leg_1_cutters:
-        cutter.location = (cutter.location[0] + 0.25, cutter.location[1] + leg_1_outer_len, cutter.location[2])
+        cutter.location = (
+            cutter.location[0] + 0.25, cutter.location[1] + leg_1_outer_len, cutter.location[2])
 
     for cutter in leg_2_cutters:
-        cutter.location = (cutter.location[0] + x_outer_len - 0.25, cutter.location[1] + leg_2_outer_len, cutter.location[2])
+        cutter.location = (cutter.location[0] + x_outer_len - 0.25,
+                           cutter.location[1] + leg_2_outer_len, cutter.location[2])
 
     for cutter in bottom_cutters:
         cutter.location[2] = cutter.location[2] + 0.63
@@ -488,7 +494,8 @@ def spawn_openlock_top_pegs(core, tile_props):
 
     source_peg = load_openlock_top_peg(tile_props)
     pegs = []
-    peg_1 = bpy.data.objects.new('Base Wall Top Peg.' + tile_props.tile_name, source_peg.data.copy())
+    peg_1 = bpy.data.objects.new(
+        'Base Wall Top Peg.' + tile_props.tile_name, source_peg.data.copy())
     add_object_to_collection(peg_1, tile_props.tile_name)
 
     array_mod = peg_1.modifiers.new('Array', 'ARRAY')
@@ -522,7 +529,8 @@ def spawn_openlock_top_pegs(core, tile_props):
 
     # leg 1
     if leg_1_outer_len >= 1:
-        peg_2 = bpy.data.objects.new('Leg 1 Top Peg.' + tile_props.tile_name, source_peg.data.copy())
+        peg_2 = bpy.data.objects.new(
+            'Leg 1 Top Peg.' + tile_props.tile_name, source_peg.data.copy())
         add_object_to_collection(peg_2, tile_props.tile_name)
 
         peg_2.rotation_euler[2] = radians(-90)
@@ -561,7 +569,8 @@ def spawn_openlock_top_pegs(core, tile_props):
 
     # leg 2
     if leg_2_outer_len >= 1:
-        peg_3 = bpy.data.objects.new('Leg 2 Top Peg.' + tile_props.tile_name, source_peg.data.copy())
+        peg_3 = bpy.data.objects.new(
+            'Leg 2 Top Peg.' + tile_props.tile_name, source_peg.data.copy())
         add_object_to_collection(peg_3, tile_props.tile_name)
 
         if leg_2_outer_len < 4 and leg_2_outer_len >= 1:
@@ -609,7 +618,8 @@ def spawn_plain_wall_cores(tile_props):
         bpy.types.Object: preview core
     """
     core = spawn_core(tile_props)
-    textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner', 'End Wall Inner', 'End Wall Outer', 'Leg 2 Inner', 'Leg 2 Outer']
+    textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner',
+                              'End Wall Inner', 'End Wall Outer', 'Leg 2 Inner', 'Leg 2 Outer']
     material = tile_props.wall_material
     subsurf = add_subsurf_modifier(core)
     convert_to_displacement_core(
@@ -686,7 +696,7 @@ def spawn_plain_base(tile_props):
     return base
 
 
-def spawn_openlock_base(tile_props):
+def spawn_openlock_base(self, tile_props):
     """Spawn OpenLOCK base into scene.
 
     Args:
@@ -714,7 +724,7 @@ def spawn_openlock_base(tile_props):
     set_bool_props(slot_cutter, base, 'DIFFERENCE')
 
     # clip cutters
-    clip_cutter_leg_1 = spawn_openlock_base_clip_cutter(tile_props)
+    clip_cutter_leg_1 = spawn_openlock_base_clip_cutter(self, tile_props)
     clip_cutter_leg_1.name = 'Leg 1 Clip.' + tile_props.name + '.clip_cutter'
     clip_cutter_leg_2 = clip_cutter_leg_1.copy()
     clip_cutter_leg_2.name = 'Leg 2 Clip.' + tile_props.name + '.clip_cutter'
@@ -731,27 +741,36 @@ def spawn_openlock_base(tile_props):
         set_bool_props(cutter, base, 'DIFFERENCE')
 
     if base_socket_side == 'INNER':
-        clip_cutter_leg_1.rotation_euler = (clip_cutter_leg_1.rotation_euler[0], clip_cutter_leg_1.rotation_euler[1], radians(90))
-        clip_cutter_leg_1.location = (clip_cutter_leg_1.location[0] + 0.25, thickness * 2, clip_cutter_leg_1.location[2])
+        clip_cutter_leg_1.rotation_euler = (
+            clip_cutter_leg_1.rotation_euler[0], clip_cutter_leg_1.rotation_euler[1], radians(90))
+        clip_cutter_leg_1.location = (
+            clip_cutter_leg_1.location[0] + 0.25, thickness * 2, clip_cutter_leg_1.location[2])
         clip_cutter_leg_1.modifiers['Array'].fit_length = leg_1_inner_len - 1
 
-        clip_cutter_x_leg.rotation_euler = (clip_cutter_x_leg.rotation_euler[0], clip_cutter_x_leg.rotation_euler[1], radians(180))
-        clip_cutter_x_leg.location = (x_inner_len, 0.25, clip_cutter_x_leg.location[2])
+        clip_cutter_x_leg.rotation_euler = (
+            clip_cutter_x_leg.rotation_euler[0], clip_cutter_x_leg.rotation_euler[1], radians(180))
+        clip_cutter_x_leg.location = (
+            x_inner_len, 0.25, clip_cutter_x_leg.location[2])
         clip_cutter_x_leg.modifiers['Array'].fit_length = x_inner_len - 1
 
-        clip_cutter_leg_2.rotation_euler = (clip_cutter_leg_2.rotation_euler[0], clip_cutter_leg_2.rotation_euler[1], radians(-90))
-        clip_cutter_leg_2.location = (x_inner_len + thickness + 0.25, leg_2_inner_len, clip_cutter_leg_2.location[2])
+        clip_cutter_leg_2.rotation_euler = (
+            clip_cutter_leg_2.rotation_euler[0], clip_cutter_leg_2.rotation_euler[1], radians(-90))
+        clip_cutter_leg_2.location = (
+            x_inner_len + thickness + 0.25, leg_2_inner_len, clip_cutter_leg_2.location[2])
         clip_cutter_leg_2.modifiers['Array'].fit_length = leg_2_inner_len - 1
     else:
         clip_cutter_leg_1.rotation_euler[2] = radians(-90)
-        clip_cutter_leg_1.location = (clip_cutter_leg_1.location[0] + 0.25, clip_cutter_leg_1.location[1] + leg_1_outer_len - 0.5, clip_cutter_leg_1.location[2])
+        clip_cutter_leg_1.location = (
+            clip_cutter_leg_1.location[0] + 0.25, clip_cutter_leg_1.location[1] + leg_1_outer_len - 0.5, clip_cutter_leg_1.location[2])
         clip_cutter_leg_1.modifiers['Array'].fit_length = leg_1_outer_len - 1
 
-        clip_cutter_x_leg.location = (clip_cutter_x_leg.location[0] + 0.5, clip_cutter_x_leg.location[1] + 0.25, clip_cutter_x_leg.location[2])
+        clip_cutter_x_leg.location = (
+            clip_cutter_x_leg.location[0] + 0.5, clip_cutter_x_leg.location[1] + 0.25, clip_cutter_x_leg.location[2])
         clip_cutter_x_leg.modifiers['Array'].fit_length = x_outer_len - 1
 
         clip_cutter_leg_2.rotation_euler[2] = radians(90)
-        clip_cutter_leg_2.location = (clip_cutter_leg_2.location[0] + x_outer_len - 0.25, clip_cutter_leg_2.location[1] + 0.5, clip_cutter_leg_2.location[2])
+        clip_cutter_leg_2.location = (
+            clip_cutter_leg_2.location[0] + x_outer_len - 0.25, clip_cutter_leg_2.location[1] + 0.5, clip_cutter_leg_2.location[2])
         clip_cutter_leg_2.modifiers['Array'].fit_length = leg_2_outer_len - 1
     bpy.context.view_layer.objects.active = base
 
@@ -846,7 +865,7 @@ def spawn_openlock_base_slot_cutter(tile_props):
     return slot_cutter
 
 
-def spawn_openlock_base_clip_cutter(tile_props):
+def spawn_openlock_base_clip_cutter(self, tile_props):
     """Spawn base clip cutter into scene.
 
     Args:
@@ -856,11 +875,12 @@ def spawn_openlock_base_clip_cutter(tile_props):
         bpy.types.Object: base clip cutter
     """
     preferences = get_prefs()
+    cutter_file = self.get_base_socket_filename()
     booleans_path = os.path.join(
         preferences.assets_path,
         "meshes",
         "booleans",
-        "openlock.blend")
+        cutter_file)
 
     # load base cutters
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
@@ -940,7 +960,8 @@ def draw_plain_u_base(dimensions):
     fd(bm, x_outer)
     bm_select_all(bm)
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.001)
-    bmesh.ops.triangle_fill(bm, use_beauty=True, use_dissolve=True, edges=bm.edges, normal=(0, 0, -1))
+    bmesh.ops.triangle_fill(
+        bm, use_beauty=True, use_dissolve=True, edges=bm.edges, normal=(0, 0, -1))
     bm.select_mode = {'FACE'}
     bm_select_all(bm)
     up(bm, height, False)
@@ -1174,9 +1195,11 @@ def draw_u_core(dimensions, subdivs, margin=0.001):
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=margin / 2)
 
     ret = bmesh.ops.bridge_loops(bm, edges=bm.edges)
-    bmesh.ops.subdivide_edges(bm, edges=ret['edges'], smooth=1, smooth_falloff='LINEAR', cuts=subdivs['width'])
+    bmesh.ops.subdivide_edges(
+        bm, edges=ret['edges'], smooth=1, smooth_falloff='LINEAR', cuts=subdivs['width'])
 
-    bmesh.ops.inset_region(bm, faces=bm.faces, use_even_offset=True, thickness=margin, use_boundary=True)
+    bmesh.ops.inset_region(
+        bm, faces=bm.faces, use_even_offset=True, thickness=margin, use_boundary=True)
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=margin / 2)
 
     # Z
@@ -1233,8 +1256,10 @@ def draw_u_wall_core(dimensions, subdivs, margin=0.001):
     Returns:
         bpy.types.Object: core
     """
-    bm, core, deform_groups, vert_locs = draw_u_core(dimensions, subdivs, margin)
-    vert_groups = create_u_core_vert_groups_vert_lists_2(bm, dimensions, margin, vert_locs, subdivs)
+    bm, core, deform_groups, vert_locs = draw_u_core(
+        dimensions, subdivs, margin)
+    vert_groups = create_u_core_vert_groups_vert_lists_2(
+        bm, dimensions, margin, vert_locs, subdivs)
 
     blank_groups = [
         'Leg 1 Top',
@@ -1264,24 +1289,34 @@ def draw_u_wall_core(dimensions, subdivs, margin=0.001):
         verts = [v for v in vert_groups[group] if v not in blank_group_verts]
         assign_verts_to_group(verts, core, deform_groups, group)
 
-    leg_1_end = [v for v in vert_groups['Leg 1 End'] if v not in vert_groups['Leg 1 Top']]
+    leg_1_end = [v for v in vert_groups['Leg 1 End']
+                 if v not in vert_groups['Leg 1 Top']]
     assign_verts_to_group(leg_1_end, core, deform_groups, 'Leg 1 End')
-    leg_2_end = [v for v in vert_groups['Leg 2 End'] if v not in vert_groups['Leg 2 Top']]
+    leg_2_end = [v for v in vert_groups['Leg 2 End']
+                 if v not in vert_groups['Leg 2 Top']]
     assign_verts_to_group(leg_2_end, core, deform_groups, 'Leg 2 End')
 
-    leg_1_top_verts = [v for v in vert_groups['Leg 1 Top'] if v not in vert_groups['Leg 1 End']]
+    leg_1_top_verts = [v for v in vert_groups['Leg 1 Top']
+                       if v not in vert_groups['Leg 1 End']]
     assign_verts_to_group(leg_1_top_verts, core, deform_groups, 'Leg 1 Top')
-    leg_2_top_verts = [v for v in vert_groups['Leg 2 Top'] if v not in vert_groups['Leg 2 End']]
+    leg_2_top_verts = [v for v in vert_groups['Leg 2 Top']
+                       if v not in vert_groups['Leg 2 End']]
     assign_verts_to_group(leg_2_top_verts, core, deform_groups, 'Leg 2 Top')
 
-    assign_verts_to_group(vert_groups['End Wall Top'], core, deform_groups, 'End Wall Top')
+    assign_verts_to_group(
+        vert_groups['End Wall Top'], core, deform_groups, 'End Wall Top')
 
-    leg_1_bottom_verts = [v for v in vert_groups['Leg 1 Bottom'] if v not in vert_groups['Leg 1 End']]
-    assign_verts_to_group(leg_1_bottom_verts, core, deform_groups, 'Leg 1 Bottom')
-    leg_2_bottom_verts = [v for v in vert_groups['Leg 2 Bottom'] if v not in vert_groups['Leg 2 End']]
-    assign_verts_to_group(leg_2_bottom_verts, core, deform_groups, 'Leg 2 Bottom')
+    leg_1_bottom_verts = [
+        v for v in vert_groups['Leg 1 Bottom'] if v not in vert_groups['Leg 1 End']]
+    assign_verts_to_group(leg_1_bottom_verts, core,
+                          deform_groups, 'Leg 1 Bottom')
+    leg_2_bottom_verts = [
+        v for v in vert_groups['Leg 2 Bottom'] if v not in vert_groups['Leg 2 End']]
+    assign_verts_to_group(leg_2_bottom_verts, core,
+                          deform_groups, 'Leg 2 Bottom')
 
-    assign_verts_to_group(vert_groups['End Wall Bottom'], core, deform_groups, 'End Wall Bottom')
+    assign_verts_to_group(
+        vert_groups['End Wall Bottom'], core, deform_groups, 'End Wall Bottom')
 
     finalise_turtle(bm, core)
     return core
@@ -1364,7 +1399,8 @@ def create_u_core_vert_groups_vert_lists_2(bm, dimensions, margin, vert_locs, su
     for key, value in leg_sides.items():
         vert_groups[key] = select_verts_in_bounds(
             lbound=(value[0][0]),
-            ubound=(value[0][-1][0], value[0][-1][1] + value[1], value[0][-1][2] + height),
+            ubound=(value[0][-1][0], value[0][-1][1] +
+                    value[1], value[0][-1][2] + height),
             buffer=margin / 2,
             bm=bm)
 

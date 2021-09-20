@@ -72,6 +72,9 @@ class MT_PT_Triangular_Floor_Panel(Panel):
         layout.prop(scene_props, 'base_blueprint')
         layout.prop(scene_props, 'main_part_blueprint', text="Main")
 
+        if scene_props.base_blueprint not in ('PLAIN', 'NONE'):
+            layout.prop(scene_props, 'base_socket_type')
+
         layout.label(text="Material")
         layout.prop(scene_props, 'floor_material')
 
@@ -141,7 +144,7 @@ class MT_OT_Make_Triangular_Floor_Tile(Operator, MT_Tile_Generator):
         if base_blueprint == 'NONE':
             base = spawn_empty_base(tile_props)
         elif base_blueprint == 'OPENLOCK':
-            base = spawn_openlock_base(tile_props)
+            base = spawn_openlock_base(self, tile_props)
         elif base_blueprint == 'PLAIN':
             base = spawn_plain_base(tile_props)
 
@@ -175,6 +178,9 @@ class MT_OT_Make_Triangular_Floor_Tile(Operator, MT_Tile_Generator):
         layout.label(text="Blueprints")
         layout.prop(self, 'base_blueprint')
         layout.prop(self, 'main_part_blueprint', text="Main")
+
+        if self.base_blueprint not in ('PLAIN', 'NONE'):
+            layout.prop(self, 'base_socket_type')
 
         layout.label(text="Material")
         layout.prop(self, 'floor_material')
@@ -323,7 +329,7 @@ def spawn_plain_base(tile_props):
     return base
 
 
-def spawn_openlock_base(tile_props):
+def spawn_openlock_base(self, tile_props):
     """Spawn an OpenLOCK base into the scene.
 
     Args:
@@ -344,7 +350,8 @@ def spawn_openlock_base(tile_props):
     base.name = tile_name + '.base'
     add_object_to_collection(base, tile_name)
 
-    clip_cutters = spawn_openlock_base_clip_cutters(dimensions, tile_props)
+    clip_cutters = spawn_openlock_base_clip_cutters(
+        self, dimensions, tile_props)
 
     for clip_cutter in clip_cutters:
         set_bool_obj_props(clip_cutter, base, tile_props, 'DIFFERENCE')
@@ -363,7 +370,7 @@ def spawn_openlock_base(tile_props):
 
 
 # @profile
-def spawn_openlock_base_clip_cutters(dimensions, tile_props):
+def spawn_openlock_base_clip_cutters(self, dimensions, tile_props):
     """Make cutters for the openlock base clips.
 
     Args:
@@ -400,11 +407,12 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
 
     if a or b or c >= 2:
         preferences = get_prefs()
+        cutter_file = self.get_base_socket_filename()
         booleans_path = os.path.join(
             preferences.assets_path,
             "meshes",
             "booleans",
-            "openlock.blend")
+            cutter_file)
 
         cutters = []
         with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
@@ -601,7 +609,8 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
                 bm.select_mode = {'VERT'}
                 bm_select_all(bm)
                 turtle.rotation_euler = (0, 0, -radians(A))
-                extrude_translate(bm, (0, b, 0), del_original=False, extrude=False)
+                extrude_translate(
+                    bm, (0, b, 0), del_original=False, extrude=False)
                 turtle.rotation_euler = (0, 0, 0)
                 extrude_translate(bm, (0.5, 0.25, 0.0002), extrude=False)
                 bmesh.ops.rotate(
@@ -635,7 +644,8 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
                 bm.select_mode = {'VERT'}
                 bm_select_all(bm)
                 turtle.rotation_euler = (0, 0, -radians(A))
-                extrude_translate(bm, (0, b, 0), del_original=False, extrude=False)
+                extrude_translate(
+                    bm, (0, b, 0), del_original=False, extrude=False)
                 turtle.rotation_euler = (0, 0, 0)
                 extrude_translate(bm, (1, 0.25, 0.0002), extrude=False)
                 bmesh.ops.rotate(
@@ -647,7 +657,8 @@ def spawn_openlock_base_clip_cutters(dimensions, tile_props):
 
                 caps = 0.083333
                 turtle.rotation_euler = (0, 0, radians(C))
-                extrude_translate(bm, (0, (caps * (count + 1)), 0), del_original=False, extrude=False)
+                extrude_translate(bm, (0, (caps * (count + 1)), 0),
+                                  del_original=False, extrude=False)
 
             bm.to_mesh(me)
             bm.free()

@@ -72,7 +72,8 @@ class MT_PT_Curved_Wall_Tile_Panel(Panel):
         layout.label(text="Blueprints")
         layout.prop(scene_props, 'base_blueprint')
         layout.prop(scene_props, 'main_part_blueprint')
-
+        if scene_props.base_blueprint not in ('PLAIN', 'NONE'):
+            layout.prop(scene_props, 'base_socket_type')
         layout.label(text="Materials")
         layout.prop(scene_props, 'floor_material')
         layout.prop(scene_props, 'wall_material')
@@ -140,7 +141,8 @@ class MT_PT_Curved_Floor_Tile_Panel(Panel):
         layout.label(text="Blueprints")
         layout.prop(scene_props, 'base_blueprint')
         layout.prop(scene_props, 'main_part_blueprint')
-
+        if scene_props.base_blueprint not in ('PLAIN', 'NONE'):
+            layout.prop(scene_props, 'base_socket_type')
         layout.label(text="Materials")
         layout.prop(scene_props, 'floor_material')
 
@@ -350,7 +352,8 @@ class MT_OT_Make_Curved_Wall_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
         layout.label(text="Blueprints")
         layout.prop(self, 'base_blueprint')
         layout.prop(self, 'main_part_blueprint')
-
+        if self.base_blueprint not in ('PLAIN', 'NONE'):
+            layout.prop(self, 'base_socket_type')
         layout.label(text="Materials")
         layout.prop(self, 'floor_material')
         layout.prop(self, 'wall_material')
@@ -440,7 +443,8 @@ class MT_OT_Make_Curved_Floor_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
         layout.label(text="Blueprints")
         layout.prop(self, 'base_blueprint')
         layout.prop(self, 'main_part_blueprint')
-
+        if self.base_blueprint not in ('PLAIN', 'NONE'):
+            layout.prop(self, 'base_socket_type')
         layout.label(text="Materials")
         layout.prop(self, 'floor_material')
 
@@ -795,7 +799,8 @@ def spawn_openlock_top_pegs(base, **kwargs):
         bm,
         cent=base_location,
         verts=bm.verts,
-        matrix=Matrix.Rotation(radians(tile_props.degrees_of_arc / 2) * -1, 3, 'Z'),
+        matrix=Matrix.Rotation(
+            radians(tile_props.degrees_of_arc / 2) * -1, 3, 'Z'),
         space=peg.matrix_world)
     bm.to_mesh(peg_mesh)
     bm.free()
@@ -842,7 +847,8 @@ def spawn_openlock_wall_cutters(tile_props):
     cutters.extend([left_cutter_bottom, right_cutter_bottom])
 
     if tile_props.wall_position == 'SIDE':
-        radius = tile_props.base_radius + (tile_props.base_size[1]) - (tile_props.tile_size[1] / 2) - 0.09
+        radius = tile_props.base_radius + \
+            (tile_props.base_size[1]) - (tile_props.tile_size[1] / 2) - 0.09
     else:
         radius = tile_props.base_radius + (tile_props.base_size[1] / 2)
 
@@ -867,7 +873,8 @@ def spawn_openlock_wall_cutters(tile_props):
         bm,
         verts=bm.verts,
         cent=right_cutter_bottom.location,
-        matrix=Matrix.Rotation(radians(tile_props.degrees_of_arc) * -1, 3, 'Z'),
+        matrix=Matrix.Rotation(
+            radians(tile_props.degrees_of_arc) * -1, 3, 'Z'),
         space=right_cutter_bottom.matrix_world)
 
     bm.to_mesh(right_cutter_bottom.data)
@@ -968,10 +975,12 @@ def spawn_openlock_base_slot_cutter(self, base, tile_props, offset=0.236):
 
     bool_overlap = 0.001  # overlap amount to prevent errors
 
-    cutter_inner_arc_len = (2 * pi * cutter_radius) / (360 / base_degrees) - (offset * 2)
+    cutter_inner_arc_len = (2 * pi * cutter_radius) / \
+        (360 / base_degrees) - (offset * 2)
     central_angle = degrees(cutter_inner_arc_len / cutter_radius)
 
-    subdivs = get_subdivs(tile_props.subdivision_density, [cutter_inner_arc_len, cutter_w, cutter_h])
+    subdivs = get_subdivs(tile_props.subdivision_density, [
+                          cutter_inner_arc_len, cutter_w, cutter_h])
 
     slot_cutter = draw_curved_cuboid(
         'Slot.' + tile_props.tile_name,
@@ -983,7 +992,8 @@ def spawn_openlock_base_slot_cutter(self, base, tile_props, offset=0.236):
     )
 
     slot_cutter.location[2] = slot_cutter.location[2] - bool_overlap
-    slot_cutter.rotation_euler[2] = slot_cutter.rotation_euler[2] - radians((base_degrees - central_angle) / 2)
+    slot_cutter.rotation_euler[2] = slot_cutter.rotation_euler[2] - \
+        radians((base_degrees - central_angle) / 2)
 
     base.select_set(False)
 
@@ -1023,14 +1033,14 @@ def spawn_openlock_base(self, tile_props):
     obj_props.geometry_type = 'BASE'
     obj_props.tile_name = tile_props.tile_name
 
-    spawn_openlock_base_clip_cutter(base, tile_props)
+    spawn_openlock_base_clip_cutter(self, base, tile_props)
 
     bpy.context.view_layer.objects.active = base
 
     return base
 
 
-def spawn_openlock_base_clip_cutter(base, tile_props):
+def spawn_openlock_base_clip_cutter(self, base, tile_props):
     """Spawn base clip cutter into scene.
 
     Args:
@@ -1046,11 +1056,13 @@ def spawn_openlock_base_clip_cutter(base, tile_props):
 
     # load base cutter
     preferences = get_prefs()
+    cutter_file = self.get_base_socket_filename()
+
     booleans_path = os.path.join(
         preferences.assets_path,
         "meshes",
         "booleans",
-        "openlock.blend")
+        cutter_file)
 
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
         data_to.objects = ['openlock.wall.base.cutter.clip_single']
@@ -1107,7 +1119,8 @@ def spawn_openlock_base_clip_cutter(base, tile_props):
             bm,
             geom=source_geom)
         geom = ret["geom"]
-        dupe_verts = [ele for ele in geom if isinstance(ele, bmesh.types.BMVert)]
+        dupe_verts = [ele for ele in geom if isinstance(
+            ele, bmesh.types.BMVert)]
         del ret
 
         bmesh.ops.rotate(
@@ -1168,7 +1181,8 @@ def spawn_floor_core(self, tile_props):
     floor_length = inner_circumference / (360 / angle)
     tile_name = tile_props.tile_name
     arc = (angle / 360) * (2 * pi) * radius
-    native_subdivisions = get_subdivs(tile_props.subdivision_density, [arc, width, height])
+    native_subdivisions = get_subdivs(
+        tile_props.subdivision_density, [arc, width, height])
 
     # Rather than creating our cores as curved objects we create them as straight cuboids
     # and then add a deform modifier. This allows us to not use the modifier when baking the
@@ -1229,7 +1243,8 @@ def spawn_wall_core(self, tile_props):
     wall_length = inner_circumference / (360 / angle)
     tile_name = tile_props.tile_name
     arc = (angle / 360) * (2 * pi) * radius
-    native_subdivisions = get_subdivs(tile_props.subdivision_density, [arc, width, height])
+    native_subdivisions = get_subdivs(
+        tile_props.subdivision_density, [arc, width, height])
 
     # Rather than creating our cores as curved objects we create them as straight cuboids
     # and then add a deform modifier. This allows us to not use the modifier when baking the
@@ -1265,7 +1280,8 @@ def spawn_wall_core(self, tile_props):
             verts=bm.verts,
             vec=(
                 0,
-                (tile_props.base_size[1] / 2) - (tile_props.tile_size[1] / 2) - 0.09,
+                (tile_props.base_size[1] / 2) -
+                (tile_props.tile_size[1] / 2) - 0.09,
                 0),
             space=core.matrix_world)
         bm.to_mesh(mesh)

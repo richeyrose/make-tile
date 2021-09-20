@@ -87,6 +87,9 @@ class MT_PT_Semi_Circ_Floor_Panel(Panel):
         layout.prop(scene_props, 'base_blueprint')
         layout.prop(scene_props, 'main_part_blueprint', text="Main")
 
+        if scene_props.base_blueprint not in ('PLAIN', 'NONE'):
+            layout.prop(scene_props, 'base_socket_type')
+
         layout.label(text="Material")
         layout.prop(scene_props, 'floor_material')
 
@@ -195,6 +198,9 @@ class MT_OT_Make_Semi_Circ_Floor_Tile(Operator, MT_Tile_Generator):
         layout.label(text="Bluperints")
         layout.prop(self, 'base_blueprint')
         layout.prop(self, 'main_part_blueprint', text="Main")
+
+        if self.base_blueprint not in ('PLAIN', 'NONE'):
+            layout.prop(self, 'base_socket_type')
 
         layout.label(text="Material")
         layout.prop(self, 'floor_material')
@@ -397,7 +403,7 @@ def spawn_openlock_base(self, tile_props):
         set_bool_obj_props(slot_cutter, base, tile_props, 'DIFFERENCE')
         set_bool_props(slot_cutter, base, 'DIFFERENCE')
 
-    cutters = create_openlock_base_clip_cutters(tile_props)
+    cutters = create_openlock_base_clip_cutters(self, tile_props)
 
     for clip_cutter in cutters:
         set_bool_obj_props(clip_cutter, base, tile_props, 'DIFFERENCE')
@@ -477,7 +483,7 @@ def spawn_core(self, tile_props):
     return core
 
 
-def create_openlock_base_clip_cutters(tile_props):
+def create_openlock_base_clip_cutters(self, tile_props):
     """Generate base clip cutters for semi circular tiles.
 
     Args:
@@ -495,15 +501,19 @@ def create_openlock_base_clip_cutters(tile_props):
     angle = tile_props.semi_circ_angle
     curve_type = tile_props.curve_type
     cutters = []
+
+    preferences = get_prefs()
+    cutter_file = self.get_base_socket_filename()
+    booleans_path = os.path.join(
+        preferences.assets_path,
+        "meshes",
+        "booleans",
+        cutter_file)
+
     if curve_type == 'NEG':
         radius = radius / 2
 
     if radius >= 1:
-        preferences = get_prefs()
-        booleans_path = os.path.join(
-            preferences.assets_path,
-            "meshes", "booleans", "openlock.blend")
-
         with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
             data_to.objects = [
                 'openlock.wall.base.cutter.clip.001',
@@ -517,7 +527,8 @@ def create_openlock_base_clip_cutters(tile_props):
         cutter_start_cap = data_to.objects[1]
         cutter_end_cap = data_to.objects[2]
 
-        clip_cutter_1 = bpy.data.objects.new("Clip Cutter 1", cutter.data.copy())
+        clip_cutter_1 = bpy.data.objects.new(
+            "Clip Cutter 1", cutter.data.copy())
         add_object_to_collection(clip_cutter_1, tile_props.tile_name)
 
         me = clip_cutter_1.data.copy()
@@ -568,7 +579,8 @@ def create_openlock_base_clip_cutters(tile_props):
 
         cutters.append(clip_cutter_1)
 
-        clip_cutter_2 = bpy.data.objects.new("Clip Cutter 2", cutter.data.copy())
+        clip_cutter_2 = bpy.data.objects.new(
+            "Clip Cutter 2", cutter.data.copy())
         add_object_to_collection(clip_cutter_2, tile_props.tile_name)
 
         me = clip_cutter_2.data.copy()
@@ -621,7 +633,8 @@ def create_openlock_base_clip_cutters(tile_props):
             data_to.objects = ['openlock.wall.base.cutter.clip_single']
         cutter = data_to.objects[0]
 
-        clip_cutter_3 = bpy.data.objects.new("Clip Cutter 3", cutter.data.copy())
+        clip_cutter_3 = bpy.data.objects.new(
+            "Clip Cutter 3", cutter.data.copy())
         add_object_to_collection(clip_cutter_3, tile_props.tile_name)
 
         me = clip_cutter_3.data.copy()
@@ -711,7 +724,8 @@ def draw_pos_curved_semi_circ_base(dimensions, subdivs):
     # join final vert of arc with side
     bmesh.ops.edgenet_prepare(bm, edges=bm.edges)
 
-    bmesh.ops.triangle_fill(bm, use_beauty=True, use_dissolve=False, edges=bm.edges)
+    bmesh.ops.triangle_fill(bm, use_beauty=True,
+                            use_dissolve=False, edges=bm.edges)
     pd(bm)
     bm.select_mode = {'FACE'}
     bm_select_all(bm)
@@ -770,7 +784,8 @@ def draw_neg_curved_semi_circ_base(dimensions, subdivs):
     bmesh.ops.remove_doubles(bm, verts=verts, dist=0.01)
     bmesh.ops.edgenet_prepare(bm, edges=bm.edges)
 
-    bmesh.ops.triangle_fill(bm, use_beauty=True, use_dissolve=False, edges=bm.edges)
+    bmesh.ops.triangle_fill(bm, use_beauty=True,
+                            use_dissolve=False, edges=bm.edges)
     bm.select_mode = {'FACE'}
     bm_select_all(bm)
     pd(bm)
@@ -927,7 +942,8 @@ def draw_pos_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
 
     side_c_verts = select_verts_in_bounds(
         lbound=obj.location,
-        ubound=(obj.location[0], obj.location[1] + radius, obj.location[2] + height),
+        ubound=(obj.location[0], obj.location[1] +
+                radius, obj.location[2] + height),
         buffer=margin / 2,
         bm=bm)
 
@@ -1064,7 +1080,8 @@ def draw_neg_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
     bmesh.ops.edgenet_prepare(bm, edges=bm.edges)
 
     # we get a glitch on some sizes of cores if we just use triangle fill so we do this instead
-    bmesh.ops.triangle_fill(bm, use_beauty=True, use_dissolve=True, edges=bm.edges)
+    bmesh.ops.triangle_fill(bm, use_beauty=True,
+                            use_dissolve=True, edges=bm.edges)
     bmesh.ops.triangulate(bm, faces=bm.faces)
     bmesh.ops.beautify_fill(bm, faces=bm.faces, edges=bm.edges)
 
@@ -1097,7 +1114,8 @@ def draw_neg_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
 
     side_c_verts = select_verts_in_bounds(
         lbound=obj.location,
-        ubound=(obj.location[0], obj.location[1] + radius, obj.location[2] + height),
+        ubound=(obj.location[0], obj.location[1] +
+                radius, obj.location[2] + height),
         buffer=margin / 2,
         bm=bm)
 
@@ -1331,7 +1349,8 @@ def draw_neg_curved_slot_cutter(dimensions):
     fd(bm, triangles_2['d_adj'] - (radius / 2))
 
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.01)
-    bmesh.ops.triangle_fill(bm, use_beauty=True, use_dissolve=False, edges=bm.edges)
+    bmesh.ops.triangle_fill(bm, use_beauty=True,
+                            use_dissolve=False, edges=bm.edges)
     bm.select_mode = {'FACE'}
     bm_select_all(bm)
     up(bm, slot_h, False)

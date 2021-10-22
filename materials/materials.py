@@ -6,12 +6,20 @@ from .. lib.utils.vertex_groups import (
     get_vert_indexes_in_vert_group)
 
 
-def load_materials(directory_path, blend_filenames):
-    materials = []
-    for filename in blend_filenames:
-        file_path = os.path.join(directory_path, filename)
-        materials.extend(get_materials_from_file(file_path))
-    return materials
+def load_materials(filepath):
+    """Load all materials in a file into the scene. Checks to see whether a material is unique first.
+
+    Args:
+        filepath (str): path to file containing materials.
+    """
+    with bpy.data.libraries.load(filepath) as (data_from, data_to):
+        data_to.materials = data_from.materials
+
+    for new_mat in data_to.materials:
+        existing_mats = [mat for mat in bpy.data.materials if mat != new_mat]
+        unique, matched = material_is_unique(new_mat, existing_mats)
+        if not unique:
+            bpy.data.materials.remove(new_mat)
 
 
 def get_blend_filenames(directory_path):
@@ -22,20 +30,8 @@ def get_blend_filenames(directory_path):
     return blend_filenames
 
 
-def get_materials_from_file(file_path):
-    unique_materials = []
-    with bpy.data.libraries.load(file_path) as (data_from, data_to):
-        i = 0
-        for material in data_from.materials:
-            if material not in bpy.data.materials:
-                unique_materials.append(data_from.materials[i])
-            i += 1
-        data_to.materials = unique_materials
-    return data_to.materials
-
-
 def load_secondary_material():
-    '''Adds a blank material to the passed in object'''
+    '''Adds a blank material to the passed in object.'''
     prefs = get_prefs()
     secondary_mat = prefs.secondary_material
     if secondary_mat not in bpy.data.materials:
@@ -51,7 +47,7 @@ def get_material_index(obj, material):
 
 
 def assign_mat_to_vert_group(vert_group, obj, material):
-    """Assigns the passed in material to the passed in vertex group.
+    """Assign the passed in material to the passed in vertex group.
 
     Args:
         vert_group (bpy.types.VertexGroup): vertex group
@@ -177,6 +173,68 @@ def assign_texture_to_areas(obj, primary_material, secondary_material):
 
     for group in textured_vert_groups:
         if group.value is False:
-            assign_mat_to_vert_group(group.name, obj, bpy.data.materials[secondary_material])
+            assign_mat_to_vert_group(
+                group.name, obj, bpy.data.materials[secondary_material])
         else:
-            assign_mat_to_vert_group(group.name, obj, bpy.data.materials[primary_material])
+            assign_mat_to_vert_group(
+                group.name, obj, bpy.data.materials[primary_material])
+
+# TODO Ensure this works for custom image material. I think we also need
+# to check whether image is unique otherwise it won;t work
+
+
+def material_is_unique(material, materials):
+    """Check whether the passed in material already exists.
+
+    Parameters
+    material : bpy.types.Material
+        material to check for uniqueness
+    materials[list]: List of bpy.types.Material
+    Returns
+    Boolean
+        True if material is unique
+
+    matched_material : bpy.types.Material
+        Matching material. None if material is unique
+
+    """
+    found = []
+    # remove digits from end of material name
+    mat_name = material.name.rstrip('0123456789. ')
+
+    # check if material shares a name with another material (minus numeric suffix)
+    for mat in materials:
+        stripped_name = mat.name.rstrip('0123456789. ')
+        if stripped_name == mat_name:
+            found.append(mat)
+
+    if len(found) == 0:
+        return True, None
+
+    # check if materials that share the same name share the same node tree by comparing names of nodes
+    mat_node_keys = material.node_tree.nodes.keys()
+
+    found_2 = []
+    for mat in found:
+        found_mat_node_keys = mat.node_tree.nodes.keys()
+        if mat_node_keys.sort() == found_mat_node_keys.sort():
+            found_2.append(mat)
+
+    if len(found_2) == 0:
+        return True, None
+
+    # check if all nodes of type 'VALUE' have the same default values on their outputs
+    mat_node_values = []
+    for node in material.node_tree.nodes:
+        if node.type == 'VALUE':
+            mat_node_values.append(node.outputs[0].default_value)
+
+    for mat in found_2:
+        found_mat_node_values = []
+        for node in mat.node_tree.nodes:
+            if node.type == 'VALUE':
+                found_mat_node_values.append(node.outputs[0].default_value)
+        if mat_node_values.sort() == found_mat_node_values.sort():
+            return False, mat
+
+    return True, None

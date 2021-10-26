@@ -1,9 +1,11 @@
 from math import radians, sqrt, cos, acos, degrees, isclose
+import re
 import bpy
 import bmesh
 from mathutils import Vector, Euler, Matrix
 from . selection import select, activate, deselect_all, select_all
 from . collections import add_object_to_collection
+
 
 def set_origin(obj, target_coords=Vector()):
     """Set the origin of the object.
@@ -16,6 +18,7 @@ def set_origin(obj, target_coords=Vector()):
     o = mw.inverted() @ Vector(target_coords)
     obj.data.transform(Matrix.Translation(-o))
     mw.translation = target_coords
+
 
 def get_annotations(cls):
     """Return all annotations of a class including from parent class.
@@ -281,3 +284,19 @@ def calc_tri(A, b, c):
         'C': C}
 
     return dimensions
+
+
+def slugify(slug):
+    """Return passed in string as a slug suitable for transmission.
+
+    Normalize string, convert to lowercase, remove non-alpha numeric characters,
+    and convert spaces to hyphens.
+    """
+    slug = slug.lower()
+    slug = slug.replace('.', '_')
+    slug = slug.replace('"', '')
+    slug = slug.replace(' ', '_')
+    slug = re.sub(r'[^a-z0-9]+.- ', '-', slug).strip('-')
+    slug = re.sub(r'[-]+', '-', slug)
+    slug = re.sub(r'/', '_', slug)
+    return slug

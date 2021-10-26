@@ -26,12 +26,24 @@ def create_properties_on_load(dummy):
 
 def load_material_libraries(context):
     prefs = get_prefs()
+
     dirs = (os.path.join(prefs.assets_path, "materials"),
             os.path.join(prefs.user_assets_path, "materials"))
 
-    for dir_path in dirs:
+    # load default materials so they appear in maketile menu
+    default_assets_dir = os.path.join(prefs.assets_path, "materials")
+    paths = [path for path in absolute_file_paths(
+        default_assets_dir) if path.endswith(".blend")]
+    for path in paths:
+        load_materials(path)
+
+    # TODO: Ensure this works with new asset manager system as it won't currently
+    # as it only scans the material directory
+    if prefs.load_user_materials_on_startup:
+        # load user materials so they appear in maketile menu
+        user_assets_dir = os.path.join(prefs.user_assets_path, "materials")
         paths = [path for path in absolute_file_paths(
-            dir_path) if path.endswith(".blend")]
+            user_assets_dir) if path.endswith(".blend")]
         for path in paths:
             load_materials(path)
 

@@ -1,6 +1,7 @@
 import os
 import bpy
 from .. utils.registration import get_prefs
+from ..lib.utils.utils import slugify
 from .. lib.utils.vertex_groups import (
     get_verts_in_vert_group,
     get_vert_indexes_in_vert_group)
@@ -180,7 +181,7 @@ def assign_texture_to_areas(obj, primary_material, secondary_material):
                 group.name, obj, bpy.data.materials[primary_material])
 
 # TODO Ensure this works for custom image material. I think we also need
-# to check whether image is unique otherwise it won;t work
+# to check whether image is unique otherwise it won't work
 
 
 def material_is_unique(material, materials):
@@ -199,12 +200,12 @@ def material_is_unique(material, materials):
 
     """
     found = []
-    # remove digits from end of material name
-    mat_name = material.name.rstrip('0123456789. ')
+    # slugify material name and strip digits
+    mat_name = slugify(material.name.rstrip('0123456789. '))
 
     # check if material shares a name with another material (minus numeric suffix)
     for mat in materials:
-        stripped_name = mat.name.rstrip('0123456789. ')
+        stripped_name = slugify(mat.name.rstrip('0123456789. '))
         if stripped_name == mat_name:
             found.append(mat)
 

@@ -21,7 +21,7 @@ bl_info = {
     "author": "Richard Rose",
     "description": "Add on for creating 3d printable tiles",
     "blender": (2, 93, 0),
-    "version": (0, 0, 25),
+    "version": (0, 0, 26),
     "location": "View3D > UI > MakeTile",
     "warning": "",
     "doc_url": "https://maketile.readthedocs.io/en/latest/",
@@ -32,6 +32,7 @@ bl_info = {
 # sys.path.append('C:/Users/riche/AppData/Local/Programs/Python/Python39/Lib/site-packages')
 
 auto_load.init()
+
 
 def register():
     auto_load.register()

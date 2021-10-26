@@ -42,13 +42,19 @@ You can export random variants of a tile using the MakeTile export menu by selec
 Make sure you have clicked **Make3D** before exporting your tile if you just want to create a single tile without randomising it.
 
 ## I've exported a tile and the file is huge. How do I fix this?
-Checking **Voxelise** will voxelise your tile on export and then simplify it, reducing the final poly count. You can find the voxel settings in the **Voxelise Settings** panel in the MakeTile menu. Increasing the **Voxel Size** will reduce the amount of detail picked up. Increasing the **Adaptivity** will increase the amount of post voxelisation simplification.
+Checking **Voxelise** will voxelise your tile on export and then simplify it, reducing the final poly count. You can find the voxel settings in the **Voxelise Settings** panel in the MakeTile menu. Increasing the **Voxel Size** will reduce the amount of detail picked up. Increasing the **Adaptivity** will increase the amount of post voxelisation simplification. You can also [decimate](index.md/#Decimating) your tile on export using the decimation settings which will reduce the file size further.
 
 ## After I've exported my mesh it's lost some detail. How do I fix this?
 You can change the size of voxels and amount of simplification in the **Voxelise Settings** panel in the MakeTile menu. Decreasing the **Voxel Size** will pick up more detail. Decreasing the **Adaptivity** wil decrease the amount of post voxelisation simplification. You can also turn off Voxelisation altogether but be warned the file size will be huge.
 
 ## How do I change the default export path that MakeTile uses?
 Go to **Edit** > **Preferences** > **Add-ons** > **MakeTile** and choose the new default export path.
+
+## I've got a huge list of materials showing up when I come to make a tile. How do I get rid of these?
+As of version 0.0.26 The default behaviour of MakeTile is to import any materials that you have saved in your user library on startup so you can use these when you create a new tile. On reflection this is a bad idea and the default behaviour will be changed in an upcoming release. For now if you want to change this behaviour so only the default MakeTile materials are imported on startup go to **Edit** > **Preferences** > **Add-ons** > **MakeTile** and untick the **Load User Materials on Startup** option. The next time you start Blender you will only see the default materials.
+
+## I've turned off the Load User Materials on Startup option. How do I now get my own materials into the scene?
+If you are using the MakeTile asset manager you can just drag and drop a material onto your tile. Otherwise you will need to appen the material from the .blend file you saved it in. Go to **File** > **Append** Navigate to the .blend file you have saved your material in > **Material** > Select the material you want and click **Append**. In the MakeTile menu go to the **Materials** sub panel, and either select the current material and then click on the down arrow next to material name an select the new material, or click on the **+** button to create a new material slot and assign the new material to that slot.
 
 ## I've created a building and now I want to export it as a single mesh rather than individual tiles. How can I do this?
 Check out this video on how to do this: https://youtu.be/x95RjKsU4Qg

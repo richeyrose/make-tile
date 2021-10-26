@@ -1,4 +1,8 @@
 # Release Notes
+## 0.0.26 ##
+### Material Importing ###
+Various bugs have been fixed in the way that materials are imported and saved. Saved materials based on the custom image material should now have the displacement texture saved properly so won;t break when you come to reuse them. There is also now an option to not import user materials on load. See the [faq](faq.md/#ive-got-a-huge-list-of-materials-showing-up-when-i-come-to-make-a-tile-how-do-i-get-rid-of-these) for more details.
+
 ## 0.0.25 ##
 
 ### Optimisation ###

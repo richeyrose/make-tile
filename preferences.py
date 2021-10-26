@@ -1,7 +1,7 @@
 import os
 import shutil
 import bpy
-from bpy.props import StringProperty, EnumProperty
+from bpy.props import StringProperty, EnumProperty, BoolProperty
 from . utils.registration import get_path
 from . utils.system import makedir, abspath
 from . enums.enums import tile_blueprints, units
@@ -82,12 +82,21 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
         name="Default Tile Type"
     )
 
+    load_user_materials_on_startup: BoolProperty(
+        default=True,
+        name="Load User Materials on Startup?",
+        description="Whether to load user materials on startup so they appear in the material list when generating a new tile."
+    )
+
     def draw(self, context):
         layout = self.layout
         layout.prop(self, 'user_assets_path')
         layout.prop(self, 'default_export_path')
         layout.prop(self, 'default_units')
+        layout.prop(self, 'load_user_materials_on_startup')
 
 # TODO: Stub - reload_asset_libraries
+
+
 def reload_asset_libraries():
     print('reload_asset_libraries')

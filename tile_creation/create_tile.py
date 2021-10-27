@@ -25,6 +25,7 @@ from ..lib.utils.selection import deselect_all
 from ..lib.utils.multimethod import multimethod
 from ..materials.materials import assign_mat_to_vert_group
 from ..lib.utils.utils import get_all_subclasses, get_annotations
+from ..lib.utils.file_handling import absolute_file_paths
 
 from ..enums.enums import (
     units,
@@ -174,7 +175,7 @@ def update_part_defaults(self, context):
 
 
 def create_material_enums(self, context):
-    """Create a list of enum items of materials compatible with the MakeTile material system.
+    """Create a list of enum items of materials saved in the default materials directory.
 
     Args:
         context (bpy.context): context
@@ -182,16 +183,25 @@ def create_material_enums(self, context):
     Returns:
         list[EnumPropertyItem]: enum items
     """
+    prefs = get_prefs()
     enum_items = []
     if context is None:
         return enum_items
 
-    materials = bpy.data.materials
-    for material in materials:
-        if 'mt_material' in material.keys():
-            if material['mt_material']:
-                enum = (material.name, material.name, "")
-                enum_items.append(enum)
+    default_assets_dir = os.path.join(prefs.assets_path, "materials")
+
+    paths = [path for path in absolute_file_paths(
+        default_assets_dir) if path.endswith(".blend")]
+
+    materials = []
+    for path in paths:
+        with bpy.data.libraries.load(path) as (data_from, data_to):
+            materials = materials + data_from.materials
+
+    for mat in materials:
+        enum = (mat, mat, "")
+        enum_items.append(enum)
+
     return enum_items
 
 

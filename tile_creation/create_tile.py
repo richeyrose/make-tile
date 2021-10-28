@@ -175,7 +175,7 @@ def update_part_defaults(self, context):
 
 
 def create_material_enums(self, context):
-    """Create a list of enum items of materials saved in the default materials directory.
+    """Return list of default materials as enums.
 
     Args:
         context (bpy.context): context
@@ -185,24 +185,17 @@ def create_material_enums(self, context):
     """
     prefs = get_prefs()
     enum_items = []
+
     if context is None:
         return enum_items
 
-    default_assets_dir = os.path.join(prefs.assets_path, "materials")
+    mats = prefs.default_materials
 
-    paths = [path for path in absolute_file_paths(
-        default_assets_dir) if path.endswith(".blend")]
-
-    materials = []
-    for path in paths:
-        with bpy.data.libraries.load(path) as (data_from, data_to):
-            materials = materials + data_from.materials
-
-    for mat in materials:
-        enum = (mat, mat, "")
+    for mat in mats:
+        enum = (mat.name, mat.name, "")
         enum_items.append(enum)
 
-    return enum_items
+    return sorted(enum_items)
 
 
 class MT_OT_Reset_Tile_Defaults(Operator):

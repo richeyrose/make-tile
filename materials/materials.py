@@ -1,10 +1,40 @@
 import os
 import bpy
+from pathlib import Path
 from .. utils.registration import get_prefs
 from ..lib.utils.utils import slugify
+from ..lib.utils.file_handling import find_and_rename
 from .. lib.utils.vertex_groups import (
     get_verts_in_vert_group,
     get_vert_indexes_in_vert_group)
+
+
+# def save_material_as_default(material):
+#     """Write the passed in material to the default material library directory.
+
+#     Args:
+#         material (bpy.types.Material): Material
+#     """
+#     prefs = get_prefs()
+#     default_assets_dir = os.path.join(prefs.assets_path, "materials")
+
+#     # check if the material is a linked library file
+#     if material.library:
+#         # create a symbolic link to the material file in the default materials directpry
+#         pass
+
+#     # else save material to default materials directory
+#     else:
+#         # construct filename to avoid clashes
+#         blends = [f for f in os.listdir(default_assets_dir) if os.path.isfile(
+#             os.path.join(default_assets_dir, f)) and f.endswith(".blend")]
+#         stems = [Path(blend).stem for blend in blends]
+#         slug = material.name
+#         filename = find_and_rename(slug, stems) + '.blend'
+
+#         # write to file
+#         filepath = os.path.join(default_assets_dir, filename)
+#         bpy.data.libraries.write(filepath, {material}, fake_user=True)
 
 
 def load_materials(filepath):

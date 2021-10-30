@@ -37,22 +37,23 @@ def create_default_materials(context):
     default_mats = prefs.default_materials
 
     default_assets_dir = os.path.join(prefs.assets_path, "materials")
+
     paths = [path for path in absolute_file_paths(
         default_assets_dir) if path.endswith(".blend")]
 
     for path in paths:
         with bpy.data.libraries.load(path) as (data_from, data_to):
             for mat in data_from.materials:
-                new_mat = default_mats.add()
-                new_mat.name = mat
-                new_mat.filepath = path
+                if mat not in [mat.name for mat in default_mats if mat.filepath == path]:
+                    new_mat = default_mats.add()
+                    new_mat.name = mat
+                    new_mat.filepath = path
     return
 
 
 def load_default_materials(context):
     prefs = get_prefs()
     default_mats = prefs.default_materials
-
     paths = set([mat.filepath for mat in default_mats])
 
     try:
@@ -68,27 +69,6 @@ def load_default_materials(context):
     except KeyError as err:
         print(err)
         return False
-
-
-# def load_material_libraries(context):
-#     prefs = get_prefs()
-
-#     # load default materials so they appear in maketile menu
-#     default_assets_dir = os.path.join(prefs.assets_path, "materials")
-#     paths = [path for path in absolute_file_paths(
-#         default_assets_dir) if path.endswith(".blend")]
-#     for path in paths:
-#         load_materials(path)
-
-#     # # TODO: Ensure this works with new asset manager system as it won't currently
-#     # # as it only scans the material directory
-#     # if prefs.load_user_materials_on_startup:
-#     #     # load user materials so they appear in maketile menu
-#     #     user_assets_dir = os.path.join(prefs.user_assets_path, "materials")
-#     #     paths = [path for path in absolute_file_paths(
-#     #         user_assets_dir) if path.endswith(".blend")]
-#     #     for path in paths:
-#     #         load_materials(path)
 
 
 @persistent

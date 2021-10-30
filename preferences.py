@@ -1,13 +1,15 @@
 import os
 import shutil
 import bpy
-from bpy.types import PropertyGroup
+from bpy.types import PropertyGroup, Operator
 from bpy.props import (
     StringProperty,
     EnumProperty,
     BoolProperty,
     CollectionProperty,
-    PointerProperty)
+    PointerProperty,
+    IntProperty)
+
 from . utils.registration import get_path
 from . utils.system import makedir, abspath
 from . enums.enums import tile_blueprints, units
@@ -15,6 +17,8 @@ from .tile_creation.create_tile import (
     create_tile_type_enums,
     create_base_blueprint_enums,
     create_main_part_blueprint_enums)
+from .utils.registration import get_prefs
+from .app_handlers import create_default_materials
 
 
 class MT_DefaultMaterial(PropertyGroup):
@@ -22,6 +26,7 @@ class MT_DefaultMaterial(PropertyGroup):
         name="Name",
         default=""
     )
+
     filepath: StringProperty(
         name="File Path",
         subtype="FILE_PATH"
@@ -99,12 +104,6 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
         name="Default Tile Type"
     )
 
-    load_user_materials_on_startup: BoolProperty(
-        default=False,
-        name="Load User Materials on Startup?",
-        description="Whether to load user materials on startup so they appear in the material list when generating a new tile."
-    )
-
     default_materials: CollectionProperty(
         name="Default Materials",
         type=MT_DefaultMaterial)
@@ -114,9 +113,80 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
         layout.prop(self, 'user_assets_path')
         layout.prop(self, 'default_export_path')
         layout.prop(self, 'default_units')
-        layout.label(text="Default Materials")
-        layout.prop(self, 'default_materials')
-        layout.prop(self, 'load_user_materials_on_startup')
+        layout.label(text="Default Materials:")
+
+        # Draw list of default materials
+        i = 0
+        for mat in self.default_materials:
+            row = layout.row()
+            row.label(text=mat.name)
+            row.label(text=mat.filepath)
+            op = row.operator('addons.mt_remove_mat_from_defaults')
+            op.material = mat.name
+            op.filepath = mat.filepath
+            op.index = i
+            i += 1
+        layout.operator('addons.mt_restore_default_materials')
+
+        op = layout.operator('addons.mt_add_active_mat_to_defaults')
+
+
+class MT_OT_Restore_Default_Materials(Operator):
+    bl_idname = "addons.mt_restore_default_materials"
+    bl_label = "Restore Default Materials"
+    bl_description = "Restore Default MakeTile materials."
+
+    def execute(self, context):
+        create_default_materials(context)
+        self.report({'INFO'}, "Default materials restored.")
+        return {'FINISHED'}
+
+
+class MT_OT_Add_Active_Material_To_Defaults(Operator):
+    bl_idname = "addons.mt_add_active_mat_to_defaults"
+    bl_label = "Add Active Material to Default List"
+    bl_description = "Add active material to MakeTile default material list."
+
+    @classmethod
+    def poll(cls, context):
+        return bpy.data.filepath and context.active_object.active_material
+
+    def execute(self, context):
+        prefs = get_prefs()
+        default_mats = prefs.default_materials
+        new_mat = default_mats.add()
+        new_mat.name = context.active_object.active_material.name
+        new_mat.filepath = bpy.data.filepath
+        return {'FINISHED'}
+
+
+class MT_OT_Remove_Material_From_Defaults(Operator):
+    bl_idname = "addons.mt_remove_mat_from_defaults"
+    bl_label = "Remove"
+    bl_description = "Remove material from default material list."
+
+    material: StringProperty(
+        name="Material"
+    )
+
+    filepath: StringProperty(
+        name="Filepath",
+        subtype="FILE_PATH"
+    )
+
+    index: IntProperty(
+        name="Index"
+    )
+
+    def execute(self, context):
+        prefs = get_prefs()
+        default_mats = prefs.default_materials
+        default_mats.remove(self.index)
+        self.report({'INFO'}, self.material +
+                    " removed from default material list.")
+
+        return {'FINISHED'}
+
 
 # TODO: Stub - reload_asset_libraries
 

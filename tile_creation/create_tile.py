@@ -756,11 +756,17 @@ def convert_to_displacement_core(core, textured_vertex_groups, material, subsurf
     """
     context = bpy.context
     scene = context.scene
-    preferences = get_prefs()
+    prefs = get_prefs()
     props = core.mt_object_props
     scene_props = scene.mt_scene_props
-    primary_material = bpy.data.materials[material]
-    secondary_material = bpy.data.materials[preferences.secondary_material]
+    prim_mat = bpy.data.materials[material]
+    sec_mat = bpy.data.materials[prefs.secondary_material]
+
+    # check if we need to append primary material
+    if prefs.default_mat_behaviour == 'APPEND' and prim_mat.library:
+        new_mat = prim_mat.copy()
+        bpy.data.materials.remove(prim_mat)
+        prim_mat = new_mat
 
     # create new displacement modifier
     disp_mod = core.modifiers.new('MT Displacement', 'DISPLACE')
@@ -791,14 +797,14 @@ def convert_to_displacement_core(core, textured_vertex_groups, material, subsurf
     subsurf.levels = 3
 
     # assign materials
-    if secondary_material.name not in core.data.materials:
-        core.data.materials.append(secondary_material)
+    if sec_mat.name not in core.data.materials:
+        core.data.materials.append(sec_mat)
 
-    if primary_material.name not in core.data.materials:
-        core.data.materials.append(primary_material)
+    if prim_mat.name not in core.data.materials:
+        core.data.materials.append(prim_mat)
 
     for group in textured_vertex_groups:
-        assign_mat_to_vert_group(group, core, primary_material)
+        assign_mat_to_vert_group(group, core, prim_mat)
 
     # flag core as a displacement object
     core.mt_object_props.is_displacement = True

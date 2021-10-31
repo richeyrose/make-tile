@@ -108,13 +108,22 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
         name="Default Materials",
         type=MT_DefaultMaterial)
 
+    default_mat_behaviour: EnumProperty(
+        name="Default Material Behaviour",
+        description="What to do with the material when generating a tile with it applied the first time.",
+        items=[
+            ("APPEND", "Append", "Append the material and make a local copy."),
+            ("LINK", "Link", "Link to the material.")],
+        default="APPEND"
+    )
+
     def draw(self, context):
         layout = self.layout
         layout.prop(self, 'user_assets_path')
         layout.prop(self, 'default_export_path')
         layout.prop(self, 'default_units')
+        layout.prop(self, 'default_mat_behaviour')
         layout.label(text="Default Materials:")
-
         # Draw list of default materials
         i = 0
         for mat in self.default_materials:

@@ -59,7 +59,7 @@ def load_default_materials(context):
     try:
         for path in paths:
             mats = [mat.name for mat in default_mats if mat.filepath == path]
-            with bpy.data.libraries.load(path) as (data_from, data_to):
+            with bpy.data.libraries.load(path, link=True) as (data_from, data_to):
                 data_to.materials = [
                     mat for mat in data_from.materials if mat in mats]
         return True

@@ -810,52 +810,6 @@ def convert_to_displacement_core(core, textured_vertex_groups, material, subsurf
     core.mt_object_props.is_displacement = True
     core.mt_object_props.geometry_type = 'CORE'
 
-
-'''
-def finalise_tile(base, core, cursor_orig_loc, cursor_orig_rot):
-    """Finalise tile.
-
-    Parent core to base, assign secondary material to base, reset cursor,
-    select and activate base.
-
-    Args:
-        base (bpy.type.Object): base
-        core (bpy.types.Object or list or tuple of bpy.types.Object): core(s)
-        cursor_orig_loc (Vector(3)): original cursor location
-        cursor_orig_rot (Vector(3)): original cursor rotation
-    """
-    context = bpy.context
-
-    # Assign secondary material to our base if its a mesh
-    prefs = get_prefs()
-    if base.type == 'MESH' and prefs.secondary_material not in base.material_slots:
-        base.data.materials.append(bpy.data.materials[prefs.secondary_material])
-
-    # Reset location
-    base.location = cursor_orig_loc
-    cursor = context.scene.cursor
-    cursor.location = cursor_orig_loc
-    cursor.rotation_euler = cursor_orig_rot
-
-    # Parent cores to base
-    if core is not None:
-        if isinstance(core, (list, tuple)):
-            for c in core:
-                c.parent = base
-                lock_all_transforms(c)
-        else:
-            core.parent = base
-            lock_all_transforms(core)
-
-    # deselect any currently selected objects
-    for obj in context.selected_objects:
-        obj.select_set(False)
-
-    base.select_set(True)
-    context.view_layer.objects.active = base
-'''
-
-
 def spawn_empty_base(tile_props):
     """Spawn an empty base into the scene.
 

@@ -40,14 +40,25 @@ def create_default_materials(context):
 
     paths = [path for path in absolute_file_paths(
         default_assets_dir) if path.endswith(".blend")]
+    lib_paths = [os.path.abspath(lib.filepath) for lib in bpy.data.libraries]
 
     for path in paths:
-        with bpy.data.libraries.load(path) as (data_from, data_to):
-            for mat in data_from.materials:
-                if mat not in [mat.name for mat in default_mats if mat.filepath == path]:
-                    new_mat = default_mats.add()
-                    new_mat.name = mat
-                    new_mat.filepath = path
+        if path not in lib_paths:
+            with bpy.data.libraries.load(path) as (data_from, data_to):
+                for mat in data_from.materials:
+                    if mat not in [mat.name for mat in default_mats if mat.filepath == path]:
+                        new_mat = default_mats.add()
+                        new_mat.name = mat
+                        new_mat.filepath = path
+        else:
+            for lib in bpy.data.libraries:
+                if lib.filepath == path:
+                    for user_id in lib.users_id:
+                        if isinstance(user_id, bpy.types.Material):
+                            new_mat = default_mats.add()
+                            new_mat.name = user_id.name
+                            new_mat.filepath = path
+
     return
 
 
@@ -55,13 +66,14 @@ def load_default_materials(context):
     prefs = get_prefs()
     default_mats = prefs.default_materials
     paths = set([mat.filepath for mat in default_mats])
-
+    lib_paths = [os.path.abspath(lib.filepath) for lib in bpy.data.libraries]
     try:
         for path in paths:
-            mats = [mat.name for mat in default_mats if mat.filepath == path]
-            with bpy.data.libraries.load(path, link=True) as (data_from, data_to):
-                data_to.materials = [
-                    mat for mat in data_from.materials if mat in mats]
+            if path not in lib_paths:
+                mats = [mat.name for mat in default_mats if mat.filepath == path]
+                with bpy.data.libraries.load(path, link=True) as (data_from, data_to):
+                    data_to.materials = [
+                        mat for mat in data_from.materials if mat in mats]
         return True
     except OSError as err:
         print(err)

@@ -39,7 +39,8 @@ class MT_OT_Assign_Material_To_Vert_Group(bpy.types.Operator):
             vert_groups = obj.vertex_groups
             if vert_group_name in vert_groups:
                 # obj_props = obj.mt_object_props
-                assign_mat_to_vert_group(vert_group_name, obj, primary_material)
+                assign_mat_to_vert_group(
+                    vert_group_name, obj, primary_material)
                 textured_verts = set()
 
                 for key, value in obj.material_slots.items():
@@ -50,10 +51,13 @@ class MT_OT_Assign_Material_To_Vert_Group(bpy.types.Operator):
                 if 'disp_mod_vert_group' in obj.vertex_groups:
                     disp_vert_group = obj.vertex_groups['disp_mod_vert_group']
                     clear_vert_group(disp_vert_group, obj)
-                    disp_vert_group.add(index=list(textured_verts), weight=1, type='ADD')
+                    disp_vert_group.add(index=list(
+                        textured_verts), weight=1, type='ADD')
                 else:
-                    disp_vert_group = obj.vertex_groups.new(name='disp_mod_vert_group')
-                    disp_vert_group.add(index=list(textured_verts), weight=1, type='ADD')
+                    disp_vert_group = obj.vertex_groups.new(
+                        name='disp_mod_vert_group')
+                    disp_vert_group.add(index=list(
+                        textured_verts), weight=1, type='ADD')
 
         return {'FINISHED'}
 
@@ -84,7 +88,8 @@ class MT_OT_Remove_Material_From_Vert_Group(bpy.types.Operator):
             vert_groups = obj.vertex_groups
             if vert_group_name in vert_groups:
                 # obj_props = obj.mt_object_props
-                assign_mat_to_vert_group(vert_group_name, obj, secondary_material)
+                assign_mat_to_vert_group(
+                    vert_group_name, obj, secondary_material)
                 textured_verts = set()
 
                 for key, value in obj.material_slots.items():
@@ -95,10 +100,13 @@ class MT_OT_Remove_Material_From_Vert_Group(bpy.types.Operator):
                 if 'disp_mod_vert_group' in obj.vertex_groups:
                     disp_vert_group = obj.vertex_groups['disp_mod_vert_group']
                     clear_vert_group(disp_vert_group, obj)
-                    disp_vert_group.add(index=list(textured_verts), weight=1, type='ADD')
+                    disp_vert_group.add(index=list(
+                        textured_verts), weight=1, type='ADD')
                 else:
-                    disp_vert_group = obj.vertex_groups.new(name='disp_mod_vert_group')
-                    disp_vert_group.add(index=list(textured_verts), weight=1, type='ADD')
+                    disp_vert_group = obj.vertex_groups.new(
+                        name='disp_mod_vert_group')
+                    disp_vert_group.add(index=list(
+                        textured_verts), weight=1, type='ADD')
 
         return {'FINISHED'}
 
@@ -145,7 +153,8 @@ class MT_OT_Make_3D(bpy.types.Operator):
                     'selected_editable_objects': [obj],
                     'active_object': obj,
                     'object': obj}
-                bpy.ops.object.modifier_move_to_index(ctx, modifier=subsurf_mod.name, index=0)
+                bpy.ops.object.modifier_move_to_index(
+                    ctx, modifier=subsurf_mod.name, index=0)
 
                 # obj_props.geometry_type = 'DISPLACEMENT'
                 obj_props.is_displaced = True
@@ -162,8 +171,8 @@ def set_cycles_to_bake_mode():
     cycles_settings = {
         'orig_engine': context.scene.render.engine,
         'orig_samples': context.scene.cycles.samples,
-        'orig_x': context.scene.render.tile_x,
-        'orig_y': context.scene.render.tile_y,
+        'orig_x': context.scene.render.resolution_x,
+        'orig_y': context.scene.render.resolution_y,
         'orig_bake_type': context.scene.cycles.bake_type,
         'use_selected_to_active': context.scene.render.bake.use_selected_to_active
     }
@@ -171,8 +180,8 @@ def set_cycles_to_bake_mode():
     # switch to Cycles and set up rendering settings for baking
     context.scene.render.engine = 'CYCLES'
     context.scene.cycles.samples = 1
-    context.scene.render.tile_x = resolution
-    context.scene.render.tile_y = resolution
+    context.scene.render.resolution_x = resolution
+    context.scene.render.resolution_y = resolution
     context.scene.cycles.bake_type = 'EMIT'
     context.scene.render.bake.use_selected_to_active = False
 
@@ -182,8 +191,8 @@ def set_cycles_to_bake_mode():
 def reset_renderer_from_bake(orig_settings):
     context = bpy.context
     context.scene.cycles.samples = orig_settings['orig_samples']
-    context.scene.render.tile_x = orig_settings['orig_x']
-    context.scene.render.tile_y = orig_settings['orig_y']
+    context.scene.render.resolution_x = orig_settings['orig_x']
+    context.scene.render.resolution_y = orig_settings['orig_y']
     context.scene.cycles.bake_type = orig_settings['orig_bake_type']
     context.scene.render.bake.use_selected_to_active = orig_settings['use_selected_to_active']
     context.scene.render.engine = orig_settings['orig_engine']
@@ -254,7 +263,7 @@ def bake_displacement_map(obj):
     }
 
     # bake
-    #check to see if there is a UV layer and if not make one
+    # check to see if there is a UV layer and if not make one
     if len(obj.data.uv_layers) == 0:
         bpy.ops.object.editmode_toggle(ctx)
         bpy.ops.mesh.select_all(action='SELECT')
@@ -263,7 +272,6 @@ def bake_displacement_map(obj):
         bpy.ops.object.editmode_toggle(ctx)
 
     bpy.ops.object.bake(ctx, type='EMIT')
-
 
     # pack image
     disp_image.pack()
@@ -274,8 +282,10 @@ def bake_displacement_map(obj):
         surface_shader_node = tree.nodes['surface_shader']
         displacement_node = tree.nodes['final_disp']
         mat_output_node = tree.nodes['Material Output']
-        tree.links.new(surface_shader_node.outputs['BSDF'], mat_output_node.inputs['Surface'])
-        tree.links.new(displacement_node.outputs['Displacement'], mat_output_node.inputs['Displacement'])
+        tree.links.new(
+            surface_shader_node.outputs['BSDF'], mat_output_node.inputs['Surface'])
+        tree.links.new(
+            displacement_node.outputs['Displacement'], mat_output_node.inputs['Displacement'])
 
     preview_materials = obj.mt_object_props.preview_materials
     preview_materials.clear()
@@ -289,12 +299,14 @@ def bake_displacement_map(obj):
     # assign secondary material to entire mesh
     # We do this because when the mesh is being displaced we want to see what the actual geometry is without any texture
     try:
-        sec_mat_index = get_material_index(obj, bpy.data.materials[prefs.secondary_material])
+        sec_mat_index = get_material_index(
+            obj, bpy.data.materials[prefs.secondary_material])
     except ValueError:
-    # we may need to add in ther secondary material if the user has used Blender's internal
-    # asset browser or linked the collection in manually
+        # we may need to add in ther secondary material if the user has used Blender's internal
+        # asset browser or linked the collection in manually
         obj.data.materials.append(bpy.data.materials[prefs.secondary_material])
-        sec_mat_index = get_material_index(obj, bpy.data.materials[prefs.secondary_material])
+        sec_mat_index = get_material_index(
+            obj, bpy.data.materials[prefs.secondary_material])
 
     for poly in obj.data.polygons:
         poly.material_index = sec_mat_index

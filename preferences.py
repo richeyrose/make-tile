@@ -110,7 +110,7 @@ class MT_MakeTilePreferences(bpy.types.AddonPreferences):
 
     default_mat_behaviour: EnumProperty(
         name="Default Material Behaviour",
-        description="What to do with the material when generating a tile with it applied the first time.",
+        description="Append linked materials on tile generation?",
         items=[
             ("APPEND", "Append", "Append the material and make a local copy."),
             ("LINK", "Link", "Link to the material.")],

@@ -27,6 +27,8 @@ from line_profiler import LineProfiler
 from os.path import splitext
 profile = LineProfiler()
 '''
+
+
 def draw_cuboid(dimensions):
     """Draw a cuboid.
 
@@ -339,7 +341,8 @@ def draw_tri_slot_cutter(dimensions):
 
     # inset to get slot
 
-    ret = bmesh.ops.inset_individual(bm, faces=bm.faces, thickness=offset, use_even_offset=True)
+    ret = bmesh.ops.inset_individual(
+        bm, faces=bm.faces, thickness=offset, use_even_offset=True)
 
     # delete other faces
     to_delete = []
@@ -349,7 +352,8 @@ def draw_tri_slot_cutter(dimensions):
 
     bmesh.ops.delete(bm, geom=to_delete, context='FACES')
 
-    ret2 = bmesh.ops.inset_individual(bm, faces=bm.faces, thickness=cutter_w, use_even_offset=True)
+    ret2 = bmesh.ops.inset_individual(
+        bm, faces=bm.faces, thickness=cutter_w, use_even_offset=True)
 
     # delete other faces
     to_delete = []
@@ -458,7 +462,8 @@ def draw_straight_wall_core(dims, subdivs, margin=0.001):
     buffer = margin / 2
 
     left_verts_orig = select_verts_in_bounds(lbound, ubound, buffer, bm)
-    left_verts = [v for v in left_verts_orig if v not in top_verts]
+    left_verts = [
+        v for v in left_verts_orig if v not in top_verts and v not in bottom_verts]
     assign_verts_to_group(left_verts, obj, deform_groups, 'Left')
 
     # select right side and assign to vert group
@@ -467,12 +472,18 @@ def draw_straight_wall_core(dims, subdivs, margin=0.001):
     buffer = margin / 2
 
     right_verts_orig = select_verts_in_bounds(lbound, ubound, buffer, bm)
-    right_verts = [v for v in right_verts_orig if v not in top_verts]
+    right_verts = [
+        v for v in right_verts_orig if v not in top_verts and v not in bottom_verts]
     assign_verts_to_group(right_verts, obj, deform_groups, 'Right')
 
-    # make sure top verts doesn;t contain any verts from ends
-    top_verts = [v for v in top_verts if v not in left_verts_orig and v not in right_verts_orig]
+    # make sure top and bottom verts don't contain any verts from ends
+    top_verts = [
+        v for v in top_verts if v not in left_verts_orig and v not in right_verts_orig]
     assign_verts_to_group(top_verts, obj, deform_groups, 'Top')
+
+    bottom_verts = [
+        v for v in bottom_verts if v not in left_verts_orig and v not in right_verts_orig]
+    assign_verts_to_group(bottom_verts, obj, deform_groups, 'Bottom')
 
     # select front side and assign to vert group
     lbound = (margin, 0, margin)
@@ -578,7 +589,8 @@ def draw_corner_core(
     pd(bm)
     # draw leg 1
     # outer edge
-    subdiv_dist = (triangles_2['a_adj'] - margin) / native_subdivisions['leg 1']
+    subdiv_dist = (triangles_2['a_adj'] - margin) / \
+        native_subdivisions['leg 1']
 
     add_vert(bm)
     rt(angle)
@@ -615,7 +627,8 @@ def draw_corner_core(
     lt(90)
 
     # inner
-    subdiv_dist = (triangles_2['b_adj'] - margin) / native_subdivisions['leg 1']
+    subdiv_dist = (triangles_2['b_adj'] - margin) / \
+        native_subdivisions['leg 1']
     bm.verts.ensure_lookup_table()
     start_index = verts[-1].index
     fd(bm, margin)
@@ -640,7 +653,8 @@ def draw_corner_core(
     leg_2_outer_vert_locs = []
     leg_2_end_vert_locs = []
     leg_2_inner_vert_locs = []
-    subdiv_dist = (triangles_2['c_adj'] - margin) / native_subdivisions['leg 2']
+    subdiv_dist = (triangles_2['c_adj'] - margin) / \
+        native_subdivisions['leg 2']
 
     # outer
     add_vert(bm)
@@ -674,7 +688,8 @@ def draw_corner_core(
     rt(90)
 
     # inner
-    subdiv_dist = (triangles_2['d_adj'] - margin) / native_subdivisions['leg 2']
+    subdiv_dist = (triangles_2['d_adj'] - margin) / \
+        native_subdivisions['leg 2']
     bm.verts.ensure_lookup_table()
     start_index = verts[-1].index
     fd(bm, margin)
@@ -693,10 +708,12 @@ def draw_corner_core(
 
     # bridge edge loops
     ret = bmesh.ops.bridge_loops(bm, edges=bm.edges)
-    bmesh.ops.subdivide_edges(bm, edges=ret['edges'], smooth=1, smooth_falloff='LINEAR', cuts=native_subdivisions['width'])
+    bmesh.ops.subdivide_edges(
+        bm, edges=ret['edges'], smooth=1, smooth_falloff='LINEAR', cuts=native_subdivisions['width'])
 
     # inset
-    bmesh.ops.inset_region(bm, faces=bm.faces, use_even_offset=True, thickness=margin, use_boundary=True)
+    bmesh.ops.inset_region(
+        bm, faces=bm.faces, use_even_offset=True, thickness=margin, use_boundary=True)
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=margin / 2)
 
     # Z
@@ -790,7 +807,9 @@ def draw_corner_floor_core(
 
     return core
 
-#@profile
+# @profile
+
+
 def draw_corner_wall_core(
         dimensions,
         native_subdivisions,
@@ -851,24 +870,34 @@ def draw_corner_wall_core(
         verts = [v for v in vert_groups[group] if v not in blank_group_verts]
         assign_verts_to_group(verts, core, deform_groups, group)
 
-    leg_1_end = [v for v in vert_groups['Leg 1 End'] if v not in vert_groups['Leg 1 Top']]
+    leg_1_end = [v for v in vert_groups['Leg 1 End']
+                 if v not in vert_groups['Leg 1 Top']]
     assign_verts_to_group(leg_1_end, core, deform_groups, 'Leg 1 End')
-    leg_2_end = [v for v in vert_groups['Leg 2 End'] if v not in vert_groups['Leg 2 Top']]
+    leg_2_end = [v for v in vert_groups['Leg 2 End']
+                 if v not in vert_groups['Leg 2 Top']]
     assign_verts_to_group(leg_2_end, core, deform_groups, 'Leg 2 End')
-    leg_1_top_verts = [v for v in vert_groups['Leg 1 Top'] if v not in vert_groups['Leg 1 End']]
+    leg_1_top_verts = [v for v in vert_groups['Leg 1 Top']
+                       if v not in vert_groups['Leg 1 End']]
     assign_verts_to_group(leg_1_top_verts, core, deform_groups, 'Leg 1 Top')
-    leg_2_top_verts = [v for v in vert_groups['Leg 2 Top'] if v not in vert_groups['Leg 2 End']]
+    leg_2_top_verts = [v for v in vert_groups['Leg 2 Top']
+                       if v not in vert_groups['Leg 2 End']]
     assign_verts_to_group(leg_2_top_verts, core, deform_groups, 'Leg 2 Top')
-    leg_1_bottom_verts = [v for v in vert_groups['Leg 1 Bottom'] if v not in vert_groups['Leg 1 End']]
-    assign_verts_to_group(leg_1_bottom_verts, core, deform_groups, 'Leg 1 Bottom')
-    leg_2_bottom_verts = [v for v in vert_groups['Leg 2 Bottom'] if v not in vert_groups['Leg 2 End']]
-    assign_verts_to_group(leg_2_bottom_verts, core, deform_groups, 'Leg 2 Bottom')
+    leg_1_bottom_verts = [
+        v for v in vert_groups['Leg 1 Bottom'] if v not in vert_groups['Leg 1 End']]
+    assign_verts_to_group(leg_1_bottom_verts, core,
+                          deform_groups, 'Leg 1 Bottom')
+    leg_2_bottom_verts = [
+        v for v in vert_groups['Leg 2 Bottom'] if v not in vert_groups['Leg 2 End']]
+    assign_verts_to_group(leg_2_bottom_verts, core,
+                          deform_groups, 'Leg 2 Bottom')
 
     finalise_turtle(bm, core)
     #profile.dump_stats(splitext(__file__)[0] + '.prof')
     return core
 
-#@profile
+# @profile
+
+
 def create_corner_vert_groups_vert_lists(bm, height, margin, vert_locs):
     """Return a dict containing lists of BMVerts to be added to vert groups
 
@@ -918,7 +947,8 @@ def create_corner_vert_groups_vert_lists(bm, height, margin, vert_locs):
             bottom_vert_co, index, dist = kd.find(loc)
             verts = select_verts_in_bounds(
                 lbound=bottom_vert_co,
-                ubound=(bottom_vert_co[0], bottom_vert_co[1], bottom_vert_co[2] + height),
+                ubound=(bottom_vert_co[0], bottom_vert_co[1],
+                        bottom_vert_co[2] + height),
                 buffer=margin / 2,
                 bm=bm)
             vert_group.extend(verts)
@@ -951,7 +981,8 @@ def create_corner_vert_groups_vert_lists(bm, height, margin, vert_locs):
         selected_verts = []
 
         for v in verts:
-            selected = select_verts_in_bounds(v.co, (v.co[0], v.co[1], v.co[2] + height), margin / 2, bm)
+            selected = select_verts_in_bounds(
+                v.co, (v.co[0], v.co[1], v.co[2] + height), margin / 2, bm)
             selected_verts.extend(selected)
 
         vert_groups[key] = selected_verts

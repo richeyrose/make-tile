@@ -916,8 +916,9 @@ def spawn_openlock_base(self, tile_props):
     """
     base = spawn_plain_base(tile_props)
     slot_cutter = spawn_openlock_base_slot_cutter(base, tile_props)
-    set_bool_obj_props(slot_cutter, base, tile_props, 'DIFFERENCE')
-    set_bool_props(slot_cutter, base, 'DIFFERENCE')
+    if slot_cutter:
+        set_bool_obj_props(slot_cutter, base, tile_props, 'DIFFERENCE')
+        set_bool_props(slot_cutter, base, 'DIFFERENCE')
 
     clip_cutters = spawn_openlock_base_clip_cutters(self, base, tile_props)
 
@@ -947,6 +948,9 @@ def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
     base_location = base.location.copy()
     base_dims = base.dimensions.copy()
 
+    if base_dims[0] <= 0.5:
+        return False
+    
     if base_dims[0] < 1 or base_dims[1] < 1:
         # work out bool size X from base size, y and z are constants.
         bool_size = [
@@ -1031,6 +1035,12 @@ def spawn_openlock_base_clip_cutters(self, base, tile_props):
 
     """
     base_location = base.location.copy()
+    base_dims = base.dimensions
+    
+    # Prevent drawing of clip cutters if base is too small
+    if base_dims[0] < 1:
+        return[]
+    
     preferences = get_prefs()
     cutter_file = self.get_base_socket_filename()
     if cutter_file:
@@ -1056,7 +1066,7 @@ def spawn_openlock_base_clip_cutters(self, base, tile_props):
         cutter_start_cap.hide_viewport = True
         cutter_end_cap.hide_viewport = True
 
-        # Special case if base is small
+        # For narrow wall bases
         if base.dimensions[1] < 1:
             clip_cutter.location = (
                 base_location[0] + 0.5,

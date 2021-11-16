@@ -77,14 +77,15 @@ class MT_PT_Curved_Wall_Tile_Panel(Panel):
         layout.label(text="Materials")
         layout.prop(scene_props, 'floor_material')
         layout.prop(scene_props, 'wall_material')
-
+        layout.prop(scene_props, 'curve_texture', text="Curve Texture")
+        
         layout.label(text="Tile Properties")
 
         layout.prop(scene_props, 'tile_z', text="Height")
         layout.prop(scene_props, 'base_radius', text="Radius")
         layout.prop(scene_props, 'degrees_of_arc')
         layout.prop(scene_props, 'base_socket_side', text="Socket Side")
-        layout.prop(scene_props, 'curve_texture', text="Curve Texture")
+        
 
         layout.label(text="Core Properties")
         layout.prop(scene_props, 'tile_y', text="Width")
@@ -145,13 +146,14 @@ class MT_PT_Curved_Floor_Tile_Panel(Panel):
             layout.prop(scene_props, 'base_socket_type')
         layout.label(text="Materials")
         layout.prop(scene_props, 'floor_material')
-
+        layout.prop(scene_props, 'curve_texture', text="Curve Texture")
+        
         layout.label(text="Tile Properties")
         layout.prop(scene_props, 'tile_z', text="Height")
         layout.prop(scene_props, 'base_radius', text="Radius")
         layout.prop(scene_props, 'degrees_of_arc')
         layout.prop(scene_props, 'base_socket_side', text="Socket Side")
-        layout.prop(scene_props, 'curve_texture', text="Curve Texture")
+        
 
         layout.label(text="Core Properties")
         layout.prop(scene_props, 'tile_y', text="Width")

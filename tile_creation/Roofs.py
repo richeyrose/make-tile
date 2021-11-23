@@ -454,7 +454,7 @@ def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
         # work out bool size X from base size, y and z are constants.
         bool_size = [
             base_dims[0] - (offset * 2),
-            0.155,
+            0.145,
             0.25]
 
         cutter = draw_cuboid(bool_size)

@@ -107,10 +107,14 @@ The gap between UV islands on the displacement texture created when you click Ma
 
 ## Curved Wall
 Used for creating curved wall tiles. Because of the way the material system works textures will look distorted on these tiles prior to clicking Make3D.
-![Curved Wall Make3d](images/tile_types/curved_wall_make3D.png)
-Curved wall with Brick Material after clicking Make3D
+
 ![Curved Wall Preview](images/tile_types/curved_wall_preview.png)
+
 Curved wall with Brick material in preview mode
+
+![Curved Wall Make3d](images/tile_types/curved_wall_make3D.png)
+
+Curved wall with Brick Material after clicking Make3D
 
 ### Tile Options
 
@@ -261,7 +265,9 @@ The density of the tile on creation. This cannot be changed after creation.
 The gap between UV islands on the displacement texture created when you click Make3D. Tweak this is you get the texture projecting where it shouldn't.
 
 ## Rectangular Floor
-Rectangular Floor Tiles create square or rectangular floors. If you wish to create wall on floor type tiles please see the [straight wall] (#straight-wall) tiles.
+Rectangular Floor Tiles create square or rectangular floors. If you wish to create wall on floor type tiles please see the [straight wall](#straight-wall) tiles.
+
+![Rectangular Floor Tile](images/tile_types/rectangular_floor.png)
 ### Tile Options
 
 #### Base
@@ -293,7 +299,7 @@ The density of the tile on creation. This cannot be changed after creation.
 The gap between UV islands on the displacement texture created when you click Make3D. Tweak this is you get the texture projecting where it shouldn't.
 
 ## Roof
-The roof tile type is more complex than the others and currently supports the creation of three different types of roofs: Apex, Butterfly and Shed. 
+The roof tile type is more complex than the others and currently supports the creation of three different types of roofs: Apex, Butterfly and Shed. Because of its' complexity generation of roof tiles takes longer than other tile types.
 
 ![Roof Types](images/tile_types/roofs.png)
 
@@ -315,31 +321,50 @@ You can also create three seperate tiles, one for each gable and a separate one 
 ### Tile Options
 
 #### Roof Type
-##### Apex
-##### Butterfly
-##### Shed
+The type of roof to generate.
 
 #### Gable
+Whether to generate the gable.
+
 #### Rooftop
+Whether to generate the rooftop.
 
 #### Materials
 ##### Gabe Material
+The material to apply to the gable ends.
+
 ##### Rooftop Material
+The material to apply to the rooftop.
 
 #### Bottom Socket
-##### OpenLOCK
-##### None
+Whether to generate and openLOCK style socket on the bottom of the gable.
 
 #### Roof Footprint
+The rectangular footprint of the roof.
 
 #### Roof Properties
 ##### Roof Pitch
+The roof pitch (Angle)
+
 ##### Positive End Eaves
+How far out the Eaves should extend on the positive Y axis.
+
 ##### Negative End Eaves
+How far out the eaves should extend on the negative Y axis.
+
 ##### Roof Thickness
+The thickness of the roof top.
+
 ##### Side Eaves
+How far out the eaves should project on the sides.
+
 ##### Base Height
+The height of the vertical part of the gables.
+
+![Base height](images/tile_types/base_height.png)
+
 ##### Wall Inset Correction
+This is the amount of space left for the projection texture.
 
 #### Subdivision Density
 The density of the tile on creation. This cannot be changed after creation.
@@ -348,35 +373,36 @@ The density of the tile on creation. This cannot be changed after creation.
 The gap between UV islands on the displacement texture created when you click Make3D. Tweak this is you get the texture projecting where it shouldn't.
 
 ## Semi Circular Floor
-### Tile Options
+You can create two types of semi circular floor tiles, positively and negatively curved. While the positively curved semi circular tiles generally behave themsleves the negatively curved tile generator is still a little glitchy. Textures can also appear pinched at the default level of subdivision on negatively curved tiles. After tile creation tweak the first Subdivisions setting (below the Tile Type selector) and increase it from 3 to 5.
+
+![Semi Circular Tiles](images/tile_types/semi_circular_tiles.png)
 #### Base
-##### OpenLOCK
-##### None
-##### Plain
+Bases can be OpenLOCK, Plain or omitted with None.
 
 #### Main
-##### OpenLOCK
-##### None
-##### Plain
+The textured part of the base can be Plain or omitted with None.
 
 #### Base Socket Type
 If you choose the OpenLOCK base type you can choose from OpenLOCK or LastLOCK style sockets. LastLOCK sockets are compatible with openLOCK style clips but can also be used with ball magnets.
 
-
 #### Floor Material
+Here you can set the material to be applied to the top of the tile.
 
 #### Tile Properties
 ##### Height
+The overall height of the tile.
 ##### Radius
+The radius of the tile.
 ##### Angle
+The base angle of the tile.
 #### Curve Type
-##### Positive
-##### Negative
+Whether the tile is positively or negatively curved.
+
 #### Sync Proportions
 Whether to sync the proportions of the base and the main part of the tile.
 #### Base Properties
 ##### Height
-
+The height of the base.
 #### Subdivision Density
 The density of the tile on creation. This cannot be changed after creation.
 
@@ -384,42 +410,44 @@ The density of the tile on creation. This cannot be changed after creation.
 The gap between UV islands on the displacement texture created when you click Make3D. Tweak this is you get the texture projecting where it shouldn't.
 
 ## Straight Wall
+Use to create straight wall tiles. These can either be stand alone or wall-on-floor (S-Wall) type tiles
+
+![Straight Walls](images/tile_types/straight_walls.png)
 
 ### Tile Options
 
 #### Base
-##### OpenLOCK
-##### OpenLOCK S-Wall
-##### None
-##### Plain
-##### Plain S-Wall
+You have 5 options. OpenLOCK (the default), OpenLOCK S-Wall which is a wall on floor type tile. None, which will entirely omit the base, Plain and Plain S-Wall.
 
 #### Main
-##### OpenLOCK
-##### None
-##### Plain
+You can choose between OpenLOCK, Plain and None main parts
 
 #### Base Socket Type
 If you choose the OpenLOCK base type you can choose from OpenLOCK or LastLOCK style sockets. LastLOCK sockets are compatible with openLOCK style clips but can also be used with ball magnets.
 
-
 #### Floor Material
+If you are generating and S-Wall you can choose the floor material here.
+
 #### Wall Material
+You can choose the wall material here.
 
 #### Tile Size
+The overall tile dimensions.
 
 #### Core Size
+The width of the main part of the tile
 
 #### Floor Thickness
+The thickness of the floor if you are generating and S-Wall
 
 #### Wall Position
-##### Center
-##### Side
+Whether the wall is positioned on the center or side of the tile
 
 #### Sync Proportions
 Whether to sync the proportions of the base and the main part of the tile.
 
 #### Base Size
+The size of the tile base
 
 #### Subdivision Density
 The density of the tile on creation. This cannot be changed after creation.

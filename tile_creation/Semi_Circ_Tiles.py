@@ -1078,13 +1078,14 @@ def draw_neg_curved_semi_circ_core(dimensions, subdivs, margin=0.001):
 
     bmesh.ops.remove_doubles(bm, verts=verts, dist=margin / 2)
     bmesh.ops.edgenet_prepare(bm, edges=bm.edges)
-
-    # we get a glitch on some sizes of cores if we just use triangle fill so we do this instead
-    bmesh.ops.triangle_fill(bm, use_beauty=True,
-                            use_dissolve=True, edges=bm.edges)
-    bmesh.ops.triangulate(bm, faces=bm.faces)
-    bmesh.ops.beautify_fill(bm, faces=bm.faces, edges=bm.edges)
-
+    bmesh.ops.triangle_fill(bm, use_beauty=True, edges=bm.edges)
+    faces = sorted(bm.faces, key=lambda f: f.calc_area())
+    # get edges in this face
+    edges = [e for e in faces[-1].edges]
+    # subdivide edges in this face  
+    bmesh.ops.subdivide_edges(bm, edges=edges, cuts=1, use_grid_fill=True)
+    # subdivide the other edges
+    # bmesh.ops.subdivide_edges(bm, edges=edges, cuts=1, use_grid_fill=True)
     bottom_verts = [v for v in bm.verts]
 
     bm.select_mode = {'FACE'}

@@ -456,37 +456,40 @@ The density of the tile on creation. This cannot be changed after creation.
 The gap between UV islands on the displacement texture created when you click Make3D. Tweak this is you get the texture projecting where it shouldn't.
 
 ## Triangular Floor
+Generate a triangular floor tile. The base angle and leg length can be set independently. If the triangle is an isosceles right triangle (both legs are equal length and angle is 90°) and it is an OpenLOCK triangle it will have sockets on all three sides. Otherwise it will have sockets on two sides if it is an OpenLOCK tile.
 
+![Triangle Floors](images/tile_types/triangle_tiles.png)
 ### Tile Options
 
 #### Base
-##### OpenLOCK
-##### None
-##### Plain
+Whether it has an OpenLOCK, Plain or no base
 
 #### Main
-##### OpenLOCK
-##### None
-##### Plain
+Whether to have a Plain or None top of the tile.
 
 #### Base Socket Type
 If you choose the OpenLOCK base type you can choose from OpenLOCK or LastLOCK style sockets. LastLOCK sockets are compatible with openLOCK style clips but can also be used with ball magnets.
 
 
 #### Floor Material
+The material to add to the floor.
 
 #### Tile Properties
 ##### Tile Height
+The overall tile height.
 ##### Leg 1 Length
+The length of the first leg.
 ##### Leg 2 Length
+The length of the second leg.
 ##### Angle
+The base angle of the tile.
 
 #### Sync Proportions
 Whether to sync the proportions of the base and the main part of the tile.
 
 #### Base Properties
 ##### Base Height
-
+The height of the base.
 #### Subdivision Density
 The density of the tile on creation. This cannot be changed after creation.
 
@@ -494,42 +497,42 @@ The density of the tile on creation. This cannot be changed after creation.
 The gap between UV islands on the displacement texture created when you click Make3D. Tweak this is you get the texture projecting where it shouldn't.
 
 ## U Wall
+U Wall tiles are useful for creating doorways at the end of corridors or sides of buildings. You can set the length of each leg and the base wall independently.
+![U Wall](images/tile_types/u_wall.png)
 
 ### Tile Options
 
 #### Base
-##### OpenLOCK
-##### None
-##### Plain
-
+You can choose from OpenLOCK, Plain or None base types.
 #### Main
-##### OpenLOCK
-##### None
-##### Plain
+You can choose from OpenLOCK, Plain or None for the main part of the tile.
 
 #### Base Socket Type
 If you choose the OpenLOCK base type you can choose from OpenLOCK or LastLOCK style sockets. LastLOCK sockets are compatible with openLOCK style clips but can also be used with ball magnets.
 
-
 #### Wall Material
+Here you can set the wall material.
 
 #### Tile Properties
 ##### Height
+The wall height.
 ##### Leg 1 Length
+The length of the first leg
 ##### Leg 2 Length
+The length of the second leg.
 ##### End Wall Length
-
+The length of the end wall.
 #### Core Properties
 ##### Width
-
+The thickness of the main part of the wall.
 #### Sync Proportions
 Whether to sync the proportions of the base and the main part of the tile.
 
 #### Base Properties
-##### Width
-##### Height
+Set the width and height of the base.
 
 #### Base Socket Side
+Whether the socket is on the inside or outside of the wall if you are creating an OpenLOCK tile.
 
 #### Subdivision Density
 The density of the tile on creation. This cannot be changed after creation.

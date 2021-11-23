@@ -27,7 +27,7 @@ MakeTile lives in its own tab in the right hand menu. Press **N** to show or hid
 To create your first tile select the default cube by left clicking and press **delete**. In the right hand menu leave the defaults as they are and click on the **MakeTile** button. Congratulations, you have just made your first tile!
 
 You can tweak the dimensions of your tile immediately after creation by expanding the **Redo** panel on the bottom left hand side of the screen.
-
+![Redo Panel](images/redo.png)
 Currently your tile will be blank, so in the **Display Settings** panel click on **Create lighting setup.** Blender should think for a second or two and now your tile should be in glorious 3D!
 
 You will notice that as you rotate around the scene the viewport doesn't update instantaneously. This is because we are currently in Cycles mode, which is Blender's none real time renderer, which we need to use to preview our tiles in 3D. When we're in Cycles mode the 3D displacement is being calculated in the shader and it is not yet "real" geometry. Also while the Cycles preview gives us a good idea of what the finished tile will look like it is not 100% accurate, so if something looks wrong when in Cycles mode, always check what happens when you Make3D.
@@ -54,7 +54,7 @@ If you want to create a layout or building with your tiles then it is a good ide
 ![Grid Snap](images/SnapPanel.png)
 
 ## Deleting Tiles
-If you want to delete a tile you should use the **Delete Tiles** button in the top panel of the MakeTile menu rather than pressing delete. This will delete all objects that make up that tile. You can also delete a tile by going to the outliner on the right hand side, selecting the tile collection, right clicking, and selecting **Delete Hierarchy**. This is useful for if you've accidentally deleted part of a tile.
+If you want to delete a tile you should use the **Delete Tiles** button in the top panel of the MakeTile menu rather than pressing delete. This will delete all objects that make up that tile. You can also delete a tile by going to the outliner on the right hand side, selecting the tile collection, right clicking, and selecting **Delete Hierarchy**. This is useful if you've accidentally deleted part of a tile.
 
 ![Outliner](images/Outliner.png)
 
@@ -72,6 +72,8 @@ Each tile type is customisable and once you've selected a tile type in the top p
 ![Tile Options Panel](images/TileOptions.png)
 
 If you are using the OpenLOCK bluprints then the defaults wil create tiles compatible with the OpenLOCK system. You can change all of these, but be warned your tiles may not be 100% compatible if you alter the height of floor tiles or the width of wall tiles.
+
+You can find a full list of tile types and a guide to using them in the [Tile Types](tile_types/) section
 
 ## Tile Options
 You can chose which blueprint to use for the base and main part of your tile (or gable and rooftop for the roof tiles) here. You can also set what material you would like applied to each part of the tile on creation.
@@ -106,9 +108,9 @@ Once you have selected another object in the scene you will lose the ability to 
 Features such as top pegs and side and base sockets can be toggled on and off after a tile has been created in the **Booleans** sub-panel by selecting the core or base and toggling the appropriate boolean. You may notice sockets look slightly distorted in preview mode. This shouldn't affect the exported tiles and will be fixed in a later result.
 
 ## Swapping Materials
-If you want to change material after creation and after the redo panel has disappeared then  make sure the main part of your tile is selected, go to the **Materials** panel, click on the name of the material that is currently on your tile and select a new material from the drop down menu.
+If you want to change material after creation and after the redo panel has disappeared then  make sure the main part of your tile is selected, go to the **Materials** panel, click on the name of the material that is currently on your tile and select a new material from the drop down menu. By default MakeTile links materials into the scene rather than appending them to avoid cluttering things up. If you've not used the material before you'll need to make it local by clicking on the link icon before you can customise it. 
 
-![Change Material](images/ChangeMaterial.gif)
+![Change Material](images/materials.gif)
 
 ## Adding a Material to part of a tile
 Select the part of your tile you would like to add a material to then click **+** in the **Materials** panel. Select your material from the drop down menu and then in the **Textured Areas** panel select the area you want the material to be applied to. Click on **Assign Material**. Removing a material works in the same way.
@@ -116,14 +118,16 @@ Select the part of your tile you would like to add a material to then click **+*
 ![Assign Material](images/AssignMaterial.gif)
 
 ## Customising your Material
-Most of the materials in MakeTile are procedural which means you can change the parameters to alter the way they look. Clicking on the **Material Options** drop down will show all the different parameters you can change for a given material. As well as being able to change the location, rotation and scale of all the materials you will be able to change different parameters for different materials, such as the width of mortar on bricks, or the closeness of the grain on wood.
+Most of the materials in MakeTile are procedural which means you can change the parameters to alter the way they look. Clicking on the **Material Options** drop down will show all the different parameters you can change for a given material. As well as being able to change the location, rotation and scale of all the materials you will be able to change different parameters for different materials, such as the width of mortar on bricks, or the closeness of the grain on wood. If these options are greyed out you will need to select the material in the **Materials** panel and clcik on the link icon to make it local.
+
+![Make Local](images/make_local.gif)
 
 All materials have at least one **Seed** parameter in the **Randomise** subheading. Changing this number will generate a new random variant of that material. Changing the **Strength** parameter will change the amount the material projects from the surface before you press the Make3D button and the **Displacement Strength** will alter this after you have made your tile 3D.
 
 ![Randomise](images/Randomise.gif)
 
 ## Custom Image Material ##
-One material that is slightly different to the others is the **Custom Image** material. This material is designed to have a displacement map texture dropped into it. It will then use this displacement map to create a MakeTile material that works in the same way as the procedural materials. This is great for things like Sci Fi materials or roof tiles. Just download any displacement map ([cc0 textures / ambient cg is a great resource](https://ambientcg.com/)) or create your own. The load it into the Custom Image material in the material options.
+One material that is slightly different to the others is the **Custom Image** material. This material is designed to have a displacement map texture dropped into it. It will then use this displacement map to create a MakeTile material that works in the same way as the procedural materials. This is great for things like Sci Fi materials or roof tiles. Just download any displacement map ([cc0 textures / ambient cg is a great resource](https://ambientcg.com/)) or create your own. Then load it into the Custom Image material in the material options.
 
 ![Custom Image Material](images/CustomImageMaterial.PNG)
 

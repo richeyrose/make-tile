@@ -571,94 +571,49 @@ def spawn_openlock_base_clip_cutters(self, dimensions, tile_props):
             bm.free()
             cutters.append(c_cutter)
 
-        if a >= 2:
+        # TODO Simplify this now we only generate socket for isosceles triangles.
+        if A == 90 and b == c and a >= 2:
             me = cutter.data.copy()
             a_cutter = bpy.data.objects.new("Leg 3 Cutter", me)
             bm = bmesh.new()
             bm.from_mesh(me)
             add_object_to_collection(a_cutter, tile_props.tile_name)
-
             turtle = bpy.context.scene.cursor
             turtle.location = loc_C
             turtle.rotation_euler = (0, 0, 0)
             bm.select_mode = {'VERT'}
             bm_select_all(bm)
-            dims = cutter.dimensions.copy()
+            dims = cutter.dimensions.copy() + cutter_end_cap.dimensions.copy() + cutter_start_cap.dimensions.copy()
             offset = Vector((1, 0, 0)) * Vector(dims)
-            if C >= 90:
-                if B >= 90:
-                    bm = bmesh_array(
-                        source_obj=a_cutter,
-                        source_bm=bm,
-                        start_cap=cutter_start_cap,
-                        end_cap=cutter_end_cap,
-                        relative_offset_displace=(1, 0, 0),
-                        fit_length=(a - 2),
-                        fit_type='FIT_LENGTH')
-                    count = modf((a - 2) / offset[0])[1]
-                else:
-                    bm = bmesh_array(
-                        source_obj=a_cutter,
-                        source_bm=bm,
-                        start_cap=cutter_start_cap,
-                        end_cap=cutter_end_cap,
-                        relative_offset_displace=(1, 0, 0),
-                        fit_length=(a - 2),
-                        fit_type='FIT_LENGTH')
-                    count = modf((a - 2) / offset[0])[1]
-                bm.select_mode = {'VERT'}
-                bm_select_all(bm)
-                turtle.rotation_euler = (0, 0, -radians(A))
-                extrude_translate(
-                    bm, (0, b, 0), del_original=False, extrude=False)
-                turtle.rotation_euler = (0, 0, 0)
-                extrude_translate(bm, (0.5, 0.25, 0.0002), extrude=False)
-                bmesh.ops.rotate(
-                    bm=bm,
-                    verts=bm.verts,
-                    cent=loc_C,
-                    matrix=Matrix.Rotation(radians(-90 - B) * -1, 3, 'Z'),
-                    space=a_cutter.matrix_world)
 
-            elif C < 90:
-                if B >= 90:
-                    bm = bmesh_array(
-                        source_obj=a_cutter,
-                        source_bm=bm,
-                        start_cap=cutter_start_cap,
-                        end_cap=cutter_end_cap,
-                        relative_offset_displace=(1, 0, 0),
-                        fit_length=(a - 2),
-                        fit_type='FIT_LENGTH')
-                    count = modf((a - 2) / offset[0])[1]
-                else:
-                    bm = bmesh_array(
-                        source_obj=a_cutter,
-                        source_bm=bm,
-                        start_cap=cutter_start_cap,
-                        end_cap=cutter_end_cap,
-                        relative_offset_displace=(1, 0, 0),
-                        fit_length=(a - 2),
-                        fit_type='FIT_LENGTH')
-                    count = modf((a - 2) / offset[0])[1]
-                bm.select_mode = {'VERT'}
-                bm_select_all(bm)
-                turtle.rotation_euler = (0, 0, -radians(A))
-                extrude_translate(
-                    bm, (0, b, 0), del_original=False, extrude=False)
-                turtle.rotation_euler = (0, 0, 0)
-                extrude_translate(bm, (1, 0.25, 0.0002), extrude=False)
-                bmesh.ops.rotate(
-                    bm,
-                    verts=bm.verts,
-                    cent=loc_C,
-                    matrix=Matrix.Rotation(radians(-90 - B) * -1, 3, 'Z'),
-                    space=a_cutter.matrix_world)
+            bm = bmesh_array(
+                source_obj=a_cutter,
+                source_bm=bm,
+                start_cap=cutter_start_cap,
+                end_cap=cutter_end_cap,
+                relative_offset_displace=(1, 0, 0),
+                fit_length=(a - 2.5),
+                fit_type='FIT_LENGTH')
+                
+            count = modf((a - 2.5) / offset[0])[1]
+            bm.select_mode = {'VERT'}
+            bm_select_all(bm)
+            turtle.rotation_euler = (0, 0, -radians(A))
+            extrude_translate(
+                bm, (0, b, 0), del_original=False, extrude=False)
+            turtle.rotation_euler = (0, 0, 0)
+            extrude_translate(bm, (1, 0.25, 0.0002), extrude=False)
+            bmesh.ops.rotate(
+                bm,
+                verts=bm.verts,
+                cent=loc_C,
+                matrix=Matrix.Rotation(radians(-90 - B) * -1, 3, 'Z'),
+                space=a_cutter.matrix_world)
 
-                caps = 0.083333
-                turtle.rotation_euler = (0, 0, radians(C))
-                extrude_translate(bm, (0, (caps * (count + 1)), 0),
-                                  del_original=False, extrude=False)
+            caps = 0.083333
+            turtle.rotation_euler = (0, 0, radians(C))
+            extrude_translate(bm, (0, (caps * (count + 1)), 0),
+                                del_original=False, extrude=False)
 
             bm.to_mesh(me)
             bm.free()

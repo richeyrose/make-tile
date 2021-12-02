@@ -62,7 +62,7 @@ Dragging and dropping a material onto an object will add it to that object. If t
 The asset manager contains helper operators to allow you to easily save objects, collections such as tiles and architectural elements, and materials as assets. Each asset is saved to its own file and by default will be saved in the **Current Directory** as shown in the side panel, although you can change this when you save an object.
 
 ### Saving Objects
-To save an object to the MakeTile library select it in the Viewport and **right click.** Select **Save selected object to MakeTile library.** Fill in the metadata (you can add a default author and your own licenses in the [addon preferences](#preferences)) and click **OK**. If you save a single object you will be able to edit the name, however if you save multiple objects at once it will use the object name. The preview will be rendered using the material currently on the object.
+To save an object to the MakeTile library select it in the Viewport and **right click.** Select **Save selected object to MakeTile library.** Fill in the metadata and click **OK**. If you save a single object you will be able to edit the name, however if you save multiple objects at once it will use the object name. The preview will be rendered using the material currently on the object.
 
 ![saving_object](images/asset_browser/save_individual_object.png)
 

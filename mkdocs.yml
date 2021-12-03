@@ -1,7 +1,10 @@
 site_name: MakeTile Docs
 nav:
   - Home: index.md
-  - Release Notes: release_notes.md
+  - Asset Manager: asset_manager.md
+  - Tile Types: tile_types.md
   - FAQ: faq.md
   - Licensing and Copyright: licensing.md
+  - Release Notes: release_notes.md
+  
 theme: readthedocs

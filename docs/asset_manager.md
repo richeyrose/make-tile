@@ -2,9 +2,9 @@
 
 The paid for version of MakeTile comes with an Asset Manager and Browser and collection of premade assets and tiles you can use. This is now compatible with the new Blender Internal Asset Browser that was introduced in Blender 3.0. It supports Materials, Collections (such as MakeTile Tiles) and Objects.
 
-It is necessary to continue developing the MakeTile asset browser for now as the Blender Internal browser doesn't currently support Collections and each tile created in MakeTile is a Collection. The MakeTile asset browser also contains a number of helper functions to make it easier to save assets to seperate files, organise your assets in separate folders and to edit assets. 
+It is necessary to continue developing the MakeTile asset browser for now as the Blender Internal browser doesn't currently support Collections and each tile created in MakeTile is a Collection. The MakeTile asset browser also contains a number of helper functions to make it easier to save assets to separate files, organise your assets in separate folders and to edit assets. 
 
-It works by linking to the .blend files in the folder you navigate to and then unlinking those files when you navigate to a new folder or close the asset bar. This has the slightly annoying side effect that when the asset bar is open you are able to choose from any material in any of the linked files in the blender default material panel. Close the asset bar to see only the materials in the current file.
+It works by linking to the .blend files in the folder you navigate to and then unlinking those files when you navigate to a new folder or close the asset bar. This has the slightly annoying side effect that when the asset bar is open you are able to choose from any material in any of the linked files in the blender default material panel. Close the asset bar to see only the materials in the current file. I've also disabled cacheing for now so it can be slow to change between folders if you are using it in a scene with lots of high poly objects. This should be fixed shortly.
 
 If you used the 0.0.1 version of the MakeTile Asset Browser you will need to [convert your old assets](#converting-assets) to the new format.
 
@@ -124,6 +124,3 @@ To edit an object follow the same procedure as above and click **Link to active 
 To edit a material you will need to first add an object into the scene (press shift-A). Open the **Shading** workspace, select your object and then in the material node editor select the material you want to edit from the drop down to add it to your object. Because MakeTile is installed you will also see the linked materials from the default material library. You can easily tell which material is the one you want to edit because it will have an **F** rather than an **LF** next to it.
 
 ![Material](images/asset_browser/materials.png)
-
-
-## Add collection to tile

@@ -14,6 +14,9 @@ Check out the latest [Release Notes](release_notes/) to see what's changed.
 3. Launch Blender and click anywhere in 3D space to get rid of the splash screen.
 4. In the top menu go to **Edit** > **Preferences** > **Add-ons** > **Install...** Select the .zip file you have just downloaded and click on **Install Add-on.** After a few seconds MakeTile should appear. If it doesn't use the search box in the top right. Click on the box to the left of MakeTile to activate it. Close the preferences window.
 
+## MakeTile Asset Manager
+MakeTile comes with its' own [Asset Manager](asset_manager.md) which you can download along with MakeTile from Gumroad. Follow the same procedure as above to install this. When you first install the asset manager it will copy some assets into your user/MakeTile directory and this may take a few seconds. You'll need to select and deselect an object in the viewport for everything to update properly. 
+
 ## Updating MakeTile
 1. If you update MakeTile you'll need to ensure that the old version is uninstalled properly first. In the top menu go to **Edit** > **Preferences** > **Add-ons** > **MakeTile**. Click on the down arrow to the left of MakeTile and click on **Remove**
 2. Restart Blender

@@ -1,4 +1,15 @@
 # Release Notes
+
+## 0.0.27 ##
+### Asset Manager
+The asset manager has been completely overhauled for Blender 3.0 and is now compatible with the new Blender internal Asset Browser. See [Asset Manager](asset_manager.md) for details.
+
+## Lastlock Tiles
+I have added the option to create LastLock style base sockets when creating an OpenLOCK tile. These are full compatible with OpenLOCK but also have a divot where you can insert a 5mm sphere magnet so you can snap tiles together.
+
+## Triangular tiles
+The triangular floor generator has been tweaked so that if the triangle is an isosceles right triangle (both legs are equal length and angle is 90°) and it is an OpenLOCK triangle it will have sockets on all three sides. Otherwise it will have sockets on two sides if it is an OpenLOCK tile.
+
 ## 0.0.26 ##
 ### Material Importing ###
 Various bugs have been fixed in the way that materials are imported and saved. Saved materials based on the custom image material should now have the displacement texture saved properly so won;t break when you come to reuse them. There is also now an option to not import user materials on load. See the [faq](faq.md/#ive-got-a-huge-list-of-materials-showing-up-when-i-come-to-make-a-tile-how-do-i-get-rid-of-these) for more details.

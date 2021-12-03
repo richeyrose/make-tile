@@ -4,10 +4,10 @@
 ### Asset Manager
 The asset manager has been completely overhauled for Blender 3.0 and is now compatible with the new Blender internal Asset Browser. See [Asset Manager](asset_manager.md) for details.
 
-## Lastlock Tiles
+### Lastlock Tiles
 I have added the option to create LastLock style base sockets when creating an OpenLOCK tile. These are full compatible with OpenLOCK but also have a divot where you can insert a 5mm sphere magnet so you can snap tiles together.
 
-## Triangular tiles
+### Triangular tiles
 The triangular floor generator has been tweaked so that if the triangle is an isosceles right triangle (both legs are equal length and angle is 90°) and it is an OpenLOCK triangle it will have sockets on all three sides. Otherwise it will have sockets on two sides if it is an OpenLOCK tile.
 
 ## 0.0.26 ##

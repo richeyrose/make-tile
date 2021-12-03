@@ -1,3 +1,5 @@
+# Tile Types
+
 ## Connecting Column
 Connecting column tiles can be used to connect or terminate walls in 5 different ways.
 

@@ -4,4 +4,7 @@
 *.pyc
 *.prof
 .vscode/settings.json
-
+*.zip
+__pycache__
+.pytest_cache
+/__pycache__

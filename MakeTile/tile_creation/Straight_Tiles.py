@@ -182,7 +182,8 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
         name="Wall Position",
         items=[
             ("CENTER", "Center", "Wall is in Center of base."),
-            ("SIDE", "Side", "Wall is on the side of base.")],
+            ("SIDE", "Side", "Wall is on the side of base."),
+            ("OUTER", "Outer", "Wall is an outer wall.")],
         default="CENTER")
 
     floor_thickness: FloatProperty(
@@ -207,7 +208,7 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
         if base_blueprint == 'NONE':
             base = spawn_empty_base(tile_props)
         elif base_blueprint in ['PLAIN', 'PLAIN_S_WALL']:
-            base = spawn_plain_base(tile_props)
+            base = spawn_plain_base(self, tile_props)
         elif base_blueprint in ['OPENLOCK', 'OPENLOCK_S_WALL']:
             base = spawn_openlock_base(self, tile_props)
 
@@ -224,6 +225,10 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
             orig_tile_size = []
             for c, v in enumerate(tile_props.tile_size):
                 orig_tile_size.append(v)
+
+            # correct for displacement material
+            if self.wall_position in ['OUTER', 'SIDE']:
+                tile_props.base_size[1] = tile_props.base_size[1] - 0.09
 
             context.collection.mt_tile_props.tile_size = (
                 tile_props.base_size[0],
@@ -328,7 +333,7 @@ class MT_OT_Make_Rect_Floor_Tile(Operator, MT_Tile_Generator):
         elif base_blueprint == 'OPENLOCK':
             base = spawn_openlock_base(self, tile_props)
         elif base_blueprint == 'PLAIN':
-            base = spawn_plain_base(tile_props)
+            base = spawn_plain_base(self, tile_props)
 
         if core_blueprint == 'NONE':
             core = None
@@ -378,173 +383,6 @@ class MT_OT_Make_Rect_Floor_Tile(Operator, MT_Tile_Generator):
 
         layout.label(text="UV Island Margin")
         layout.prop(self, 'UV_island_margin', text="")
-
-
-class MT_OT_Make_Openlock_Straight_Base(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate an OpenLOCK straight base."""
-
-    bl_idname = "object.make_openlock_straight_base"
-    bl_label = "Straight Base"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "OPENLOCK"
-    mt_type = "STRAIGHT_BASE"
-
-    def dummy_exec(self, context):
-        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
-        spawn_openlock_base(self, tile_props)
-
-    def execute(self, context):
-        """Execute the operator."""
-        self.dummy_exec(context)
-        return{'FINISHED'}
-
-
-class MT_OT_Make_Openlock_S_Wall_Straight_Base(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate an OpenLOCK S Wall straight base."""
-
-    bl_idname = "object.make_openlock_s_wall_straight_base"
-    bl_label = "S Wall Straight Base"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "OPENLOCK_S_WALL"
-    mt_type = "STRAIGHT_BASE"
-
-    def execute(self, context):
-        """Execute the operator."""
-        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
-        spawn_openlock_base(self, tile_props)
-        return{'FINISHED'}
-
-
-class MT_OT_Make_Plain_S_Wall_Straight_Base(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate an plain S wall straight base."""
-
-    bl_idname = "object.make_plain_s_wall_straight_base"
-    bl_label = "S Wall Straight Base"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "PLAIN_S_WALL"
-    mt_type = "STRAIGHT_BASE"
-
-    def execute(self, context):
-        """Execute the operator."""
-        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
-        spawn_plain_base(tile_props)
-        return{'FINISHED'}
-
-
-class MT_OT_Make_Plain_Straight_Base(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate a plain straight base."""
-
-    bl_idname = "object.make_plain_straight_base"
-    bl_label = "Straight Base"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "PLAIN"
-    mt_type = "STRAIGHT_BASE"
-
-    def execute(self, context):
-        """Execute the operator."""
-        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
-        spawn_plain_base(tile_props)
-        return{'FINISHED'}
-
-
-class MT_OT_Make_Empty_Straight_Base(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate an empty straight base."""
-
-    bl_idname = "object.make_empty_straight_base"
-    bl_label = "Straight Base"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "NONE"
-    mt_type = "STRAIGHT_BASE"
-
-    def execute(self, context):
-        """Execute the operator."""
-        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
-        spawn_empty_base(tile_props)
-        return{'FINISHED'}
-
-
-class MT_OT_Make_Plain_Straight_Wall_Core(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate a plain straight wall core."""
-
-    bl_idname = "object.make_plain_straight_wall_core"
-    bl_label = "Straight Wall Core"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "PLAIN"
-    mt_type = "STRAIGHT_WALL_CORE"
-
-    base_name: StringProperty()
-
-    def execute(self, context):
-        """Execute the operator."""
-        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
-        spawn_plain_wall_cores(self, tile_props)
-        return{'FINISHED'}
-
-
-class MT_OT_Make_Openlock_Straight_Wall_Core(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate an openlock straight wall core."""
-
-    bl_idname = "object.make_openlock_straight_wall_core"
-    bl_label = "Straight Wall Core"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "OPENLOCK"
-    mt_type = "STRAIGHT_WALL_CORE"
-
-    base_name: StringProperty()
-
-    def execute(self, context):
-        """Execute the operator."""
-        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
-        base = bpy.data.objects[self.base_name]
-        spawn_openlock_wall_cores(self, tile_props, base)
-        return{'FINISHED'}
-
-
-class MT_OT_Make_Empty_Straight_Wall_Core(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate an empty straight wall core."""
-
-    bl_idname = "object.make_empty_straight_wall_core"
-    bl_label = "Straight Wall Core"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "NONE"
-    mt_type = "STRAIGHT_WALL_CORE"
-
-    def execute(self, context):
-        """Execute the operator."""
-        return {'PASS_THROUGH'}
-
-
-class MT_OT_Make_Plain_Straight_Floor_Core(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate a plain straight floor core."""
-
-    bl_idname = "object.make_plain_straight_floor_core"
-    bl_label = "Straight Floor Core"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "PLAIN"
-    mt_type = "STRAIGHT_FLOOR_CORE"
-
-    base_name: StringProperty()
-
-    def execute(self, context):
-        """Execute the operator."""
-        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
-        create_plain_rect_floor_cores(self, tile_props)
-        return{'FINISHED'}
-
-
-class MT_OT_Make_Empty_Straight_Floor_Core(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate an empty straight wall core."""
-
-    bl_idname = "object.make_empty_straight_floor_core"
-    bl_label = "Straight Floor Core"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "NONE"
-    mt_type = "STRAIGHT_FLOOR_CORE"
-
-    def execute(self, context):
-        """Execute the operator."""
-        return {'PASS_THROUGH'}
-
 
 def spawn_plain_wall_cores(self, tile_props):
     """Spawn plain Core.
@@ -617,10 +455,14 @@ def spawn_wall_core(self, tile_props):
     cursor_start_loc = cursor.location.copy()
     tile_size = tile_props.tile_size
     base_size = tile_props.base_size
-    core_size = [
-        tile_size[0],
-        tile_size[1],
-        tile_size[2] - base_size[2]]
+    if self.wall_position == 'OUTER':
+        core_size = [s for s in tile_size]
+    else:
+        core_size = [
+            tile_size[0],
+            tile_size[1],
+            tile_size[2] - base_size[2]]
+
     tile_name = tile_props.tile_name
     native_subdivisions = get_subdivs(
         tile_props.subdivision_density, core_size)
@@ -637,13 +479,14 @@ def spawn_wall_core(self, tile_props):
         core.location = (
             core.location[0],
             core.location[1] + (base_size[1] - tile_size[1]) / 2,
-            cursor_start_loc[2] + base_size[2])
+            cursor_start_loc[2] + base_size[2   ])
     elif tile_props.wall_position == 'SIDE':
         core.location = (
             core.location[0],
             core.location[1] + base_size[1] - tile_size[1] - 0.09,
             cursor_start_loc[2] + base_size[2])
-
+    elif tile_props.wall_position == 'OUTER':
+        core.location[1] = core.location[1] + base_size[1] - tile_size[1]
     obj_props = core.mt_object_props
     obj_props.is_mt_object = True
     obj_props.tile_name = tile_props.tile_name
@@ -879,7 +722,7 @@ def spawn_floor_core(self, tile_props):
     return core
 
 
-def spawn_plain_base(tile_props):
+def spawn_plain_base(self, tile_props):
     """Spawn a plain base into the scene.
 
     Args:
@@ -889,6 +732,13 @@ def spawn_plain_base(tile_props):
         bpy.types.Object: tile base
     """
     base_size = tile_props.base_size
+
+    try:
+        if self.wall_position == 'OUTER':
+            base_size[1] = base_size[1] - 0.09
+    except AttributeError:
+        pass
+
     tile_name = tile_props.tile_name
 
     # make base
@@ -914,7 +764,7 @@ def spawn_openlock_base(self, tile_props):
     Returns:
         bpy.types.Object: tile base
     """
-    base = spawn_plain_base(tile_props)
+    base = spawn_plain_base(self, tile_props)
     slot_cutter = spawn_openlock_base_slot_cutter(base, tile_props)
     if slot_cutter:
         set_bool_obj_props(slot_cutter, base, tile_props, 'DIFFERENCE')
@@ -950,7 +800,7 @@ def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
 
     if base_dims[0] <= 0.5:
         return False
-    
+
     if base_dims[0] < 1 or base_dims[1] < 1:
         # work out bool size X from base size, y and z are constants.
         bool_size = [
@@ -1036,11 +886,11 @@ def spawn_openlock_base_clip_cutters(self, base, tile_props):
     """
     base_location = base.location.copy()
     base_dims = base.dimensions
-    
+
     # Prevent drawing of clip cutters if base is too small
     if base_dims[0] < 1:
         return[]
-    
+
     preferences = get_prefs()
     cutter_file = self.get_base_socket_filename()
     if cutter_file:

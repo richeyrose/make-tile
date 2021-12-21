@@ -81,11 +81,12 @@ def create_main_part_blueprint_enums(self, context):
         list[enum_item]: list of enum items
     """
     enum_items = []
-    scene = context.scene
-    scene_props = scene.mt_scene_props
-
+    
     if context is None:
         return enum_items
+
+    scene = context.scene
+    scene_props = scene.mt_scene_props
 
     tile_type = scene_props.tile_type
     tile_defaults = load_tile_defaults(context)
@@ -101,11 +102,11 @@ def create_main_part_blueprint_enums(self, context):
 
 def create_base_blueprint_enums(self, context):
     enum_items = []
-    scene = context.scene
-    scene_props = scene.mt_scene_props
-
     if context is None:
         return enum_items
+
+    scene = context.scene
+    scene_props = scene.mt_scene_props
 
     tile_type = scene_props.tile_type
     tile_defaults = load_tile_defaults(context)
@@ -515,9 +516,15 @@ class MT_Tile_Generator:
         tile_props = tile_collection.mt_tile_props
 
         self_annotations = get_annotations(self.__class__)
-        copy_annotation_props(self, tile_props, self_annotations)
+        try:
+            copy_annotation_props(self, tile_props, self_annotations)
+        except TypeError as err:
+            self.report({'INFO'}, str(err))
+            return False
+
         tile_props.tile_type = tile_type
         activate_collection(tile_collection.name)
+        return True
 
     def get_base_socket_filename(self):
         """Return the filename where booleans are stored for the tile's base_socket_type.

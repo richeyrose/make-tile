@@ -234,14 +234,14 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
             self.finalise_tile(context, base, wall_core, floor_core)
         else:
             self.finalise_tile(context, base, wall_core)
+        return {'FINISHED'}
 
     def execute(self, context):
         """Execute the operator."""
         super().execute(context)
         if not self.refresh:
             return {'PASS_THROUGH'}
-        self.exec(context)
-        return {'FINISHED'}
+        return self.exec(context)
 
     def init(self, context):
         super().init(context)

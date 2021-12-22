@@ -542,6 +542,17 @@ def spawn_openlock_top_pegs(core, base, tile_props):
                 base_location[0] + 0.756,
                 base_location[1] + base_size[1] - 0.33,
                 base_location[2] + tile_size[2])
+    elif tile_props.wall_position == 'OUTER':
+        if tile_size[0] < 4 and tile_size[0] >= 1:
+            peg.location = (
+                base_location[0] + (tile_size[0] / 2) - 0.252,
+                base_location[1] + base_size[1] - 0.33 + 0.09,
+                base_location[2] + tile_size[2])
+        else:
+            peg.location = (
+                base_location[0] + 0.756,
+                base_location[1] + base_size[1] - 0.33 + 0.09,
+                base_location[2] + tile_size[2])
 
     array_mod = peg.modifiers.new('Array', 'ARRAY')
     array_mod.use_relative_offset = False
@@ -593,6 +604,11 @@ def spawn_openlock_wall_cutters(core, base, tile_props):
             front_left[0],
             front_left[1] + base_size[1] - (tile_size[1] / 2) - 0.09,
             front_left[2] + 0.63]
+    elif tile_props.wall_position == 'OUTER':
+        left_cutter_bottom.location = [
+            front_left[0],
+            front_left[1] + base_size[1] - (tile_size[1] / 2),
+            front_left[2] + 0.63]
 
     array_mod = left_cutter_bottom.modifiers.new('Array', 'ARRAY')
     array_mod.use_relative_offset = False
@@ -638,6 +654,12 @@ def spawn_openlock_wall_cutters(core, base, tile_props):
             front_right[0],
             front_left[1] + base_size[1] - (tile_size[1] / 2) - 0.09,
             front_right[2] + 0.63]
+    elif tile_props.wall_position == 'OUTER':
+        right_cutter_bottom.location = [
+            front_right[0],
+            front_left[1] + base_size[1] - (tile_size[1] / 2),
+            front_right[2] + 0.63]
+
     # rotate cutter 180 degrees around Z
     right_cutter_bottom.rotation_euler[2] = radians(180)
 

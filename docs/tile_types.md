@@ -79,7 +79,7 @@ You can choose whether to distort the texture to follow the curve of the tile wh
 Curve Texture off
 
 ![Curve texture on](images/tile_types/curved_floor_curve_on.png)
-The same tile with the same material but with Curve Texture on. 
+The same tile with the same material but with Curve Texture on.
 
 #### Height
 The overall height of the tiles
@@ -305,9 +305,9 @@ The roof tile type is more complex than the others and currently supports the cr
 
 ![Roof Types](images/tile_types/roofs.png)
 
-Unlike the other tile types you cannot set the height of roofs directly. Instead you decide the dimensions of their rectangular footprint and the pitch (angle) of the roof and the height is calculated from that by MakeTile. 
+Unlike the other tile types you cannot set the height of roofs directly. Instead you decide the dimensions of their rectangular footprint and the pitch (angle) of the roof and the height is calculated from that by MakeTile.
 
-You can also control the amount the eaves project from the front, back and sides and how much room is left for texture displacement with the wall inset correction control. 
+You can also control the amount the eaves project from the front, back and sides and how much room is left for texture displacement with the wall inset correction control.
 
 You can choose whether to generate the roof, gables or both and in practice you can use the roof generator to create roofs in two ways:
 
@@ -317,7 +317,7 @@ If you use the default settings the roof and gables will be created together as 
 ![Solid Roof](images/tile_types/solid_roof.png)
 
 ### Seperate Roof and Eaves
-You can also create three seperate tiles, one for each gable and a separate one for the rooftop. You can then either combine these in MakeTile or print them seperately for a detachable roof. If you do want to print them separately it is best to set the base height to 0 and make the gables slightly smaller so everything fits together correctly. 
+You can also create three seperate tiles, one for each gable and a separate one for the rooftop. You can then either combine these in MakeTile or print them seperately for a detachable roof. If you do want to print them separately it is best to set the base height to 0 and make the gables slightly smaller so everything fits together correctly.
 
 ![Separate roof and gables](images/tile_types/multipiece_roof.png)
 ### Tile Options
@@ -419,7 +419,7 @@ Use to create straight wall tiles. These can either be stand alone or wall-on-fl
 ### Tile Options
 
 #### Base
-You have 5 options. OpenLOCK (the default), OpenLOCK S-Wall which is a wall on floor type tile. None, which will entirely omit the base, Plain and Plain S-Wall.
+You have 5 options. OpenLOCK (the default), OpenLOCK S-Wall which is a wall on floor type tile. None, which will entirely omit the base, Plain and Plain S-Wall. S-Wall tiles also support the Exterior wall type.
 
 #### Main
 You can choose between OpenLOCK, Plain and None main parts
@@ -443,7 +443,7 @@ The width of the main part of the tile
 The thickness of the floor if you are generating and S-Wall
 
 #### Wall Position
-Whether the wall is positioned on the center or side of the tile
+Whether the wall is positioned on the center or side of the tile. Th Exterior wall type allows you to make exterior walls if you are using S-Walls. Exterior walls are slower to generate.
 
 #### Sync Proportions
 Whether to sync the proportions of the base and the main part of the tile.

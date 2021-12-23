@@ -18,7 +18,7 @@ def fake_context():
                           ('PLAIN', 'OPENLOCK', {'FINISHED'}),
                           ('PLAIN', 'NONE', {'FINISHED'}),
                           ('NONE', 'NONE', {'FINISHED'})])
-def test_make_Straight_Wall_OT_types(fake_context, main_part_blueprint, base_blueprint, operator_return):
+def test_Make_Straight_Wall_OT_types(fake_context, main_part_blueprint, base_blueprint, operator_return):
     op = bpy.ops.object.make_straight_wall(
         fake_context,
         refresh=True,
@@ -30,7 +30,7 @@ def test_make_Straight_Wall_OT_types(fake_context, main_part_blueprint, base_blu
 @pytest.mark.parametrize("wall_position, operator_return",
                          [("CENTER", {'FINISHED'}),
                           ("SIDE", {'FINISHED'}),
-                          ("OUTER", {'FINISHED'})])
+                          ("EXTERIOR", {'FINISHED'})])
 def test_make_Straight_Wall_OT_wall_position(fake_context, wall_position, operator_return):
     op = bpy.ops.object.make_straight_wall(
         fake_context,

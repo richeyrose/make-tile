@@ -212,12 +212,22 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
         elif base_blueprint in ['OPENLOCK', 'OPENLOCK_S_WALL']:
             base = spawn_openlock_base(self, tile_props)
 
-        if wall_blueprint == 'NONE':
-            wall_core = None
-        elif wall_blueprint == 'PLAIN':
+        if not base:
+            self.delete_tile_collection(self.tile_name)
+            self.report({'INFO'}, "Could not generate base. Cancelling")
+            return {'CANCELLED'}
+
+        if wall_blueprint == 'PLAIN':
             wall_core = spawn_plain_wall_cores(self, tile_props, base)
         elif wall_blueprint == 'OPENLOCK':
             wall_core = spawn_openlock_wall_cores(self, tile_props, base)
+        elif wall_blueprint == 'NONE':
+            wall_core = None
+
+        if wall_blueprint != 'NONE' and wall_core == None:
+            self.delete_tile_collection(self.tile_name)
+            self.report({'INFO'}, "Could not generate wall core. Cancelling.")
+            return {'CANCELLED'}
 
         if base_blueprint in {'OPENLOCK_S_WALL', 'PLAIN_S_WALL'}:
             # We temporarily override tile_props.base_size to generate floor core for S-Tiles.
@@ -235,6 +245,11 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
                 tile_props.base_size[1],
                 tile_props.base_size[2] + self.floor_thickness)
             floor_core = create_plain_rect_floor_cores(self, tile_props)
+            if not floor_core:
+                self.report({'INFO'}, "Could not generate floor core. Cancelling")
+                self.delete_tile_collection(self.tile_name)
+                return {'CANCELLED'}
+
             tile_props.tile_size = orig_tile_size
             self.finalise_tile(context, base, wall_core, floor_core)
         else:

@@ -81,7 +81,7 @@ def create_main_part_blueprint_enums(self, context):
         list[enum_item]: list of enum items
     """
     enum_items = []
-    
+
     if context is None:
         return enum_items
 
@@ -541,6 +541,25 @@ class MT_Tile_Generator:
             if socket['socket_type'] == self.base_socket_type:
                 return socket['filename']
         return False
+
+    def delete_tile_collection(self, col_name):
+        """Delete the collection and any objects it contains.
+        Use for cleaning up on error.
+
+        Args:
+            col_name (str): collection name
+        """
+        objects = bpy.data.objects
+        collections = bpy.data.collections
+        try:
+            collection = collections[col_name]
+            for obj in collections[col_name].objects:
+                bpy.data.objects.remove(objects[obj.name], do_unlink=True)
+            collections.remove(collections[collection.name], do_unlink=True)
+            return True
+        except KeyError as err:
+            self.report({'INFO'}, str(err))
+            return False
 
     def finalise_tile(self, context, base, *args):
         """Finalise the tile.

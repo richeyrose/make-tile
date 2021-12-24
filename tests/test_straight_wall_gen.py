@@ -24,14 +24,13 @@ def test_Make_Straight_Wall_OT_types(fake_context, main_part_blueprint, base_blu
         refresh=True,
         main_part_blueprint = main_part_blueprint,
         base_blueprint = base_blueprint)
-
     assert op == operator_return
 
 @pytest.mark.parametrize("wall_position, operator_return",
                          [("CENTER", {'FINISHED'}),
                           ("SIDE", {'FINISHED'}),
                           ("EXTERIOR", {'FINISHED'})])
-def test_make_Straight_Wall_OT_wall_position(fake_context, wall_position, operator_return):
+def test_Make_Straight_Wall_OT_wall_position(fake_context, wall_position, operator_return):
     op = bpy.ops.object.make_straight_wall(
         fake_context,
         refresh=True,
@@ -39,3 +38,4 @@ def test_make_Straight_Wall_OT_wall_position(fake_context, wall_position, operat
         base_blueprint='PLAIN',
         wall_position=wall_position)
     assert op == operator_return
+

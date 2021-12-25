@@ -1,10 +1,6 @@
 import pytest
 from addon_helper import get_version
 
-@pytest.fixture
-def bpy_module(cache):
-    return cache.get("bpy_module", None)
-
 def test_versionID_pass(bpy_module):
     expect_version = (0, 0, 28)
     return_version = get_version(bpy_module)

@@ -20,6 +20,7 @@ from ..lib.bmturtle.scripts import (
     draw_corner_3D as draw_corner_3D_bm,
     draw_corner_floor_core,
     draw_corner_wall_core,
+    draw_corner_wall_core_outer,
     draw_corner_slot_cutter)
 
 from ..lib.bmturtle.helpers import (
@@ -73,6 +74,13 @@ class MT_PT_L_Tile_Panel(Panel):
             layout.prop(scene_props, 'floor_material')
         if scene_props.tile_type == "L_WALL":
             layout.prop(scene_props, 'wall_material')
+
+        if scene_props.tile_type == 'L_WALL' and scene_props.base_blueprint in ('OPENLOCK_S_WALL', 'PLAIN_S_WALL'):
+            layout.label(text="Floor Thickness")
+            layout.prop(scene_props, 'floor_thickness', text="")
+
+            layout.label(text="Wall Position")
+            layout.prop(scene_props, 'wall_position', text="")
 
         layout.label(text="Tile Properties")
         layout.prop(scene_props, 'leg_1_len')
@@ -135,6 +143,24 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
     mt_blueprint = "CUSTOM"
     mt_type = "L_WALL"
 
+    wall_position: EnumProperty(
+        name="Wall Position",
+        items=[
+            ("CENTER", "Center", "Wall is in Center of base."),
+            ("SIDE", "Side", "Wall is on the side of base."),
+            ("EXTERIOR", "Exterior", "Wall is an exterior wall.")],
+        default="CENTER")
+
+    floor_thickness: FloatProperty(
+        name="Floor Thickness",
+        default=0.0245,
+        step=0.01,
+        precision=4)
+
+    floor_material: EnumProperty(
+        items=create_material_enums,
+        name="Floor Material")
+
     wall_material: EnumProperty(
         items=create_material_enums,
         name="Wall Material")
@@ -146,10 +172,15 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
 
         if base_blueprint == 'NONE':
             base = spawn_empty_base(tile_props)
-        elif base_blueprint == 'PLAIN':
+        elif base_blueprint in ['PLAIN', 'PLAIN_S_WALL']:
             base = spawn_plain_base(tile_props)
-        elif base_blueprint == 'OPENLOCK':
+        elif base_blueprint in ['OPENLOCK', 'OPENLOCK_S_WALL']:
             base = spawn_openlock_base(self, tile_props)
+
+        if not base:
+            self.delete_tile_collection(self.tile_name)
+            self.report({'INFO'}, "Could not generate base. Cancelling")
+            return {'CANCELLED'}
 
         if wall_blueprint == 'NONE':
             wall_core = None
@@ -157,6 +188,11 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
             wall_core = spawn_plain_wall_cores(self, tile_props)
         elif wall_blueprint == 'OPENLOCK':
             wall_core = spawn_openlock_wall_cores(self, tile_props, base)
+
+        if wall_blueprint != 'NONE' and wall_core == None:
+            self.delete_tile_collection(self.tile_name)
+            self.report({'INFO'}, "Could not generate wall core. Cancelling.")
+            return {'CANCELLED'}
 
         self.finalise_tile(context, base, wall_core)
 
@@ -179,14 +215,20 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
 
     def draw(self, context):
         super().draw(context)
+        scene = context.scene
+        scene_props = scene.mt_scene_props
         layout = self.layout
         layout.label(text="Blueprints")
         layout.prop(self, 'base_blueprint')
         layout.prop(self, 'main_part_blueprint', text="Main")
+
         if self.base_blueprint not in ('PLAIN', 'NONE'):
             layout.prop(self, 'base_socket_type')
+
         layout.label(text="Materials")
-        layout.prop(self, 'wall_material')
+        if scene_props.base_blueprint in ('OPENLOCK_S_WALL', 'PLAIN_S_WALL'):
+            layout.prop(scene_props, 'floor_material')
+        layout.prop(scene_props, 'wall_material')
 
         layout.label(text="Tile Properties")
         layout.prop(self, 'leg_1_len')
@@ -196,6 +238,13 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
 
         layout.label(text="Core Properties")
         layout.prop(self, 'tile_y', text="Width")
+
+        if scene_props.base_blueprint in ('OPENLOCK_S_WALL', 'PLAIN_S_WALL'):
+            layout.label(text="Floor Thickness")
+            layout.prop(scene_props, 'floor_thickness', text="")
+
+            layout.label(text="Wall Position")
+            layout.prop(scene_props, 'wall_position', text="")
 
         layout.label(text="Sync Proportions")
         row = layout.row()
@@ -293,154 +342,6 @@ class MT_OT_Make_L_Floor_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
         layout.prop(self, 'UV_island_margin', text="")
 
 
-class MT_OT_Make_Openlock_L_Base(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate an OpenLOCK L base."""
-
-    bl_idname = "object.make_openlock_l_base"
-    bl_label = "OpenLOCK L Base"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "OPENLOCK"
-    mt_type = "L_BASE"
-
-    def execute(self, context):
-        """Execute the operator."""
-        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
-        spawn_openlock_base(self, tile_props)
-        return{'FINISHED'}
-
-
-class MT_OT_Make_Plain_L_Base(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate a plain L base."""
-
-    bl_idname = "object.make_plain_l_base"
-    bl_label = "Plain L Base"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "PLAIN"
-    mt_type = "L_BASE"
-
-    def execute(self, context):
-        """Execute the operator."""
-        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
-        spawn_plain_base(tile_props)
-        return{'FINISHED'}
-
-
-class MT_OT_Make_Empty_L_Base(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate an empty L base."""
-
-    bl_idname = "object.make_empty_l_base"
-    bl_label = "Empty L Base"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "NONE"
-    mt_type = "L_BASE"
-
-    def execute(self, context):
-        """Execute the operator."""
-        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
-        spawn_empty_base(tile_props)
-        return{'FINISHED'}
-
-
-class MT_OT_Make_Plain_L_Wall_Core(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate a plain L wall core."""
-
-    bl_idname = "object.make_plain_l_wall_core"
-    bl_label = "L Wall Core"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "PLAIN"
-    mt_type = "L_WALL_CORE"
-    base_name: StringProperty()
-
-    def execute(self, context):
-        """Execute the operator."""
-        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
-        spawn_plain_wall_cores(self, tile_props)
-        return{'FINISHED'}
-
-
-class MT_OT_Make_Openlock_L_Wall_Core(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate an openlock L wall core."""
-
-    bl_idname = "object.make_openlock_l_wall_core"
-    bl_label = "L Wall Core"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "OPENLOCK"
-    mt_type = "L_WALL_CORE"
-    base_name: StringProperty()
-
-    def execute(self, context):
-        """Execute the operator."""
-        base = bpy.data.objects[self.base_name]
-        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
-        spawn_openlock_wall_cores(self, tile_props, base)
-        return{'FINISHED'}
-
-
-class MT_OT_Make_Empty_L_Wall_Core(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate an empty L wall core."""
-
-    bl_idname = "object.make_empty_l_wall_core"
-    bl_label = "L Wall Core"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "NONE"
-    mt_type = "L_WALL_CORE"
-    base_name: StringProperty()
-
-    def execute(self, context):
-        """Execute the operator."""
-        return {'PASS_THROUGH'}
-
-
-class MT_OT_Make_Plain_L_Floor_Core(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate a plain L wall core."""
-
-    bl_idname = "object.make_plain_l_floor_core"
-    bl_label = "L Floor Core"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "PLAIN"
-    mt_type = "L_FLOOR_CORE"
-    base_name: StringProperty()
-
-    def execute(self, context):
-        """Execute the operator."""
-        base = bpy.data.objects[self.base_name]
-        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
-        spawn_plain_floor_cores(self, tile_props)
-        return{'FINISHED'}
-
-
-class MT_OT_Make_Openlock_L_Floor_Core(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate an openlock L floor core."""
-
-    bl_idname = "object.make_openlock_l_floor_core"
-    bl_label = "L Floor Core"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "OPENLOCK"
-    mt_type = "L_FLOOR_CORE"
-    base_name: StringProperty()
-
-    def execute(self, context):
-        """Execute the operator."""
-        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
-        spawn_plain_floor_cores(self, tile_props)
-        return{'FINISHED'}
-
-
-class MT_OT_Make_Empty_L_Floor_Core(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate an empty L floor core."""
-
-    bl_idname = "object.make_empty_l_floor_core"
-    bl_label = "L Floor Core"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "NONE"
-    mt_type = "L_FLOOR_CORE"
-    base_name: StringProperty()
-
-    def execute(self, context):
-        """Execute the operator."""
-        return {'PASS_THROUGH'}
-
-
 def spawn_plain_wall_cores(self, tile_props):
     """Spawn plain wall cores into scene.
 
@@ -455,6 +356,7 @@ def spawn_plain_wall_cores(self, tile_props):
                               'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner']
     material = tile_props.wall_material
     subsurf = add_subsurf_modifier(core)
+
     convert_to_displacement_core(
         core,
         textured_vertex_groups,
@@ -879,7 +781,11 @@ def spawn_wall_core(self, tile_props):
 
     native_subdivisions = get_subdivs(
         tile_props.subdivision_density, native_subdivisions)
-    thickness_diff = base_thickness - wall_thickness
+
+    if tile_props.wall_position == 'CENTER':
+        thickness_diff = base_thickness - wall_thickness
+    elif tile_props.wall_position in ['EXTERIOR', 'SIDE']:
+        thickness_diff = 0.18
 
     # first work out where we're going to start drawing our wall
     # from, taking into account the difference in thickness
@@ -892,7 +798,6 @@ def spawn_wall_core(self, tile_props):
 
     core_x_leg = core_triangles_1['b_adj']
     core_y_leg = core_triangles_1['d_adj']
-
     # work out dimensions of core
     core_triangles_2 = calculate_corner_wall_triangles(
         core_x_leg,

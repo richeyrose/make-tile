@@ -499,6 +499,8 @@ def spawn_wall_core(self, tile_props):
     cursor_start_loc = cursor.location.copy()
     tile_size = tile_props.tile_size
     base_size = tile_props.base_size
+    tile_name = tile_props.tile_name
+
     if self.wall_position == 'EXTERIOR':
         core_size = [s for s in tile_size]
     else:
@@ -507,7 +509,6 @@ def spawn_wall_core(self, tile_props):
             tile_size[1],
             tile_size[2] - base_size[2]]
 
-    tile_name = tile_props.tile_name
     native_subdivisions = get_subdivs(
         tile_props.subdivision_density, core_size)
 

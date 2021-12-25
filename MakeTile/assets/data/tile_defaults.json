@@ -400,7 +400,9 @@
         "type": "L_WALL",
         "base_blueprints": {
             "OPENLOCK": "OpenLOCK",
+            "OPENLOCK_S_WALL": "OpenLOCK S-Wall",
             "PLAIN": "Plain",
+            "PLAIN_S_WALL": "Plain S-Wall",
             "NONE": "None"
         },
         "main_part_blueprints": {
@@ -425,7 +427,21 @@
                     "base_y": 0.5,
                     "base_z": 0.2755
                 },
+                "OPENLOCK_S_WALL": {
+                    "leg_1_len": 2.015,
+                    "leg_2_len": 2.015,
+                    "angle": 90,
+                    "base_y": 0.5,
+                    "base_z": 0.2755
+                },
                 "PLAIN": {
+                    "leg_1_len": 2.015,
+                    "leg_2_len": 2.015,
+                    "angle": 90,
+                    "base_y": 0.5,
+                    "base_z": 0.2755
+                },
+                "PLAIN_S_WALL": {
                     "leg_1_len": 2.015,
                     "leg_2_len": 2.015,
                     "angle": 90,

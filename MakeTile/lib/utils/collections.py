@@ -37,7 +37,10 @@ def get_collection(gp_collection, collection_name):
 def activate_collection(collection_name):
     """Activates the passed in collection."""
     collection = get_collection(bpy.context.view_layer.layer_collection, collection_name)
-    bpy.context.view_layer.active_layer_collection = collection
+    try:
+        bpy.context.view_layer.active_layer_collection = collection
+    except TypeError:
+        return collection
     return collection
 
 

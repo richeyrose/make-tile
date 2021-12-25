@@ -1,6 +1,5 @@
 import pytest
 import bpy
-from .test_straight_wall_gen import fake_context
 
 @pytest.mark.parametrize("main_part_blueprint, base_blueprint, operator_return",
                          [('PLAIN', 'PLAIN', {'FINISHED'}),

@@ -131,6 +131,7 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_Tile_Generator, MT_L_Tiles):
         name="Wall Material")
 
     def exec(self, context):
+        #TODO: Handle special case of 90 degree base and use rectangular tile base generator.
         base_blueprint = self.base_blueprint
         wall_blueprint = self.main_part_blueprint
         tile_props = bpy.data.collections[self.tile_name].mt_tile_props
@@ -442,14 +443,24 @@ def spawn_openlock_top_pegs(core, tile_props):
                 fit_type='FIT_LENGTH',
                 fit_length=leg_1_len - 1.3)
 
-        bmesh.ops.translate(
-            bm,
-            verts=bm.verts,
-            vec=(
-                0.756,
-                (base_size[1] / 2) + 0.08,
-                tile_size[2]),
-            space=peg_1.matrix_world)
+        if tile_props.wall_position == 'CENTER':
+            bmesh.ops.translate(
+                bm,
+                verts=bm.verts,
+                vec=(
+                    0.756,
+                    (base_size[1] / 2) + 0.08,
+                    tile_size[2]),
+                space=peg_1.matrix_world)
+        elif tile_props.wall_position in ['SIDE', 'EXTERIOR']:
+            bmesh.ops.translate(
+                bm,
+                verts=bm.verts,
+                vec=(
+                    0.756,
+                    0.33,
+                    tile_size[2]),
+                space=peg_1.matrix_world)
 
         bmesh.ops.rotate(
             bm,
@@ -499,15 +510,25 @@ def spawn_openlock_top_pegs(core, tile_props):
             matrix=Matrix.Rotation(radians(-90), 3, 'Z'),
             space=peg_2.matrix_world)
 
-        bmesh.ops.translate(
-            bm,
-            verts=bm.verts,
-            vec=(
-                (base_size[1] / 2) + 0.08,
-                (base_size[1] / 2) + leg_2_len - 1,
-                tile_size[2]),
-            space=peg_2.matrix_world)
+        if tile_props.wall_position == 'CENTER':
+            bmesh.ops.translate(
+                bm,
+                verts=bm.verts,
+                vec=(
+                    (base_size[1] / 2) + 0.08,
+                    (base_size[1] / 2) + leg_2_len - 1,
+                    tile_size[2]),
+                space=peg_2.matrix_world)
 
+        elif tile_props.wall_position in ['SIDE', 'EXTERIOR']:
+            bmesh.ops.translate(
+                bm,
+                verts=bm.verts,
+                vec=(
+                    0.33,
+                    0.25 + leg_2_len - 1,
+                    tile_size[2]),
+                space=peg_2.matrix_world)
         bm.to_mesh(peg_mesh)
         bm.free()
         pegs.append(peg_2)
@@ -560,7 +581,6 @@ def spawn_openlock_wall_cutters(core, tile_props):
         front_left[0],
         front_left[1] + (base_size[1] / 2),
         front_left[2] + 0.63]
-
     array_mod = left_cutter_bottom.modifiers.new('Array', 'ARRAY')
     array_mod.use_relative_offset = False
     array_mod.use_constant_offset = True
@@ -609,7 +629,8 @@ def spawn_openlock_wall_cutters(core, tile_props):
     bmesh.ops.translate(
         bm,
         vec=(-tile_props.leg_1_len,
-             (base_size[1] / 2) * -1,
+             #(base_size[1] / 2) * -1,
+             -0.25,
              0.63),
         space=right_cutter_bottom.matrix_world,
         verts=bm.verts)
@@ -642,14 +663,25 @@ def spawn_openlock_wall_cutters(core, tile_props):
 
     cutters.extend([right_cutter_bottom, right_cutter_top])
 
+    # move left cutter
     left_cutters = [cutters[0], cutters[1]]
-    for cutter in left_cutters:
-        cutter.location = (
-            cutter.location[0] + (tile_props.base_size[1] / 2),
-            cutter.location[1] + tile_props.leg_2_len -
-            (tile_props.base_size[1] / 2),
-            cutter.location[2])
-        cutter.rotation_euler = (0, 0, radians(-90))
+    if tile_props.wall_position == 'CENTER':
+        for cutter in left_cutters:
+            cutter.location = (
+                cutter.location[0] + (tile_props.base_size[1] / 2),
+                cutter.location[1] + tile_props.leg_2_len -
+                (tile_props.base_size[1] / 2),
+                cutter.location[2])
+            cutter.rotation_euler = (0, 0, radians(-90))
+    elif tile_props.wall_position == 'SIDE':
+        for cutter in left_cutters:
+            cutter.location = (
+                cutter.location[0] + 0.25,
+                cutter.location[1] + tile_props.leg_2_len -
+                (tile_props.base_size[1] / 2),
+                cutter.location[2])
+            cutter.rotation_euler = (0, 0, radians(-90))
+
     deselect_all()
     return cutters
 

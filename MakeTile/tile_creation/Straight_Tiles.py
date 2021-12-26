@@ -27,6 +27,14 @@ from .create_tile import (
     get_subdivs,
     create_material_enums,
     add_subsurf_modifier)
+
+from .tile_panels import (
+    redo_straight_tiles_panel,
+    redo_tile_panel_header,
+    scene_tile_panel_header,
+    scene_tile_panel_footer,
+    scene_straight_tiles_panel,
+    redo_tile_panel_footer)
 '''
 from line_profiler import LineProfiler
 from os.path import splitext
@@ -56,20 +64,9 @@ class MT_PT_Straight_Wall_Panel(Panel):
         """Draw the Panel."""
         scene = context.scene
         scene_props = scene.mt_scene_props
-
         layout = self.layout
-
-        layout.label(text="Blueprints")
-        layout.prop(scene_props, 'base_blueprint')
-        layout.prop(scene_props, 'main_part_blueprint')
-
-        if scene_props.base_blueprint not in ('PLAIN', 'NONE'):
-            layout.prop(scene_props, 'base_socket_type')
-
-        layout.label(text="Materials")
-        if scene_props.base_blueprint in ('OPENLOCK_S_WALL', 'PLAIN_S_WALL'):
-            layout.prop(scene_props, 'floor_material')
-        layout.prop(scene_props, 'wall_material')
+        blueprints = ['base_blueprint', 'main_part_blueprint']
+        scene_tile_panel_header(scene_props, layout, blueprints, 'WALL')
 
         layout.label(text="Tile Size")
         row = layout.row()
@@ -79,32 +76,8 @@ class MT_PT_Straight_Wall_Panel(Panel):
         layout.label(text="Core Size")
         layout.prop(scene_props, 'tile_y', text="Width")
 
-        if scene_props.base_blueprint in ('OPENLOCK_S_WALL', 'PLAIN_S_WALL'):
-            layout.label(text="Floor Thickness")
-            layout.prop(scene_props, 'floor_thickness', text="")
-
-            layout.label(text="Wall Position")
-            layout.prop(scene_props, 'wall_position', text="")
-
-        layout.label(text="Sync Proportions")
-        row = layout.row()
-        row.prop(scene_props, 'x_proportionate_scale')
-        row.prop(scene_props, 'y_proportionate_scale')
-        row.prop(scene_props, 'z_proportionate_scale')
-
-        layout.label(text="Base Size")
-        row = layout.row()
-        row.prop(scene_props, 'base_x')
-        row.prop(scene_props, 'base_y')
-        row.prop(scene_props, 'base_z')
-
-        layout.label(text="Subdivision Density")
-        layout.prop(scene_props, 'subdivision_density', text="")
-
-        layout.label(text="UV Island Margin")
-        layout.prop(scene_props, 'UV_island_margin', text="")
-
-        layout.operator('scene.reset_tile_defaults')
+        scene_straight_tiles_panel(scene_props, layout)
+        scene_tile_panel_footer(scene_props, layout)
 
 
 class MT_PT_Rect_Floor_Panel(Panel):
@@ -130,16 +103,9 @@ class MT_PT_Rect_Floor_Panel(Panel):
         scene = context.scene
         scene_props = scene.mt_scene_props
         layout = self.layout
+        blueprints = ['base_blueprint', 'main_part_blueprint']
 
-        layout.label(text="Blueprints")
-        layout.prop(scene_props, 'base_blueprint')
-        layout.prop(scene_props, 'main_part_blueprint')
-
-        if scene_props.base_blueprint not in ('PLAIN', 'NONE'):
-            layout.prop(scene_props, 'base_socket_type')
-
-        layout.label(text="Materials")
-        layout.prop(scene_props, 'floor_material')
+        scene_tile_panel_header(scene_props, layout, blueprints, 'FLOOR')
 
         layout.label(text="Tile Size")
         row = layout.row()
@@ -147,25 +113,8 @@ class MT_PT_Rect_Floor_Panel(Panel):
         row.prop(scene_props, 'tile_y')
         row.prop(scene_props, 'tile_z')
 
-        layout.label(text="Lock Proportions")
-        row = layout.row()
-        row.prop(scene_props, 'x_proportionate_scale')
-        row.prop(scene_props, 'y_proportionate_scale')
-        row.prop(scene_props, 'z_proportionate_scale')
-
-        layout.label(text="Base Size")
-        row = layout.row()
-        row.prop(scene_props, 'base_x')
-        row.prop(scene_props, 'base_y')
-        row.prop(scene_props, 'base_z')
-
-        layout.label(text="Subdivision Density")
-        layout.prop(scene_props, 'subdivision_density', text="")
-
-        layout.label(text="UV Island Margin")
-        layout.prop(scene_props, 'UV_island_margin', text="")
-
-        layout.operator('scene.reset_tile_defaults')
+        scene_straight_tiles_panel(scene_props, layout)
+        scene_tile_panel_footer(scene_props, layout)
 
 
 class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
@@ -274,18 +223,8 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
-
-        layout.label(text="Blueprints")
-        layout.prop(self, 'base_blueprint')
-        layout.prop(self, 'main_part_blueprint')
-
-        if self.base_blueprint not in ('PLAIN', 'NONE'):
-            layout.prop(self, 'base_socket_type')
-
-        layout.label(text="Materials")
-        if self.base_blueprint in ('OPENLOCK_S_WALL', 'PLAIN_S_WALL'):
-            layout.prop(self, 'floor_material')
-        layout.prop(self, 'wall_material')
+        blueprints=['base_blueprint', 'main_part_blueprint']
+        redo_tile_panel_header(self, layout, blueprints, 'WALL')
 
         layout.label(text="Tile Size")
         row = layout.row()
@@ -293,25 +232,9 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
         row.prop(self, 'tile_y')
         row.prop(self, 'tile_z')
 
-        layout.label(text="Sync Proportions")
-        row = layout.row()
-        row.prop(self, 'x_proportionate_scale')
-        row.prop(self, 'y_proportionate_scale')
-        row.prop(self, 'z_proportionate_scale')
+        redo_straight_tiles_panel(self, layout)
+        redo_tile_panel_footer(self, layout)
 
-        layout.label(text="Base Size")
-        row = layout.row()
-        row.prop(self, 'base_x')
-        row.prop(self, 'base_y')
-        row.prop(self, 'base_z')
-        if self.base_blueprint in ('OPENLOCK_S_WALL', 'PLAIN_S_WALL'):
-            layout.label(text="Floor Thickness")
-            layout.prop(self, 'floor_thickness', text="")
-            layout.label(text="Wall Position")
-            layout.prop(self, 'wall_position', text="")
-
-        layout.label(text="UV Island Margin")
-        layout.prop(self, 'UV_island_margin', text="")
 
 
 class MT_OT_Make_Rect_Floor_Tile(Operator, MT_Tile_Generator):
@@ -368,15 +291,7 @@ class MT_OT_Make_Rect_Floor_Tile(Operator, MT_Tile_Generator):
         super().draw(context)
         layout = self.layout
 
-        layout.label(text="Blueprints")
-        layout.prop(self, 'base_blueprint')
-        layout.prop(self, 'main_part_blueprint')
-
-        if self.base_blueprint not in ('PLAIN', 'NONE'):
-            layout.prop(self, 'base_socket_type')
-
-        layout.label(text="Materials")
-        layout.prop(self, 'floor_material')
+        redo_tile_panel_header(self, layout, ['base_blueprint', 'main_part_blueprint'], 'FLOOR')
 
         layout.label(text="Tile Size")
         row = layout.row()
@@ -384,20 +299,8 @@ class MT_OT_Make_Rect_Floor_Tile(Operator, MT_Tile_Generator):
         row.prop(self, 'tile_y')
         row.prop(self, 'tile_z')
 
-        layout.label(text="Sync Proportions")
-        row = layout.row()
-        row.prop(self, 'x_proportionate_scale')
-        row.prop(self, 'y_proportionate_scale')
-        row.prop(self, 'z_proportionate_scale')
-
-        layout.label(text="Base Size")
-        row = layout.row()
-        row.prop(self, 'base_x')
-        row.prop(self, 'base_y')
-        row.prop(self, 'base_z')
-
-        layout.label(text="UV Island Margin")
-        layout.prop(self, 'UV_island_margin', text="")
+        redo_straight_tiles_panel(self, layout)
+        redo_tile_panel_footer(self, layout)
 
 def spawn_plain_wall_cores(self, tile_props, base):
     """Spawn plain Core.

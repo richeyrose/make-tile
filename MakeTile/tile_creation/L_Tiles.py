@@ -20,7 +20,6 @@ from ..lib.bmturtle.scripts import (
     draw_corner_3D as draw_corner_3D_bm,
     draw_corner_floor_core,
     draw_corner_wall_core,
-    draw_corner_wall_core_outer,
     draw_corner_slot_cutter)
 
 from ..lib.bmturtle.helpers import (

@@ -418,7 +418,10 @@
             "UV_island_margin": 0.012,
             "y_proportionate_scale": false,
             "z_proportionate_scale": false,
+            "floor_thickness": 0.0245,
+            "wall_position": "CENTER",
             "wall_material": "Basic Stone 1",
+            "floor_material": "Floor Tiles",
             "base_defaults": {
                 "OPENLOCK": {
                     "leg_1_len": 2.015,
@@ -431,7 +434,7 @@
                     "leg_1_len": 2.015,
                     "leg_2_len": 2.015,
                     "angle": 90,
-                    "base_y": 0.5,
+                    "base_y": 2,
                     "base_z": 0.2755
                 },
                 "PLAIN": {
@@ -445,7 +448,7 @@
                     "leg_1_len": 2.015,
                     "leg_2_len": 2.015,
                     "angle": 90,
-                    "base_y": 0.5,
+                    "base_y": 2,
                     "base_z": 0.2755
                 },
                 "NONE": {

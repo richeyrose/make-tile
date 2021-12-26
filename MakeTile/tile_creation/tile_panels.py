@@ -1,6 +1,14 @@
-import bpy
+"""Contains elements used in the creation of panels for the tile generators."""
 
 def scene_tile_panel_header(scene_props, layout, blueprints, tile_type):
+    """Header for N menu tile generator panels.
+
+    Args:
+        scene_props (mt_scene_props): mt scene properties
+        layout (bpy.types.UILayout): Area to draw in
+        blueprints (list): list of blueprint names
+        tile_type (str): str in [WALL, FLOOR, ROOF]
+    """
     layout.label(text="Blueprints")
     for blueprint in blueprints:
         layout.prop(scene_props, blueprint)
@@ -25,6 +33,12 @@ def scene_tile_panel_header(scene_props, layout, blueprints, tile_type):
             layout.prop(scene_props, 'wall_position', text="")
 
 def scene_tile_panel_footer(scene_props, layout):
+    """Footer for the N menu tile generator panels.
+
+    Args:
+        scene_props (mt_scene_props): Scene properties
+        layout (bpy.types.UILayout): Area to draw in
+    """
     layout.label(text="Subdivision Density")
     layout.prop(scene_props, 'subdivision_density', text="")
 
@@ -34,6 +48,12 @@ def scene_tile_panel_footer(scene_props, layout):
     layout.operator('scene.reset_tile_defaults')
 
 def scene_straight_tiles_panel(scene_props, layout):
+    """Shared content for the N menu straight tile generator panels.
+
+    Args:
+        scene_props (mt_scene_props): MakeTile scene properties
+        layout (bpy.type.UILayout): Area to draw in.
+    """
     layout.label(text="Sync Proportions")
     row = layout.row()
     row.prop(scene_props, 'x_proportionate_scale')
@@ -46,7 +66,39 @@ def scene_straight_tiles_panel(scene_props, layout):
     row.prop(scene_props, 'base_y')
     row.prop(scene_props, 'base_z')
 
+def scene_L_tiles_panel(scene_props, layout):
+    """Shared content for the N menu L tiles generator panels.
+
+    Args:
+        scene_props (mt_scene_props): MakeTile scene properties
+        layout (bpy.type.UILayout): Area to draw in.
+    """
+    layout.label(text="Tile Properties")
+    layout.prop(scene_props, 'leg_1_len')
+    layout.prop(scene_props, 'leg_2_len')
+    layout.prop(scene_props, 'angle')
+    layout.prop(scene_props, 'tile_z', text="Height")
+
+    layout.label(text="Core Properties")
+    layout.prop(scene_props, 'tile_y', text="Width")
+
+    layout.label(text="Sync Proportions")
+    row = layout.row()
+    row.prop(scene_props, 'z_proportionate_scale', text="Height")
+    row.prop(scene_props, 'y_proportionate_scale', text="Width")
+
+    layout.label(text="Base Properties")
+    layout.prop(scene_props, "base_z", text="Height")
+    layout.prop(scene_props, "base_y", text="Width")
+
 def redo_tile_panel_header(self, layout, blueprints, tile_type):
+    """Header for the tile generator's redo panels
+
+    Args:
+        layout (bpy.types.UILayout): Are to draw in
+        blueprints (list[str]): list of blueprints
+        tile_type (str): String in [WALL, FLOOR, ROOF]
+    """
     layout.label(text="Blueprints")
     for blueprint in blueprints:
         layout.prop(self, blueprint)
@@ -54,7 +106,7 @@ def redo_tile_panel_header(self, layout, blueprints, tile_type):
     if 'base_blueprint' in blueprints and self.base_blueprint not in ('PLAIN', 'NONE'):
         layout.prop(self, 'base_socket_type')
 
-    layout.label(text='MATERIALS')
+    layout.label(text='Materials')
     if tile_type == 'FLOOR':
         layout.prop(self, 'floor_material')
 
@@ -70,10 +122,20 @@ def redo_tile_panel_header(self, layout, blueprints, tile_type):
             layout.prop(self, 'wall_position', text="")
 
 def redo_tile_panel_footer(self, layout):
+    """Footer for tile generator's redo panel
+
+    Args:
+        layout (bpy.types.UILayout): Area to draw in
+    """
     layout.label(text="UV Island Margin")
     layout.prop(self, 'UV_island_margin', text="")
 
 def redo_straight_tiles_panel(self, layout):
+    """Shared content for redo panel for straight tiles.
+
+    Args:
+        layout (bpy.types.UILayout): Area to draw in.
+    """
     layout.label(text="Sync Proportions")
     row = layout.row()
     row.prop(self, 'x_proportionate_scale')
@@ -85,3 +147,27 @@ def redo_straight_tiles_panel(self, layout):
     row.prop(self, 'base_x')
     row.prop(self, 'base_y')
     row.prop(self, 'base_z')
+
+def redo_L_tiles_panel(self, layout):
+    """Shared content for redo panel for L Tiles.
+
+    Args:
+        layout (bpy.types.UILayout): Area to draw in.
+    """
+    layout.label(text="Tile Properties")
+    layout.prop(self, 'leg_1_len')
+    layout.prop(self, 'leg_2_len')
+    layout.prop(self, 'angle')
+    layout.prop(self, 'tile_z', text="Height")
+
+    layout.label(text="Core Properties")
+    layout.prop(self, 'tile_y', text="Width")
+
+    layout.label(text="Sync Proportions")
+    row = layout.row()
+    row.prop(self, 'z_proportionate_scale', text="Height")
+    row.prop(self, 'y_proportionate_scale', text="Width")
+
+    layout.label(text="Base Properties")
+    layout.prop(self, "base_z", text="Height")
+    layout.prop(self, "base_y", text="Width")

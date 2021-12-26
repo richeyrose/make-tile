@@ -6,8 +6,7 @@ from mathutils import Matrix
 from bpy.types import Panel, Operator
 from bpy.props import (
     EnumProperty,
-    FloatProperty,
-    StringProperty)
+    FloatProperty)
 
 from ..lib.utils.collections import (
     add_object_to_collection)
@@ -37,6 +36,13 @@ from .create_tile import (
     get_subdivs,
     add_subsurf_modifier)
 
+from .tile_panels import (
+    redo_L_tiles_panel,
+    redo_tile_panel_header,
+    redo_tile_panel_footer,
+    scene_L_tiles_panel,
+    scene_tile_panel_footer,
+    scene_tile_panel_header)
 
 class MT_PT_L_Tile_Panel(Panel):
     """Draw a tile options panel in UI."""
@@ -61,52 +67,13 @@ class MT_PT_L_Tile_Panel(Panel):
         scene = context.scene
         scene_props = scene.mt_scene_props
         layout = self.layout
-
-        layout.label(text="Blueprints")
-        layout.prop(scene_props, 'base_blueprint')
-        layout.prop(scene_props, 'main_part_blueprint', text="Main")
-        if scene_props.base_blueprint not in ('PLAIN', 'NONE'):
-            layout.prop(scene_props, 'base_socket_type')
-
-        layout.label(text="Materials")
-        if scene_props.tile_type == "L_FLOOR":
-            layout.prop(scene_props, 'floor_material')
+        blueprints = ['base_blueprint', 'main_part_blueprint']
         if scene_props.tile_type == "L_WALL":
-            layout.prop(scene_props, 'wall_material')
-
-        if scene_props.tile_type == 'L_WALL' and scene_props.base_blueprint in ('OPENLOCK_S_WALL', 'PLAIN_S_WALL'):
-            layout.label(text="Floor Thickness")
-            layout.prop(scene_props, 'floor_thickness', text="")
-
-            layout.label(text="Wall Position")
-            layout.prop(scene_props, 'wall_position', text="")
-
-        layout.label(text="Tile Properties")
-        layout.prop(scene_props, 'leg_1_len')
-        layout.prop(scene_props, 'leg_2_len')
-        layout.prop(scene_props, 'angle')
-        layout.prop(scene_props, 'tile_z', text="Height")
-
-        layout.label(text="Core Properties")
-        layout.prop(scene_props, 'tile_y', text="Width")
-
-        layout.label(text="Sync Proportions")
-        row = layout.row()
-        row.prop(scene_props, 'z_proportionate_scale', text="Height")
-        row.prop(scene_props, 'y_proportionate_scale', text="Width")
-
-        layout.label(text="Base Properties")
-        layout.prop(scene_props, "base_z", text="Height")
-        layout.prop(scene_props, "base_y", text="Width")
-
-        layout.label(text="Subdivision Density")
-        layout.prop(scene_props, 'subdivision_density', text="")
-
-        layout.label(text="UV Island Margin")
-        layout.prop(scene_props, 'UV_island_margin', text="")
-
-        layout.operator('scene.reset_tile_defaults')
-
+            scene_tile_panel_header(scene_props, layout, blueprints, 'WALL')
+        else:
+            scene_tile_panel_header(scene_props, layout, blueprints, 'FLOOR')
+        scene_L_tiles_panel(scene_props, layout)
+        scene_tile_panel_footer(scene_props, layout)
 
 class MT_L_Tiles:
     angle: FloatProperty(
@@ -132,8 +99,11 @@ class MT_L_Tiles:
         precision=1
     )
 
+    floor_material: EnumProperty(
+        items=create_material_enums,
+        name="Floor Material")
 
-class MT_OT_Make_L_Wall_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
+class MT_OT_Make_L_Wall_Tile(Operator, MT_Tile_Generator, MT_L_Tiles):
     """Create an L Wall Tile."""
 
     bl_idname = "object.make_l_wall_tile"
@@ -155,10 +125,6 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
         default=0.0245,
         step=0.01,
         precision=4)
-
-    floor_material: EnumProperty(
-        items=create_material_enums,
-        name="Floor Material")
 
     wall_material: EnumProperty(
         items=create_material_enums,
@@ -214,48 +180,10 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
 
     def draw(self, context):
         super().draw(context)
-        scene = context.scene
-        scene_props = scene.mt_scene_props
         layout = self.layout
-        layout.label(text="Blueprints")
-        layout.prop(self, 'base_blueprint')
-        layout.prop(self, 'main_part_blueprint', text="Main")
-
-        if self.base_blueprint not in ('PLAIN', 'NONE'):
-            layout.prop(self, 'base_socket_type')
-
-        layout.label(text="Materials")
-        if scene_props.base_blueprint in ('OPENLOCK_S_WALL', 'PLAIN_S_WALL'):
-            layout.prop(scene_props, 'floor_material')
-        layout.prop(scene_props, 'wall_material')
-
-        layout.label(text="Tile Properties")
-        layout.prop(self, 'leg_1_len')
-        layout.prop(self, 'leg_2_len')
-        layout.prop(self, 'angle')
-        layout.prop(self, 'tile_z', text="Height")
-
-        layout.label(text="Core Properties")
-        layout.prop(self, 'tile_y', text="Width")
-
-        if scene_props.base_blueprint in ('OPENLOCK_S_WALL', 'PLAIN_S_WALL'):
-            layout.label(text="Floor Thickness")
-            layout.prop(scene_props, 'floor_thickness', text="")
-
-            layout.label(text="Wall Position")
-            layout.prop(scene_props, 'wall_position', text="")
-
-        layout.label(text="Sync Proportions")
-        row = layout.row()
-        row.prop(self, 'z_proportionate_scale', text="Height")
-        row.prop(self, 'y_proportionate_scale', text="Width")
-
-        layout.label(text="Base Properties")
-        layout.prop(self, "base_z", text="Height")
-        layout.prop(self, "base_y", text="Width")
-
-        layout.label(text="UV Island Margin")
-        layout.prop(self, 'UV_island_margin', text="")
+        redo_tile_panel_header(self, layout, ['base_blueprint', 'main_part_blueprint'], 'WALL')
+        redo_L_tiles_panel(self, layout)
+        redo_tile_panel_footer(self, layout)
 
 
 class MT_OT_Make_L_Floor_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
@@ -266,10 +194,6 @@ class MT_OT_Make_L_Floor_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
     bl_options = {'UNDO', 'REGISTER'}
     mt_blueprint = "CUSTOM"
     mt_type = "L_FLOOR"
-
-    floor_material: EnumProperty(
-        items=create_material_enums,
-        name="Floor Material")
 
     def exec(self, context):
         base_blueprint = self.base_blueprint
@@ -311,34 +235,9 @@ class MT_OT_Make_L_Floor_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
-        layout.label(text="Blueprints")
-        layout.prop(self, 'base_blueprint')
-        layout.prop(self, 'main_part_blueprint', text="Main")
-        if self.base_blueprint not in ('PLAIN', 'NONE'):
-            layout.prop(self, 'base_socket_type')
-        layout.label(text="Materials")
-        layout.prop(self, 'floor_material')
-
-        layout.label(text="Tile Properties")
-        layout.prop(self, 'leg_1_len')
-        layout.prop(self, 'leg_2_len')
-        layout.prop(self, 'angle')
-        layout.prop(self, 'tile_z', text="Height")
-
-        layout.label(text="Core Properties")
-        layout.prop(self, 'tile_y', text="Width")
-
-        layout.label(text="Sync Proportions")
-        row = layout.row()
-        row.prop(self, 'z_proportionate_scale', text="Height")
-        row.prop(self, 'y_proportionate_scale', text="Width")
-
-        layout.label(text="Base Properties")
-        layout.prop(self, "base_z", text="Height")
-        layout.prop(self, "base_y", text="Width")
-
-        layout.label(text="UV Island Margin")
-        layout.prop(self, 'UV_island_margin', text="")
+        redo_tile_panel_header(self, layout, ['base_blueprint', 'main_part_blueprint'], 'FLOOR')
+        redo_L_tiles_panel(self, layout)
+        redo_tile_panel_footer(self, layout)
 
 
 def spawn_plain_wall_cores(self, tile_props):

@@ -41,7 +41,6 @@ from os.path import splitext
 profile = LineProfiler()
 '''
 
-
 class MT_PT_Straight_Wall_Panel(Panel):
     """Draw a tile options panel in UI."""
 

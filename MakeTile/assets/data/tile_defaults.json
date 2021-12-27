@@ -56,7 +56,7 @@
     {
         "bl_idname": "object.make_straight_wall",
         "bl_label": "Straight Wall",
-        "blueprint":"CUSTOM",
+        "blueprint": "CUSTOM",
         "type": "STRAIGHT_WALL",
         "base_blueprints": {
             "OPENLOCK": "OpenLOCK",
@@ -70,8 +70,7 @@
             "PLAIN": "Plain",
             "NONE": "None"
         },
-        "defaults":
-            {
+        "defaults": {
             "base_blueprint": "OPENLOCK",
             "main_part_blueprint": "OPENLOCK",
             "subdivision_density": "MEDIUM",
@@ -132,7 +131,7 @@
     {
         "bl_idname": "object.make_triangular_floor",
         "bl_label": "Triangular Floor",
-        "blueprint":"CUSTOM",
+        "blueprint": "CUSTOM",
         "type": "TRIANGULAR_FLOOR",
         "base_blueprints": {
             "OPENLOCK": "OpenLOCK",
@@ -143,8 +142,7 @@
             "PLAIN": "Plain",
             "NONE": "None"
         },
-        "defaults":
-            {
+        "defaults": {
             "base_blueprint": "OPENLOCK",
             "main_part_blueprint": "PLAIN",
             "subdivision_density": "MEDIUM",
@@ -190,7 +188,7 @@
     {
         "bl_idname": "object.make_curved_wall",
         "bl_label": "Curved Wall",
-        "blueprint":"CUSTOM",
+        "blueprint": "CUSTOM",
         "type": "CURVED_WALL",
         "base_blueprints": {
             "OPENLOCK": "OpenLOCK",
@@ -204,8 +202,7 @@
             "PLAIN": "Plain",
             "NONE": "None"
         },
-        "defaults":
-            {
+        "defaults": {
             "base_blueprint": "OPENLOCK",
             "main_part_blueprint": "OPENLOCK",
             "subdivision_density": "MEDIUM",
@@ -273,7 +270,7 @@
     {
         "bl_idname": "object.make_curved_floor",
         "bl_label": "Curved Floor",
-        "blueprint":"CUSTOM",
+        "blueprint": "CUSTOM",
         "type": "CURVED_FLOOR",
         "base_blueprints": {
             "OPENLOCK": "OpenLOCK",
@@ -284,8 +281,7 @@
             "PLAIN": "Plain",
             "NONE": "None"
         },
-        "defaults":
-            {
+        "defaults": {
             "base_blueprint": "OPENLOCK",
             "main_part_blueprint": "PLAIN",
             "subdivision_density": "MEDIUM",
@@ -332,7 +328,7 @@
     {
         "bl_idname": "object.make_semi_circ_floor",
         "bl_label": "Semi Circular Floor",
-        "blueprint":"CUSTOM",
+        "blueprint": "CUSTOM",
         "type": "SEMI_CIRC_FLOOR",
         "base_blueprints": {
             "OPENLOCK": "OpenLOCK",
@@ -343,8 +339,7 @@
             "PLAIN": "Plain",
             "NONE": "None"
         },
-        "defaults":
-            {
+        "defaults": {
             "base_blueprint": "OPENLOCK",
             "main_part_blueprint": "PLAIN",
             "subdivision_density": "MEDIUM",
@@ -396,7 +391,7 @@
     {
         "bl_idname": "object.make_l_wall_tile",
         "bl_label": "L Wall",
-        "blueprint":"CUSTOM",
+        "blueprint": "CUSTOM",
         "type": "L_WALL",
         "base_blueprints": {
             "OPENLOCK": "OpenLOCK",
@@ -410,8 +405,7 @@
             "PLAIN": "Plain",
             "NONE": "None"
         },
-        "defaults":
-            {
+        "defaults": {
             "base_blueprint": "OPENLOCK",
             "main_part_blueprint": "OPENLOCK",
             "subdivision_density": "MEDIUM",
@@ -435,7 +429,8 @@
                     "leg_2_len": 2.015,
                     "angle": 90,
                     "base_y": 2,
-                    "base_z": 0.2755
+                    "base_z": 0.2755,
+                    "wall_position": "SIDE"
                 },
                 "PLAIN": {
                     "leg_1_len": 2.015,
@@ -449,7 +444,8 @@
                     "leg_2_len": 2.015,
                     "angle": 90,
                     "base_y": 2,
-                    "base_z": 0.2755
+                    "base_z": 0.2755,
+                    "wall_position": "SIDE"
                 },
                 "NONE": {
                     "leg_1_len": 2.015,
@@ -487,7 +483,7 @@
     {
         "bl_idname": "object.make_l_floor_tile",
         "bl_label": "L Wall",
-        "blueprint":"CUSTOM",
+        "blueprint": "CUSTOM",
         "type": "L_FLOOR",
         "base_blueprints": {
             "OPENLOCK": "OpenLOCK",
@@ -498,8 +494,7 @@
             "PLAIN": "Plain",
             "NONE": "None"
         },
-        "defaults":
-            {
+        "defaults": {
             "base_blueprint": "OPENLOCK",
             "main_part_blueprint": "PLAIN",
             "subdivision_density": "MEDIUM",
@@ -551,7 +546,7 @@
     {
         "bl_idname": "object.make_u_wall",
         "bl_label": "U Wall",
-        "blueprint":"CUSTOM",
+        "blueprint": "CUSTOM",
         "type": "U_WALL",
         "base_blueprints": {
             "OPENLOCK": "OpenLOCK",
@@ -563,8 +558,7 @@
             "PLAIN": "Plain",
             "NONE": "None"
         },
-        "defaults":
-            {
+        "defaults": {
             "base_blueprint": "OPENLOCK",
             "base_socket_side": "INNER",
             "main_part_blueprint": "OPENLOCK",
@@ -618,7 +612,7 @@
     {
         "bl_idname": "object.make_connecting_column",
         "bl_label": "Connecting Column",
-        "blueprint":"CUSTOM",
+        "blueprint": "CUSTOM",
         "type": "CONNECTING_COLUMN",
         "base_blueprints": {
             "PLAIN": "Plain",
@@ -630,7 +624,7 @@
             "OPENLOCK": "OpenLOCK",
             "NONE": "None"
         },
-        "defaults":{
+        "defaults": {
             "base_blueprint": "NONE",
             "main_part_blueprint": "OPENLOCK",
             "column_type": "I",
@@ -640,24 +634,24 @@
             "y_proportionate_scale": true,
             "displacement_thickness": 0.05,
             "column_material": "Basic Stone 1",
-            "base_defaults":{
-                "OPENLOCK":{
+            "base_defaults": {
+                "OPENLOCK": {
                     "base_x": 0.5,
                     "base_y": 0.5,
                     "base_z": 0.2755
                 },
-                "PLAIN":{
+                "PLAIN": {
                     "base_x": 0.5,
                     "base_y": 0.5,
                     "base_z": 0.2755
                 },
-                "NONE":{
+                "NONE": {
                     "base_x": 0.5,
                     "base_y": 0.5,
                     "base_z": 0
                 }
             },
-            "tile_defaults":{
+            "tile_defaults": {
                 "PLAIN": {
                     "tile_x": 0.5,
                     "tile_y": 0.5,
@@ -668,7 +662,7 @@
                     "tile_y": 0.5,
                     "tile_z": 2
                 },
-                "NONE":{
+                "NONE": {
                     "tile_x": 0.5,
                     "tile_y": 0.5,
                     "tile_z": 0
@@ -679,7 +673,7 @@
     {
         "bl_idname": "object.make_roof",
         "bl_label": "Roof",
-        "blueprint":"CUSTOM",
+        "blueprint": "CUSTOM",
         "type": "ROOF",
         "base_blueprints": {
             "PLAIN": "Plain",
@@ -689,7 +683,7 @@
             "PLAIN": "Plain",
             "NONE": "None"
         },
-        "defaults":{
+        "defaults": {
             "base_blueprint": "PLAIN",
             "main_part_blueprint": "PLAIN",
             "roof_type": "APEX",
@@ -706,8 +700,8 @@
             "inset_x_pos": true,
             "inset_y_neg": true,
             "inset_y_pos": true,
-            "base_defaults":{
-                "PLAIN":{
+            "base_defaults": {
+                "PLAIN": {
                     "base_x": 4.0,
                     "base_y": 6.0,
                     "base_z": 0.2755,
@@ -720,13 +714,13 @@
                     "side_eaves": 0.0
                 }
             },
-            "tile_defaults":{
-                "PLAIN":{
+            "tile_defaults": {
+                "PLAIN": {
                     "tile_x": 4.0,
                     "tile_y": 6.0,
                     "tile_z": 4.0
                 },
-                "NONE":{
+                "NONE": {
                     "tile_x": 4.0,
                     "tile_y": 6.0,
                     "tile_z": 4.0

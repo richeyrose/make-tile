@@ -44,6 +44,12 @@ from .tile_panels import (
     scene_tile_panel_footer,
     scene_tile_panel_header)
 
+from .Straight_Tiles import (
+    spawn_plain_base as spawn_plain_rect_base,
+    spawn_openlock_base as spawn_openlock_rect_base,
+    create_plain_rect_floor_cores)
+
+
 class MT_PT_L_Tile_Panel(Panel):
     """Draw a tile options panel in UI."""
 
@@ -75,6 +81,7 @@ class MT_PT_L_Tile_Panel(Panel):
         scene_L_tiles_panel(scene_props, layout)
         scene_tile_panel_footer(scene_props, layout)
 
+
 class MT_L_Tiles:
     angle: FloatProperty(
         name="Base Angle",
@@ -102,6 +109,7 @@ class MT_L_Tiles:
     floor_material: EnumProperty(
         items=create_material_enums,
         name="Floor Material")
+
 
 class MT_OT_Make_L_Wall_Tile(Operator, MT_Tile_Generator, MT_L_Tiles):
     """Create an L Wall Tile."""
@@ -131,18 +139,49 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_Tile_Generator, MT_L_Tiles):
         name="Wall Material")
 
     def exec(self, context):
-        #TODO: Handle special case of 90 degree base and use rectangular tile base generator.
         base_blueprint = self.base_blueprint
         wall_blueprint = self.main_part_blueprint
         tile_props = bpy.data.collections[self.tile_name].mt_tile_props
+        floor_core = None
 
         if base_blueprint == 'NONE':
             base = spawn_empty_base(tile_props)
-        elif base_blueprint in ['PLAIN', 'PLAIN_S_WALL']:
+        elif base_blueprint == 'PLAIN':
             base = spawn_plain_base(tile_props)
-        elif base_blueprint in ['OPENLOCK', 'OPENLOCK_S_WALL']:
+        elif base_blueprint == 'PLAIN_S_WALL' and abs(self.angle) != 90:
+            base = spawn_plain_base(tile_props)
+        elif base_blueprint == 'PLAIN_S_WALL' and abs(self.angle) == 90:
+            orig_base_size = []
+            orig_tile_size = []
+            for c, v in enumerate(tile_props.base_size):
+                orig_base_size.append(v)
+            for c, v in enumerate(tile_props.tile_size):
+                orig_tile_size.append(v)
+            tile_props.base_size = (
+                tile_props.leg_1_len,
+                tile_props.leg_2_len,
+                tile_props.base_size[2])
+            tile_props.tile_size = tile_props.base_size
+            tile_props.tile_size[2] += self.floor_thickness
+            base = spawn_plain_rect_base(self, tile_props)
+            floor_core = create_plain_rect_floor_cores(self, tile_props)
+            tile_props.base_size = orig_base_size
+            tile_props.tile_size = orig_tile_size
+        elif base_blueprint == 'OPENLOCK':
             base = spawn_openlock_base(self, tile_props)
-
+        elif base_blueprint == 'OPENLOCK_S_WALL' and abs(self.angle) != 90:
+            base = spawn_openlock_base(self, tile_props)
+        elif base_blueprint == 'OPENLOCK_S_WALL' and abs(self.angle) == 90:
+            orig_base_size = []
+            for c, v in enumerate(tile_props.base_size):
+                orig_base_size.append(v)
+            tile_props.base_size = (
+                tile_props.leg_1_len,
+                tile_props.leg_2_len,
+                tile_props.base_size[2])
+            base = spawn_openlock_rect_base(self, tile_props)
+            floor_core = create_plain_rect_floor_cores(self, tile_props)
+            tile_props.base_size = orig_base_size
         if not base:
             self.delete_tile_collection(self.tile_name)
             self.report({'INFO'}, "Could not generate base. Cancelling")
@@ -160,7 +199,7 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_Tile_Generator, MT_L_Tiles):
             self.report({'INFO'}, "Could not generate wall core. Cancelling.")
             return {'CANCELLED'}
 
-        self.finalise_tile(context, base, wall_core)
+        self.finalise_tile(context, base, wall_core, floor_core)
 
     def execute(self, context):
         """Execute the operator."""
@@ -182,7 +221,8 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_Tile_Generator, MT_L_Tiles):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
-        redo_tile_panel_header(self, layout, ['base_blueprint', 'main_part_blueprint'], 'WALL')
+        redo_tile_panel_header(
+            self, layout, ['base_blueprint', 'main_part_blueprint'], 'WALL')
         redo_L_tiles_panel(self, layout)
         redo_tile_panel_footer(self, layout)
 
@@ -236,7 +276,8 @@ class MT_OT_Make_L_Floor_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
-        redo_tile_panel_header(self, layout, ['base_blueprint', 'main_part_blueprint'], 'FLOOR')
+        redo_tile_panel_header(
+            self, layout, ['base_blueprint', 'main_part_blueprint'], 'FLOOR')
         redo_L_tiles_panel(self, layout)
         redo_tile_panel_footer(self, layout)
 

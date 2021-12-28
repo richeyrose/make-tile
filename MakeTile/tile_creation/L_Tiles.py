@@ -410,7 +410,7 @@ def spawn_openlock_wall_cores(self, tile_props, base):
     """
     core = spawn_wall_core(self, tile_props)
     subsurf = add_subsurf_modifier(core)
-    cutters = spawn_openlock_wall_cutters(core, tile_props)
+    cutters = spawn_openlock_wall_cutters(self, core, tile_props)
 
     if tile_props.leg_1_len >= 1 or tile_props.leg_2_len >= 1:
         top_pegs = spawn_openlock_top_pegs(
@@ -581,7 +581,7 @@ def spawn_openlock_top_pegs(core, tile_props):
     return pegs
 
 
-def spawn_openlock_wall_cutters(core, tile_props):
+def spawn_openlock_wall_cutters(self, core, tile_props):
     """Create the cutters for the wall and position them correctly.
 
     Args:
@@ -669,15 +669,22 @@ def spawn_openlock_wall_cutters(core, tile_props):
     bm.from_mesh(me)
     loc = bpy.context.scene.cursor.location.copy()
 
-    # move cutter to position
-    bmesh.ops.translate(
-        bm,
-        vec=(-tile_props.leg_1_len,
-             #(base_size[1] / 2) * -1,
-             -0.25,
-             0.63),
-        space=right_cutter_bottom.matrix_world,
-        verts=bm.verts)
+    if self.base_blueprint in ['PLAIN_S_WALL', 'OPENLOCK_S_WALL'] and tile_props.wall_position == 'SIDE':
+        bmesh.ops.translate(
+            bm,
+            vec=(-tile_props.leg_1_len,
+                 -0.25,
+                 0.63),
+            space=right_cutter_bottom.matrix_world,
+            verts=bm.verts)
+    else:
+        bmesh.ops.translate(
+            bm,
+            vec=(-tile_props.leg_1_len,
+                 (base_size[1] / 2) * -1,
+                 0.63),
+            space=right_cutter_bottom.matrix_world,
+            verts=bm.verts)
 
     # rotate cutter
     bmesh.ops.rotate(

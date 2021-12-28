@@ -669,7 +669,7 @@ def spawn_openlock_wall_cutters(self, core, tile_props):
     bm.from_mesh(me)
     loc = bpy.context.scene.cursor.location.copy()
 
-    if self.base_blueprint in ['PLAIN_S_WALL', 'OPENLOCK_S_WALL'] and tile_props.wall_position == 'SIDE':
+    if self.base_blueprint in ['PLAIN_S_WALL', 'OPENLOCK_S_WALL'] and tile_props.wall_position in ['SIDE', 'EXTERIOR']:
         bmesh.ops.translate(
             bm,
             vec=(-tile_props.leg_1_len,
@@ -724,7 +724,7 @@ def spawn_openlock_wall_cutters(self, core, tile_props):
                 (tile_props.base_size[1] / 2),
                 cutter.location[2])
             cutter.rotation_euler = (0, 0, radians(-90))
-    elif tile_props.wall_position == 'SIDE':
+    elif tile_props.wall_position in ['SIDE', 'EXTERIOR']:
         for cutter in left_cutters:
             cutter.location = (
                 cutter.location[0] + 0.25,

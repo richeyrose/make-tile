@@ -148,14 +148,28 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_Tile_Generator, MT_L_Tiles):
             base = spawn_empty_base(tile_props)
         elif base_blueprint == 'PLAIN':
             base = spawn_plain_base(tile_props)
-        elif base_blueprint == 'PLAIN_S_WALL' and abs(self.angle) != 90:
-            base = spawn_plain_base(tile_props)
-        elif base_blueprint == 'PLAIN_S_WALL' and abs(self.angle) == 90:
+        elif base_blueprint == 'OPENLOCK':
+            base = spawn_openlock_base(self, tile_props)
+        elif base_blueprint in ['PLAIN_S_WALL', 'OPENLOCK_S_WALL'] and abs(self.angle) != 90:
+            orig_tile_size = []
+            for _, v in enumerate(tile_props.tile_size):
+                orig_tile_size.append(v)
+            tile_props.tile_size = (
+                tile_props.base_size[0],
+                tile_props.base_size[1],
+                tile_props.base_size[2] + self.floor_thickness)
+            floor_core = spawn_plain_floor_cores(self, tile_props)
+            tile_props.tile_size = orig_tile_size
+            if base_blueprint == 'PLAIN_S_WALL':
+                base = spawn_plain_base(tile_props)
+            else:
+                base = spawn_openlock_base(self, tile_props)
+        elif base_blueprint in ['PLAIN_S_WALL', 'OPENLOCK_S_WALL'] and abs(self.angle) == 90:
             orig_base_size = []
             orig_tile_size = []
-            for c, v in enumerate(tile_props.base_size):
+            for _, v in enumerate(tile_props.base_size):
                 orig_base_size.append(v)
-            for c, v in enumerate(tile_props.tile_size):
+            for _, v in enumerate(tile_props.tile_size):
                 orig_tile_size.append(v)
             tile_props.base_size = (
                 tile_props.leg_1_len,
@@ -163,25 +177,14 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_Tile_Generator, MT_L_Tiles):
                 tile_props.base_size[2])
             tile_props.tile_size = tile_props.base_size
             tile_props.tile_size[2] += self.floor_thickness
-            base = spawn_plain_rect_base(self, tile_props)
+            if base_blueprint == 'PLAIN_S_WALL':
+                base = spawn_plain_rect_base(self, tile_props)
+            else:
+                base = spawn_openlock_rect_base(self, tile_props)
             floor_core = create_plain_rect_floor_cores(self, tile_props)
             tile_props.base_size = orig_base_size
             tile_props.tile_size = orig_tile_size
-        elif base_blueprint == 'OPENLOCK':
-            base = spawn_openlock_base(self, tile_props)
-        elif base_blueprint == 'OPENLOCK_S_WALL' and abs(self.angle) != 90:
-            base = spawn_openlock_base(self, tile_props)
-        elif base_blueprint == 'OPENLOCK_S_WALL' and abs(self.angle) == 90:
-            orig_base_size = []
-            for c, v in enumerate(tile_props.base_size):
-                orig_base_size.append(v)
-            tile_props.base_size = (
-                tile_props.leg_1_len,
-                tile_props.leg_2_len,
-                tile_props.base_size[2])
-            base = spawn_openlock_rect_base(self, tile_props)
-            floor_core = create_plain_rect_floor_cores(self, tile_props)
-            tile_props.base_size = orig_base_size
+
         if not base:
             self.delete_tile_collection(self.tile_name)
             self.report({'INFO'}, "Could not generate base. Cancelling")

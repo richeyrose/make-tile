@@ -47,7 +47,8 @@ from .tile_panels import (
 from .Straight_Tiles import (
     spawn_plain_base as spawn_plain_rect_base,
     spawn_openlock_base as spawn_openlock_rect_base,
-    create_plain_rect_floor_cores)
+    create_plain_rect_floor_cores,
+    use_base_cutters_on_wall)
 
 
 class MT_PT_L_Tile_Panel(Panel):
@@ -181,7 +182,24 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_Tile_Generator, MT_L_Tiles):
                 base = spawn_plain_rect_base(self, tile_props)
             else:
                 base = spawn_openlock_rect_base(self, tile_props)
+            # adjust floor core size and atarting point for drawing
+            cursor = context.scene.cursor
+            cursor_orig_loc = cursor.location.copy()
+            cursor.location = (
+                cursor.location[0] + 0.09,
+                cursor.location[1] + 0.09,
+                cursor.location[2]
+            )
+            tile_props.tile_size = (
+                tile_props.tile_size[0] - 0.09,
+                tile_props.tile_size[1] - 0.09,
+                tile_props.tile_size[2])
+            tile_props.base_size = (
+                tile_props.base_size[0] - 0.09,
+                tile_props.base_size[1] - 0.09,
+                tile_props.tile_size[2])
             floor_core = create_plain_rect_floor_cores(self, tile_props)
+            cursor.location = cursor_orig_loc
             tile_props.base_size = orig_base_size
             tile_props.tile_size = orig_tile_size
 
@@ -193,7 +211,7 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_Tile_Generator, MT_L_Tiles):
         if wall_blueprint == 'NONE':
             wall_core = None
         elif wall_blueprint == 'PLAIN':
-            wall_core = spawn_plain_wall_cores(self, tile_props)
+            wall_core = spawn_plain_wall_cores(self, base, tile_props)
         elif wall_blueprint == 'OPENLOCK':
             wall_core = spawn_openlock_wall_cores(self, tile_props, base)
 
@@ -285,7 +303,7 @@ class MT_OT_Make_L_Floor_Tile(Operator, MT_L_Tiles, MT_Tile_Generator):
         redo_tile_panel_footer(self, layout)
 
 
-def spawn_plain_wall_cores(self, tile_props):
+def spawn_plain_wall_cores(self, base, tile_props):
     """Spawn plain wall cores into scene.
 
     Args:
@@ -295,10 +313,15 @@ def spawn_plain_wall_cores(self, tile_props):
         (bpy.types.Object): preview_core
     """
     core = spawn_wall_core(self, tile_props)
+    subsurf = add_subsurf_modifier(core)
+
+    if tile_props.base_blueprint == 'OPENLOCK_S_WALL' and tile_props.wall_position == 'EXTERIOR':
+        args = ['Y Neg Clip', 'X Neg Clip', 'Clip Leg 1', 'Clip Leg 2']
+        use_base_cutters_on_wall(base, core, *args)
+
     textured_vertex_groups = ['Leg 1 Outer',
                               'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner']
     material = tile_props.wall_material
-    subsurf = add_subsurf_modifier(core)
 
     convert_to_displacement_core(
         core,
@@ -424,6 +447,10 @@ def spawn_openlock_wall_cores(self, tile_props, base):
     for cutter in cutters:
         set_bool_obj_props(cutter, base, tile_props, 'DIFFERENCE')
         set_bool_props(cutter, core, 'DIFFERENCE')
+
+    if tile_props.base_blueprint == 'OPENLOCK_S_WALL' and tile_props.wall_position == 'EXTERIOR':
+        args = ['Y Neg Clip', 'X Neg Clip', 'Clip Leg 1', 'Clip Leg 2']
+        use_base_cutters_on_wall(base, core, *args)
 
     textured_vertex_groups = ['Leg 1 Outer',
                               'Leg 1 Inner', 'Leg 2 Outer', 'Leg 2 Inner']
@@ -757,8 +784,11 @@ def spawn_wall_core(self, tile_props):
     native_subdivisions = {
         'leg 1': leg_1_len,
         'leg 2': leg_2_len,
-        'width': wall_thickness,
-        'height': wall_height - base_height}
+        'width': wall_thickness}
+    if tile_props.wall_position == 'EXTERIOR':
+        native_subdivisions['height'] = wall_height
+    else:
+        native_subdivisions['height'] = wall_height - base_height
 
     native_subdivisions = get_subdivs(
         tile_props.subdivision_density, native_subdivisions)
@@ -791,9 +821,14 @@ def spawn_wall_core(self, tile_props):
         'triangles_2': core_triangles_2,
         'angle': angle,
         'thickness': wall_thickness,
-        'thickness_diff': thickness_diff,
-        'base_height': base_height,
-        'height': wall_height - base_height}
+        'thickness_diff': thickness_diff}
+
+    if tile_props.wall_position == 'EXTERIOR':
+        dimensions['height'] = wall_height
+        dimensions['base_height'] = 0
+    else:
+        dimensions['height'] = wall_height - base_height
+        dimensions['base_height'] = base_height
 
     core = draw_corner_wall_core(dimensions, native_subdivisions)
 

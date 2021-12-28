@@ -384,7 +384,7 @@ def use_base_cutters_on_wall(base, core, *args):
     Args:
         base (bpy.types.Object): Base
         core (bpy.types.Object): Core
-        *args (list(str)): List of partial cutter names to ignore
+        *args (list(str)): List of partial cutter names to ignore. Used to ensure we don't cut through the side of the wall.
     """
     base_cutters = [mod.object for mod in base.modifiers
                     if mod.type == 'BOOLEAN'
@@ -707,10 +707,19 @@ def spawn_plain_base(self, tile_props):
         bpy.types.Object: tile base
     """
     base_size = tile_props.base_size
-
+    cursor = bpy.context.scene.cursor
     try:
-        if tile_props.wall_position == 'EXTERIOR' and tile_props.tile_type == 'STRAIGHT_WALL':
+        if tile_props.wall_position == 'EXTERIOR' \
+                and tile_props.tile_type == 'STRAIGHT_WALL':
             base_size[1] = base_size[1] - 0.09
+        elif tile_props.wall_position == 'EXTERIOR' \
+                and tile_props.tile_type == 'L_WALL':
+            base_size[0] = base_size[0] - 0.09
+            base_size[1] = base_size[1] - 0.09
+            cursor.location = (
+                cursor.location[0] + 0.09,
+                cursor.location[1] + 0.09,
+                cursor.location[2])
     except AttributeError:
         pass
 

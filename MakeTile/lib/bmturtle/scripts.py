@@ -1216,7 +1216,7 @@ def draw_corner_slot_cutter(dimensions):
     return obj
 
 
-def draw_corner_3D(triangles, dimensions):
+def draw_corner_3D(triangles, dimensions, triangles_1=None):
     """Draw a corner (L) shape.
 
     Args:
@@ -1249,7 +1249,17 @@ def draw_corner_3D(triangles, dimensions):
 
     bm, obj = create_turtle('L_2D')
     bm.select_mode = {'VERT'}
-
+    if triangles_1:
+        pu(bm)
+        rt(angle)
+        fd(bm, triangles_1['a_adj'])
+        lt(90)
+        fd(bm, 0.09)
+        lt(90)
+        fd(bm, triangles_1['b_adj'])
+        turtle_origin = turtle.location.copy()
+        turtle.rotation_euler = orig_rot
+        pd(bm)
     # draw leg_1
     add_vert(bm)
     rt(angle)
@@ -1266,7 +1276,7 @@ def draw_corner_3D(triangles, dimensions):
         use_smooth=False
     )
     bm_deselect_all(bm)
-    home(obj)
+    turtle.location = turtle_origin
     turtle.rotation_euler = orig_rot
 
     # draw leg 2

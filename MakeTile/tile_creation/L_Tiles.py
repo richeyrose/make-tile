@@ -151,6 +151,7 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_Tile_Generator, MT_L_Tiles):
             base = spawn_plain_base(tile_props)
         elif base_blueprint == 'OPENLOCK':
             base = spawn_openlock_base(self, tile_props)
+
         elif base_blueprint in ['PLAIN_S_WALL', 'OPENLOCK_S_WALL'] and abs(self.angle) != 90:
             orig_tile_size = []
             for _, v in enumerate(tile_props.tile_size):
@@ -165,6 +166,7 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_Tile_Generator, MT_L_Tiles):
                 base = spawn_plain_base(tile_props)
             else:
                 base = spawn_openlock_base(self, tile_props)
+
         elif base_blueprint in ['PLAIN_S_WALL', 'OPENLOCK_S_WALL'] and abs(self.angle) == 90:
             orig_base_size = []
             orig_tile_size = []
@@ -857,18 +859,40 @@ def spawn_plain_base(tile_props):
     thickness = tile_props.base_size[1]
     height = tile_props.base_size[2]
 
-    triangles = calculate_corner_wall_triangles(
-        leg_1_len,
-        leg_2_len,
-        thickness,
-        angle)
+    if tile_props.wall_position == 'EXTERIOR':
+        triangles_1 = calculate_corner_wall_triangles(
+            leg_1_len,
+            leg_2_len,
+            0.09,
+            angle
+        )
+        base_x_leg = triangles_1['b_adj']
+        base_y_leg = triangles_1['d_adj']
 
-    dimensions = {
-        'thickness': thickness,
-        'height': height,
-        'angle': angle,
-        'leg_2_len': leg_2_len}
-    base = draw_corner_3D_bm(triangles, dimensions)
+        triangles = calculate_corner_wall_triangles(
+            base_x_leg,
+            base_y_leg,
+            thickness - 0.09,
+            angle)
+        dimensions = {
+            'thickness': thickness - 0.09,
+            'height': height,
+            'angle': angle,
+            'leg_2_len': base_y_leg}
+    else:
+        triangles = calculate_corner_wall_triangles(
+            leg_1_len,
+            leg_2_len,
+            thickness,
+            angle)
+
+        dimensions = {
+            'thickness': thickness,
+            'height': height,
+            'angle': angle,
+            'leg_2_len': leg_2_len}
+
+    base = draw_corner_3D_bm(triangles, dimensions, triangles_1)
 
     base.name = tile_props.tile_name + '.base'
     obj_props = base.mt_object_props

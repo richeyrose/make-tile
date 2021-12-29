@@ -1245,8 +1245,8 @@ def draw_corner_3D(triangles, dimensions, triangles_1=None):
     thickness = dimensions['thickness']
 
     turtle = bpy.context.scene.cursor
-    orig_rot = turtle.location.copy()
-
+    orig_rot = turtle.rotation_euler.copy()
+    turtle_origin = turtle.location.copy()
     bm, obj = create_turtle('L_2D')
     bm.select_mode = {'VERT'}
     if triangles_1:

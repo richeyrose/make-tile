@@ -152,7 +152,8 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_Tile_Generator, MT_L_Tiles):
         elif base_blueprint == 'OPENLOCK':
             base = spawn_openlock_base(self, tile_props)
 
-        elif base_blueprint in ['PLAIN_S_WALL', 'OPENLOCK_S_WALL'] and abs(self.angle) != 90:
+        elif base_blueprint in ['PLAIN_S_WALL', 'OPENLOCK_S_WALL'] and \
+                abs(self.angle) != 90:
             orig_tile_size = []
             for _, v in enumerate(tile_props.tile_size):
                 orig_tile_size.append(v)
@@ -167,41 +168,44 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_Tile_Generator, MT_L_Tiles):
             else:
                 base = spawn_openlock_base(self, tile_props)
 
-        elif base_blueprint in ['PLAIN_S_WALL', 'OPENLOCK_S_WALL'] and abs(self.angle) == 90:
+        elif base_blueprint in ['PLAIN_S_WALL', 'OPENLOCK_S_WALL'] and \
+                abs(self.angle) == 90:
             orig_base_size = []
-            orig_tile_size = []
             for _, v in enumerate(tile_props.base_size):
                 orig_base_size.append(v)
+
+            orig_tile_size = []
             for _, v in enumerate(tile_props.tile_size):
                 orig_tile_size.append(v)
+
             tile_props.base_size = (
                 tile_props.leg_1_len,
                 tile_props.leg_2_len,
                 tile_props.base_size[2])
+
             tile_props.tile_size = tile_props.base_size
             tile_props.tile_size[2] += self.floor_thickness
+
             if base_blueprint == 'PLAIN_S_WALL':
                 base = spawn_plain_rect_base(self, tile_props)
             else:
                 base = spawn_openlock_rect_base(self, tile_props)
-            # adjust floor core size and atarting point for drawing
+
+            # adjust floor core size and starting point for drawing
+
             cursor = context.scene.cursor
-            cursor_orig_loc = cursor.location.copy()
             cursor.location = (
                 cursor.location[0] + 0.09,
                 cursor.location[1] + 0.09,
                 cursor.location[2]
             )
+
             tile_props.tile_size = (
                 tile_props.tile_size[0] - 0.09,
                 tile_props.tile_size[1] - 0.09,
-                tile_props.tile_size[2])
-            tile_props.base_size = (
-                tile_props.base_size[0] - 0.09,
-                tile_props.base_size[1] - 0.09,
-                tile_props.tile_size[2])
+                tile_props.tile_size[2]
+            )
             floor_core = create_plain_rect_floor_cores(self, tile_props)
-            cursor.location = cursor_orig_loc
             tile_props.base_size = orig_base_size
             tile_props.tile_size = orig_tile_size
 
@@ -383,6 +387,11 @@ def spawn_floor_core(self, tile_props):
         tile_props.subdivision_density, native_subdivisions)
     thickness_diff = base_thickness - core_thickness
 
+    if tile_props.wall_position == 'CENTER':
+        thickness_diff = base_thickness - core_thickness
+    elif tile_props.wall_position in ['EXTERIOR', 'SIDE']:
+        core_thickness = core_thickness - 0.09
+        thickness_diff = 0.18
     # first work out where we're going to start drawing our wall
     # from, taking into account the difference in thickness
     # between the base and wall and how long our legs will be
@@ -879,6 +888,7 @@ def spawn_plain_base(tile_props):
             'height': height,
             'angle': angle,
             'leg_2_len': base_y_leg}
+        base = draw_corner_3D_bm(triangles, dimensions, triangles_1)
     else:
         triangles = calculate_corner_wall_triangles(
             leg_1_len,
@@ -892,7 +902,7 @@ def spawn_plain_base(tile_props):
             'angle': angle,
             'leg_2_len': leg_2_len}
 
-    base = draw_corner_3D_bm(triangles, dimensions, triangles_1)
+        base = draw_corner_3D_bm(triangles, dimensions)
 
     base.name = tile_props.tile_name + '.base'
     obj_props = base.mt_object_props

@@ -637,7 +637,7 @@ def spawn_openlock_wall_cutters(core, base, tile_props):
     return cutters
 
 
-def create_plain_rect_floor_cores(self, tile_props):
+def create_plain_rect_floor_cores(self, tile_props, offset = 0):
     """Create preview and displacement cores.
 
     Args:
@@ -646,7 +646,7 @@ def create_plain_rect_floor_cores(self, tile_props):
     Returns:
         bpy.types.Object: preview core
     """
-    core = spawn_floor_core(self, tile_props)
+    core = spawn_floor_core(self, tile_props, offset)
     subsurf = add_subsurf_modifier(core)
     textured_vertex_groups = ['Top']
     material = tile_props.floor_material
@@ -661,7 +661,7 @@ def create_plain_rect_floor_cores(self, tile_props):
     return core
 
 
-def spawn_floor_core(self, tile_props):
+def spawn_floor_core(self, tile_props, offset = 0):
     """Spawn the core (top part) of a floor tile.
 
     Args:
@@ -682,7 +682,9 @@ def spawn_floor_core(self, tile_props):
 
     core = draw_rectangular_floor_core(
         core_size,
-        native_subdivisions)
+        native_subdivisions,
+        0.001,
+        offset)
 
     core.name = tile_name + '.floor_core'
     add_object_to_collection(core, tile_name)

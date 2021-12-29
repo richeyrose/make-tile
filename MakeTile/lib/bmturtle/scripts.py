@@ -1337,7 +1337,7 @@ def draw_curved_cuboid(name, radius, segments, deg, height, width):
     return obj
 
 
-def draw_rectangular_floor_core(dims, subdivs, margin=0.001):
+def draw_rectangular_floor_core(dims, subdivs, margin=0.001, offset=0):
     """Draws a rectangular floor core and assigns Verts to appropriate groups
 
     Args:
@@ -1346,10 +1346,14 @@ def draw_rectangular_floor_core(dims, subdivs, margin=0.001):
         margin (float, optional): Margin to leave around textured areas
         to correct for displacement distortion.
         Defaults to 0.001.
+        offset (float): Used for L Walls
 
     Returns:
         bpy.types.Object: Floor Core
     """
+    turtle = bpy.context.scene.cursor
+    orig_loc = turtle.location.copy()
+
     vert_groups = ['Left', 'Right', 'Front', 'Back', 'Top', 'Bottom']
     bm, obj = create_turtle('Rectangular Floor', vert_groups)
 
@@ -1403,15 +1407,12 @@ def draw_rectangular_floor_core(dims, subdivs, margin=0.001):
 
     up(bm, margin)
 
-    # home turtle
-    pu(bm)
-
-    home(obj)
+    top_verts = {v for v in bm.verts if v.select}
 
     # select left
     left_verts = select_verts_in_bounds(
-        lbound=(0, 0, 0),
-        ubound=(0, dims[1], dims[2]),
+        lbound=orig_loc,
+        ubound=(orig_loc[0], dims[1] + offset, dims[2]),
         buffer=margin / 2,
         bm=bm)
 
@@ -1419,8 +1420,8 @@ def draw_rectangular_floor_core(dims, subdivs, margin=0.001):
 
     # select Right
     right_verts = select_verts_in_bounds(
-        lbound=(dims[1], 0, 0),
-        ubound=(dims[1], dims[1], dims[2]),
+        lbound=(dims[1] + offset, orig_loc[1], orig_loc[2]),
+        ubound=(dims[1] + offset, dims[1] + offset, dims[2]),
         buffer=margin / 2,
         bm=bm)
 
@@ -1428,8 +1429,8 @@ def draw_rectangular_floor_core(dims, subdivs, margin=0.001):
 
     # Select Front
     front_verts = select_verts_in_bounds(
-        lbound=(0, 0, 0),
-        ubound=(dims[0], 0, dims[2]),
+        lbound=orig_loc,
+        ubound=(dims[0] + offset, orig_loc[1], dims[2]),
         buffer=margin / 2,
         bm=bm
     )
@@ -1438,33 +1439,25 @@ def draw_rectangular_floor_core(dims, subdivs, margin=0.001):
 
     # Select back
     back_verts = select_verts_in_bounds(
-        lbound=(0, dims[1], 0),
-        ubound=(dims[0], dims[1], dims[2]),
+        lbound=(orig_loc[0], dims[1] + offset, orig_loc[2]),
+        ubound=(dims[1] + offset, dims[1] + offset, dims[2]),
         buffer=margin / 2,
         bm=bm
     )
 
     assign_verts_to_group(back_verts, obj, deform_groups, 'Back')
-
-    # Select top
-    top_verts = select_verts_in_bounds(
-        lbound=(0 + margin, 0 + margin, dims[2]),
-        ubound=(dims[0] - margin, dims[1] - margin, dims[2]),
-        buffer=margin / 2,
-        bm=bm
-    )
-
+    # # # Select top
+    side_verts = set(left_verts + right_verts + front_verts + back_verts)
+    top_verts = top_verts.difference(side_verts)
     assign_verts_to_group(top_verts, obj, deform_groups, 'Top')
 
     # Select bottom
-    bottom_verts = select_verts_in_bounds(
-        lbound=(0 + margin, 0 + margin, 0),
-        ubound=(dims[0] - margin, dims[1] - margin, 0),
-        buffer=margin / 2,
-        bm=bm
-    )
-
+    bottom_verts = set(bm.verts).difference(side_verts.union(top_verts))
     assign_verts_to_group(bottom_verts, obj, deform_groups, 'Bottom')
+
+    # home turtle
+    pu(bm)
+    home(obj)
 
     # finalise turtle and release bmesh
     finalise_turtle(bm, obj)

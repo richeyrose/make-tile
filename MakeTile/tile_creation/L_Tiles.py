@@ -200,12 +200,14 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_Tile_Generator, MT_L_Tiles):
                 cursor.location[2]
             )
 
+
             tile_props.tile_size = (
                 tile_props.tile_size[0] - 0.09,
                 tile_props.tile_size[1] - 0.09,
                 tile_props.tile_size[2]
             )
-            floor_core = create_plain_rect_floor_cores(self, tile_props)
+
+            floor_core = create_plain_rect_floor_cores(self, tile_props, 0.09)
             tile_props.base_size = orig_base_size
             tile_props.tile_size = orig_tile_size
 

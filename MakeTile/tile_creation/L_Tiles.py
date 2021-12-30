@@ -145,77 +145,21 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_Tile_Generator, MT_L_Tiles):
         tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         floor_core = None
 
+        ### Generate Bases ###
         if base_blueprint == 'NONE':
             base = spawn_empty_base(tile_props)
         elif base_blueprint == 'PLAIN':
             base = spawn_plain_base(tile_props)
         elif base_blueprint == 'OPENLOCK':
             base = spawn_openlock_base(self, tile_props)
-
-        elif base_blueprint in ['PLAIN_S_WALL', 'OPENLOCK_S_WALL'] and \
-                abs(self.angle) != 90:
-            orig_tile_size = []
-            for _, v in enumerate(tile_props.tile_size):
-                orig_tile_size.append(v)
-            tile_props.tile_size = (
-                tile_props.base_size[0],
-                tile_props.base_size[1],
-                tile_props.base_size[2] + self.floor_thickness)
-            floor_core = spawn_plain_floor_cores(self, tile_props)
-            tile_props.tile_size = orig_tile_size
-            if base_blueprint == 'PLAIN_S_WALL':
-                base = spawn_plain_base(tile_props)
-            else:
-                base = spawn_openlock_base(self, tile_props)
-
-        elif base_blueprint in ['PLAIN_S_WALL', 'OPENLOCK_S_WALL'] and \
-                abs(self.angle) == 90:
-            orig_base_size = []
-            for _, v in enumerate(tile_props.base_size):
-                orig_base_size.append(v)
-
-            orig_tile_size = []
-            for _, v in enumerate(tile_props.tile_size):
-                orig_tile_size.append(v)
-
-            tile_props.base_size = (
-                tile_props.leg_1_len,
-                tile_props.leg_2_len,
-                tile_props.base_size[2])
-
-            tile_props.tile_size = tile_props.base_size
-            tile_props.tile_size[2] += self.floor_thickness
-
-            if base_blueprint == 'PLAIN_S_WALL':
-                base = spawn_plain_rect_base(self, tile_props)
-            else:
-                base = spawn_openlock_rect_base(self, tile_props)
-
-            # adjust floor core size and starting point for drawing
-
-            cursor = context.scene.cursor
-            cursor.location = (
-                cursor.location[0] + 0.09,
-                cursor.location[1] + 0.09,
-                cursor.location[2]
-            )
-
-
-            tile_props.tile_size = (
-                tile_props.tile_size[0] - 0.09,
-                tile_props.tile_size[1] - 0.09,
-                tile_props.tile_size[2]
-            )
-
-            floor_core = create_plain_rect_floor_cores(self, tile_props, 0.09)
-            tile_props.base_size = orig_base_size
-            tile_props.tile_size = orig_tile_size
-
+        elif base_blueprint in ['PLAIN_S_WALL', 'OPENLOCK_S_WALL']:
+            base, floor_core = spawn_s_base(self, context, tile_props, base_blueprint)
         if not base:
             self.delete_tile_collection(self.tile_name)
             self.report({'INFO'}, "Could not generate base. Cancelling")
             return {'CANCELLED'}
 
+        ### Generate Walls ###
         if wall_blueprint == 'NONE':
             wall_core = None
         elif wall_blueprint == 'PLAIN':
@@ -853,6 +797,66 @@ def spawn_wall_core(self, tile_props):
     bpy.context.scene.cursor.location = (0, 0, 0)
 
     return core
+
+def spawn_s_base(self, context, tile_props, base_blueprint):
+    """Spawn a plain base for an S Wall.
+
+    Treats 90 degree walls as a special case and creates a rectangular base
+    for these tiles.
+
+    Args:
+        context (bpy.types.Context): Context
+        tile_props (mt_tile_props): Tile Props
+
+    Returns:
+        tuple(base, floor_core): Base and floor core.
+    """
+    # list comprehension because we .copy behaves strangely on bpy props
+    orig_tile_size = [dim for dim in tile_props.tile_size]
+    orig_base_size = [dim for dim in tile_props.base_size]
+
+    if abs(self.angle) != 90:
+        if base_blueprint == 'PLAIN_S_WALL':
+            base = spawn_plain_base(tile_props)
+        else:
+            base = spawn_openlock_base(self, tile_props)
+        tile_props.tile_size = tile_props.base_size
+        tile_props.tile_size[2] += self.floor_thickness
+        floor_core = spawn_plain_floor_cores(self, tile_props)
+    else:
+        # Special case for 90 degree L walls. These get rectangular bases
+        tile_props.base_size = [
+            tile_props.leg_1_len,
+            tile_props.leg_2_len,
+            tile_props.base_size[2]]
+        tile_props.tile_size = tile_props.base_size
+        tile_props.tile_size[2] += self.floor_thickness
+        if base_blueprint == 'PLAIN_S_WALL':
+            base = spawn_plain_rect_base(self, tile_props)
+        else:
+            base = spawn_openlock_rect_base(self, tile_props)
+
+        if self.wall_position in ['SIDE', 'EXTERIOR']:
+            cursor = context.scene.cursor
+            orig_loc = cursor.location.copy()
+
+            cursor.location = (
+                orig_loc[0] + 0.09,
+                orig_loc[1] + 0.09,
+                orig_loc[2])
+
+            tile_props.tile_size = (
+                tile_props.tile_size[0] - 0.09,
+                tile_props.tile_size[1] - 0.09,
+                tile_props.tile_size[2])
+
+            floor_core = create_plain_rect_floor_cores(self, tile_props, 0.09)
+            cursor.location = orig_loc
+        else:
+            floor_core = create_plain_rect_floor_cores(self, tile_props)
+    tile_props.tile_size = orig_tile_size
+    tile_props.base_size = orig_base_size
+    return base, floor_core
 
 
 def spawn_plain_base(tile_props):

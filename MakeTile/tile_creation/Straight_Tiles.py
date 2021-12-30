@@ -642,6 +642,7 @@ def create_plain_rect_floor_cores(self, tile_props, offset = 0):
 
     Args:
         tile_props (MakeTile.properties.MT_Tile_Properties): tile properties
+        offset (float): Material offset size. Used for L Walls.
 
     Returns:
         bpy.types.Object: preview core

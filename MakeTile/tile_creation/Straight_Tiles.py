@@ -161,7 +161,7 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
         elif base_blueprint == 'OPENLOCK':
             base = spawn_openlock_base(self, tile_props)
         elif base_blueprint in ['PLAIN_S_WALL', 'OPENLOCK_S_WALL']:
-            base, floor_core = spawn_s_base(self, context, tile_props, base_blueprint)
+            base, floor_core = spawn_s_base(self, context, tile_props)
         if not base:
             self.delete_tile_collection(self.tile_name)
             self.report({'INFO'}, "Could not generate base. Cancelling")
@@ -178,8 +178,6 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
             self.delete_tile_collection(self.tile_name)
             self.report({'INFO'}, "Could not generate wall core. Cancelling.")
             return {'CANCELLED'}
-
-
 
         self.finalise_tile(context, base, wall_core, floor_core)
         return {'FINISHED'}
@@ -501,7 +499,6 @@ def spawn_openlock_wall_cutters(core, base, tile_props):
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
         data_to.objects = ['openlock.wall.cutter.side']
 
-    # core_location = core.location.copy()
     base_location = base.location.copy()
 
     cutters = []
@@ -519,11 +516,6 @@ def spawn_openlock_wall_cutters(core, base, tile_props):
             front_left[0],
             front_left[1] + (base_size[1] / 2),
             front_left[2] + 0.63]
-    # elif tile_props.wall_position == 'SIDE':
-    #     left_cutter_bottom.location = [
-    #         front_left[0],
-    #         front_left[1] + base_size[1] - (tile_size[1] / 2) - 0.09,
-    #         front_left[2] + 0.63]
     elif tile_props.wall_position in ['SIDE', 'EXTERIOR']:
         left_cutter_bottom.location = [
             front_left[0],
@@ -569,11 +561,6 @@ def spawn_openlock_wall_cutters(core, base, tile_props):
             front_right[0],
             front_right[1] + (base_size[1] / 2),
             front_right[2] + 0.63]
-    # elif tile_props.wall_position == 'SIDE':
-    #     right_cutter_bottom.location = [
-    #         front_right[0],
-    #         front_left[1] + base_size[1] - (tile_size[1] / 2) - 0.09,
-    #         front_right[2] + 0.63]
     elif tile_props.wall_position in ['SIDE', 'EXTERIOR']:
         right_cutter_bottom.location = [
             front_right[0],
@@ -628,8 +615,17 @@ def create_plain_rect_floor_cores(self, tile_props, offset = 0):
 
     return core
 
-def spawn_s_base(self, context, tile_props, base_blueprint):
-    if base_blueprint == 'PLAIN_S_WALL':
+def spawn_s_base(self, context, tile_props):
+    """Spawn an S Base.
+
+    Args:
+        context (bpy.types.Context): cpntext
+        tile_props (mt_tile_props): tile_props
+
+    Returns:
+        tuple(base, floor_core): Base and floor core
+    """
+    if tile_props.base_blueprint == 'PLAIN_S_WALL':
         base = spawn_plain_base(self, tile_props)
     else:
         base = spawn_openlock_base(self, tile_props)

@@ -153,14 +153,15 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
         base_blueprint = self.base_blueprint
         wall_blueprint = self.main_part_blueprint
         tile_props = bpy.data.collections[self.tile_name].mt_tile_props
-
+        floor_core = None
         if base_blueprint == 'NONE':
             base = spawn_empty_base(tile_props)
-        elif base_blueprint in ['PLAIN', 'PLAIN_S_WALL']:
+        elif base_blueprint == 'PLAIN':
             base = spawn_plain_base(self, tile_props)
-        elif base_blueprint in ['OPENLOCK', 'OPENLOCK_S_WALL']:
+        elif base_blueprint == 'OPENLOCK':
             base = spawn_openlock_base(self, tile_props)
-
+        elif base_blueprint in ['PLAIN_S_WALL', 'OPENLOCK_S_WALL']:
+            base, floor_core = spawn_s_base(self, context, tile_props, base_blueprint)
         if not base:
             self.delete_tile_collection(self.tile_name)
             self.report({'INFO'}, "Could not generate base. Cancelling")
@@ -178,32 +179,9 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
             self.report({'INFO'}, "Could not generate wall core. Cancelling.")
             return {'CANCELLED'}
 
-        if base_blueprint in {'OPENLOCK_S_WALL', 'PLAIN_S_WALL'}:
-            # We temporarily override tile_props.base_size to generate floor core for S-Tiles.
-            # It is easier to do it this way as the PropertyGroup.copy() method produces a dict
-            orig_tile_size = []
-            for c, v in enumerate(tile_props.tile_size):
-                orig_tile_size.append(v)
 
-            # correct for displacement material
-            if self.wall_position in ['EXTERIOR', 'SIDE']:
-                tile_props.base_size[1] = tile_props.base_size[1] - 0.09
 
-            context.collection.mt_tile_props.tile_size = (
-                tile_props.base_size[0],
-                tile_props.base_size[1],
-                tile_props.base_size[2] + self.floor_thickness)
-            floor_core = create_plain_rect_floor_cores(self, tile_props)
-            if not floor_core:
-                self.report(
-                    {'INFO'}, "Could not generate floor core. Cancelling")
-                self.delete_tile_collection(self.tile_name)
-                return {'CANCELLED'}
-
-            tile_props.tile_size = orig_tile_size
-            self.finalise_tile(context, base, wall_core, floor_core)
-        else:
-            self.finalise_tile(context, base, wall_core)
+        self.finalise_tile(context, base, wall_core, floor_core)
         return {'FINISHED'}
 
     def execute(self, context):
@@ -436,7 +414,7 @@ def spawn_wall_core(self, tile_props):
     elif tile_props.wall_position == 'SIDE':
         core.location = (
             core.location[0],
-            core.location[1] + base_size[1] - tile_size[1] - 0.09,
+            core.location[1] + base_size[1] - tile_size[1],
             cursor_start_loc[2] + base_size[2])
     elif tile_props.wall_position == 'EXTERIOR':
         core.location[1] = core.location[1] + base_size[1] - tile_size[1]
@@ -484,18 +462,7 @@ def spawn_openlock_top_pegs(core, base, tile_props):
                 base_location[1] + (base_size[1] / 2) + 0.08,
                 base_location[2] + tile_size[2])
 
-    elif tile_props.wall_position == 'SIDE':
-        if tile_size[0] < 4 and tile_size[0] >= 1:
-            peg.location = (
-                base_location[0] + (tile_size[0] / 2) - 0.252,
-                base_location[1] + base_size[1] - 0.33,
-                base_location[2] + tile_size[2])
-        else:
-            peg.location = (
-                base_location[0] + 0.756,
-                base_location[1] + base_size[1] - 0.33,
-                base_location[2] + tile_size[2])
-    elif tile_props.wall_position == 'EXTERIOR':
+    elif tile_props.wall_position in ['SIDE', 'EXTERIOR']:
         if tile_size[0] < 4 and tile_size[0] >= 1:
             peg.location = (
                 base_location[0] + (tile_size[0] / 2) - 0.252,
@@ -552,12 +519,12 @@ def spawn_openlock_wall_cutters(core, base, tile_props):
             front_left[0],
             front_left[1] + (base_size[1] / 2),
             front_left[2] + 0.63]
-    elif tile_props.wall_position == 'SIDE':
-        left_cutter_bottom.location = [
-            front_left[0],
-            front_left[1] + base_size[1] - (tile_size[1] / 2) - 0.09,
-            front_left[2] + 0.63]
-    elif tile_props.wall_position == 'EXTERIOR':
+    # elif tile_props.wall_position == 'SIDE':
+    #     left_cutter_bottom.location = [
+    #         front_left[0],
+    #         front_left[1] + base_size[1] - (tile_size[1] / 2) - 0.09,
+    #         front_left[2] + 0.63]
+    elif tile_props.wall_position in ['SIDE', 'EXTERIOR']:
         left_cutter_bottom.location = [
             front_left[0],
             front_left[1] + base_size[1] - (tile_size[1] / 2),
@@ -602,12 +569,12 @@ def spawn_openlock_wall_cutters(core, base, tile_props):
             front_right[0],
             front_right[1] + (base_size[1] / 2),
             front_right[2] + 0.63]
-    elif tile_props.wall_position == 'SIDE':
-        right_cutter_bottom.location = [
-            front_right[0],
-            front_left[1] + base_size[1] - (tile_size[1] / 2) - 0.09,
-            front_right[2] + 0.63]
-    elif tile_props.wall_position == 'EXTERIOR':
+    # elif tile_props.wall_position == 'SIDE':
+    #     right_cutter_bottom.location = [
+    #         front_right[0],
+    #         front_left[1] + base_size[1] - (tile_size[1] / 2) - 0.09,
+    #         front_right[2] + 0.63]
+    elif tile_props.wall_position in ['SIDE', 'EXTERIOR']:
         right_cutter_bottom.location = [
             front_right[0],
             front_left[1] + base_size[1] - (tile_size[1] / 2),
@@ -661,6 +628,24 @@ def create_plain_rect_floor_cores(self, tile_props, offset = 0):
 
     return core
 
+def spawn_s_base(self, context, tile_props, base_blueprint):
+    if base_blueprint == 'PLAIN_S_WALL':
+        base = spawn_plain_base(self, tile_props)
+    else:
+        base = spawn_openlock_base(self, tile_props)
+    orig_tile_size = [dim for dim in tile_props.tile_size]
+
+    # correct for displacement material
+    if self.wall_position in ['EXTERIOR', 'SIDE']:
+        tile_props.base_size[1] = tile_props.base_size[1] - 0.09
+
+    context.collection.mt_tile_props.tile_size = (
+        tile_props.base_size[0],
+        tile_props.base_size[1],
+        tile_props.base_size[2] + self.floor_thickness)
+    floor_core = create_plain_rect_floor_cores(self, tile_props)
+    tile_props.tile_size = orig_tile_size
+    return base, floor_core
 
 def spawn_floor_core(self, tile_props, offset = 0):
     """Spawn the core (top part) of a floor tile.
@@ -709,6 +694,7 @@ def spawn_plain_base(self, tile_props):
     Returns:
         bpy.types.Object: tile base
     """
+    orig_base_size = [dim for dim in tile_props.base_size]
     base_size = tile_props.base_size
     cursor = bpy.context.scene.cursor
     try:
@@ -738,7 +724,7 @@ def spawn_plain_base(self, tile_props):
     obj_props.geometry_type = 'BASE'
     obj_props.tile_name = tile_name
     bpy.context.view_layer.objects.active = base
-
+    tile_props.base_size = orig_base_size
     return base
 
 

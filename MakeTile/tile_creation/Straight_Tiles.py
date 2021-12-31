@@ -625,10 +625,17 @@ def spawn_s_base(self, context, tile_props):
     Returns:
         tuple(base, floor_core): Base and floor core
     """
+    orig_base_size = [dim for dim in tile_props.base_size]
+    # trim base for exterior walls to leave room for displacement material
+    if tile_props.wall_position == 'EXTERIOR':
+        tile_props.base_size[1] = tile_props.base_size[1] - 0.09
+
     if tile_props.base_blueprint == 'PLAIN_S_WALL':
         base = spawn_plain_base(self, tile_props)
     else:
-        base = spawn_openlock_base(self, tile_props)
+        base = spawn_openlock_s_base(self, tile_props, orig_base_size)
+
+    tile_props.base_size[1] = orig_base_size[1]
     orig_tile_size = [dim for dim in tile_props.tile_size]
 
     # correct for displacement material
@@ -642,6 +649,28 @@ def spawn_s_base(self, context, tile_props):
     floor_core = create_plain_rect_floor_cores(self, tile_props)
     tile_props.tile_size = orig_tile_size
     return base, floor_core
+
+def spawn_openlock_s_base(self, tile_props, orig_base_size):
+    base = spawn_plain_base(self, tile_props)
+    tile_props.base_size = orig_base_size
+    slot_cutter = spawn_openlock_base_slot_cutter(base, tile_props)
+    if slot_cutter:
+        set_bool_obj_props(slot_cutter, base, tile_props, 'DIFFERENCE')
+        set_bool_props(slot_cutter, base, 'DIFFERENCE')
+
+    clip_cutters = spawn_openlock_base_clip_cutters(self, base, tile_props)
+
+    for clip_cutter in clip_cutters:
+        set_bool_obj_props(clip_cutter, base, tile_props, 'DIFFERENCE')
+        set_bool_props(clip_cutter, base, 'DIFFERENCE')
+
+    obj_props = base.mt_object_props
+    obj_props.is_mt_object = True
+    obj_props.geometry_type = 'BASE'
+    obj_props.tile_name = tile_props.tile_name
+    bpy.context.view_layer.objects.active = base
+    tile_props.base_size = orig_base_size
+    return base
 
 def spawn_floor_core(self, tile_props, offset = 0):
     """Spawn the core (top part) of a floor tile.
@@ -695,9 +724,6 @@ def spawn_plain_base(self, tile_props):
     cursor = bpy.context.scene.cursor
     try:
         if tile_props.wall_position == 'EXTERIOR' \
-                and tile_props.tile_type == 'STRAIGHT_WALL':
-            base_size[1] = base_size[1] - 0.09
-        elif tile_props.wall_position == 'EXTERIOR' \
                 and tile_props.tile_type == 'L_WALL':
             base_size[0] = base_size[0] - 0.09
             base_size[1] = base_size[1] - 0.09
@@ -765,7 +791,7 @@ def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
         bpy.type.Object: slot cutter
     """
     base_location = base.location.copy()
-    base_dims = base.dimensions.copy()
+    base_dims = tile_props.base_size
 
     if base_dims[0] <= 0.5:
         return False
@@ -823,22 +849,17 @@ def spawn_openlock_base_slot_cutter(base, tile_props, offset=0.236):
         cutter_d.name = 'Base Slot Cutter.' + tile_props.tile_name
 
         a_array = cutter_a.modifiers['Array']
-        if tile_props.wall_position == 'EXTERIOR' and tile_props.tile_type == 'STRAIGHT_WALL':
-            a_array.fit_length = base.dimensions[1] - 1.014 + 0.09
-        else:
-            a_array.fit_length = base.dimensions[1] - 1.014
+        a_array.fit_length = base_dims[1] - 1.014
 
         b_array = cutter_b.modifiers['Array']
-        b_array.fit_length = base.dimensions[0] - 1.014
+        b_array.fit_length = base_dims[0] - 1.014
 
         c_array = cutter_c.modifiers['Array']
-        c_array.fit_length = base.dimensions[0] - 1.014
+        c_array.fit_length = base_dims[0] - 1.014
 
         d_array = cutter_d.modifiers['Array']
-        if tile_props.wall_position == 'EXTERIOR' and tile_props.tile_type == 'STRAIGHT_WALL':
-            d_array.fit_length = base.dimensions[1] - 1.014 + 0.09
-        else:
-            d_array.fit_length = base.dimensions[1] - 1.014
+
+        d_array.fit_length = base_dims[1] - 1.014
 
         cutter_d.location = (
             base_location[0] + 0.24,
@@ -860,7 +881,7 @@ def spawn_openlock_base_clip_cutters(self, base, tile_props):
 
     """
     base_location = base.location.copy()
-    base_dims = base.dimensions
+    base_dims = tile_props.base_size
 
     # Prevent drawing of clip cutters if base is too small
     if base_dims[0] < 1:
@@ -892,7 +913,7 @@ def spawn_openlock_base_clip_cutters(self, base, tile_props):
         cutter_end_cap.hide_viewport = True
 
         # For narrow wall bases
-        if base.dimensions[1] < 1:
+        if base_dims[1] < 1:
             clip_cutter.location = (
                 base_location[0] + 0.5,
                 base_location[1] + 0.25,
@@ -927,7 +948,7 @@ def spawn_openlock_base_clip_cutters(self, base, tile_props):
         array_mod.use_merge_vertices = True
 
         array_mod.fit_type = 'FIT_LENGTH'
-        array_mod.fit_length = base.dimensions[0] - 1
+        array_mod.fit_length = base_dims[0] - 1
 
         clip_cutter2 = clip_cutter.copy()
         clip_cutter2.name = 'X Pos Clip.' + base.name
@@ -937,7 +958,7 @@ def spawn_openlock_base_clip_cutters(self, base, tile_props):
         clip_cutter2.rotation_euler = (0, 0, radians(90))
 
         front_right = (
-            base_location[0] + base.dimensions[0],
+            base_location[0] + base_dims[0],
             base_location[1],
             base_location[2])
 
@@ -949,10 +970,7 @@ def spawn_openlock_base_clip_cutters(self, base, tile_props):
         array_mod2 = clip_cutter2.modifiers['Array']
         array_mod2.fit_type = 'FIT_LENGTH'
 
-        if tile_props.wall_position == 'EXTERIOR' and tile_props.tile_type == 'STRAIGHT_WALL':
-            array_mod2.fit_length = base.dimensions[1] - 1 + 0.09
-        else:
-            array_mod2.fit_length = base.dimensions[1] - 1
+        array_mod2.fit_length = base_dims[1] - 1
 
         clip_cutter3 = clip_cutter.copy()
         clip_cutter3.name = 'Y Pos Clip.' + base.name
@@ -961,22 +979,15 @@ def spawn_openlock_base_clip_cutters(self, base, tile_props):
 
         clip_cutter3.rotation_euler = (0, 0, radians(180))
 
-        if tile_props.wall_position == 'EXTERIOR' and tile_props.tile_type == 'STRAIGHT_WALL':
-            clip_cutter3.location = (
-                clip_cutter.location[0] + base.dimensions[0] - 1,
-                clip_cutter.location[1] + base.dimensions[1] - 0.5 + 0.09,
-                clip_cutter.location[2]
-            )
-        else:
-            clip_cutter3.location = (
-                clip_cutter.location[0] + base.dimensions[0] - 1,
-                clip_cutter.location[1] + base.dimensions[1] - 0.5,
-                clip_cutter.location[2]
-            )
+        clip_cutter3.location = (
+            clip_cutter.location[0] + base_dims[0] - 1,
+            clip_cutter.location[1] + base_dims[1] - 0.5,
+            clip_cutter.location[2]
+        )
 
         array_mod3 = clip_cutter3.modifiers['Array']
         array_mod3.fit_type = 'FIT_LENGTH'
-        array_mod3.fit_length = base.dimensions[0] - 1
+        array_mod3.fit_length = base_dims[0] - 1
 
         clip_cutter4 = clip_cutter2.copy()
         clip_cutter4.name = 'X Neg Clip.' + base.name
@@ -985,25 +996,16 @@ def spawn_openlock_base_clip_cutters(self, base, tile_props):
 
         clip_cutter4.rotation_euler = (0, 0, radians(-90))
 
-        if tile_props.wall_position == 'EXTERIOR' and tile_props.tile_type == 'STRAIGHT_WALL':
-            clip_cutter4.location = (
-                clip_cutter2.location[0] - base.dimensions[0] + 0.5,
-                clip_cutter2.location[1] + base.dimensions[1] - 1 + 0.09,
-                clip_cutter2.location[2]
-            )
-        else:
-            clip_cutter4.location = (
-                clip_cutter2.location[0] - base.dimensions[0] + 0.5,
-                clip_cutter2.location[1] + base.dimensions[1] - 1,
-                clip_cutter2.location[2]
-            )
+        clip_cutter4.location = (
+            clip_cutter2.location[0] - base_dims[0] + 0.5,
+            clip_cutter2.location[1] + base_dims[1] - 1,
+            clip_cutter2.location[2]
+        )
 
         array_mod4 = clip_cutter4.modifiers['Array']
         array_mod4.fit_type = 'FIT_LENGTH'
-        if tile_props.wall_position == 'EXTERIOR' and tile_props.tile_type == 'STRAIGHT_WALL':
-            array_mod4.fit_length = base.dimensions[1] - 1 + 0.09
-        else:
-            array_mod4.fit_length = base.dimensions[1] - 1
+
+        array_mod4.fit_length = base_dims[1] - 1
 
         return [clip_cutter, clip_cutter2, clip_cutter3, clip_cutter4]
     return False

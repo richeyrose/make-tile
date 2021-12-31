@@ -8,7 +8,7 @@ from .. lib.utils.vertex_groups import (
     get_verts_with_material,
     clear_vert_group)
 from .. utils.registration import get_prefs
-
+from ..lib.utils.selection import deselect_all, select, activate
 
 class MT_OT_Assign_Material_To_Vert_Group(bpy.types.Operator):
     """Assigns the active material to the selected vertex group"""
@@ -258,19 +258,29 @@ def bake_displacement_map(obj):
     ctx = {
         'selected_objects': [obj],
         'selected_editable_objects': [obj],
+        'selectable_objects': [obj],
         'active_object': obj,
-        'object': obj
+        'object': obj,
+        'visible_objects': [obj],
+        'editable_objects': [obj],
+        'objects_in_mode': [obj]
     }
 
-    # bake
-    # check to see if there is a UV layer and if not make one
-    if len(obj.data.uv_layers) == 0:
-        bpy.ops.object.editmode_toggle(ctx)
-        bpy.ops.mesh.select_all(action='SELECT')
-        bpy.ops.uv.smart_project(ctx)
-        bpy.ops.mesh.select_all(action='DESELECT')
-        bpy.ops.object.editmode_toggle(ctx)
 
+    # check to see if there is a UV layer and if not make one. Can't get context override to work.
+    if len(obj.data.uv_layers) == 0:
+        deselect_all()
+        select(obj.name)
+        activate(obj.name)
+        if bpy.context.object.mode == 'OBJECT':
+            bpy.ops.object.editmode_toggle()
+        bpy.ops.mesh.select_all(action='SELECT')
+        # ctx['edit_object'] = obj
+        bpy.ops.uv.smart_project()
+        bpy.ops.mesh.select_all(action='DESELECT')
+        bpy.ops.object.editmode_toggle()
+
+    # bake
     bpy.ops.object.bake(ctx, type='EMIT')
 
     # pack image

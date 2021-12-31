@@ -651,6 +651,15 @@ def spawn_s_base(self, context, tile_props):
     return base, floor_core
 
 def spawn_openlock_s_base(self, tile_props, orig_base_size):
+    """Spawn an OpenLOCK S Base.
+
+    Args:
+        tile_props (mt_tile_props): tile props
+        orig_base_size (list[x, y, z]): Original base size
+
+    Returns:
+        [type]: [description]
+    """
     base = spawn_plain_base(self, tile_props)
     tile_props.base_size = orig_base_size
     slot_cutter = spawn_openlock_base_slot_cutter(base, tile_props)
@@ -719,21 +728,8 @@ def spawn_plain_base(self, tile_props):
     Returns:
         bpy.types.Object: tile base
     """
-    orig_base_size = [dim for dim in tile_props.base_size]
-    base_size = tile_props.base_size
-    cursor = bpy.context.scene.cursor
-    try:
-        if tile_props.wall_position == 'EXTERIOR' \
-                and tile_props.tile_type == 'L_WALL':
-            base_size[0] = base_size[0] - 0.09
-            base_size[1] = base_size[1] - 0.09
-            cursor.location = (
-                cursor.location[0] + 0.09,
-                cursor.location[1] + 0.09,
-                cursor.location[2])
-    except AttributeError:
-        pass
 
+    base_size = tile_props.base_size
     tile_name = tile_props.tile_name
 
     # make base
@@ -746,7 +742,7 @@ def spawn_plain_base(self, tile_props):
     obj_props.geometry_type = 'BASE'
     obj_props.tile_name = tile_name
     bpy.context.view_layer.objects.active = base
-    tile_props.base_size = orig_base_size
+
     return base
 
 

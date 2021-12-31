@@ -1420,8 +1420,8 @@ def draw_rectangular_floor_core(dims, subdivs, margin=0.001, offset=0):
 
     # select Right
     right_verts = select_verts_in_bounds(
-        lbound=(dims[1] + offset, orig_loc[1], orig_loc[2]),
-        ubound=(dims[1] + offset, dims[1] + offset, dims[2]),
+        lbound=(dims[0] + offset, orig_loc[1], orig_loc[2]),
+        ubound=(dims[0] + offset, dims[1] + offset, dims[2]),
         buffer=margin / 2,
         bm=bm)
 
@@ -1440,7 +1440,7 @@ def draw_rectangular_floor_core(dims, subdivs, margin=0.001, offset=0):
     # Select back
     back_verts = select_verts_in_bounds(
         lbound=(orig_loc[0], dims[1] + offset, orig_loc[2]),
-        ubound=(dims[1] + offset, dims[1] + offset, dims[2]),
+        ubound=(dims[0] + offset, dims[1] + offset, dims[2]),
         buffer=margin / 2,
         bm=bm
     )

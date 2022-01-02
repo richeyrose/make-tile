@@ -37,6 +37,14 @@ from .create_tile import (
     get_subdivs,
     create_material_enums,
     add_subsurf_modifier)
+
+from .tile_panels import (
+    redo_curved_tiles_panel,
+    redo_tile_panel_header,
+    redo_tile_panel_footer,
+    scene_curved_tiles_panel,
+    scene_tile_panel_header,
+    scene_tile_panel_footer)
 '''
 from line_profiler import LineProfiler
 from os.path import splitext
@@ -66,53 +74,11 @@ class MT_PT_Curved_Wall_Tile_Panel(Panel):
         """Draw the Panel."""
         scene = context.scene
         scene_props = scene.mt_scene_props
-
         layout = self.layout
-
-        layout.label(text="Blueprints")
-        layout.prop(scene_props, 'base_blueprint')
-        layout.prop(scene_props, 'main_part_blueprint')
-        if scene_props.base_blueprint not in ('PLAIN', 'NONE'):
-            layout.prop(scene_props, 'base_socket_type')
-        layout.label(text="Materials")
-        layout.prop(scene_props, 'floor_material')
-        layout.prop(scene_props, 'wall_material')
-        layout.prop(scene_props, 'curve_texture', text="Curve Texture")
-        
-        layout.label(text="Tile Properties")
-
-        layout.prop(scene_props, 'tile_z', text="Height")
-        layout.prop(scene_props, 'base_radius', text="Radius")
-        layout.prop(scene_props, 'degrees_of_arc')
-        layout.prop(scene_props, 'base_socket_side', text="Socket Side")
-        
-
-        layout.label(text="Core Properties")
-        layout.prop(scene_props, 'tile_y', text="Width")
-
-        if scene_props.base_blueprint in ('OPENLOCK_S_WALL', 'PLAIN_S_WALL'):
-            layout.label(text="Floor Thickness")
-            layout.prop(scene_props, 'floor_thickness', text="")
-
-            layout.label(text="Wall Position")
-            layout.prop(scene_props, 'wall_position', text="")
-
-        layout.label(text="Sync Proportions")
-        row = layout.row()
-        row.prop(scene_props, 'y_proportionate_scale', text="Width")
-        row.prop(scene_props, 'z_proportionate_scale', text="Height")
-
-        layout.label(text="Base Properties")
-        layout.prop(scene_props, 'base_y', text="Width")
-        layout.prop(scene_props, 'base_z', text="Height")
-
-        layout.label(text="Subdivision Density")
-        layout.prop(scene_props, 'subdivision_density', text="")
-
-        layout.label(text="UV Island Margin")
-        layout.prop(scene_props, 'UV_island_margin', text="")
-
-        layout.operator('scene.reset_tile_defaults')
+        blueprints = ['base_blueprint', 'main_part_blueprint']
+        scene_tile_panel_header(scene_props, layout, blueprints, 'WALL')
+        scene_curved_tiles_panel(scene_props, layout)
+        scene_tile_panel_footer(scene_props, layout)
 
 
 class MT_PT_Curved_Floor_Tile_Panel(Panel):
@@ -138,42 +104,10 @@ class MT_PT_Curved_Floor_Tile_Panel(Panel):
         scene = context.scene
         scene_props = scene.mt_scene_props
         layout = self.layout
-
-        layout.label(text="Blueprints")
-        layout.prop(scene_props, 'base_blueprint')
-        layout.prop(scene_props, 'main_part_blueprint')
-        if scene_props.base_blueprint not in ('PLAIN', 'NONE'):
-            layout.prop(scene_props, 'base_socket_type')
-        layout.label(text="Materials")
-        layout.prop(scene_props, 'floor_material')
-        layout.prop(scene_props, 'curve_texture', text="Curve Texture")
-        
-        layout.label(text="Tile Properties")
-        layout.prop(scene_props, 'tile_z', text="Height")
-        layout.prop(scene_props, 'base_radius', text="Radius")
-        layout.prop(scene_props, 'degrees_of_arc')
-        layout.prop(scene_props, 'base_socket_side', text="Socket Side")
-        
-
-        layout.label(text="Core Properties")
-        layout.prop(scene_props, 'tile_y', text="Width")
-
-        layout.label(text="Sync Proportions")
-        row = layout.row()
-        row.prop(scene_props, 'y_proportionate_scale', text="Width")
-        row.prop(scene_props, 'z_proportionate_scale', text="Height")
-
-        layout.label(text="Base Properties")
-        layout.prop(scene_props, 'base_y', text="Width")
-        layout.prop(scene_props, 'base_z', text="Height")
-
-        layout.label(text="Subdivision Density")
-        layout.prop(scene_props, 'subdivision_density', text="")
-
-        layout.label(text="UV Island Margin")
-        layout.prop(scene_props, 'UV_island_margin', text="")
-
-        layout.operator('scene.reset_tile_defaults')
+        blueprints = ['base_blueprint', 'main_part_blueprint']
+        scene_tile_panel_header(scene_props, layout, blueprints, 'FLOOR')
+        scene_curved_tiles_panel(scene_props, layout)
+        scene_tile_panel_footer(scene_props, layout)
 
 
 class MT_Curved_Tile:
@@ -274,7 +208,8 @@ class MT_OT_Make_Curved_Wall_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
         name="Wall Position",
         items=[
             ("CENTER", "Center", "Wall is in Center of base."),
-            ("SIDE", "Side", "Wall is on the side of base.")],
+            ("SIDE", "Side", "Wall is on the side of base."),
+            ("EXTERIOR", "Exterior", "Wall is an exterior wall.")],
         default="CENTER")
 
     floor_thickness: FloatProperty(
@@ -298,13 +233,20 @@ class MT_OT_Make_Curved_Wall_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
         base_blueprint = self.base_blueprint
         wall_blueprint = self.main_part_blueprint
         tile_props = bpy.data.collections[self.tile_name].mt_tile_props
+        floor_core = None
 
         if base_blueprint == 'NONE':
             base = spawn_empty_base(tile_props)
-        elif base_blueprint in ['PLAIN', 'PLAIN_S_WALL']:
-            base = spawn_plain_base(tile_props)
-        elif base_blueprint in ['OPENLOCK', 'OPENLOCK_S_WALL']:
+        elif base_blueprint in ['PLAIN']:
+            base = spawn_plain_base(self, tile_props)
+        elif base_blueprint in ['OPENLOCK']:
             base = spawn_openlock_base(self, tile_props)
+        elif base_blueprint in ['PLAIN_S_WALL', 'OPENLOCK_S_WALL']:
+            base, floor_core = spawn_s_base(self, context, tile_props)
+        if not base:
+            self.delete_tile_collection(self.tile_name)
+            self.report({'INFO'}, "Could not generate base. Cancelling")
+            return {'CANCELLED'}
 
         if wall_blueprint == 'NONE':
             wall_core = None
@@ -313,22 +255,9 @@ class MT_OT_Make_Curved_Wall_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
         elif wall_blueprint == 'OPENLOCK':
             wall_core = spawn_openlock_wall_cores(self, base, tile_props)
 
-        if base_blueprint in {'OPENLOCK_S_WALL', 'PLAIN_S_WALL'}:
-            # We temporarily override tile_props.base_size to generate floor core for S-Tiles.
-            # It is easier to do it this way as the PropertyGroup.copy() method produces a dict
-            orig_tile_size = []
-            for c, v in enumerate(tile_props.tile_size):
-                orig_tile_size.append(v)
 
-            tile_props.tile_size = (
-                tile_props.base_size[0],
-                tile_props.base_size[1],
-                scene_props.base_z + self.floor_thickness)
-            floor_core = spawn_plain_floor_cores(self, tile_props)
-            tile_props.tile_size = orig_tile_size
-            self.finalise_tile(context, base, wall_core, floor_core)
-        else:
-            self.finalise_tile(context, base, wall_core)
+        self.finalise_tile(context, base, wall_core, floor_core)
+
         # profile.dump_stats(splitext(__file__)[0] + '.prof')
         return {'FINISHED'}
 
@@ -350,44 +279,10 @@ class MT_OT_Make_Curved_Wall_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
-
-        layout.label(text="Blueprints")
-        layout.prop(self, 'base_blueprint')
-        layout.prop(self, 'main_part_blueprint')
-        if self.base_blueprint not in ('PLAIN', 'NONE'):
-            layout.prop(self, 'base_socket_type')
-        layout.label(text="Materials")
-        layout.prop(self, 'floor_material')
-        layout.prop(self, 'wall_material')
-
-        layout.label(text="Tile Properties")
-        layout.prop(self, 'tile_z', text="Height")
-        layout.prop(self, 'base_radius', text="Radius")
-        layout.prop(self, 'degrees_of_arc')
-        layout.prop(self, 'base_socket_side', text="Socket Side")
-        layout.prop(self, 'curve_texture', text="Curve Texture")
-
-        layout.label(text="Core Properties")
-        layout.prop(self, 'tile_y', text="Width")
-
-        if self.base_blueprint in ('OPENLOCK_S_WALL', 'PLAIN_S_WALL'):
-            layout.label(text="Floor Thickness")
-            layout.prop(self, 'floor_thickness', text="")
-
-            layout.label(text="Wall Position")
-            layout.prop(self, 'wall_position', text="")
-
-        layout.label(text="Sync Proportions")
-        row = layout.row()
-        row.prop(self, 'y_proportionate_scale', text="Width")
-        row.prop(self, 'z_proportionate_scale', text="Height")
-
-        layout.label(text="Base Properties")
-        layout.prop(self, 'base_y', text="Width")
-        layout.prop(self, 'base_z', text="Height")
-
-        layout.label(text="UV Island Margin")
-        layout.prop(self, 'UV_island_margin', text="")
+        blueprints = ['base_blueprint', 'main_part_blueprint']
+        redo_tile_panel_header(self, layout, blueprints, 'WALL')
+        redo_curved_tiles_panel(self, layout)
+        redo_tile_panel_footer(self, layout)
 
 
 class MT_OT_Make_Curved_Floor_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
@@ -413,7 +308,7 @@ class MT_OT_Make_Curved_Floor_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
         elif base_blueprint == 'OPENLOCK':
             base = spawn_openlock_base(self, tile_props)
         elif base_blueprint == 'PLAIN':
-            base = spawn_plain_base(tile_props)
+            base = spawn_plain_base(self, tile_props)
 
         if core_blueprint == 'NONE':
             core = None
@@ -441,36 +336,10 @@ class MT_OT_Make_Curved_Floor_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
-
-        layout.label(text="Blueprints")
-        layout.prop(self, 'base_blueprint')
-        layout.prop(self, 'main_part_blueprint')
-        if self.base_blueprint not in ('PLAIN', 'NONE'):
-            layout.prop(self, 'base_socket_type')
-        layout.label(text="Materials")
-        layout.prop(self, 'floor_material')
-
-        layout.label(text="Tile Properties")
-        layout.prop(self, 'tile_z', text="Height")
-        layout.prop(self, 'base_radius', text="Radius")
-        layout.prop(self, 'degrees_of_arc')
-        layout.prop(self, 'base_socket_side', text="Socket Side")
-        layout.prop(self, 'curve_texture', text="Curve Texture")
-
-        layout.label(text="Core Properties")
-        layout.prop(self, 'tile_y', text="Width")
-
-        layout.label(text="Sync Proportions")
-        row = layout.row()
-        row.prop(self, 'y_proportionate_scale', text="Width")
-        row.prop(self, 'z_proportionate_scale', text="Height")
-
-        layout.label(text="Base Properties")
-        layout.prop(self, 'base_y', text="Width")
-        layout.prop(self, 'base_z', text="Height")
-
-        layout.label(text="UV Island Margin")
-        layout.prop(self, 'UV_island_margin', text="")
+        blueprints = ['base_blueprint', 'main_part_blueprint']
+        redo_tile_panel_header(self, layout, blueprints, 'FLOOR')
+        redo_curved_tiles_panel(self, layout)
+        redo_tile_panel_footer(self, layout)
 
 
 class MT_OT_Make_Openlock_Curved_Base(MT_Tile_Generator, Operator):
@@ -776,7 +645,7 @@ def spawn_openlock_top_pegs(base, **kwargs):
                         tile_size[2]),
                     space=peg.matrix_world)
 
-    elif tile_props.wall_position == 'SIDE':
+    else:
         if base_radius >= 1:
             if tile_props.base_socket_side == 'INNER':
                 bmesh.ops.translate(
@@ -848,7 +717,7 @@ def spawn_openlock_wall_cutters(tile_props):
 
     cutters.extend([left_cutter_bottom, right_cutter_bottom])
 
-    if tile_props.wall_position == 'SIDE':
+    if tile_props.wall_position in ['SIDE', 'EXTERIOR']:
         radius = tile_props.base_radius + \
             (tile_props.base_size[1]) - (tile_props.tile_size[1] / 2) - 0.09
     else:
@@ -1001,6 +870,28 @@ def spawn_openlock_base_slot_cutter(self, base, tile_props, offset=0.236):
 
     return slot_cutter
 
+
+def spawn_s_base(self, context, tile_props):
+    orig_base_size = [dim for dim in tile_props.base_size]
+    if tile_props.wall_position == 'EXTERIOR':
+        tile_props.base_size[1] = tile_props.base_size[1] - 0.09
+
+    if self.base_blueprint == 'PLAIN_S_WALL':
+        base = spawn_plain_base(self, tile_props)
+    else:
+        base = spawn_openlock_base(self, tile_props)
+    tile_props.base_size = orig_base_size
+
+    orig_tile_size = [dim for dim in tile_props.tile_size]
+    tile_props.tile_size = (
+        tile_props.base_size[0],
+        tile_props.base_size[1],
+        context.scene.mt_scene_props.base_z + self.floor_thickness)
+    if tile_props.wall_position in ['EXTERIOR', 'SIDE']:
+        tile_props.tile_size[1] = tile_props.base_size[1] - 0.09
+    floor_core = spawn_plain_floor_cores(self, tile_props)
+    tile_props.tile_size = orig_tile_size
+    return base, floor_core
 
 def spawn_openlock_base(self, tile_props):
     """Spawn OpenLOCK base into scene.
@@ -1240,7 +1131,10 @@ def spawn_wall_core(self, tile_props):
     angle = tile_props.degrees_of_arc
     radius = tile_props.core_radius
     width = tile_props.tile_size[1]
-    height = tile_props.tile_size[2] - tile_props.base_size[2]
+    if tile_props.wall_position == 'EXTERIOR':
+        height = tile_props.tile_size[2]
+    else:
+        height = tile_props.tile_size[2] - tile_props.base_size[2]
     inner_circumference = 2 * pi * radius
     wall_length = inner_circumference / (360 / angle)
     tile_name = tile_props.tile_name
@@ -1264,13 +1158,15 @@ def spawn_wall_core(self, tile_props):
     add_object_to_collection(core, tile_props.tile_name)
 
     tile_props.tile_size[0] = wall_length
+    if tile_props.wall_position == 'EXTERIOR':
+        core.location[1] += radius
+    else:
+        core.location = (
+            core.location[0],
+            core.location[1] + radius,
+            core.location[2] + tile_props.base_size[2])
 
-    core.location = (
-        core.location[0],
-        core.location[1] + radius,
-        core.location[2] + tile_props.base_size[2])
-
-    if tile_props.wall_position == 'SIDE':
+    if tile_props.wall_position in ['SIDE', 'EXTERIOR']:
         cursor = bpy.context.scene.cursor
         orig_cursor_loc = cursor.location.copy()
         cursor.location = core.location

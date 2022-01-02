@@ -66,6 +66,33 @@ def scene_straight_tiles_panel(scene_props, layout):
     row.prop(scene_props, 'base_y')
     row.prop(scene_props, 'base_z')
 
+def scene_curved_tiles_panel(scene_props, layout):
+    """Shared content for the N menu curved tile generator panels.
+
+    Args:
+        scene_props (mt_scene_props): MakeTile scene properties
+        layout (bpy.types.UILayout): Area to draw in.
+    """
+    layout.label(text="Tile Properties")
+    layout.prop(scene_props, 'tile_z', text="Height")
+    layout.prop(scene_props, 'base_radius', text="Radius")
+    layout.prop(scene_props, 'degrees_of_arc')
+    layout.prop(scene_props, 'base_socket_side', text="Socket Side")
+    layout.prop(scene_props, 'curve_texture', text="Curve Texture")
+
+
+    layout.label(text="Core Size")
+    layout.prop(scene_props, 'tile_y', text="Width")
+
+    layout.label(text="Sync Proportions")
+    row = layout.row()
+    row.prop(scene_props, 'y_proportionate_scale', text="Width")
+    row.prop(scene_props, 'z_proportionate_scale', text="Height")
+
+    layout.label(text="Base Size")
+    layout.prop(scene_props, 'base_y', text="Width")
+    layout.prop(scene_props, 'base_z', text="Height")
+
 def scene_L_tiles_panel(scene_props, layout):
     """Shared content for the N menu L tiles generator panels.
 
@@ -142,11 +169,37 @@ def redo_straight_tiles_panel(self, layout):
     row.prop(self, 'y_proportionate_scale')
     row.prop(self, 'z_proportionate_scale')
 
-    layout.label(text="Base Size")
+    layout.label(text="Base Sizse")
     row = layout.row()
     row.prop(self, 'base_x')
     row.prop(self, 'base_y')
     row.prop(self, 'base_z')
+
+def redo_curved_tiles_panel(self, layout):
+    """Shared content for redo panel for curved tiles.
+
+    Args:
+    layout (bpy.types.UILayout): Area to draw in.
+    """
+    if self.base_blueprint not in ('PLAIN', 'NONE'):
+        layout.prop(self, 'base_socket_type')
+
+    layout.label(text="Tile Properties")
+    layout.prop(self, 'tile_z', text="Height")
+    layout.prop(self, 'base_radius', text="Radius")
+    layout.prop(self, 'degrees_of_arc')
+    layout.prop(self, 'base_socket_side', text="Socket Side")
+    layout.prop(self, 'curve_texture', text="Curve Texture")
+
+    layout.label(text="Core Properties")
+    layout.prop(self, 'tile_y', text="Width")
+
+    if self.base_blueprint in ('OPENLOCK_S_WALL', 'PLAIN_S_WALL'):
+        layout.label(text="Floor Thickness")
+        layout.prop(self, 'floor_thickness', text="")
+
+        layout.label(text="Wall Position")
+        layout.prop(self, 'wall_position', text="")
 
 def redo_L_tiles_panel(self, layout):
     """Shared content for redo panel for L Tiles.

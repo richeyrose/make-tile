@@ -264,7 +264,7 @@ def spawn_plain_wall_cores(self, base, tile_props):
     Returns:
         (bpy.types.Object): preview_core
     """
-    core = spawn_wall_core(self, tile_props)
+    core, _ = spawn_wall_core(self, tile_props)
     subsurf = add_subsurf_modifier(core)
 
     if tile_props.base_blueprint == 'OPENLOCK_S_WALL' and tile_props.wall_position == 'EXTERIOR':
@@ -388,11 +388,11 @@ def spawn_openlock_wall_cores(self, tile_props, base):
     Returns:
         (bpy.types.Object): core
     """
-    core = spawn_wall_core(self, tile_props)
+    core, dimensions = spawn_wall_core(self, tile_props)
     subsurf = add_subsurf_modifier(core)
     cutters = spawn_openlock_wall_cutters(self, core, tile_props)
 
-    if tile_props.leg_1_len >= 1 or tile_props.leg_2_len >= 1:
+    if dimensions['triangles_2']['b_adj'] >= 1 or dimensions['triangles_2']['d_adj'] >= 1:
         top_pegs = spawn_openlock_top_pegs(
             core,
             tile_props)
@@ -796,7 +796,7 @@ def spawn_wall_core(self, tile_props):
 
     bpy.context.scene.cursor.location = (0, 0, 0)
 
-    return core
+    return core, dimensions
 
 def spawn_s_base(self, context, tile_props, base_blueprint):
     """Spawn a plain base for an S Wall.
@@ -814,6 +814,8 @@ def spawn_s_base(self, context, tile_props, base_blueprint):
     # list comprehension because we .copy behaves strangely on bpy props
     orig_tile_size = [dim for dim in tile_props.tile_size]
     orig_base_size = [dim for dim in tile_props.base_size]
+    cursor = context.scene.cursor
+    orig_loc = cursor.location.copy()
 
     if abs(self.angle) != 90:
         if base_blueprint == 'PLAIN_S_WALL':
@@ -840,7 +842,6 @@ def spawn_s_base(self, context, tile_props, base_blueprint):
         if self.wall_position == 'EXTERIOR':
             tile_props.base_size[0] -= 0.09
             tile_props.base_size[1] -= 0.09
-            cursor = bpy.context.scene.cursor
             cursor.location = (
                 cursor.location[0] + 0.09,
                 cursor.location[1] + 0.09,
@@ -852,7 +853,6 @@ def spawn_s_base(self, context, tile_props, base_blueprint):
             base = spawn_openlock_rect_s_base(self, tile_props, unadjusted_base_size)
 
         if self.wall_position in ['SIDE', 'EXTERIOR']:
-            cursor = context.scene.cursor
             orig_loc = cursor.location.copy()
 
             cursor.location = (
@@ -868,6 +868,7 @@ def spawn_s_base(self, context, tile_props, base_blueprint):
             floor_core = create_plain_rect_floor_cores(self, tile_props, 0.09)
         else:
             floor_core = create_plain_rect_floor_cores(self, tile_props)
+
     cursor.location = orig_loc
     tile_props.tile_size = orig_tile_size
     tile_props.base_size = orig_base_size

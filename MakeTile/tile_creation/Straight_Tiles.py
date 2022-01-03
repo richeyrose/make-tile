@@ -920,34 +920,37 @@ def spawn_openlock_base_clip_cutters(self, base, tile_props):
         cutter_start_cap.hide_viewport = True
         cutter_end_cap.hide_viewport = True
 
-        clip_cutter = source_cutter.copy()
+        if tile_props.tile_type == 'L_WALL' and tile_props.wall_position == 'EXTERIOR':
+            pass
+        else:
+            clip_cutter = source_cutter.copy()
+            # For narrow wall bases
+            if base_dims[1] < 1:
+                clip_cutter.location = (
+                    base_location[0] + 0.5,
+                    base_location[1] + 0.25,
+                    base_location[2])
 
-        # For narrow wall bases
-        if base_dims[1] < 1:
+                fit_length = tile_props.base_size[0] - 1
+                add_base_clip_array(cutter_start_cap, cutter_end_cap, clip_cutter, fit_length)
+
+                clip_cutter.name = 'Clip Cutter.' + base.name
+                clip_cutters.append(clip_cutter)
+                bpy.data.objects.remove(source_cutter)
+
+                return clip_cutters
+
+            clip_cutter.name = 'Y Neg Clip.' + base.name
+            # get location of bottom front left corner of tile
             clip_cutter.location = (
-                base_location[0] + 0.5,
-                base_location[1] + 0.25,
-                base_location[2])
+                front_left[0] + 0.5,
+                front_left[1] + 0.25,
+                front_left[2])
 
-            fit_length = tile_props.base_size[0] - 1
-            add_base_clip_array(tile_props, cutter_start_cap, cutter_end_cap, clip_cutter, fit_length)
+            fit_length = base_dims[0] - 1
+            add_base_clip_array(cutter_start_cap, cutter_end_cap, clip_cutter, fit_length)
 
-            clip_cutter.name = 'Clip Cutter.' + base.name
             clip_cutters.append(clip_cutter)
-            return clip_cutters
-
-        clip_cutter.name = 'Y Neg Clip.' + base.name
-        # get location of bottom front left corner of tile
-
-        clip_cutter.location = (
-            front_left[0] + 0.5,
-            front_left[1] + 0.25,
-            front_left[2])
-
-        fit_length = base_dims[0] - 1
-        add_base_clip_array(tile_props, cutter_start_cap, cutter_end_cap, clip_cutter, fit_length)
-
-        clip_cutters.append(clip_cutter)
 
         clip_cutter2 = source_cutter.copy()
         clip_cutter2.name = 'X Pos Clip.' + base.name
@@ -962,7 +965,7 @@ def spawn_openlock_base_clip_cutters(self, base, tile_props):
             front_right[2])
 
         fit_length = base_dims[1] - 1
-        add_base_clip_array(tile_props, cutter_start_cap, cutter_end_cap, clip_cutter2, fit_length)
+        add_base_clip_array(cutter_start_cap, cutter_end_cap, clip_cutter2, fit_length)
         clip_cutters.append(clip_cutter2)
 
         if tile_props.tile_type == 'STRAIGHT_WALL' and tile_props.wall_position == 'EXTERIOR':
@@ -981,30 +984,40 @@ def spawn_openlock_base_clip_cutters(self, base, tile_props):
                 front_left[2])
 
             fit_length = base_dims[0] - 1
-            add_base_clip_array(tile_props, cutter_start_cap, cutter_end_cap, clip_cutter3, fit_length)
+            add_base_clip_array(cutter_start_cap, cutter_end_cap, clip_cutter3, fit_length)
             clip_cutters.append(clip_cutter3)
 
-        clip_cutter4 = source_cutter.copy()
-        clip_cutter4.name = 'X Neg Clip.' + base.name
-        clip_cutter4.data = clip_cutter4.data.copy()
-        add_object_to_collection(clip_cutter4, tile_props.tile_name)
+        if tile_props.tile_type == 'L_WALL' and tile_props.wall_position == 'EXTERIOR':
+            pass
+        else:
+            clip_cutter4 = source_cutter.copy()
+            clip_cutter4.name = 'X Neg Clip.' + base.name
+            clip_cutter4.data = clip_cutter4.data.copy()
+            add_object_to_collection(clip_cutter4, tile_props.tile_name)
 
-        clip_cutter4.rotation_euler = (0, 0, radians(-90))
+            clip_cutter4.rotation_euler = (0, 0, radians(-90))
 
-        clip_cutter4.location = (
-            front_right[0] - base_dims[0] + 0.25,
-            front_right[1] + base_dims[1] - 0.5,
-            front_right[2])
+            clip_cutter4.location = (
+                front_right[0] - base_dims[0] + 0.25,
+                front_right[1] + base_dims[1] - 0.5,
+                front_right[2])
 
-        fit_length = base_dims[1] - 1
-        add_base_clip_array(tile_props, cutter_start_cap, cutter_end_cap, clip_cutter4, fit_length)
-
-        clip_cutters.append(clip_cutter4)
+            fit_length = base_dims[1] - 1
+            add_base_clip_array(cutter_start_cap, cutter_end_cap, clip_cutter4, fit_length)
+            clip_cutters.append(clip_cutter4)
         bpy.data.objects.remove(source_cutter)
         return clip_cutters
     return False
 
-def add_base_clip_array(tile_props, cutter_start_cap, cutter_end_cap, clip_cutter, fit_length):
+def add_base_clip_array(cutter_start_cap, cutter_end_cap, clip_cutter, fit_length):
+    """Add array for straight tile base clip.
+
+    Args:
+        cutter_start_cap (bpy.types.Object): start cap
+        cutter_end_cap (bpy.types.Object): end cap
+        clip_cutter (bpy.types.Object): main array object
+        fit_length (float): length of array
+    """
     array_mod = clip_cutter.modifiers.new('Array', 'ARRAY')
     array_mod.start_cap = cutter_start_cap
     array_mod.end_cap = cutter_end_cap

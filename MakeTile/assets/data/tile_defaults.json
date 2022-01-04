@@ -550,7 +550,9 @@
         "type": "U_WALL",
         "base_blueprints": {
             "OPENLOCK": "OpenLOCK",
+            "OPENLOCK_S_WALL": "OpenLOCK S-Wall",
             "PLAIN": "Plain",
+            "PLAIN_S_WALL": "Plain S-Wall",
             "NONE": "None"
         },
         "main_part_blueprints": {
@@ -566,6 +568,8 @@
             "UV_island_margin": 0.012,
             "y_proportionate_scale": false,
             "z_proportionate_scale": false,
+            "floor_thickness":0.0245,
+            "wall_position":"SIDE",
             "wall_material": "Basic Stone 1",
             "base_defaults": {
                 "OPENLOCK": {
@@ -573,7 +577,17 @@
                     "base_y": 0.5,
                     "base_z": 0.2755
                 },
+                "OPENLOCK_S_WALL": {
+                    "base_x": 2.015,
+                    "base_y": 0.5,
+                    "base_z": 0.2755
+                },
                 "PLAIN": {
+                    "base_x": 2.015,
+                    "base_y": 0.5,
+                    "base_z": 0.2755
+                },
+                "PLAIN_S_WALL": {
                     "base_x": 2.015,
                     "base_y": 0.5,
                     "base_z": 0.2755

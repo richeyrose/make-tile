@@ -39,7 +39,12 @@ from .create_tile import (
     get_subdivs,
     create_material_enums,
     add_subsurf_modifier)
-
+from .tile_panels import(
+    redo_tile_panel_footer,
+    redo_tile_panel_header,
+    scene_tile_panel_header,
+    scene_tile_panel_footer
+)
 
 '''
 from line_profiler import LineProfiler
@@ -80,14 +85,8 @@ class MT_PT_U_Tile_Panel(Panel):
         scene = context.scene
         scene_props = scene.mt_scene_props
         layout = self.layout
-
-        layout.label(text="Blueprints")
-        layout.prop(scene_props, 'base_blueprint')
-        layout.prop(scene_props, 'main_part_blueprint')
-        if scene_props.base_blueprint not in ('PLAIN', 'NONE'):
-            layout.prop(scene_props, 'base_socket_type')
-        layout.label(text="Material")
-        layout.prop(scene_props, 'wall_material')
+        blueprints = ['base_blueprint', 'main_part_blueprint']
+        scene_tile_panel_header(scene_props, layout, blueprints, 'WALL')
 
         layout.label(text="Tile Properties")
         layout.prop(scene_props, 'tile_z', text='Height')
@@ -111,14 +110,7 @@ class MT_PT_U_Tile_Panel(Panel):
             layout.prop(scene_props, 'base_socket_side',
                         text='Base Socket Side')
 
-        layout.label(text="Subdivision Density")
-        layout.prop(scene_props, 'subdivision_density', text="")
-
-        layout.label(text="UV Island Margin")
-        layout.prop(scene_props, 'UV_island_margin', text="")
-
-        layout.operator('scene.reset_tile_defaults')
-
+        scene_tile_panel_footer(scene_props, layout)
 
 class MT_OT_Make_U_Wall_Tile(MT_Tile_Generator, Operator):
     """Create a U Wall Tile."""
@@ -128,6 +120,13 @@ class MT_OT_Make_U_Wall_Tile(MT_Tile_Generator, Operator):
     bl_options = {'UNDO', 'REGISTER'}
     mt_blueprint = "CUSTOM"
     mt_type = "U_WALL"
+
+    wall_position: EnumProperty(
+        name="Wall Position",
+        items=[
+            ("EXTERIOR", "Exterior", "Wall is an exterior wall."),
+            ("SIDE", "Side", "Wall is on the side of base")],
+        default="SIDE")
 
     base_socket_side: EnumProperty(
         items=[
@@ -156,6 +155,16 @@ class MT_OT_Make_U_Wall_Tile(MT_Tile_Generator, Operator):
     wall_material: EnumProperty(
         items=create_material_enums,
         name="Wall Material")
+
+    floor_thickness: FloatProperty(
+        name="Floor Thickness",
+        default=0.0245,
+        step=0.01,
+        precision=4)
+
+    floor_material: EnumProperty(
+        items=create_material_enums,
+        name="Floor Material")
 
     # @profile
     def exec(self, context):
@@ -204,13 +213,9 @@ class MT_OT_Make_U_Wall_Tile(MT_Tile_Generator, Operator):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
-        layout.label(text="Blueprints")
-        layout.prop(self, 'base_blueprint')
-        layout.prop(self, 'main_part_blueprint')
-        if self.base_blueprint not in ('PLAIN', 'NONE'):
-            layout.prop(self, 'base_socket_type')
-        layout.label(text="Material")
-        layout.prop(self, 'wall_material')
+        blueprints = ['base_blueprint', 'main_part_blueprint']
+
+        redo_tile_panel_header(self, layout, blueprints, 'WALL')
 
         layout.label(text="Tile Properties")
         layout.prop(self, 'tile_z', text='Height')
@@ -233,105 +238,7 @@ class MT_OT_Make_U_Wall_Tile(MT_Tile_Generator, Operator):
         if self.base_blueprint == 'OPENLOCK':
             layout.prop(self, 'base_socket_side', text='Base Socket Side')
 
-        layout.label(text="UV Island Margin")
-        layout.prop(self, 'UV_island_margin', text="")
-
-
-class MT_OT_Make_Openlock_U_Base(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate an OpenLOCK U base."""
-
-    bl_idname = "object.make_openlock_u_base"
-    bl_label = "OpenLOCK U Base"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "OPENLOCK"
-    mt_type = "U_BASE"
-
-    def execute(self, context):
-        """Execute the operator."""
-        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
-        spawn_openlock_base(self, tile_props)
-        return{'FINISHED'}
-
-
-class MT_OT_Make_Plain_U_Base(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate a plain u base."""
-
-    bl_idname = "object.make_plain_u_base"
-    bl_label = "Plain U Base"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "PLAIN"
-    mt_type = "U_BASE"
-
-    def execute(self, context):
-        """Execute the operator."""
-        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
-        spawn_plain_base(tile_props)
-        return{'FINISHED'}
-
-
-class MT_OT_Make_Empty_U_Base(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate an empty u base."""
-
-    bl_idname = "object.make_empty_u_base"
-    bl_label = "Empty U Base"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "NONE"
-    mt_type = "U_BASE"
-
-    def execute(self, context):
-        """Execute the operator."""
-        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
-        spawn_empty_base(tile_props)
-        return{'FINISHED'}
-
-
-class MT_OT_Make_Plain_U_Wall_Core(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate a plain u wall core."""
-
-    bl_idname = "object.make_plain_u_wall_core"
-    bl_label = "U Wall Core"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "PLAIN"
-    mt_type = "U_WALL_CORE"
-    base_name: StringProperty()
-
-    def execute(self, context):
-        """Execute the operator."""
-        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
-        spawn_plain_wall_cores(tile_props)
-        return{'FINISHED'}
-
-
-class MT_OT_Make_Openlock_U_Wall_Core(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate an openlock u wall core."""
-
-    bl_idname = "object.make_openlock_u_wall_core"
-    bl_label = "U Wall Core"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "OPENLOCK"
-    mt_type = "U_WALL_CORE"
-    base_name: StringProperty()
-
-    def execute(self, context):
-        """Execute the operator."""
-        tile_props = bpy.data.collections[self.tile_name].mt_tile_props
-        base = bpy.data.objects[self.base_name]
-        spawn_openlock_wall_cores(base, tile_props)
-        return{'FINISHED'}
-
-
-class MT_OT_Make_Empty_U_Wall_Core(MT_Tile_Generator, Operator):
-    """Internal Operator. Generate an empty curved wall core."""
-
-    bl_idname = "object.make_empty_u_wall_core"
-    bl_label = "U Wall Core"
-    bl_options = {'INTERNAL'}
-    mt_blueprint = "NONE"
-    mt_type = "U_WALL_CORE"
-
-    def execute(self, context):
-        """Execute the operator."""
-        return {'PASS_THROUGH'}
+        redo_tile_panel_footer(self, layout)
 
 
 # @profile

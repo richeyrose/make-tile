@@ -1,4 +1,5 @@
 import os
+import textwrap
 from math import radians
 from mathutils import kdtree, Vector
 import bpy
@@ -46,6 +47,10 @@ from .tile_panels import(
     scene_tile_panel_footer
 )
 
+from .Straight_Tiles import (
+    create_plain_rect_floor_cores,
+    spawn_plain_base as spawn_plain_rect_base,
+    spawn_openlock_s_base as spawn_openlock_rect_s_base)
 '''
 from line_profiler import LineProfiler
 from os.path import splitext
@@ -89,6 +94,7 @@ class MT_PT_U_Tile_Panel(Panel):
         scene_tile_panel_header(scene_props, layout, blueprints, 'WALL')
 
         layout.label(text="Tile Properties")
+
         layout.prop(scene_props, 'tile_z', text='Height')
         layout.prop(scene_props, 'leg_1_len', text='Leg 1 Length')
         layout.prop(scene_props, 'leg_2_len', text='Leg 2 Length')
@@ -103,7 +109,6 @@ class MT_PT_U_Tile_Panel(Panel):
         row.prop(scene_props, 'z_proportionate_scale', text="Height")
 
         layout.label(text="Base Properties")
-        layout.prop(scene_props, 'base_y', text="Width")
         layout.prop(scene_props, 'base_z', text="Height")
 
         if scene_props.base_blueprint == 'OPENLOCK':
@@ -171,18 +176,19 @@ class MT_OT_Make_U_Wall_Tile(MT_Tile_Generator, Operator):
         base_blueprint = self.base_blueprint
         wall_blueprint = self.main_part_blueprint
         tile_props = bpy.data.collections[self.tile_name].mt_tile_props
-        '''
-        base_type = 'U_BASE'
-        core_type = 'U_WALL_CORE'
-        subclasses = get_all_subclasses(MT_Tile_Generator)
-        kwargs = {"tile_name": self.tile_name}
-        '''
+        floor_core = None
         if base_blueprint == 'NONE':
             base = spawn_empty_base(tile_props)
         elif base_blueprint == 'OPENLOCK':
             base = spawn_openlock_base(self, tile_props)
         elif base_blueprint == 'PLAIN':
             base = spawn_plain_base(tile_props)
+        elif base_blueprint in ['OPENLOCK_S_WALL', 'PLAIN_S_WALL']:
+            base, floor_core = spawn_s_base(self, context, tile_props)
+        if not base:
+            self.delete_tile_collection(self.tile_name)
+            self.report({'INFO'}, "Could not generate base. Cancelling")
+            return {'CANCELLED'}
 
         if wall_blueprint == 'NONE':
             wall_core = None
@@ -190,7 +196,13 @@ class MT_OT_Make_U_Wall_Tile(MT_Tile_Generator, Operator):
             wall_core = spawn_plain_wall_cores(tile_props)
         elif wall_blueprint == 'OPENLOCK':
             wall_core = spawn_openlock_wall_cores(base, tile_props)
-        self.finalise_tile(context, base, wall_core)
+
+        if wall_blueprint != 'NONE' and wall_core == None:
+            self.delete_tile_collection(self.tile_name)
+            self.report({'INFO'}, "Could not generate wall core. Cancelling.")
+            return {'CANCELLED'}
+
+        self.finalise_tile(context, base, wall_core, floor_core)
         # profile.dump_stats(splitext(__file__)[0] + '.prof')
         return {'FINISHED'}
 
@@ -232,7 +244,6 @@ class MT_OT_Make_U_Wall_Tile(MT_Tile_Generator, Operator):
         row.prop(self, 'z_proportionate_scale', text="Height")
 
         layout.label(text="Base Properties")
-        layout.prop(self, 'base_y', text="Width")
         layout.prop(self, 'base_z', text="Height")
 
         if self.base_blueprint == 'OPENLOCK':
@@ -601,6 +612,29 @@ def spawn_plain_base(tile_props):
     bpy.context.view_layer.objects.active = base
 
     return base
+
+def spawn_s_base(self, context, tile_props):
+    orig_base_size = [dim for dim in tile_props.base_size]
+    orig_tile_size = [dim for dim in tile_props.tile_size]
+    cursor = context.scene.cursor
+    orig_loc = cursor.location.copy()
+    tile_props.base_size = [
+        tile_props.tile_size[0] + 1,
+        tile_props.leg_1_len + 0.5,
+        tile_props.base_size[2]]
+
+    tile_props.tile_size = tile_props.base_size
+    tile_props.tile_size[2] += self.floor_thickness
+
+    if tile_props.base_blueprint == 'PLAIN_S_WALL':
+        base = spawn_plain_rect_base(self, tile_props)
+    else:
+        base = spawn_openlock_rect_s_base(self, tile_props, tile_props.base_size)
+
+    floor_core = create_plain_rect_floor_cores(self, tile_props)
+    tile_props.tile_size = orig_tile_size
+    tile_props.base_size = orig_base_size
+    return base, floor_core
 
 
 def spawn_openlock_base(self, tile_props):

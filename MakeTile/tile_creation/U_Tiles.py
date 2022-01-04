@@ -50,7 +50,8 @@ from .tile_panels import(
 from .Straight_Tiles import (
     create_plain_rect_floor_cores,
     spawn_plain_base as spawn_plain_rect_base,
-    spawn_openlock_s_base as spawn_openlock_rect_s_base)
+    spawn_openlock_s_base as spawn_openlock_rect_s_base,
+    use_base_cutters_on_wall)
 '''
 from line_profiler import LineProfiler
 from os.path import splitext
@@ -280,6 +281,9 @@ def spawn_openlock_wall_cores(base, tile_props):
             set_bool_obj_props(peg, base, tile_props, 'UNION')
             set_bool_props(peg, core, 'UNION')
 
+    if tile_props.base_blueprint == 'OPENLOCK_S_WALL' and tile_props.wall_position == 'EXTERIOR':
+        args = ['Y Pos Clip']
+        use_base_cutters_on_wall(base, core, *args)
     textured_vertex_groups = ['Leg 1 Outer', 'Leg 1 Inner',
                               'End Wall Inner', 'End Wall Outer', 'Leg 2 Inner', 'Leg 2 Outer']
     material = tile_props.wall_material
@@ -569,15 +573,18 @@ def spawn_core(tile_props):
         'thickness': tile_props.tile_size[1],
         'thickness_diff': tile_props.base_size[1] - tile_props.tile_size[1]}
 
+    if tile_props.wall_position == 'EXTERIOR':
+        dimensions['height'] = tile_props.tile_size[2]
+
     subdivs = {
         'leg_1': tile_props.leg_1_len,
         'leg_2': tile_props.leg_2_len,
         'x': tile_props.tile_size[0],
         'width': tile_props.tile_size[1],
-        'height': tile_props.tile_size[2] - tile_props.base_size[2]}
+        'height': dimensions['height']}
 
     subdivs = get_subdivs(tile_props.subdivision_density, subdivs)
-    core = draw_u_wall_core(dimensions, subdivs, margin=0.001)
+    core = draw_u_wall_core(dimensions, subdivs, tile_props.wall_position, margin=0.001)
 
     core.name = tile_props.tile_name + '.core'
     obj_props = core.mt_object_props
@@ -938,7 +945,7 @@ def draw_plain_u_base(dimensions):
     return obj
 
 
-def draw_u_core(dimensions, subdivs, margin=0.001):
+def draw_u_core(dimensions, subdivs, wall_position, margin=0.001):
     """Draw a U shaped Core
 
     Args:
@@ -1022,7 +1029,8 @@ def draw_u_core(dimensions, subdivs, margin=0.001):
 
     # move cursor to start
     pu(bm)
-    up(bm, base_height)
+    if wall_position != 'EXTERIOR':
+        up(bm, base_height)
     fd(bm, thickness_diff / 2)
     ri(bm, thickness_diff / 2)
     pd(bm)
@@ -1199,7 +1207,7 @@ def draw_u_core(dimensions, subdivs, margin=0.001):
 
 
 # @profile
-def draw_u_wall_core(dimensions, subdivs, margin=0.001):
+def draw_u_wall_core(dimensions, subdivs, wall_position, margin=0.001):
     """Return a U wall core
 
     Args:
@@ -1225,7 +1233,7 @@ def draw_u_wall_core(dimensions, subdivs, margin=0.001):
         bpy.types.Object: core
     """
     bm, core, deform_groups, vert_locs = draw_u_core(
-        dimensions, subdivs, margin)
+        dimensions, subdivs, wall_position, margin)
     vert_groups = create_u_core_vert_groups_vert_lists_2(
         bm, dimensions, margin, vert_locs, subdivs)
 

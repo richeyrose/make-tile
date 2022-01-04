@@ -177,6 +177,8 @@ class MT_OT_Make_U_Wall_Tile(MT_Tile_Generator, Operator):
         wall_blueprint = self.main_part_blueprint
         tile_props = bpy.data.collections[self.tile_name].mt_tile_props
         floor_core = None
+        base = None
+
         if base_blueprint == 'NONE':
             base = spawn_empty_base(tile_props)
         elif base_blueprint == 'OPENLOCK':
@@ -618,6 +620,7 @@ def spawn_s_base(self, context, tile_props):
     orig_tile_size = [dim for dim in tile_props.tile_size]
     cursor = context.scene.cursor
     orig_loc = cursor.location.copy()
+
     tile_props.base_size = [
         tile_props.tile_size[0] + 1,
         tile_props.leg_1_len + 0.5,
@@ -626,12 +629,36 @@ def spawn_s_base(self, context, tile_props):
     tile_props.tile_size = tile_props.base_size
     tile_props.tile_size[2] += self.floor_thickness
 
+    unadjusted_base_size = [dim for dim in tile_props.base_size]
+
+    if self.wall_position == 'EXTERIOR':
+        tile_props.base_size[0] -= 0.18
+        tile_props.base_size[1] -= 0.09
+        cursor.location = (
+                cursor.location[0] + 0.09,
+                cursor.location[1] + 0.09,
+                cursor.location[2])
+
     if tile_props.base_blueprint == 'PLAIN_S_WALL':
         base = spawn_plain_rect_base(self, tile_props)
     else:
-        base = spawn_openlock_rect_s_base(self, tile_props, tile_props.base_size)
+        base = spawn_openlock_rect_s_base(self, tile_props, unadjusted_base_size)
 
-    floor_core = create_plain_rect_floor_cores(self, tile_props)
+    if self.wall_position in ['SIDE', 'EXTERIOR']:
+        orig_loc = cursor.location.copy()
+        cursor.location = (
+                orig_loc[0] + 0.09,
+                orig_loc[1] + 0.09,
+                orig_loc[2])
+
+        tile_props.tile_size = (
+            tile_props.tile_size[0] - 0.18,
+            tile_props.tile_size[1] - 0.09,
+            tile_props.tile_size[2])
+        floor_core = create_plain_rect_floor_cores(self, tile_props, 0.09)
+    else:
+        floor_core = create_plain_rect_floor_cores(self, tile_props)
+    cursor.location = orig_loc
     tile_props.tile_size = orig_tile_size
     tile_props.base_size = orig_base_size
     return base, floor_core

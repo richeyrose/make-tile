@@ -163,7 +163,7 @@ def reset_part_defaults(self, context):
                         setattr(self, k, v)
                     break
             try:
-                setattr(self, 'floor_mateial', defaults['floor_material'])
+                setattr(self, 'floor_material', defaults['floor_material'])
             except KeyError:
                 break
             break

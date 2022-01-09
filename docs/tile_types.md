@@ -162,7 +162,7 @@ The width of the wall.
 The thickness of the floor if creating an S-Wall.
 
 #### Wall Position
-Whether the wall is positioned in the center or on the edge of the tile.
+Whether the wall is positioned in the center, exterior, or on the edge of the tile.
 
 #### Sync Proportions
 Whether to sync the proportions of the base and the main part of the tile.
@@ -228,7 +228,9 @@ L Walls are analagous to L Floors and can be used to create angled wall tiles. T
 ### Tile Options
 
 #### Base
-L Walls support OpenLOCK, Plain and None base types. You can choose whether the sockets appear on the long or short side of the tile by changing the angle. Between 0° and 180° the socket will appear on the long side and between 180° and 360° on the short side.
+L Walls support OpenLOCK, OpenLOCK S-Wall, Plain, Plain S-Wall and None base types. You can choose whether the sockets appear on the long or short side of the tile by changing the angle. Between 0° and 180° the socket will appear on the long side and between 180° and 360° on the short side.
+
+If you generate an S-Wall (wall on floor) type tile you can set the wall position to center, exterior or side. The 90° case is treated differently to others. If you set the angle to 90° the base generated will be a rectangle based on the length of the two legs. If you set it to something other than 90° you can set the width of the base seperately.
 
 #### Main
 You can choose the main part of the tile to be Plain, OpenLOCK or it can be omitted alltogether if you choose None
@@ -238,6 +240,15 @@ If you choose the OpenLOCK base type you can choose from OpenLOCK or LastLOCK st
 
 #### Wall Material
 The material to apply to the vertical part of the tile.
+
+#### Floor Material
+Set the floor material if you are generating an S-Wall.
+
+#### Floor thickness
+Set the thickness of the displacement floor part if you are generating an S-Wall.
+
+#### Wall Position
+If generating an S-Wall whether the wall is positioned on the side, the exterior or the center of the tile.
 
 #### Tile Properties
 ##### Leg 1 Length
@@ -443,7 +454,7 @@ The width of the main part of the tile
 The thickness of the floor if you are generating and S-Wall
 
 #### Wall Position
-Whether the wall is positioned on the center or side of the tile. Th Exterior wall type allows you to make exterior walls if you are using S-Walls. Exterior walls are slower to generate.
+Whether the wall is positioned on the center or side of the tile. The Exterior wall type allows you to make exterior walls if you are using S-Walls. Exterior walls are slower to generate.
 
 #### Sync Proportions
 Whether to sync the proportions of the base and the main part of the tile.
@@ -505,7 +516,7 @@ U Wall tiles are useful for creating doorways at the end of corridors or sides o
 ### Tile Options
 
 #### Base
-You can choose from OpenLOCK, Plain or None base types.
+You can choose from OpenLOCK, OpenLOCK S-Wall, Plain, Plain S-Wall or None base types.
 #### Main
 You can choose from OpenLOCK, Plain or None for the main part of the tile.
 
@@ -514,6 +525,15 @@ If you choose the OpenLOCK base type you can choose from OpenLOCK or LastLOCK st
 
 #### Wall Material
 Here you can set the wall material.
+
+#### Floor Material
+Set the floor material if you are generating an S-Wall.
+
+#### Floor thickness
+Set the thickness of the displacement floor part if you are generating an S-Wall.
+
+#### Wall Position
+If generating an S-Wall whether the wall is positioned on the side or the exterior of the tile.
 
 #### Tile Properties
 ##### Height

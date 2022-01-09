@@ -1,4 +1,19 @@
 # Release Notes
+## 0.0.28 ##
+### Asset Manager ###
+Thumbnail image cacheing has been implemented for the Asset Manager. While this means there is a slight lag the first time the asset bar is opened, navigating between folders should now be instant and there are no more files being linked in the background.
+
+### More S-Wall (Wall on Floor) tiles ###
+Curved, L and U walls now support S-wall (wall on floor) type walls. To create a wall on floor tile select the OpenLOCK S-Wall or Plain S-Wall base type. You can choose to place the wall on the side, in the center or generate an exterior wall.
+
+![S Walls](images/S_walls.png)
+
+L-Walls treat the 90° case differently to other cases. If your L Wall has a 90° angle then the base generated will be a rectangle sized so it matches the legs of the wall. If the angle is other than 90° the width of the base can be set separately.
+
+### Exterior walls ###
+You can now generate exterior walls for all wall tile types. Choose OpenLOCK S-Wall or Plain S-Wall and then set the wall position to Exterior. Exterior walls can take longer to generate than ordinary walls as sockets need to be cut into both the base and the wall. For the same reason using Make3D on them can take longer. You'll see some graphical glitches where the faces of the base and wall overlap however these will not be reflected in the exported model provided you have voxelisation on export switched on.
+
+![Exterior Walls](images/exterior_walls.png)
 
 ## 0.0.27 ##
 ### Asset Manager

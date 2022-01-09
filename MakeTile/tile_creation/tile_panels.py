@@ -191,8 +191,17 @@ def redo_curved_tiles_panel(self, layout):
     layout.prop(self, 'base_socket_side', text="Socket Side")
     layout.prop(self, 'curve_texture', text="Curve Texture")
 
-    layout.label(text="Core Properties")
+    layout.label(text="Core Size")
     layout.prop(self, 'tile_y', text="Width")
+
+    layout.label(text="Sync Proportions")
+    row = layout.row()
+    row.prop(self, 'y_proportionate_scale', text="Width")
+    row.prop(self, 'z_proportionate_scale', text="Height")
+
+    layout.label(text="Base Size")
+    layout.prop(self, 'base_y', text="Width")
+    layout.prop(self, 'base_z', text="Height")
 
     if self.base_blueprint in ('OPENLOCK_S_WALL', 'PLAIN_S_WALL'):
         layout.label(text="Floor Thickness")
@@ -200,6 +209,7 @@ def redo_curved_tiles_panel(self, layout):
 
         layout.label(text="Wall Position")
         layout.prop(self, 'wall_position', text="")
+
 
 def redo_L_tiles_panel(self, layout):
     """Shared content for redo panel for L Tiles.

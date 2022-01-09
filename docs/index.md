@@ -15,7 +15,7 @@ Check out the latest [Release Notes](release_notes/) to see what's changed.
 4. In the top menu go to **Edit** > **Preferences** > **Add-ons** > **Install...** Select the .zip file you have just downloaded and click on **Install Add-on.** After a few seconds MakeTile should appear. If it doesn't use the search box in the top right. Click on the box to the left of MakeTile to activate it. Close the preferences window.
 
 ## MakeTile Asset Manager
-MakeTile comes with its' own [Asset Manager](asset_manager.md) which you can download along with MakeTile from Gumroad. Follow the same procedure as above to install this. When you first install the asset manager it will copy some assets into your user/MakeTile directory and this may take a few seconds. You'll need to select and deselect an object in the viewport for everything to update properly. 
+MakeTile comes with its' own [Asset Manager](asset_manager.md) which you can download along with MakeTile from Gumroad. Follow the same procedure as above to install this. When you first install the asset manager it will copy some assets into your user/MakeTile directory and this may take a few seconds. You'll need to select and deselect an object in the viewport for everything to update properly.
 
 ## Updating MakeTile
 1. If you update MakeTile you'll need to ensure that the old version is uninstalled properly first. In the top menu go to **Edit** > **Preferences** > **Add-ons** > **MakeTile**. Click on the down arrow to the left of MakeTile and click on **Remove**
@@ -111,7 +111,7 @@ Once you have selected another object in the scene you will lose the ability to 
 Features such as top pegs and side and base sockets can be toggled on and off after a tile has been created in the **Booleans** sub-panel by selecting the core or base and toggling the appropriate boolean. You may notice sockets look slightly distorted in preview mode. This shouldn't affect the exported tiles and will be fixed in a later result.
 
 ## Swapping Materials
-If you want to change material after creation and after the redo panel has disappeared then  make sure the main part of your tile is selected, go to the **Materials** panel, click on the name of the material that is currently on your tile and select a new material from the drop down menu. By default MakeTile links materials into the scene rather than appending them to avoid cluttering things up. If you've not used the material before you'll need to make it local by clicking on the link icon before you can customise it. 
+If you want to change material after creation and after the redo panel has disappeared then  make sure the main part of your tile is selected, go to the **Materials** panel, click on the name of the material that is currently on your tile and select a new material from the drop down menu. By default MakeTile links materials into the scene rather than appending them to avoid cluttering things up. If you've not used the material before you'll need to make it local by clicking on the link icon before you can customise it.
 
 ![Change Material](images/materials.gif)
 

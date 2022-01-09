@@ -39,6 +39,7 @@ from .create_tile import (
     MT_Tile_Generator,
     get_subdivs,
     create_material_enums,
+    create_wall_position_enums,
     add_subsurf_modifier)
 from .tile_panels import(
     redo_tile_panel_footer,
@@ -129,10 +130,7 @@ class MT_OT_Make_U_Wall_Tile(MT_Tile_Generator, Operator):
 
     wall_position: EnumProperty(
         name="Wall Position",
-        items=[
-            ("EXTERIOR", "Exterior", "Wall is an exterior wall."),
-            ("SIDE", "Side", "Wall is on the side of base")],
-        default="SIDE")
+        items=create_wall_position_enums)
 
     base_socket_side: EnumProperty(
         items=[

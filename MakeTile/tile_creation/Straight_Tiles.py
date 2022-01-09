@@ -26,6 +26,7 @@ from .create_tile import (
     MT_Tile_Generator,
     get_subdivs,
     create_material_enums,
+    create_wall_position_enums,
     add_subsurf_modifier)
 
 from .tile_panels import (
@@ -66,7 +67,27 @@ class MT_PT_Straight_Wall_Panel(Panel):
         scene_props = scene.mt_scene_props
         layout = self.layout
         blueprints = ['base_blueprint', 'main_part_blueprint']
-        scene_tile_panel_header(scene_props, layout, blueprints, 'WALL')
+        layout.label(text="Blueprints")
+        for blueprint in blueprints:
+            layout.prop(scene_props, blueprint)
+
+        if 'base_blueprint' in blueprints and scene_props.base_blueprint not in ('PLAIN', 'NONE'):
+            layout.prop(scene_props, 'base_socket_type')
+
+        layout.label(text="Materials")
+
+        layout.prop(scene_props, 'wall_material')
+
+        if scene_props.base_blueprint in ('OPENLOCK_S_WALL', 'PLAIN_S_WALL'):
+            layout.prop(scene_props, 'floor_material')
+
+            layout.label(text="Floor Thickness")
+            layout.prop(scene_props, 'floor_thickness', text="")
+
+            layout.label(text="Wall Position")
+            layout.prop(scene_props, 'wall_position', text="")
+
+        #scene_tile_panel_header(scene_props, layout, blueprints, 'WALL')
 
         layout.label(text="Tile Size")
         row = layout.row()
@@ -129,11 +150,7 @@ class MT_OT_Make_Straight_Wall_Tile(Operator, MT_Tile_Generator):
     # S Wall Props
     wall_position: EnumProperty(
         name="Wall Position",
-        items=[
-            ("CENTER", "Center", "Wall is in Center of base."),
-            ("SIDE", "Side", "Wall is on the side of base."),
-            ("EXTERIOR", "Exterior", "Wall is an exterior wall.")],
-        default="CENTER")
+        items=create_wall_position_enums)
 
     floor_thickness: FloatProperty(
         name="Floor Thickness",

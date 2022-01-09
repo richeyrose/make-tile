@@ -70,6 +70,11 @@
             "PLAIN": "Plain",
             "NONE": "None"
         },
+        "wall_positions": {
+            "CENTER": "Center",
+            "SIDE": "Side",
+            "EXTERIOR": "Exterior"
+        },
         "defaults": {
             "base_blueprint": "OPENLOCK",
             "main_part_blueprint": "OPENLOCK",
@@ -201,6 +206,11 @@
             "OPENLOCK": "OpenLOCK",
             "PLAIN": "Plain",
             "NONE": "None"
+        },
+        "wall_positions": {
+            "CENTER": "Center",
+            "SIDE": "Side",
+            "EXTERIOR": "Exterior"
         },
         "defaults": {
             "base_blueprint": "OPENLOCK",
@@ -405,6 +415,11 @@
             "PLAIN": "Plain",
             "NONE": "None"
         },
+        "wall_positions": {
+            "CENTER": "Center",
+            "SIDE": "Side",
+            "EXTERIOR": "Exterior"
+        },
         "defaults": {
             "base_blueprint": "OPENLOCK",
             "main_part_blueprint": "OPENLOCK",
@@ -559,6 +574,10 @@
             "OPENLOCK": "OpenLOCK",
             "PLAIN": "Plain",
             "NONE": "None"
+        },
+        "wall_positions": {
+            "SIDE": "Side",
+            "EXTERIOR": "Exterior"
         },
         "defaults": {
             "base_blueprint": "OPENLOCK",

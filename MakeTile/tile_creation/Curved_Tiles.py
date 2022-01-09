@@ -36,6 +36,7 @@ from .create_tile import (
     MT_Tile_Generator,
     get_subdivs,
     create_material_enums,
+    create_wall_position_enums,
     add_subsurf_modifier)
 
 from .tile_panels import (
@@ -206,11 +207,7 @@ class MT_OT_Make_Curved_Wall_Tile(Operator, MT_Curved_Tile, MT_Tile_Generator):
     # S Wall Props
     wall_position: EnumProperty(
         name="Wall Position",
-        items=[
-            ("CENTER", "Center", "Wall is in Center of base."),
-            ("SIDE", "Side", "Wall is on the side of base."),
-            ("EXTERIOR", "Exterior", "Wall is an exterior wall.")],
-        default="CENTER")
+        items=create_wall_position_enums)
 
     floor_thickness: FloatProperty(
         name="Floor Thickness",

@@ -145,6 +145,7 @@ def reset_part_defaults(self, context):
     tile_type = scene_props.tile_type
     base_blueprint = self.base_blueprint
     main_part_blueprint = self.main_part_blueprint
+    floor_material = self.floor_material
     tile_defaults = load_tile_defaults(context)
     for tile in tile_defaults:
         if tile['type'] == tile_type:
@@ -161,6 +162,10 @@ def reset_part_defaults(self, context):
                     for k, v in value.items():
                         setattr(self, k, v)
                     break
+            try:
+                setattr(self, 'floor_mateial', defaults['floor_material'])
+            except KeyError:
+                break
             break
 
 
@@ -198,6 +203,34 @@ def create_material_enums(self, context):
 
     return sorted(enum_items)
 
+def create_wall_position_enums(self, context):
+    """Return list of wall positions
+
+    Args:
+        context (bpy.context): context
+
+    Returns:
+        list[EnumPropertyItem]: enum items
+    """
+    prefs = get_prefs()
+    enum_items = []
+
+    if context is None:
+        return enum_items
+
+    scene = context.scene
+    scene_props = scene.mt_scene_props
+
+    tile_type = scene_props.tile_type
+    tile_defaults = load_tile_defaults(context)
+
+    for default in tile_defaults:
+        if default['type'] == tile_type:
+            for key, value in default['wall_positions'].items():
+                enum = (key, value, "")
+                enum_items.append(enum)
+            return sorted(enum_items)
+    return enum_items
 
 class MT_OT_Reset_Tile_Defaults(Operator):
     """Reset mt_scene_props of current tile_type."""

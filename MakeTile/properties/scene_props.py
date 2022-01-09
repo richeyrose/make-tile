@@ -108,7 +108,10 @@ def update_scene_defaults(self, context):
             defaults = tile['defaults']
             for key, value in defaults.items():
                 if hasattr(self, key):
-                    setattr(self, key, value)
+                    try:
+                        setattr(self, key, value)
+                    except TypeError:
+                        pass
             break
     reset_part_defaults(self, context)
 
@@ -229,7 +232,6 @@ def create_scene_props():
     # dynamically created properties constructed from all annotations in subclasses of MT_Tile_Generator
     subclasses = get_all_subclasses(MT_Tile_Generator)
     annotations = {}
-
 
     for subclass in subclasses:
         # make sure we also get annotations of parent classes such as mixins

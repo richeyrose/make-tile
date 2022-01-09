@@ -33,6 +33,7 @@ from .create_tile import (
     load_openlock_top_peg,
     MT_Tile_Generator,
     create_material_enums,
+    create_wall_position_enums,
     get_subdivs,
     add_subsurf_modifier)
 
@@ -123,11 +124,7 @@ class MT_OT_Make_L_Wall_Tile(Operator, MT_Tile_Generator, MT_L_Tiles):
 
     wall_position: EnumProperty(
         name="Wall Position",
-        items=[
-            ("CENTER", "Center", "Wall is in Center of base."),
-            ("SIDE", "Side", "Wall is on the side of base."),
-            ("EXTERIOR", "Exterior", "Wall is an exterior wall.")],
-        default="CENTER")
+        items=create_wall_position_enums)
 
     floor_thickness: FloatProperty(
         name="Floor Thickness",

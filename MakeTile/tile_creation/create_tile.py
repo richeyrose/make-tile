@@ -226,10 +226,13 @@ def create_wall_position_enums(self, context):
 
     for default in tile_defaults:
         if default['type'] == tile_type:
-            for key, value in default['wall_positions'].items():
-                enum = (key, value, "")
-                enum_items.append(enum)
-            return sorted(enum_items)
+            try:
+                for key, value in default['wall_positions'].items():
+                    enum = (key, value, "")
+                    enum_items.append(enum)
+                return sorted(enum_items)
+            except KeyError:
+                pass
     return enum_items
 
 class MT_OT_Reset_Tile_Defaults(Operator):
@@ -764,7 +767,10 @@ def copy_annotation_props(source_props, target_props, source_annotations=None, t
     for key in source_annotations.keys():
         for k in target_annotations.keys():
             if k == key:
-                setattr(target_props, str(k), getattr(source_props, str(k)))
+                try:
+                    setattr(target_props, str(k), getattr(source_props, str(k)))
+                except TypeError:
+                    pass
 
 
 def lock_all_transforms(obj):

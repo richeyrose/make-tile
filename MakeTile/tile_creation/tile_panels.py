@@ -13,7 +13,7 @@ def scene_tile_panel_header(scene_props, layout, blueprints, tile_type):
     for blueprint in blueprints:
         layout.prop(scene_props, blueprint)
 
-    if 'base_blueprint' in blueprints and scene_props.base_blueprint not in ('PLAIN', 'NONE'):
+    if 'base_blueprint' in blueprints and 'OPENLOCK' in scene_props.base_blueprint:
         layout.prop(scene_props, 'base_socket_type')
 
     layout.label(text="Materials")
@@ -130,7 +130,7 @@ def redo_tile_panel_header(self, layout, blueprints, tile_type):
     for blueprint in blueprints:
         layout.prop(self, blueprint)
 
-    if 'base_blueprint' in blueprints and self.base_blueprint not in ('PLAIN', 'NONE'):
+    if 'base_blueprint' in blueprints and 'OPENLOCK' in self.base_blueprint:
         layout.prop(self, 'base_socket_type')
 
     layout.label(text='Materials')

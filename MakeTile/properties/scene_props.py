@@ -93,12 +93,16 @@ def reset_part_defaults(self, context):
                     for k, v in value.items():
                         setattr(self, k, v)
                     break
-            main_part_defaults = defaults['tile_defaults']
-            for key, value in main_part_defaults.items():
-                if key == main_part_blueprint:
-                    for k, v in value.items():
-                        setattr(self, k, v)
-                    break
+            try:
+                main_part_defaults = defaults['tile_defaults']
+                for key, value in main_part_defaults.items():
+                    if key == main_part_blueprint:
+                        for k, v in value.items():
+                            setattr(self, k, v)
+                        break
+            # Some tiles like mini bases don;t have main parts
+            except KeyError:
+                pass
 
 def update_scene_defaults(self, context):
     tile_type = self.tile_type

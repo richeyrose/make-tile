@@ -1,5 +1,52 @@
 [
     {
+        "bl_idname": "object.make_mini_base",
+        "bl_label": "Mini Base",
+        "blueprint": "CUSTOM",
+        "type": "MINI_BASE",
+        "base_blueprints": {
+            "ROUND": "Round",
+            "POLY": "Polygonal",
+            "RECT": "Rectangular",
+            "ROUNDED_RECT": "Rounded Rectangle",
+            "OVAL": "Oval"},
+        "defaults":{
+            "base_blueprint": "ROUND",
+            "subdivision_density": "MEDIUM",
+            "UV_island_margin": 0.012,
+            "floor_material": "Floor Tiles",
+            "floor_thickness": 0.0245,
+            "base_defaults": {
+                "ROUND": {
+                    "base_diameter": 2.5,
+                    "base_z": 0.35,
+                    "inset": 0.1,
+                    "segments": 32},
+                "POLY": {
+                    "base_diameter": 2.5,
+                    "base_z": 0.35,
+                    "inset": 0.1,
+                    "segments": 8},
+                "RECT": {
+                    "base_x": 25,
+                    "base_y": 25,
+                    "base_z": 5,
+                    "inset": 0.1},
+                "ROUNDED_RECT": {
+                    "base_x": 100,
+                    "base_y": 25,
+                    "base_z": 5,
+                    "inset": 0.1},
+                "OVAL": {
+                    "base_x": 100,
+                    "base_y": 25,
+                    "base_z": 5,
+                    "inset": 0.1}
+                }
+
+        }
+    },
+    {
         "bl_idname": "object.make_rect_floor",
         "bl_label": "Rectangular Floor",
         "blueprint": "CUSTOM",

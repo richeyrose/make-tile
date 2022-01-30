@@ -242,7 +242,7 @@ def arc(bm, radius, degrees, segments):
     start_rot = turtle.rotation_euler.copy()
 
     pu(bm)
-
+    edges = [e for e in bm.edges]
     fd(bm, radius)
     add_vert(bm)
     pd(bm)
@@ -260,7 +260,7 @@ def arc(bm, radius, degrees, segments):
 
     turtle.location = start_loc
     turtle.rotation_euler = start_rot
-
+    return [e for e in bm.edges if e not in edges]
 
 def home(obj):
     """Home turtle.

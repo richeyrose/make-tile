@@ -93,10 +93,14 @@ def create_main_part_blueprint_enums(self, context):
 
     for default in tile_defaults:
         if default['type'] == tile_type:
-            for key, value in default['main_part_blueprints'].items():
-                enum = (key, value, "")
-                enum_items.append(enum)
-            return sorted(enum_items)
+            try:
+                for key, value in default['main_part_blueprints'].items():
+                    enum = (key, value, "")
+                    enum_items.append(enum)
+                return sorted(enum_items)
+            # some tiles such as mini bases don't have a main part
+            except KeyError:
+                pass
     return enum_items
 
 
@@ -156,12 +160,16 @@ def reset_part_defaults(self, context):
                     for k, v in value.items():
                         setattr(self, k, v)
                     break
-            main_part_defaults = defaults['tile_defaults']
-            for key, value in main_part_defaults.items():
-                if key == main_part_blueprint:
-                    for k, v in value.items():
-                        setattr(self, k, v)
-                    break
+            try:
+                main_part_defaults = defaults['tile_defaults']
+                for key, value in main_part_defaults.items():
+                    if key == main_part_blueprint:
+                        for k, v in value.items():
+                            setattr(self, k, v)
+                        break
+            # some tiles such as mini bases don't have a main part
+            except KeyError:
+                pass
             try:
                 setattr(self, 'floor_material', defaults['floor_material'])
             except KeyError:
@@ -484,8 +492,11 @@ class MT_Tile_Generator:
         all_annotations = get_annotations(self.__class__)
         for key in scene_props.__annotations__.keys():
             for k in all_annotations.keys():
-                if k == key:
-                    setattr(self, str(k), getattr(scene_props, str(k)))
+                try:
+                    if k == key:
+                        setattr(self, str(k), getattr(scene_props, str(k)))
+                except TypeError:
+                    pass
         self.refresh = True
         return self.execute(context)
 

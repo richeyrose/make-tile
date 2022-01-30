@@ -28,19 +28,19 @@
                     "inset": 0.1,
                     "segments": 8},
                 "RECT": {
-                    "base_x": 25,
-                    "base_y": 25,
-                    "base_z": 5,
+                    "base_x": 2.5,
+                    "base_y": 2.5,
+                    "base_z": 0.35,
                     "inset": 0.1},
                 "ROUNDED_RECT": {
-                    "base_x": 100,
-                    "base_y": 25,
-                    "base_z": 5,
+                    "base_x": 7,
+                    "base_y": 2.5,
+                    "base_z": 0.35,
                     "inset": 0.1},
                 "OVAL": {
-                    "base_x": 100,
-                    "base_y": 25,
-                    "base_z": 5,
+                    "base_x": 7.5,
+                    "base_y": 4.2,
+                    "base_z": 0.35,
                     "inset": 0.1}
                 }
 

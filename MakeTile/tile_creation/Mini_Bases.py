@@ -1,6 +1,6 @@
 from email.encoders import encode_noop
 import os
-from math import radians
+from math import isclose
 from xmlrpc.client import boolean
 from MakeTile.lib.bmturtle.commands import arc, create_turtle, dn, finalise_turtle, home, pd, pu, up
 from MakeTile.lib.bmturtle.helpers import assign_verts_to_group, bm_deselect_all, bm_select_all, select_verts_in_bounds
@@ -75,10 +75,12 @@ class MT_PT_Mini_Base_Panel(Panel):
 
         if scene_props.base_blueprint in ('ROUND', 'POLY'):
             layout.prop(scene_props, 'base_diameter', text="Diameter")
-            layout.prop(scene_props, 'segments', )
             layout.prop(scene_props, 'base_z', text="Height")
 
-        elif scene_props.base_blueprint in ('RECT', 'ROUNDED_RECT', 'OVAL'):
+        if scene_props.base_blueprint != 'RECT':
+            layout.prop(scene_props, 'segments')
+
+        if scene_props.base_blueprint in ('RECT', 'ROUNDED_RECT', 'OVAL'):
             layout.prop(scene_props, 'base_x')
             layout.prop(scene_props, 'base_y')
             layout.prop(scene_props, 'base_z')
@@ -153,13 +155,13 @@ class MT_OT_Make_Mini_Base(Operator, MT_Tile_Generator):
         tile_props = bpy.data.collections[self.tile_name].mt_tile_props
 
         if base_blueprint in ['ROUND', 'POLY']:
-            base = spawn_poly_base(self, context, tile_props)
+            base = spawn_poly_base(tile_props)
         elif base_blueprint == 'RECT':
             base = spawn_rect_base(self, context, tile_props)
         elif base_blueprint == 'ROUNDED_RECT':
             base = spawn_rounded_rect_base(self, context, tile_props)
         elif base_blueprint == 'OVAL':
-            base = spawn_oval_base(self, context, tile_props)
+            base = spawn_oval_base(tile_props)
         if not base:
             self.delete_tile_collection(self.tile_name)
             self.report({'INFO'}, "Could not generate base. Cancelling")
@@ -191,8 +193,10 @@ class MT_OT_Make_Mini_Base(Operator, MT_Tile_Generator):
 
         if self.base_blueprint in ('ROUND', 'POLY'):
             layout.prop(self, 'base_diameter', text="Diameter")
-            layout.prop(self, 'segments', )
             layout.prop(self, 'base_z', text="Height")
+
+        if self.base_blueprint != 'RECT':
+            layout.prop(self, 'segments')
 
         elif self.base_blueprint in ('RECT', 'ROUNDED_RECT', 'OVAL'):
             layout.prop(self, 'base_x')
@@ -217,7 +221,7 @@ def spawn_poly_base_cutter(tile_props):
     wall_thickness = tile_props.wall_thickness
     radius = (tile_props.base_diameter / 2) - wall_thickness
     segments = tile_props.segments
-    height = tile_props.base_size[2]-wall_thickness
+    height = tile_props.base_size[2] - wall_thickness
     inset = tile_props.inset
 
     bm, hollow_bool = create_turtle('Hollow')
@@ -236,7 +240,7 @@ def spawn_poly_base_cutter(tile_props):
     finalise_turtle(bm, hollow_bool)
     return hollow_bool
 
-def spawn_poly_base(self, context, tile_props):
+def spawn_poly_base(tile_props):
     """Spawn a polygonal base into the scene. Can also be used to create round or square bases.
 
     Args:
@@ -385,10 +389,11 @@ def draw_poly_base(tile_props):
     verts = [v for v in bm.verts if v.select]
     assign_verts_to_group(verts, base, deform_groups, 'Top')
 
-    bmesh.ops.remove_doubles(
-        bm,
-        verts=bm.verts,
-        dist=0.0001)
+    if tile_props.remove_doubles:
+        bmesh.ops.remove_doubles(
+            bm,
+            verts=bm.verts,
+            dist=0.0001)
 
     bm.to_mesh(me)
     bm.free()
@@ -399,7 +404,450 @@ def spawn_rect_base(self, context, tile_props):
     return None
 
 def spawn_rounded_rect_base(self, context, tile_props):
-    return None
+    tile_name = tile_props.tile_name
+    base = draw_rounded_rect_base(tile_props)
+    base.name = tile_name + '.base'
 
-def spawn_oval_base(self, context, tile_props):
-    return None
+    add_object_to_collection(base, tile_name)
+    obj_props = base.mt_object_props
+    obj_props.is_mt_object = True
+    obj_props.geometry_type = 'BASE'
+    obj_props.tile_name = tile_name
+
+    subsurf = add_subsurf_modifier(base)
+
+    base_cutter = spawn_rounded_rect_base_cutter(tile_props)
+    set_bool_obj_props(base_cutter, base, tile_props, 'DIFFERENCE')
+    set_bool_props(base_cutter, base, 'DIFFERENCE')
+
+    textured_vertex_groups = ['Top']
+    material = tile_props.floor_material
+    convert_to_displacement_core(
+        base,
+        textured_vertex_groups,
+        material,
+        subsurf)
+    bpy.context.view_layer.objects.active = base
+    return base
+
+def draw_rounded_rect_base(tile_props):
+    if tile_props.base_size[0] < tile_props.base_size[1]:
+        radius = tile_props.base_size[0] / 2
+        length = tile_props.base_size[1] - tile_props.base_size[0]
+    else:
+        radius = tile_props.base_size[1] / 2
+        length = tile_props.base_size[0] - tile_props.base_size[1]
+    segments = tile_props.segments
+    height = tile_props.base_size[2]
+    inset = tile_props.inset
+    margin = tile_props.texture_margin
+    base_template = draw_rounded_rectangle(radius, length, segments, height, inset, 'Template')
+
+    if tile_props.base_size[0] > tile_props.base_size[1]:
+        size = tile_props.base_size[0]
+    else:
+        size = tile_props.base_size[1]
+    # create grid
+    base = generate_grid_base(base_template, margin, size, height, tile_props)
+
+    return base
+
+def spawn_rounded_rect_base_cutter(tile_props):
+    wall_thickness = tile_props.wall_thickness
+
+    if tile_props.base_size[0] < tile_props.base_size[1]:
+        radius = (tile_props.base_size[0] / 2) - wall_thickness
+        length = tile_props.base_size[1] - tile_props.base_size[0] - wall_thickness
+    else:
+        radius = (tile_props.base_size[1] / 2) - wall_thickness
+        length = tile_props.base_size[0] - tile_props.base_size[1] - wall_thickness
+    segments = tile_props.segments
+    height = tile_props.base_size[2] - wall_thickness
+    inset = tile_props.inset
+    return draw_rounded_rectangle(radius, length, segments, height, inset, 'Hollow', -0.001)
+
+def draw_rounded_rectangle(radius, length, segments, height, inset, name, offset=0):
+    turtle = bpy.context.scene.cursor
+    origin = turtle.location.copy()
+
+    bm, rounded_rect = create_turtle(name)
+    bmesh.ops.create_cone(
+        bm,
+        cap_ends=False,
+        segments=segments,
+        radius1=radius,
+        radius2=radius-inset,
+        depth=height)
+
+    bmesh.ops.translate(
+        bm,
+        vec=(0, 0, (height / 2) + offset) ,
+        verts=bm.verts)
+
+    bm.select_mode = {'FACE'}
+    bm_deselect_all(bm)
+    bm.select_mode = {'VERT'}
+    select_verts_in_bounds(
+        lbound=(
+            origin[0] - radius,
+            origin[1] - radius,
+            origin[2]),
+        ubound=(
+            origin[0] + radius,
+            origin[1],
+            origin[2] + height),
+        buffer = 0.01,
+        bm=bm
+        )
+    bm.select_flush(True)
+    faces = [f for f in bm.faces if f.select]
+    ret = bmesh.ops.split(bm, geom=faces)
+    bm_deselect_all(bm)
+
+    faces = [f for f in ret['geom'] if isinstance(f, bmesh.types.BMFace)]
+    for f in bm.faces:
+        if f in faces:
+            f.select_set(True)
+    verts = [v for v in bm.verts if v.select]
+
+    bmesh.ops.translate(
+        bm,
+        vec=(0, -length, 0),
+        verts=verts)
+    bm_deselect_all(bm)
+
+    select_verts_in_bounds(
+        lbound=(
+            origin[0] - radius,
+            origin[1] - length,
+            origin[2]),
+        ubound=(
+            origin[0] - radius + inset,
+            origin[1],
+            origin[2] + height),
+        buffer = 0.01,
+        bm=bm)
+    bm.select_flush(True)
+    edges = [e for e in bm.edges if e.select]
+    bmesh.ops.bridge_loops(bm, edges=edges)
+    bm_deselect_all(bm)
+
+    select_verts_in_bounds(
+        lbound=(
+            origin[0] + radius - inset,
+            origin[1] - length,
+            origin[2]),
+        ubound=(
+            origin[0] + radius ,
+            origin[1],
+            origin[2] + height),
+        buffer = 0.01,
+        bm=bm)
+    bm.select_flush(True)
+    edges = [e for e in bm.edges if e.select]
+    bmesh.ops.bridge_loops(bm, edges=edges)
+    bm_deselect_all(bm)
+    bmesh.ops.holes_fill(bm, edges=[e for e in bm.edges])
+    bmesh.ops.translate(bm, vec = (0, length / 2, 0), verts=bm.verts)
+
+    finalise_turtle(bm, rounded_rect)
+    return rounded_rect
+
+
+def spawn_oval_base(tile_props):
+    """Spawn an oval base into the scene
+
+    Args:
+        tile_props (tile_props): tile props
+
+    Returns:
+        bpy.types.Object: base
+    """
+    tile_name = tile_props.tile_name
+    base = draw_oval_base(tile_props)
+    base.name = tile_name + '.base'
+
+    add_object_to_collection(base, tile_name)
+    obj_props = base.mt_object_props
+    obj_props.is_mt_object = True
+    obj_props.geometry_type = 'BASE'
+    obj_props.tile_name = tile_name
+
+    subsurf = add_subsurf_modifier(base)
+
+    base_cutter = spawn_oval_base_cutter(tile_props)
+    set_bool_obj_props(base_cutter, base, tile_props, 'DIFFERENCE')
+    set_bool_props(base_cutter, base, 'DIFFERENCE')
+
+    textured_vertex_groups = ['Top']
+    material = tile_props.floor_material
+    convert_to_displacement_core(
+        base,
+        textured_vertex_groups,
+        material,
+        subsurf)
+
+    bpy.context.view_layer.objects.active = base
+    return base
+
+def spawn_oval_base_cutter(tile_props):
+    """Spawn an oval base cutter.
+
+    Args:
+        tile_props (tile_props): tile props
+
+    Returns:
+        bpy.types.Object: object
+    """
+    wall_thickness = tile_props.wall_thickness
+    radius = (tile_props.base_size[0] / 2) - wall_thickness
+    length = (tile_props.base_size[1] / 2) - wall_thickness
+    segments = tile_props.segments
+    height = tile_props.base_size[2] - wall_thickness
+    inset = tile_props.inset
+
+    bm, hollow_bool = create_turtle("Hollow")
+
+    bmesh.ops.create_cone(
+        bm,
+        cap_ends=True,
+        segments=segments,
+        radius1=radius,
+        radius2=radius-(inset/2),
+        depth=height)
+    bmesh.ops.translate(
+        bm,
+        vec=(0, 0, -0.01),
+        verts=bm.verts)
+
+    ratio = length / radius
+    bmesh.ops.scale(
+        bm,
+        vec=(1, ratio, 1),
+        verts=bm.verts
+    )
+
+    finalise_turtle(bm, hollow_bool)
+    return hollow_bool
+
+def generate_grid_base(base_template, margin, size, height, tile_props):
+    subdivs = get_subdivs(tile_props.subdivision_density, [size, size, height])
+    turtle = bpy.context.scene.cursor
+    origin = turtle.location.copy()
+    # create grid
+    bm, base = create_turtle('base')
+    ret = bmesh.ops.create_grid(
+        bm,
+        x_segments=subdivs[0],
+        y_segments=subdivs[1],
+        size=size+0.5)
+
+    bmesh.ops.translate(bm, vec=[0, 0, -0.01], verts=ret['verts'])
+    bm.select_mode = {'FACE'}
+    pd(bm)
+    bm_select_all(bm)
+    up(bm, height, False)
+    finalise_turtle(bm, base)
+
+    # add modifier and use template to create an intersect
+    bool = base.modifiers.new('temp', 'BOOLEAN')
+    bool.solver = 'EXACT'
+    bool.operation = 'INTERSECT'
+    bool.object = base_template
+
+    # apply modifier
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    object_eval = base.evaluated_get(depsgraph)
+    mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
+    base.modifiers.remove(bool)
+    base.data = mesh_from_eval
+
+    # delete template
+    bpy.data.objects.remove(base_template)
+
+    # create new bmesh from evaluated mesh
+    me = base.data
+    bm = bmesh.new()
+    bm.from_mesh(me)
+
+    vert_groups = ['Top', 'Untextured']
+    for group in vert_groups:
+        base.vertex_groups.new(name=group)
+
+    # create vertex group layer
+    bm.verts.layers.deform.verify()
+    deform_groups = bm.verts.layers.deform.active
+
+    bm.select_mode = {'FACE'}
+    faces = [f for f in bm.faces if f.select]
+    bm_deselect_all(bm)
+
+    # inset for texture margin
+    ret = bmesh.ops.inset_region(bm, faces=faces, thickness=margin)
+    bm.select_mode = {'VERT'}
+    select_verts_in_bounds(
+        lbound=(
+            origin[0] - size,
+            origin[1] - size,
+            origin[2] + height),
+        ubound=(
+            origin[0] + size,
+            origin[1] + size,
+            origin[2] + height),
+        buffer=0.01,
+        bm=bm)
+    bm.select_flush(True)
+    faces = [f for f in bm.faces if f.select and f not in ret['faces']]
+    bm_deselect_all(bm)
+    bm.select_mode = {'FACE'}
+    for f in bm.faces:
+        if f in faces:
+            f.select_set(True)
+    bm.select_flush(True)
+
+    verts = [v for v in bm.verts if v.select]
+    assign_verts_to_group(verts, base, deform_groups, 'Top')
+
+    if tile_props.remove_doubles:
+        bmesh.ops.remove_doubles(
+            bm,
+            verts=bm.verts,
+            dist=0.0001)
+
+    bm.to_mesh(me)
+    bm.free()
+    home(base)
+    return base
+
+def draw_oval_base(tile_props):
+    """Draw an Oval Base
+
+    Args:
+        tile_props (tile_props): tile_props
+
+    Returns:
+        bpy.types.Object: Object
+    """
+    radius = tile_props.base_size[0] / 2
+    length = tile_props.base_size[1] / 2
+    segments = tile_props.segments
+    height = tile_props.base_size[2]
+    inset = tile_props.inset
+    margin = tile_props.texture_margin
+    subdivs = get_subdivs(tile_props.subdivision_density, [radius, length, height])
+
+    turtle = bpy.context.scene.cursor
+    origin = turtle.location.copy()
+
+    bm, base_template = create_turtle('template')
+    bmesh.ops.create_cone(
+        bm,
+        cap_ends=True,
+        segments=segments,
+        radius1=radius,
+        radius2=radius-inset,
+        depth=height)
+    bmesh.ops.translate(
+        bm,
+        vec=(0, 0, height / 2),
+        verts=bm.verts)
+
+    ratio = length / radius
+    bmesh.ops.scale(
+        bm,
+        vec=(1, ratio, 1),
+        verts=bm.verts
+    )
+
+    finalise_turtle(bm, base_template)
+
+    # create grid
+    bm, base = create_turtle('base')
+
+    if(radius - length > 0):
+        size = radius
+    else:
+        size = length
+
+    ret = bmesh.ops.create_grid(
+        bm,
+        x_segments=subdivs[0],
+        y_segments=subdivs[1],
+        size=size+0.5)
+
+    bmesh.ops.translate(bm, vec=[0, 0, -0.01], verts=ret['verts'])
+    bm.select_mode = {'FACE'}
+    pd(bm)
+    bm_select_all(bm)
+    up(bm, height, False)
+    finalise_turtle(bm, base)
+
+    # add modifier and use template to create an intersect
+    bool = base.modifiers.new('temp', 'BOOLEAN')
+    bool.solver = 'EXACT'
+    bool.operation = 'INTERSECT'
+    bool.object = base_template
+
+    # apply modifier
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    object_eval = base.evaluated_get(depsgraph)
+    mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
+    base.modifiers.remove(bool)
+    base.data = mesh_from_eval
+
+    # delete template
+    bpy.data.objects.remove(base_template)
+
+    # create new bmesh from evaluated mesh
+    me = base.data
+    bm = bmesh.new()
+    bm.from_mesh(me)
+
+    vert_groups = ['Top', 'Untextured']
+    for group in vert_groups:
+        base.vertex_groups.new(name=group)
+
+    # create vertex group layer
+    bm.verts.layers.deform.verify()
+    deform_groups = bm.verts.layers.deform.active
+
+    bm.select_mode = {'FACE'}
+    faces = [f for f in bm.faces if f.select]
+    bm_deselect_all(bm)
+
+    # inset for texture margin
+    ret = bmesh.ops.inset_region(bm, faces=faces, thickness=margin)
+    bm.select_mode = {'VERT'}
+    select_verts_in_bounds(
+        lbound=(
+            origin[0] - radius,
+            origin[1] - length,
+            origin[2] + height),
+        ubound=(
+            origin[0] + radius,
+            origin[1] + length,
+            origin[2] + height),
+        buffer=0.01,
+        bm=bm)
+    bm.select_flush(True)
+    faces = [f for f in bm.faces if f.select and f not in ret['faces']]
+    bm_deselect_all(bm)
+    bm.select_mode = {'FACE'}
+    for f in bm.faces:
+        if f in faces:
+            f.select_set(True)
+    bm.select_flush(True)
+
+    verts = [v for v in bm.verts if v.select]
+    assign_verts_to_group(verts, base, deform_groups, 'Top')
+
+    if tile_props.remove_doubles:
+        bmesh.ops.remove_doubles(
+            bm,
+            verts=bm.verts,
+            dist=0.0001)
+
+    bm.to_mesh(me)
+    bm.free()
+
+    return base

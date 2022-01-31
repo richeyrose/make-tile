@@ -1,6 +1,7 @@
 import pytest
 import bpy
 
+
 def test_MT_OT_Make_3D(straight_wall):
     core = bpy.data.objects['straight_wall.wall_core']
     ctx = {

@@ -1,5 +1,6 @@
 import os
 from math import floor
+from weakref import KeyedRef
 import bpy
 from bpy.types import Operator
 from bpy.props import (
@@ -211,6 +212,7 @@ def create_material_enums(self, context):
 
     return sorted(enum_items)
 
+
 def create_wall_position_enums(self, context):
     """Return list of wall positions
 
@@ -242,6 +244,7 @@ def create_wall_position_enums(self, context):
             except KeyError:
                 pass
     return enum_items
+
 
 class MT_OT_Reset_Tile_Defaults(Operator):
     """Reset mt_scene_props of current tile_type."""
@@ -523,18 +526,24 @@ class MT_Tile_Generator:
                     break
             main_part_blueprint = self.main_part_blueprint
             base_blueprint = self.base_blueprint
-            main_part_defaults = defaults['tile_defaults']
-            base_defaults = defaults['base_defaults']
-            for key, value in main_part_defaults.items():
-                if key == main_part_blueprint:
-                    for k, v in value.items():
-                        setattr(self, k, v)
-                    break
-            for key, value in base_defaults.items():
-                if key == base_blueprint:
-                    for k, v in value.items():
-                        setattr(self, k, v)
-                    break
+            try:
+                main_part_defaults = defaults['tile_defaults']
+                for key, value in main_part_defaults.items():
+                    if key == main_part_blueprint:
+                        for k, v in value.items():
+                            setattr(self, k, v)
+                        break
+            except KeyError:
+                pass
+            try:
+                base_defaults = defaults['base_defaults']
+                for key, value in base_defaults.items():
+                    if key == base_blueprint:
+                        for k, v in value.items():
+                            setattr(self, k, v)
+                        break
+            except KeyError:
+                pass
             self.reset_defaults = False
 
         # We create tile at origin and then move it back to original location.
@@ -779,7 +788,8 @@ def copy_annotation_props(source_props, target_props, source_annotations=None, t
         for k in target_annotations.keys():
             if k == key:
                 try:
-                    setattr(target_props, str(k), getattr(source_props, str(k)))
+                    setattr(target_props, str(k),
+                            getattr(source_props, str(k)))
                 except TypeError:
                     pass
 
@@ -885,6 +895,7 @@ def convert_to_displacement_core(core, textured_vertex_groups, material, subsurf
     # flag core as a displacement object
     core.mt_object_props.is_displacement = True
     core.mt_object_props.geometry_type = 'CORE'
+
 
 def spawn_empty_base(tile_props):
     """Spawn an empty base into the scene.

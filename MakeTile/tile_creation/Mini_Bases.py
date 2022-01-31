@@ -34,6 +34,7 @@ from .create_tile import (
     get_subdivs,
     create_material_enums,
     add_subsurf_modifier,
+    update_part_defaults,
 )
 
 from .tile_panels import (
@@ -100,16 +101,20 @@ class MT_OT_Make_Mini_Base(Operator, MT_Tile_Generator):
     mt_blueprint = "CUSTOM"
     mt_type = "MINI_BASE"
 
+    def update_base_blueprint(self, context):
+        update_part_defaults(self, context)
+
     base_blueprint: EnumProperty(
         name="Base Blueprint",
         items=[
             ("ROUND", "Round", ""),
             ("POLY", "Polygonal", ""),
             ("RECT", "Rectangular", ""),
-            ("ROUNDED_RECT", "Rounded Ractangle", ""),
+            ("ROUNDED_RECT", "Rounded Rectangle", ""),
             ("OVAL", "Oval", ""),
         ],
         default="RECT",
+        update=update_base_blueprint
     )
 
     floor_material: EnumProperty(
@@ -163,9 +168,9 @@ class MT_OT_Make_Mini_Base(Operator, MT_Tile_Generator):
         if base_blueprint in ["ROUND", "POLY"]:
             base = spawn_poly_base(tile_props)
         elif base_blueprint == "RECT":
-            base = spawn_rect_base(self, context, tile_props)
+            base = spawn_rect_base(tile_props)
         elif base_blueprint == "ROUNDED_RECT":
-            base = spawn_rounded_rect_base(self, context, tile_props)
+            base = spawn_rounded_rect_base(tile_props)
         elif base_blueprint == "OVAL":
             base = spawn_oval_base(tile_props)
         if not base:
@@ -204,7 +209,7 @@ class MT_OT_Make_Mini_Base(Operator, MT_Tile_Generator):
         if self.base_blueprint != "RECT":
             layout.prop(self, "segments")
 
-        elif self.base_blueprint in ("RECT", "ROUNDED_RECT", "OVAL"):
+        if self.base_blueprint in ("RECT", "ROUNDED_RECT", "OVAL"):
             layout.prop(self, "base_x")
             layout.prop(self, "base_y")
             layout.prop(self, "base_z")
@@ -283,7 +288,7 @@ def spawn_poly_base_cutter(tile_props):
     return hollow_bool
 
 
-def spawn_rect_base(self, context, tile_props):
+def spawn_rect_base(tile_props):
     """Spawn a rectangular base into the scene.
 
     Args:
@@ -321,6 +326,14 @@ def spawn_rect_base(self, context, tile_props):
 
 
 def spawn_rect_base_cutter(tile_props):
+    """Spawn a cutter for hollowing rectangular bases.
+
+    Args:
+        tile_props (tile_props): tile props
+
+    Returns:
+        bpy.types.Object: cutter object
+    """
     width = (tile_props.base_size[0] / 2) - tile_props.wall_thickness
     length = (tile_props.base_size[1] / 2) - tile_props.wall_thickness
     height = (tile_props.base_size[2]) - tile_props.wall_thickness
@@ -362,6 +375,14 @@ def spawn_rect_base_cutter(tile_props):
 
 
 def draw_rect_base(tile_props):
+    """Draw a rectangualr base.
+
+    Args:
+        tile_props (tile_props): Tile Props
+
+    Returns:
+        bpy.types.Object: Base object
+    """
     width = tile_props.base_size[0] / 2
     length = tile_props.base_size[1] / 2
     height = tile_props.base_size[2]
@@ -420,12 +441,23 @@ def draw_rect_base(tile_props):
 
     verts = [v for v in bm.verts if v.select]
     assign_verts_to_group(verts, base, deform_groups, "Top")
+
+    if tile_props.remove_doubles:
+        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0001)
     finalise_turtle(bm, base)
 
     return base
 
 
-def spawn_rounded_rect_base(self, context, tile_props):
+def spawn_rounded_rect_base(tile_props):
+    """Spawn a rounded rectangular base into the scene.
+
+    Args:
+        tile_props (tile_props): tile props
+
+    Returns:
+        bpy.types.Object: Base object.
+    """
     tile_name = tile_props.tile_name
     base = draw_rounded_rect_base(tile_props)
     base.name = tile_name + ".base"
@@ -451,6 +483,14 @@ def spawn_rounded_rect_base(self, context, tile_props):
 
 
 def spawn_rounded_rect_base_cutter(tile_props):
+    """Spawn a rounded rectangular base cutter for hollowing base.
+
+    Args:
+        tile_props (tile_props): Tile Props
+
+    Returns:
+        bpy.types.Object: Base Cutter Object.
+    """
     wall_thickness = tile_props.wall_thickness
 
     if tile_props.base_size[0] < tile_props.base_size[1]:
@@ -464,7 +504,7 @@ def spawn_rounded_rect_base_cutter(tile_props):
     segments = tile_props.segments
     height = tile_props.base_size[2] - wall_thickness
     inset = tile_props.inset
-    return draw_rounded_rectangle(
+    return draw_rounded_cuboid(
         radius, length, segments, height, inset, "Hollow", -0.001
     )
 
@@ -539,6 +579,14 @@ def spawn_oval_base_cutter(tile_props):
 
 
 def draw_rounded_rect_base(tile_props):
+    """Draw a rounded rectangular base.
+
+    Args:
+        tile_props (tile_props): Tile props.
+
+    Returns:
+        bpy.types.Object: Rectangualr Base Object
+    """
     if tile_props.base_size[0] < tile_props.base_size[1]:
         radius = tile_props.base_size[0] / 2
         length = tile_props.base_size[1] - tile_props.base_size[0]
@@ -548,17 +596,34 @@ def draw_rounded_rect_base(tile_props):
     segments = tile_props.segments
     height = tile_props.base_size[2]
     inset = tile_props.inset
-    base_template = draw_rounded_rectangle(
+    base_template = draw_rounded_cuboid(
         radius, length, segments, height, inset, "Template"
     )
 
     # create grid
     base = generate_grid_base(base_template, tile_props)
 
+    # delete template
+    bpy.data.objects.remove(base_template)
+
     return base
 
 
-def draw_rounded_rectangle(radius, length, segments, height, inset, name, offset=0):
+def draw_rounded_cuboid(radius, length, segments, height, inset, name, offset=0.0):
+    """Draw a rounded cuboid object.
+
+    Args:
+        radius (float): radius
+        length (float): length
+        segments (int): number of segments on rounded part
+        height (float): height
+        inset (float): amount top is inset
+        name (str): Name
+        offset (float, optional): z_offset. Defaults to 0.0
+
+    Returns:
+        bpy.tyes.Object: Rounded Cuboid
+    """
     turtle = bpy.context.scene.cursor
     origin = turtle.location.copy()
 
@@ -655,6 +720,9 @@ def draw_poly_base(tile_props):
     tile_props.base_size[0] = radius
     base = generate_grid_base(base_template, tile_props)
 
+    # delete template
+    bpy.data.objects.remove(base_template)
+
     return base
 
 
@@ -690,16 +758,28 @@ def draw_oval_base(tile_props):
     finalise_turtle(bm, base_template)
     base = generate_grid_base(base_template, tile_props)
 
+    # delete template
+    bpy.data.objects.remove(base_template)
+
     return base
 
 
 def generate_grid_base(base_template, tile_props):
-    if tile_props.base_size[0] > tile_props.base_size[1]:
-        size = tile_props.base_size[0]
+    """Generates a base with the top subdivided into an equal grid when passed a template object.
+
+    Args:
+        base_template (bpy.types.Object): Template object
+        tile_props (tile_props): Tile props
+
+    Returns:
+        bpy.types.Object: Object
+    """
+    if base_template.dimensions[0] > base_template.dimensions[1]:
+        size = base_template.dimensions[0] / 2
     else:
-        size = tile_props.base_size[1]
+        size = base_template.dimensions[1] / 2
     margin = tile_props.texture_margin
-    height = tile_props.base_size[2]
+    height = base_template.dimensions[2]
     subdivs = get_subdivs(tile_props.subdivision_density, [size, size, height])
     turtle = bpy.context.scene.cursor
     origin = turtle.location.copy()
@@ -728,9 +808,6 @@ def generate_grid_base(base_template, tile_props):
     mesh_from_eval = bpy.data.meshes.new_from_object(object_eval)
     base.modifiers.remove(bool)
     base.data = mesh_from_eval
-
-    # delete template
-    bpy.data.objects.remove(base_template)
 
     # create new bmesh from evaluated mesh
     me = base.data

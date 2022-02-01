@@ -68,11 +68,14 @@ class MT_PT_Mini_Base_Panel(Panel):
         scene = context.scene
         scene_props = scene.mt_scene_props
         layout = self.layout
-        blueprints = ["base_blueprint"]
 
-        scene_tile_panel_header(scene_props, layout, blueprints, "BASE")
-        layout.prop(scene_props, "floor_material")
+        layout.label(text="Base Shape")
+        layout.prop(scene_props, "base_blueprint", text="")
 
+        layout.label(text="Material")
+        layout.prop(scene_props, "floor_material", text="")
+
+        layout.label(text="Base Dimensions")
         if scene_props.base_blueprint in ("ROUND", "POLY"):
             layout.prop(scene_props, "base_diameter", text="Diameter")
             layout.prop(scene_props, "base_z", text="Height")
@@ -127,8 +130,8 @@ class MT_OT_Make_Mini_Base(Operator, MT_Tile_Generator):
         name="Base Diameter",
         default=2.0,
         step=10,
-        precision=1,
-        min=0.1,
+        precision=2,
+        min=0.1
     )
 
     segments: IntProperty(
@@ -197,10 +200,10 @@ class MT_OT_Make_Mini_Base(Operator, MT_Tile_Generator):
     def draw(self, context):
         super().draw(context)
         layout = self.layout
-        blueprints = ["base_blueprint"]
-        redo_tile_panel_header(self, layout, blueprints, "BASE")
-
-        layout.prop(self, "floor_material")
+        layout.label(text="Base Shape")
+        layout.prop(self, "base_blueprint", text="")
+        layout.label(text="Material")
+        layout.prop(self, "floor_material", text="")
 
         if self.base_blueprint in ("ROUND", "POLY"):
             layout.prop(self, "base_diameter", text="Diameter")

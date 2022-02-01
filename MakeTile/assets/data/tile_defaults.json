@@ -21,7 +21,7 @@
                     "base_diameter": 2.5,
                     "base_z": 0.35,
                     "inset": 0.1,
-                    "segments": 32},
+                    "segments": 64},
                 "POLY": {
                     "base_diameter": 2.5,
                     "base_z": 0.35,
@@ -36,12 +36,14 @@
                     "base_x": 7,
                     "base_y": 2.5,
                     "base_z": 0.35,
-                    "inset": 0.1},
+                    "inset": 0.1,
+                    "segments": 64},
                 "OVAL": {
                     "base_x": 7.5,
                     "base_y": 4.2,
                     "base_z": 0.35,
-                    "inset": 0.1}
+                    "inset": 0.1,
+                    "segments": 64}
                 }
 
         }

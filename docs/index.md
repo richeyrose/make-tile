@@ -2,6 +2,8 @@
 
 MakeTile is a custom dungeon tile creator for [Blender](https://www.blender.org/) - the free, open source 3D modelling program. Using MakeTile you can simply and easily create 3D printable tiles of the exact dimensions you need, add procedurally generated, customizable materials to make them look like stone, wood, brick etc. hit the Make3D button and export them for printing.
 
+MakeTile can also be used to generate [mini bases](tile_types#mini-base) of most shapes, either with or without a texture.
+
 After running a succesful [Kickstarter](https://www.kickstarter.com/projects/modmodterrain/maketile-custom-dungeon-tile-creator) you can now purchase the early access version of MakeTile on [Gumroad](https://gum.co/LaLVb)
 
 Check out my [YouTube](https://www.youtube.com/channel/UC7TUNzEtli-sQRj5anS7DFA) channel for more hints and tips.

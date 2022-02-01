@@ -1,4 +1,9 @@
 # Release Notes
+## 0.0.29 ##
+### Mini Bases ###
+You can now use MakeTile to generate [Mini Bases](tile_types#mini-base). Round, Oval, Polygonal, Rectangular and Rounded Rectangular bases are all supported. You can choose whether or not your base is hollow and dynamically set the dimensions as usual.
+
+![Mini Bases](images/tile_types/mini_bases.png)
 ## 0.0.28 ##
 ### Asset Manager ###
 Thumbnail image cacheing has been implemented for the Asset Manager. While this means there is a slight lag the first time the asset bar is opened, navigating between folders should now be instant and there are no more files being linked in the background.

@@ -277,6 +277,46 @@ The density of the tile on creation. This cannot be changed after creation.
 #### UV Island Margin
 The gap between UV islands on the displacement texture created when you click Make3D. Tweak this is you get the texture projecting where it shouldn't.
 
+## Mini Base
+MakeTile can also generate Mini Bases in a variety of shapes - Oval, Round, Polygonal (e.g hex bases), Rectangular, and Rounded Rectangular. You can control the size and height, how much the top is inset from the bottom and after creation, whether the base is hollow or solid by ticking or unticking the "Hollow" option in the Booleans sub panel. As miniature bases are usually sized in metric the default sizes shown for each base are in cm rather than inches. When you export a mini base make sure you select cm as the export unit in the export panel.
+
+You will also need to scale your materials if you want them to appear the same on mini bases and on tiles. Simply set the Scale on the material to 0.393 in the Material Options panel. You may also want to increase the strength of the material.
+
+![Mini Bases](images/tile_types/mini_bases.png)
+*Bases with the cstom image material and a [chip texture](https://ambientcg.com/view?id=Chip004) applied*
+
+### Tile Options
+#### Base Shape
+Whether to generate an Oval, Round, Rectangular, Rounded Rectangular or Polygonal base.
+
+#### Material
+The material to apply to the top of the base.
+
+#### Base Dimensions
+##### Segments
+The number of segments to use on the rounded portions of the base. For polygonal bases this controls the number of sides.
+
+##### Height and Diameter
+The height and diameter of the base for Round and Polygonal Bases
+
+##### X, Y, Z
+For Rectangular, Oval and Rounded Rectangular bases this controls the dimensions.
+
+##### Inset
+The amount that the top of the base is inset from the bottom to give a "cone" or "pyramidal" shape.
+
+##### Wall Thickness
+The thickness of the walls of the base.
+
+##### Remove Doubles
+Because of the way the base generators work you can sometimes get doubled vertices which create glitches. By default these vertices are merged. Occasionally this can cause more problems than it fixes so you can untick merge vertices here.
+
+#### Subdivision Density
+The density of the tile on creation. This cannot be changed after creation.
+
+#### UV Island Margin
+The gap between UV islands on the displacement texture created when you click Make3D. Tweak this is you get the texture projecting where it shouldn't.
+
 ## Rectangular Floor
 Rectangular Floor Tiles create square or rectangular floors. If you wish to create wall on floor type tiles please see the [straight wall](#straight-wall) tiles.
 
@@ -291,7 +331,6 @@ The textured part of the base can be Plain or omitted with None.
 
 #### Base Socket Type
 If you choose the OpenLOCK base type you can choose from OpenLOCK or LastLOCK style sockets. LastLOCK sockets are compatible with openLOCK style clips but can also be used with ball magnets.
-
 
 #### Floor Material
 Here you can set the material to be applied to the top of the tile.

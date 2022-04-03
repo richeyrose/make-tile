@@ -1,5 +1,7 @@
+## MakeTile is Currently on pause due to other work commitments 03/04/2022
+
 # MakeTile
-A 3D printable dungeon tile creator addon for Blender 2.8x
+A 3D printable dungeon tile creator addon for Blender 3.01
 
 A series of videos on how to use MakeTile can be found on my YouTube channel here https://www.youtube.com/channel/UC7TUNzEtli-sQRj5anS7DFA
 

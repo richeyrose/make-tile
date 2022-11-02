@@ -79,6 +79,7 @@ class MT_PT_Roof_Panel(Panel):
         layout.prop(scene_props, 'base_bottom_socket_type', text="")
         # layout.prop(roof_props, 'base_side_socket_type')
         # layout.prop(roof_props, 'gable_socket_type')
+        layout.prop(scene_props, 'generate_suppports')
 
         layout.label(text="Roof Footprint")
         row = layout.row()
@@ -272,6 +273,7 @@ class MT_OT_Make_Roof(Operator, MT_Tile_Generator):
         layout.prop(self, 'base_bottom_socket_type', text="")
         # layout.prop(roof_props, 'base_side_socket_type')
         # layout.prop(roof_props, 'gable_socket_type')
+        layout.prop(scene_props, 'generate_suppports')
 
         layout.label(text="Roof Footprint")
         row = layout.row()

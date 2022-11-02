@@ -82,6 +82,7 @@ class MT_PT_Connecting_Column_Panel(Panel):
 
         if scene_props.base_blueprint not in ('PLAIN', 'NONE'):
             layout.prop(scene_props, 'base_socket_type')
+            layout.prop(scene_props, 'generate_suppports')
 
         layout.label(text="Material")
         layout.prop(scene_props, 'column_material')
@@ -202,6 +203,7 @@ class MT_OT_Make_Connecting_Column_Tile(Operator, MT_Tile_Generator):
         layout.prop(self, 'column_socket_style')
         if self.base_blueprint not in ('PLAIN', 'NONE'):
             layout.prop(self, 'base_socket_type')
+            layout.prop(scene_props, 'generate_suppports')
 
         layout.prop(self, 'displacement_thickness')
 
@@ -504,7 +506,7 @@ def spawn_openlock_L_cutters(base, tile_props):
         prefs.assets_path,
         "meshes",
         "booleans",
-        "openlock.blend")
+        "openlock.blend" if tile_props.generate_suppports else "openlockNoSupport.blend")
 
     # load side cutter and add to collection
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
@@ -598,7 +600,7 @@ def spawn_openlock_T_cutters(base, tile_props):
         prefs.assets_path,
         "meshes",
         "booleans",
-        "openlock.blend")
+        "openlock.blend" if tile_props.generate_suppports else "openlockNoSupport.blend")
 
     # load side cutter and add to collection
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
@@ -719,7 +721,7 @@ def spawn_openlock_X_cutters(base, tile_props):
         prefs.assets_path,
         "meshes",
         "booleans",
-        "openlock.blend")
+        "openlock.blend" if tile_props.generate_suppports else "openlockNoSupport.blend")
 
     # load side cutter and add to collection
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
@@ -870,7 +872,7 @@ def spawn_socket_buffers(cutters, tile_props):
         prefs.assets_path,
         "meshes",
         "booleans",
-        "openlock.blend")
+        "openlock.blend" if tile_props.generate_suppports else "openlockNoSupport.blend")
 
     # load buffer mesh
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
@@ -907,7 +909,7 @@ def spawn_openlock_I_cutters(base, tile_props):
         prefs.assets_path,
         "meshes",
         "booleans",
-        "openlock.blend")
+        "openlock.blend" if tile_props.generate_suppports else "openlockNoSupport.blend")
 
     # load side cutter and add to collection
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
@@ -991,7 +993,7 @@ def spawn_openlock_O_cutters(base, tile_props):
         prefs.assets_path,
         "meshes",
         "booleans",
-        "openlock.blend")
+        "openlock.blend" if tile_props.generate_suppports else "openlockNoSupport.blend")
 
     # load side cutter and add to collection
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):

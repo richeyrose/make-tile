@@ -472,6 +472,12 @@ class MT_Tile_Generator:
         name="Base socket type",
         description="What type of base socket to use."
     )
+    
+    generate_suppports: BoolProperty(
+        default=True,
+        name="Generate Supports",
+        description="If checked, openlock connectors will have supports generated for them."
+    )
 
     @classmethod
     def poll(cls, context):
@@ -590,7 +596,7 @@ class MT_Tile_Generator:
         """
         sockets = [
             {'socket_type': 'OPENLOCK',
-             'filename': 'openlock.blend'},
+             'filename': "openlock.blend" if self.generate_suppports else "openlockNoSupport.blend"},
             {'socket_type': 'LASTLOCK',
              'filename': 'lastlock.blend'}]
         for socket in sockets:
@@ -968,7 +974,7 @@ def load_openlock_top_peg(tile_props):
         prefs.assets_path,
         "meshes",
         "booleans",
-        "openlock.blend")
+        "openlock.blend" if tile_props.generate_suppports else "openlockNoSupport.blend")
 
     # load peg bool
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):

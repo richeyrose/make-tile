@@ -73,6 +73,7 @@ class MT_PT_Straight_Wall_Panel(Panel):
 
         if 'base_blueprint' in blueprints and scene_props.base_blueprint not in ('PLAIN', 'NONE'):
             layout.prop(scene_props, 'base_socket_type')
+            layout.prop(scene_props, 'generate_suppports')
 
         layout.label(text="Materials")
 
@@ -510,7 +511,7 @@ def spawn_openlock_wall_cutters(core, base, tile_props):
         preferences.assets_path,
         "meshes",
         "booleans",
-        "openlock.blend")
+        "openlock.blend" if tile_props.generate_suppports else "openlockNoSupport.blend")
 
     # load side cutter
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):

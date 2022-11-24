@@ -1,4 +1,4 @@
-## MakeTile is Currently on pause due to other work commitments
+## MakeTile is currently on pause due to other work commitments
 
 # MakeTile
 A 3D printable dungeon tile creator addon for Blender 3.01
@@ -12,6 +12,8 @@ Make sure you download the latest release by going to https://github.com/richeyr
 MakeTile ran a succesful Kickstarter in 2020 and you can find all the updates here https://www.kickstarter.com/projects/modmodterrain/maketile-custom-dungeon-tile-creator.
 
 MakeTile was available for a time on Gumroad after the Kickstarter finished. However since I can't guarantee to keep it up to date with the latest version of Blender at the moment I have released the latest version here.
+
+The asset manager is now deprecated as Blender now comes with its own internal one.
 
 # Feature Roadmap
 Features tagged **Community** will be available for download from this public repository.
@@ -32,9 +34,9 @@ Features tagged **Plus** will be available to Kickstarter backers who have suppo
 - [x] OpenLOCK I, L, O, T, X column tiles - Community - Complete - Released
 - [x] OpenLOCK roof pack 1 - Plus - Complete - Released
 - [x] Basic version of asset manager - Core - Complete - Released
-- [ ] Static window, door and stair models - Core - In Progress
-- [X] OpenLOCK S-Walls pack - Plus
-- [X] Additional user documentation - Community
+- [x] Static window, door and stair models - Core - Released
+- [x] OpenLOCK S-Walls pack - Plus
+- [x] Additional user documentation - Community
 
 ## Phase 3
 - [ ] OpenLOCK roof and chimney pack 2 - Plus

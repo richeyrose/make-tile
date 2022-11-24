@@ -4,7 +4,7 @@ MakeTile is a custom dungeon tile creator for [Blender](https://www.blender.org/
 
 MakeTile can also be used to generate [mini bases](tile_types#mini-base) of most shapes, either with or without a texture.
 
-After running a succesful [Kickstarter](https://www.kickstarter.com/projects/modmodterrain/maketile-custom-dungeon-tile-creator) you can now purchase the early access version of MakeTile on [Gumroad](https://gum.co/LaLVb)
+After running a succesful [Kickstarter](https://www.kickstarter.com/projects/modmodterrain/maketile-custom-dungeon-tile-creator) MakeTile was available for a time on Gumroad. I have currently had to pause development so the latest version can be found on [Github](https://github.com/richeyrose/make-tile/releases). Click on the "assets" dropdown below the latest version and download the MakeTile.zip folder.
 
 Check out my [YouTube](https://www.youtube.com/channel/UC7TUNzEtli-sQRj5anS7DFA) channel for more hints and tips.
 
@@ -15,9 +15,6 @@ Check out the latest [Release Notes](release_notes/) to see what's changed.
 2. Download the latest build of MakeTile from [Gumroad](https://gumroad.com/). If you have backed MakeTile on Kickstarter you will have received a discount code letting you download it for free. Login to your account, go to your library, hover over the MakeTile thumbnail, click on "View content" and download the ZIP file. **Do not unzip this file!!!** Blender uses the .zip file directly to install add-ons and if you unzip it the installation will silently fail.
 3. Launch Blender and click anywhere in 3D space to get rid of the splash screen.
 4. In the top menu go to **Edit** > **Preferences** > **Add-ons** > **Install...** Select the .zip file you have just downloaded and click on **Install Add-on.** After a few seconds MakeTile should appear. If it doesn't use the search box in the top right. Click on the box to the left of MakeTile to activate it. Close the preferences window.
-
-## MakeTile Asset Manager
-MakeTile comes with its' own [Asset Manager](asset_manager.md) which you can download along with MakeTile from Gumroad. Follow the same procedure as above to install this. When you first install the asset manager it will copy some assets into your user/MakeTile directory and this may take a few seconds. You'll need to select and deselect an object in the viewport for everything to update properly.
 
 ## Updating MakeTile
 1. If you update MakeTile you'll need to ensure that the old version is uninstalled properly first. In the top menu go to **Edit** > **Preferences** > **Add-ons** > **MakeTile**. Click on the down arrow to the left of MakeTile and click on **Remove**

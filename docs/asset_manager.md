@@ -1,8 +1,8 @@
 # Asset Manager
 
-The paid for version of MakeTile comes with an Asset Manager and Browser and collection of premade assets and tiles you can use. This is now compatible with the new Blender Internal Asset Browser that was introduced in Blender 3.0. It supports Materials, Collections (such as MakeTile Tiles) and Objects.
+This feature is deprecated now that Blender has its own asset manager. The documentation below is just for reference for anyone who still wants to use it and bought the commercial version from Gumroad.
 
-It is necessary to continue developing the MakeTile asset browser for now as the Blender Internal browser doesn't currently support Collections and each tile created in MakeTile is a Collection. The MakeTile asset browser also contains a number of helper functions to make it easier to save assets to separate files, organise your assets in separate folders and to edit assets. 
+The MakeTile asset browser also contains a number of helper functions to make it easier to save assets to separate files, organise your assets in separate folders and to edit assets. 
 
 It works by linking to the .blend files in the folder you navigate to and then unlinking those files when you navigate to a new folder or close the asset bar. This has the slightly annoying side effect that when the asset bar is open you are able to choose from any material in any of the linked files in the blender default material panel. Close the asset bar to see only the materials in the current file. I've also disabled cacheing for now so it can be slow to change between folders if you are using it in a scene with lots of high poly objects. This should be fixed shortly.
 

@@ -1,7 +1,7 @@
 site_name: MakeTile Docs
 nav:
   - Home: index.md
-  - Asset Manager: asset_manager.md
+  - Asset Manager (deprecated): asset_manager.md
   - Tile Types: tile_types.md
   - FAQ: faq.md
   - Licensing and Copyright: licensing.md

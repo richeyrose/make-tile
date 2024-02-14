@@ -89,6 +89,7 @@ class MT_PT_Semi_Circ_Floor_Panel(Panel):
 
         if scene_props.base_blueprint not in ('PLAIN', 'NONE'):
             layout.prop(scene_props, 'base_socket_type')
+            layout.prop(scene_props, 'generate_suppports')
 
         layout.label(text="Material")
         layout.prop(scene_props, 'floor_material')
@@ -201,6 +202,7 @@ class MT_OT_Make_Semi_Circ_Floor_Tile(Operator, MT_Tile_Generator):
 
         if self.base_blueprint not in ('PLAIN', 'NONE'):
             layout.prop(self, 'base_socket_type')
+            layout.prop(scene_props, 'generate_suppports')
 
         layout.label(text="Material")
         layout.prop(self, 'floor_material')

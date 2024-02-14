@@ -311,7 +311,7 @@ def spawn_openlock_wall_cutters(base, tile_props):
         preferences.assets_path,
         "meshes",
         "booleans",
-        "openlock.blend")
+        "openlock.blend" if tile_props.generate_suppports else "openlockNoSupport.blend")
 
     # load side cutter
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
@@ -775,7 +775,7 @@ def spawn_openlock_base_slot_cutter(tile_props):
         preferences.assets_path,
         "meshes",
         "booleans",
-        "openlock.blend")
+        "openlock.blend" if tile_props.generate_suppports else "openlockNoSupport.blend")
 
     with bpy.data.libraries.load(booleans_path) as (data_from, data_to):
         data_to.objects = [

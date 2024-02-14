@@ -15,6 +15,7 @@ def scene_tile_panel_header(scene_props, layout, blueprints, tile_type):
 
     if 'base_blueprint' in blueprints and 'OPENLOCK' in scene_props.base_blueprint:
         layout.prop(scene_props, 'base_socket_type')
+        layout.prop(scene_props, 'generate_suppports')
 
     layout.label(text="Materials")
     if tile_type == 'FLOOR':
@@ -132,6 +133,7 @@ def redo_tile_panel_header(self, layout, blueprints, tile_type):
 
     if 'base_blueprint' in blueprints and 'OPENLOCK' in self.base_blueprint:
         layout.prop(self, 'base_socket_type')
+        layout.prop(scene_props, 'generate_suppports')
 
     layout.label(text='Materials')
     if tile_type == 'FLOOR':
@@ -183,6 +185,7 @@ def redo_curved_tiles_panel(self, layout):
     """
     if self.base_blueprint not in ('PLAIN', 'NONE'):
         layout.prop(self, 'base_socket_type')
+        layout.prop(scene_props, 'generate_suppports')
 
     layout.label(text="Tile Properties")
     layout.prop(self, 'tile_z', text="Height")
